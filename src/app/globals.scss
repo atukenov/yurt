@@ -1,0 +1,39 @@
+@import 'xtreme-ui/styles';
+@import 'react-toastify/dist/ReactToastify.css';
+@import '../utils/styles/templates/ripple';
+@import '../utils/styles/templates/rupee';
+@import '../utils/styles/templates/shake';
+
+html {
+	padding: 0; margin: 0;
+	background: var(--colorBackgroundPrimary);
+	overflow-x: hidden;
+	* {
+		font-family: var(--montserrat);
+	}
+
+	--boxShadowInset: inset 0 0 8px rgb(150 150 150 / 15%);
+	--colorBackdropPrimary: rgb(0 0 0 / 70%);
+	--boxShadowGlow: 0 0 6px hsl(var(--colorBrandPrimary) 0.8);
+	--boxShadowGlowHover: 0 0 10px hsl(var(--colorBrandPrimary) 0.8);
+	--boxShadowGlowActive: 0 0 0 transparent;
+}
+
+body {
+	width: 100dvw; height: 100dvh;
+	padding: 0; margin: 0;
+	background: var(--colorBackgroundPrimary);
+	overflow-x: hidden;
+}
+
+@keyframes floatUp {
+	0% {
+		transform: translateY(20px);
+		opacity: 0;
+	}
+
+	100% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}

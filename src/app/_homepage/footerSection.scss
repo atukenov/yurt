@@ -1,0 +1,14 @@
+.footerSection {
+	position: relative;
+	width: 100%;
+	background-color: var(--colorBackgroundPrimary);
+
+	p {
+		font-size: 14px;
+		top: 60%;
+		padding: 1rem;
+		margin: 0;
+		text-align: center;
+		color: var(--colorContentPrimary);
+	}
+}

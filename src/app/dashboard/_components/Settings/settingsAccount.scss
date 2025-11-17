@@ -1,0 +1,104 @@
+.settingsAccount {
+	position: relative;
+	width: 100%;
+	padding: 15px 35px 35px;
+	display: flex;
+	flex-direction: column;
+
+	.profileSettingsCard {
+		position: relative;
+		width: 100%;
+		border-radius: 20px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: var(--colorBackgroundPrimary);
+		box-shadow: 0 10px 10px -10px rgb(0 0 0 / 10%);
+		padding: 20px 30px;
+
+		.avatar {
+			margin-right: 24px;
+		}
+
+		.restaurantDetails {
+			.name {
+				color: var(--colorContentPrimary);
+				font-size: 38px;
+				font-variation-settings: 'wdth' 75, 'wght' 500;
+				margin: 0;
+				overflow: hidden;
+				user-select: none;
+				white-space: nowrap;
+				transition: all 0.2s ease-out;
+	
+				span {
+					font-variation-settings: 'wdth' 75, 'wght' 300;
+				}
+			}
+
+			.address {
+				font-size: 18px;
+				font-variation-settings: 'wdth' 75, 'wght' 300;
+				margin: 5px 2px;
+			}
+		}
+
+		.logout {
+			margin-left: auto;
+		}
+	}
+}
+
+@media (width <= 750px) {
+	.settingsAccount {
+		padding: 10px 25px 25px;
+
+		.profileSettingsCard  {
+			.avatar {
+				display: none;
+			}
+
+			.restaurantDetails {
+				.name {
+					font-size: 32px;
+				} 
+	
+				.address {
+					font-size: 16px;
+				}
+			}
+		}
+	}
+}
+
+@media (width <= 600px) {
+	.settingsAccount {
+		.profileSettingsCard  .restaurantDetails {
+			.name {
+				font-size: 28px;
+			} 
+
+			.address {
+				font-size: 16px;
+			}
+		}
+	}
+}
+
+@media (width <= 540px) {
+	.settingsAccount {
+		.profileSettingsCard {
+			padding: 20px 25px;
+
+			.restaurantDetails {
+				.name {
+					font-size: 6vw;
+				} 
+
+				.address {
+					font-size: 3vw;
+				}
+			}
+		}
+	}
+}

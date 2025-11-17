@@ -1,0 +1,73 @@
+.themeSettings {
+	width: 100%;
+	border-radius: 20px;
+	margin-top: 30px;
+	padding: 20px 30px;
+	background: var(--colorBackgroundPrimary);
+	box-shadow: 0 10px 10px -10px rgb(0 0 0 / 10%);
+
+	.colorHeader {
+		display: flex;
+		min-height: 50px;
+		justify-content: space-between;
+		align-items: center;
+
+		.heading {
+			color: var(--colorContentPrimary);
+			font-size: 30px;
+			font-variation-settings: 'wdth' 75, 'wght' 500;
+			margin: 0;
+			overflow: hidden;
+			user-select: none;
+			white-space: nowrap;
+			transition: all 0.2s ease-out;
+
+			span {
+				font-variation-settings: 'wdth' 75, 'wght' 300;
+			}
+		}
+
+		.action {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 8px;
+
+			.clear {
+				transform: scale(0.8);
+			}
+		}
+	}
+
+	.colorPickerWrapper {
+		display: flex;
+		flex-direction: column;
+		margin: 36px 0 24px;
+
+		.spinner {
+			margin: 64px 0;
+		}
+
+		.colorPopper {
+			margin-bottom: 32px;
+		}
+	}
+}
+
+@media (width <= 460px) {
+	.themeSettings {
+		.colorHeader .heading {
+			font-size: 24px;
+		}
+	}
+}
+
+@media (width <= 420px) {
+	.themeSettings {
+		padding: 20px 25px;
+
+		.colorHeader .heading {
+			font-size: 5vw;
+		}
+	}
+}
