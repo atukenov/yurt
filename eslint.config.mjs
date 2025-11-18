@@ -1,13 +1,14 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
-import globals from "globals";
-import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import reactImport from "eslint-plugin-import";
-import pluginReact from "eslint-plugin-react";
 import eslintPluginTs from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
+import reactImport from "eslint-plugin-import";
+import prettierPlugin from "eslint-plugin-prettier";
+import pluginReact from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import globals from "globals";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,287 +16,105 @@ const __dirname = dirname(__filename);
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 const eslintConfig = [
-	...compat.extends("next/core-web-vitals", "next/typescript"),
-	{
-		ignores: ["dist"],
-		files: ["**/*.{ts,tsx}"],
-		languageOptions: {
-			parser: tsParser,
-			ecmaVersion: "latest",
-			globals: globals.browser,
-			parserOptions: {
-				project: "./tsconfig.json",
-				tsconfigRootDir: __dirname,
-				sourceType: "module",
-			},
-		},
-		plugins: {
-			react: pluginReact,
-			"react-hooks": reactHooks,
-			"react-refresh": reactRefresh,
-			import: reactImport,
-			"@typescript-eslint": eslintPluginTs,
-		},
-		settings: {
-			react: { version: "detect" },
-			"import/resolver": {
-				typescript: {},
-			},
-		},
-		rules: {
-			...reactHooks.configs.recommended.rules,
-			"react-refresh/only-export-components": [
-				"warn",
-				{ allowConstantExport: true },
-			],
-			indent: ["error", "tab", { SwitchCase: 1 }],
-			"max-len": ["error", { code: 180 }],
-			"no-return-assign": ["off"],
-			quotes: ["error", "single"],
-			"prefer-const": "error",
-			"one-var": ["error", "never"],
-			"no-trailing-spaces": "error",
-			"no-constant-condition": "error",
-			"no-debugger": "error",
-			"no-dupe-args": "error",
-			"no-dupe-keys": "error",
-			"no-duplicate-case": "error",
-			"no-empty-character-class": "error",
-			"no-extra-semi": "error",
-			"no-func-assign": "error",
-			"no-ex-assign": "error",
-			"no-invalid-regexp": "error",
-			"no-irregular-whitespace": "error",
-			"no-obj-calls": "error",
-			"no-regex-spaces": "error",
-			"no-sparse-arrays": "error",
-			"no-template-curly-in-string": "error",
-			"no-unexpected-multiline": "error",
-			"no-unsafe-negation": "error",
-			"use-isnan": "error",
-			"accessor-pairs": "error",
-			"dot-location": ["error", "property"],
-			"no-alert": "error",
-			"no-caller": "error",
-			"no-empty-pattern": "error",
-			"no-extend-native": "error",
-			"no-extra-bind": "error",
-			"no-extra-label": "error",
-			"no-floating-decimal": "error",
-			"no-implicit-globals": "error",
-			"no-implied-eval": "error",
-			"no-iterator": "error",
-			"no-labels": "error",
-			"no-lone-blocks": "error",
-			"no-multi-spaces": "error",
-			"no-new": "error",
-			"no-new-func": "error",
-			"no-new-wrappers": "error",
-			"no-octal": "error",
-			"no-octal-escape": "error",
-			"no-proto": "error",
-			"no-script-url": "error",
-			"no-self-assign": "error",
-			"no-self-compare": "error",
-			"no-undef": "error",
-			"no-unmodified-loop-condition": "error",
-			"no-unused-labels": "error",
-			"no-useless-call": "error",
-			"no-void": "error",
-			"no-with": "error",
-			yoda: "error",
-			"no-delete-var": "error",
-			"no-label-var": "error",
-			"no-restricted-globals": "error",
-			"no-shadow-restricted-names": "error",
-			"no-undef-init": "error",
-			"no-new-require": "error",
-			"no-restricted-modules": "error",
-			"array-bracket-spacing": "error",
-			"block-spacing": "error",
-			"comma-dangle": ["error", "always-multiline"],
-			"comma-spacing": [2, { before: false, after: true }],
-			"comma-style": ["error", "last"],
-			"computed-property-spacing": "error",
-			"consistent-this": "warn",
-			"eol-last": "error",
-			"func-call-spacing": "error",
-			"id-blacklist": "error",
-			"id-match": "error",
-			"key-spacing": "error",
-			"keyword-spacing": "error",
-			"linebreak-style": ["error", "unix"],
-			"lines-around-comment": [
-				"error",
-				{
-					beforeBlockComment: true,
-					afterBlockComment: false,
-					beforeLineComment: true,
-					afterLineComment: false,
-					allowBlockStart: true,
-					allowBlockEnd: false,
-					allowObjectStart: true,
-					allowObjectEnd: false,
-					allowArrayStart: true,
-					allowArrayEnd: false,
-				},
-			],
-			"no-array-constructor": "error",
-			"max-nested-callbacks": "error",
-			"new-parens": "error",
-			"no-multiple-empty-lines": [
-				"error",
-				{ max: 1, maxEOF: 0, maxBOF: 0 },
-			],
-			"no-new-object": "error",
-			"no-whitespace-before-property": "error",
-			"object-curly-newline": "off",
-			"object-curly-spacing": ["error", "always"],
-			"require-jsdoc": "off",
-			semi: "error",
-			"semi-spacing": "error",
-			"space-before-blocks": "error",
-			"space-before-function-paren": "error",
-			"space-in-parens": "error",
-			"space-infix-ops": "error",
-			"space-unary-ops": "error",
-			"spaced-comment": "error",
-			"wrap-regex": "error",
-			"arrow-parens": ["error", "always"],
-			"arrow-spacing": "error",
-			"constructor-super": "error",
-			"generator-star-spacing": "error",
-			"no-class-assign": "error",
-			"no-confusing-arrow": "error",
-			"no-const-assign": "error",
-			"no-new-symbol": "error",
-			"no-duplicate-imports": "error",
-			"no-this-before-super": "error",
-			"require-yield": "error",
-			"rest-spread-spacing": ["error", "never"],
-			"template-curly-spacing": "error",
-			"yield-star-spacing": "error",
-			"no-extra-boolean-cast": "error",
-			"one-var-declaration-per-line": "error",
-			"no-unreachable": "error",
+  ...compat.extends(
+    "next/core-web-vitals",
+    "next/typescript",
+    "prettier", // ⬅ главное: отключает все конфликтующие правила
+  ),
+  {
+    ignores: ["dist"],
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tsParser,
+      ecmaVersion: "latest",
+      globals: globals.browser,
+      parserOptions: {
+        project: "./tsconfig.json",
+        tsconfigRootDir: __dirname,
+        sourceType: "module",
+      },
+    },
+    plugins: {
+      react: pluginReact,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+      import: reactImport,
+      "@typescript-eslint": eslintPluginTs,
+      prettier: prettierPlugin,
+    },
+    settings: {
+      react: { version: "detect" },
+      "import/resolver": {
+        typescript: {},
+      },
+    },
 
-			"react-refresh/only-export-components": "warn",
+    rules: {
+      // 🟦 React Hooks
+      ...reactHooks.configs.recommended.rules,
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "error",
 
-			"import/first": "error",
-			"import/named": "error",
-			"import/no-commonjs": "error",
-			"import/newline-after-import": "error",
-			"import/no-self-import": "error",
-			"import/no-unresolved": "error",
-			"import/no-namespace": "error",
-			"import/order": [
-				"error",
-				{
-					groups: [
-						"builtin",
-						"external",
-						"internal",
-						"parent",
-						"sibling",
-						"unknown",
-						"index",
-						"object",
-						"type",
-					],
-					pathGroups: [
-						{ pattern: "react", group: "builtin" },
-						{ pattern: "react-native", group: "builtin" },
-						{
-							pattern: "@nozbe/**",
-							group: "builtin",
-							position: "after",
-						},
-					],
-					pathGroupsExcludedImportTypes: [],
-					"newlines-between": "always",
-					alphabetize: { order: "asc", caseInsensitive: false },
-					warnOnUnassignedImports: true,
-				},
-			],
-			"no-restricted-imports": [
-				"error",
-				{
-					paths: [
-						{
-							name: "lodash",
-							message:
-								"Import [module] from lodash/[module] instead",
-						},
-					],
-					patterns: [
-						{
-							group: ["lodash/set"],
-							message:
-								"Import [module] from lodash/fp/[module] instead",
-						},
-					],
-				},
-			],
+      // 🟦 React rules
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      "react/react-in-jsx-scope": "off",
 
-			"react/react-in-jsx-scope": "off",
-			"react/jsx-uses-react": "error",
-			"react/jsx-uses-vars": "error",
-			"react/jsx-wrap-multilines": "error",
-			"react/jsx-indent": ["error", "tab"],
-			"react/jsx-indent-props": ["error", "tab"],
-			"react/no-danger": "error",
-			"react/no-danger-with-children": "error",
-			"react/no-did-update-set-state": "error",
-			"react/no-direct-mutation-state": "error",
-			"react/no-is-mounted": "error",
-			"react/no-render-return-value": "error",
-			"react/no-unknown-property": "error",
-			"react/require-render-return": "error",
-			"react/self-closing-comp": "error",
-			"react/jsx-boolean-value": ["error", "never"],
-			"react/jsx-closing-bracket-location": ["error", "tag-aligned"],
-			"react/jsx-curly-spacing": ["error", "never"],
-			"react/jsx-equals-spacing": ["error", "never"],
-			"react/jsx-key": "error",
-			"react/jsx-no-comment-textnodes": "error",
-			"react/jsx-no-target-blank": "error",
-			"react/jsx-pascal-case": "error",
-			"react/jsx-filename-extension": ["error", { extensions: [".tsx"] }],
-			"react/jsx-tag-spacing": [
-				"error",
-				{
-					closingSlash: "never",
-					beforeSelfClosing: "always",
-					afterOpening: "never",
-					beforeClosing: "never",
-				},
-			],
+      // 🟦 Imports
+      "import/order": [
+        "error",
+        {
+          groups: [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "unknown",
+            "index",
+            "object",
+            "type",
+          ],
+          pathGroups: [
+            { pattern: "react", group: "builtin" },
+            { pattern: "react-native", group: "builtin" },
+            {
+              pattern: "@nozbe/**",
+              group: "builtin",
+              position: "after",
+            },
+          ],
+          pathGroupsExcludedImportTypes: [],
+          "newlines-between": "always",
+          alphabetize: { order: "asc", caseInsensitive: false },
+        },
+      ],
+      "import/no-unresolved": "error",
+      "import/no-commonjs": "error",
 
-			"@typescript-eslint/no-unused-vars": [
-				"warn",
-				{
-					vars: "all",
-					args: "after-used",
-					ignoreRestSiblings: false,
-				},
-			],
-			"@typescript-eslint/ban-ts-comment": [
-				"warn",
-				{
-					"ts-expect-error": true,
-					"ts-ignore": true,
-					"ts-nocheck": true,
-					"ts-check": false,
-					minimumDescriptionLength: 0,
-				},
-			],
-			"@typescript-eslint/no-unused-expressions": "off",
+      // 🟦 Typescript
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          vars: "all",
+          args: "after-used",
+          ignoreRestSiblings: true,
+        },
+      ],
+      "@typescript-eslint/ban-ts-comment": "warn",
 
-			"jsx-quotes": ["error", "prefer-single"],
-			"react-hooks/rules-of-hooks": "error",
-			"react-hooks/exhaustive-deps": "error",
-		},
-	},
+      // 🟦 Base JS rules
+      "no-debugger": "error",
+      "no-undef": "error",
+      "prefer-const": "error",
+
+      // 🟦 Formatting handled by Prettier
+      // ❗ ВАЖНО: удалены все конфликтующие правила (quotes, semi, indent, max-len и т.д.)
+      "prettier/prettier": "error",
+    },
+  },
 ];
 
 export default eslintConfig;

@@ -1,17 +1,18 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { QrReader } from 'react-qr-reader';
+import { useRouter } from "next/navigation";
 
-import './scan.scss';
+// import { QrReader } from 'react-qr-reader';
+
+import "./scan.scss";
 
 const Scanner = () => {
-	const router = useRouter();
+  const router = useRouter();
 
-	return (
-		<div className='scanner'>
-			<h4 className='brandLogo'>Order Worder</h4>
-			<QrReader
+  return (
+    <div className="scanner">
+      <h4 className="brandLogo">Order Worder</h4>
+      {/* <QrReader
 				className='scannerPreview'
 				constraints={{ facingMode: 'environment' }}
 				scanDelay={300}
@@ -22,10 +23,10 @@ const Scanner = () => {
 
 					router.replace(url.substring(url.indexOf('/', url.indexOf('://') + 3)));
 				}}
-			/>
-			<p className='scannerDescription'>Please scan QR code on Your table</p>
-		</div>
-	);
+			/> */}
+      <p className="scannerDescription">Please scan QR code on Your table</p>
+    </div>
+  );
 };
 
 export default Scanner;
