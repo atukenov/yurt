@@ -1,3 +1,4 @@
+import { FaCog, FaReceipt } from "react-icons/fa";
 import { capitalize } from "xtreme-ui";
 
 import { DashboardProvider } from "#components/context";
@@ -7,8 +8,8 @@ import PageContainer from "./_components/PageContainer";
 import "./dashboard.scss";
 
 const navItems = [
-  { label: "orders", icon: "e43b", value: "orders" },
-  { label: "settings", icon: "f013", value: "settings" },
+  { label: "orders", icon: <FaReceipt />, value: "orders" },
+  { label: "settings", icon: <FaCog />, value: "settings" },
 ];
 
 export async function generateMetadata({ searchParams }: IMetaDataProps) {

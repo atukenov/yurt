@@ -94,21 +94,28 @@
 				align-items: center;
 				border-radius: 14px;
 
-				i {
-					position: absolute;
-					margin-left: 14px;
-				}
+						/* target <i> elements, svg icons, and the Icon component's class */
+						i,
+						.navIcon,
+						svg {
+							position: absolute;
+							margin-left: 14px;
+							color: white; /* show icon in white even when inactive */
+							fill: white; /* in case Icon renders svg */
+							stroke: white; /* safer for outlined svgs */
+							transition: all 0.2s ease-out;
+						}
 
 				p {
 					position: absolute;
 					text-align: center;
 					font-variation-settings: 'wdth' 75, 'wght' 500;
 					font-size: 14px;
-					color: var(--colorContentSecondary);
+					color: white; /* show label text in white even when inactive */
 					text-transform: capitalize;
 					user-select: none;
 					margin: 0 0 0 48px;
-					opacity: 0;
+					opacity: 1; /* make labels visible by default */
 					transform: translateX(0);
 					transition: transform 0.1s ease-out;
 				}
@@ -151,7 +158,10 @@
 
 				&.active {
 					.navItemContent {
-						i {
+						/* mobile active icon transform */
+						i,
+						.navIcon,
+						svg {
 							transform: translateY(-7px) scale(0.8);
 						}
 
@@ -167,11 +177,14 @@
 					flex-direction: column;
 					justify-content: center;
 
-					i {
-						position: relative;
-						margin: 0;
-						transition: all 0.2s ease-out;
-					}
+						/* mobile icon layout */
+						i,
+						.navIcon,
+						svg {
+							position: relative;
+							margin: 0;
+							transition: all 0.2s ease-out;
+						}
 
 					p {
 						position: absolute;

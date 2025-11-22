@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Icon } from "xtreme-ui";
 
 import { useQueryParams } from "#utils/hooks/useQueryParams";
 
@@ -44,11 +43,7 @@ const NavSideBar = (props: TNavSideBar) => {
               onClick={() => onNavClick(item.value)}
             >
               <div className="navItemContent">
-                <Icon
-                  code={item.icon}
-                  size={20}
-                  type={active ? "solid" : "duotone"}
-                />
+                <span className="navIcon">{item.icon}</span>
                 <p>{item.label}</p>
               </div>
             </div>
@@ -62,7 +57,7 @@ const NavSideBar = (props: TNavSideBar) => {
 export default NavSideBar;
 
 type TNavSideBar = {
-  navItems: Array<{ label: string; value: string; icon: string }>;
+  navItems: Array<{ label: string; value: string; icon: ReactNode }>;
   defaultTab: string;
   head?: boolean;
   foot?: boolean;

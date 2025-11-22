@@ -1,9 +1,8 @@
 import { ReactNode } from "react";
 
+import PreloadCss from "#components/base/PreloadCss";
 import { GlobalProvider } from "#components/context";
 import { montserrat } from "#utils/helper/fontHelper";
-
-import PreloadCss from "#components/base/PreloadCss";
 import "./globals.scss";
 
 export const metadata = {
@@ -15,7 +14,9 @@ export default function RootLayout({ children }: IRootProps) {
       <head>
         <PreloadCss />
       </head>
-      <GlobalProvider>{children}</GlobalProvider>
+      <body>
+        <GlobalProvider>{children}</GlobalProvider>
+      </body>
     </html>
   );
 }

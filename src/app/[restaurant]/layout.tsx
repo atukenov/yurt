@@ -1,27 +1,29 @@
-/* eslint-disable react/no-danger */
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
-import { themeController } from 'xtreme-ui';
+import Script from "next/script";
+import { themeController } from "xtreme-ui";
 
-import { getThemeColor } from '#utils/database/helper/getThemeColor';
+import { getThemeColor } from "#utils/database/helper/getThemeColor";
 
-export default async function RootLayout ({ children, params }: IRootProps) {
-	const themeColor = await getThemeColor((await params).restaurant);
-	return (
-		<>
-			<head>
-				<script dangerouslySetInnerHTML={{ __html: themeController({color: themeColor}) }} suppressHydrationWarning />
-			</head>
-			<body suppressHydrationWarning>
-				{ children }
-			</body>
-		</>
-	);
+export default async function RootLayout({ children, params }: IRootProps) {
+  const themeColor = await getThemeColor((await params).restaurant);
+  return (
+    <>
+      <Script
+        id="xtreme-theme-restaurant"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: themeController({ color: themeColor }),
+        }}
+      />
+      {children}
+    </>
+  );
 }
 
 interface IRootProps {
-	children?: ReactNode;
-	params: {
-		restaurant: string;
-	};
+  children?: ReactNode;
+  params: {
+    restaurant: string;
+  };
 }
