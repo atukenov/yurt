@@ -2,8 +2,8 @@ import { SyntheticEvent, UIEvent, useEffect, useMemo, useRef, useState } from 'r
 
 import { signOut, useSession } from 'next-auth/react';
 import { ActionCard, Button, Spinner } from 'xtreme-ui';
+import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight, FaShoppingCart, FaTh } from 'react-icons/fa';
 
-import Icon from '#components/base/Icon';
 import SearchButton from '#components/base/SearchButton';
 import SideSheet from '#components/base/SideSheet';
 import { useOrder, useRestaurant } from '#components/context/useContext';
@@ -168,12 +168,12 @@ const OrderPage = () => {
 							<Button className='loginButton' label={showOrderButton ? 'Order' : 'Scan'} onClick={onLoginClick} />
 						}
 						{
-							eligibleToOrder &&
-							<Button
-								icon='e43b'
-								label={(selectedProducts?.length > 0 ? selectedProducts?.length : '') + ''}
-								onClick={() => setSideSheetOpen(true)}
-							/>
+						eligibleToOrder &&
+						<Button
+							icon='e43b'
+							label={(selectedProducts?.length > 0 ? selectedProducts?.length : '') + ''}
+							onClick={() => setSideSheetOpen(true)}
+						/>
 						}
 						{
 						session.data?.role === 'admin' &&
@@ -198,7 +198,7 @@ const OrderPage = () => {
 				{
 					selectedAddress && (
 						<div className='selectedAddress'>
-							<Icon code='f3c5' />
+							<FaMapMarkerAlt />
 							<span>{selectedAddress}</span>
 						</div>
 					)
@@ -220,10 +220,10 @@ const OrderPage = () => {
 							}
 							<div className='space' />
 							<div className={`scrollLeft ${leftCategoryScroll ? 'show' : ''}`} onClick={categoryScrollLeft}>
-								<Icon code='f053' />
+								<FaChevronLeft />
 							</div>
 							<div className={`scrollRight ${rightCategoryScroll ? 'show' : ''}`} onClick={categoryScrollRight}>
-								<Icon code='f054' />
+								<FaChevronRight />
 							</div>
 						</div>
 					</div>
