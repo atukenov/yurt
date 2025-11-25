@@ -1,4 +1,6 @@
 import { capitalize } from "xtreme-ui";
+import { FaHome, FaStar, FaPhone, FaSignOutAlt } from "react-icons/fa";
+import { MdRestaurantMenu } from "react-icons/md";
 
 import { CustomerProvider } from "#components/context";
 import NavSideBar from "#components/layout/NavSideBar";
@@ -7,11 +9,11 @@ import PageContainer from "./_components/PageContainer";
 import "./restaurant.scss";
 
 const navItems = [
-  { label: "explore", value: "explore", icon: "f015" },
-  { label: "menu", value: "menu", icon: "e3e3" },
-  { label: "reviews", value: "reviews", icon: "f4ad" },
-  { label: "contact", value: "contact", icon: "f8d3" },
-  { label: "sign out", value: "signout", icon: "f011" },
+  { label: "explore", value: "explore", icon: <FaHome /> },
+  { label: "menu", value: "menu", icon: <MdRestaurantMenu /> },
+  { label: "reviews", value: "reviews", icon: <FaStar /> },
+  { label: "contact", value: "contact", icon: <FaPhone /> },
+  { label: "sign out", value: "signout", icon: <FaSignOutAlt /> },
 ];
 
 export async function generateMetadata({

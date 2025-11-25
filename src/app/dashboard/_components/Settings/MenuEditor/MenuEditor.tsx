@@ -1,8 +1,9 @@
 import { UIEvent, useRef, useState } from "react";
 
 import { toast } from "react-toastify";
-import { Button, Icon, Spinner } from "xtreme-ui";
+import { Button, Spinner } from "xtreme-ui";
 
+import Icon from "#components/base/Icon";
 import { useAdmin } from "#components/context/useContext";
 import { TMenu } from "#utils/database/models/menu";
 
@@ -86,13 +87,13 @@ const MenuEditor = () => {
           className={`scrollLeft ${leftCategoryScroll ? "show" : ""}`}
           onClick={categoryScrollLeft}
         >
-          <Icon code="f053" type="solid" />
+          <Icon code="f053" />
         </div>
         <div
           className={`scrollRight ${rightCategoryScroll ? "show" : ""}`}
           onClick={categoryScrollRight}
         >
-          <Icon code="f054" type="solid" />
+          <Icon code="f054" />
         </div>
       </div>
       <div className="menuItemEditor">
@@ -118,7 +119,6 @@ const MenuEditor = () => {
         className={`menuEditorAdd ${modalState ? "active" : ""}`}
         onClick={() => setModalState("newState")}
         icon="2b"
-        iconType="solid"
       />
     </div>
   );

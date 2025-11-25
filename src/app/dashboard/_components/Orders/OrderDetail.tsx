@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 
 import { useSearchParams } from "next/navigation";
-import { Button, Icon } from "xtreme-ui";
+import { Button } from "xtreme-ui";
 
+import Icon from "#components/base/Icon";
 import Collapsible from "#components/layout/Collapsible";
 import NoContent from "#components/layout/NoContent";
 import { TMenu } from "#utils/database/models/menu";
@@ -39,7 +40,6 @@ const OrderDetail = (props: TOrderDetailProps) => {
             className="reject"
             type="primaryDanger"
             icon="f00d"
-            iconType="solid"
             onClick={() => {
               setReject({
                 _id: !reject ? data._id.toString() : null,
@@ -51,7 +51,6 @@ const OrderDetail = (props: TOrderDetailProps) => {
           <Button
             className="accept"
             icon="f00c"
-            iconType="solid"
             label={!reject ? "Complete" : "Yes do it!"}
             onClick={() => action(data._id.toString())}
             loading={busy}
@@ -65,7 +64,6 @@ const OrderDetail = (props: TOrderDetailProps) => {
           className="reject"
           type="primaryDanger"
           icon="f00d"
-          iconType="solid"
           onClick={() => {
             setReject({
               _id: !reject ? data._id.toString() : null,
@@ -77,7 +75,6 @@ const OrderDetail = (props: TOrderDetailProps) => {
         <Button
           className="accept"
           icon="f00c"
-          iconType="solid"
           label={!reject ? "Accept" : "Yes do it!"}
           onClick={() => action(data._id.toString())}
           loading={busy}
@@ -94,16 +91,16 @@ const OrderDetail = (props: TOrderDetailProps) => {
             {!reject ? `Table: ${data?.table}` : "Are you sure?"}
           </h1>
           <div className="name">
-            <Icon code="f007" type="solid" size={16} />
+            <Icon code="f007" size={16} />
             {data?.customer?.fname} {data?.customer?.lname}
           </div>
           <div className="phone">
-            <Icon code="f095" type="solid" size={16} />
+            <Icon code="f095" size={16} />
             {data?.customer?.phone}
           </div>
           {data?.orderTotal && (
             <div className="total">
-              <Icon code="e1bc" type="solid" size={16} />
+              <Icon code="e1bc" size={16} />
               {data?.orderTotal}
             </div>
           )}

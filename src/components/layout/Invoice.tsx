@@ -7,7 +7,7 @@ import './invoice.scss';
 const InvoiceBillItem = (props) => {
 	return (<div className='invoiceBillItem'>
 		<p className='billName'>{props.name + (props.taxPercent ? ` (${props.taxPercent}%)` : '')}</p>
-		<p className='billAmount rupee'>{props.amount}</p>
+		<p className='billAmount tenge'>{props.amount}</p>
 	</div>);
 };
 
@@ -45,8 +45,8 @@ const Invoice = (props: TInvoiceProps) => {
 							<div className='invoiceItemCard' key={key}>
 								<p className='invoiceItemName'>{item.name}</p>
 								<div className='invoiceItemPrice'>
-									<p className='rupee'>{item.price}<span>✕</span>{item.quantity}</p>
-									<p className='rupee'>{item.price * item.quantity}</p>
+									<p className='tenge'>{item.price}<span>✕</span>{item.quantity}</p>
+									<p className='tenge'>{item.price * item.quantity}</p>
 								</div>
 							</div>
 						))

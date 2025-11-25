@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-import { Icon } from 'xtreme-ui';
+import Icon from './Icon';
 
 import './searchButton.scss';
 

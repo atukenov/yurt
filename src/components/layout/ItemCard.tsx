@@ -34,16 +34,16 @@ const ItemCard = (props: TItemCardProps) => {
 						<p className='title'>{item.name}</p>
 						<div className='footer'>
 							<div className='price'>
-								{!staticCard && <p className='rupee'>{ getTotalPrice() }</p>}
+								{!staticCard && <p className='tenge'>{ getTotalPrice() }</p>}
 								{
-									staticCard && <p className='rupee'>
+									staticCard && <p className='tenge'>
 										{ item.price } <span>✕</span> {item.quantity}
 									</p>
 								}
 							</div>
 							{
 								staticCard
-									? <div className='totalAmount rupee'>{ getTotalPrice() }</div>
+									? <div className='totalAmount tenge'>{ getTotalPrice() }</div>
 									: (
 										<QuantityButton className='addToCart'
 											quantity={item.quantity}

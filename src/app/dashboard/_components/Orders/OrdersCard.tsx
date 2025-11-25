@@ -23,7 +23,7 @@ const OrdersCard = (props: TOrdersCard) => {
 					<Button
 						className='accept'
 						size='mini'
-						icon='f00c' iconType='solid'
+						icon='f00c'
 						label={!props.reject ? 'Complete' : 'Yes do it!'}
 						onClick={() => action?.(data._id.toString())}
 						loading={busy}
@@ -31,7 +31,7 @@ const OrdersCard = (props: TOrdersCard) => {
 					{
 						!busy &&
 						<Button className='reject' size='mini'
-							type='primaryDanger' icon='f00d' iconType='solid'
+							type='primaryDanger' icon='f00d'
 							label={!reject ? 'Cancel' : 'No Don\'t'}
 							onClick={() => {
 								setReject?.({
@@ -48,7 +48,7 @@ const OrdersCard = (props: TOrdersCard) => {
 			<div className='options'>
 				<Button className='accept' label={!reject ? 'Accept' : 'Yes do it!'}
 					size='mini'
-					icon='f00c' iconType='solid'
+					icon='f00c'
 					onClick={() => action?.(data._id.toString())} loading={busy}
 				/>
 				{
@@ -56,7 +56,7 @@ const OrdersCard = (props: TOrdersCard) => {
 					<Button
 						className='reject'
 						size='mini'
-						type='primaryDanger' icon='f00d' iconType='solid'
+						type='primaryDanger' icon='f00d'
 						onClick={() => {
 							setReject?.({
 								_id: !reject ? data._id.toString() : null,
@@ -89,7 +89,7 @@ const OrdersCard = (props: TOrdersCard) => {
 				{
 					!data?.products?.length
 						? <p className='noContent'>No orders yet</p>
-						: <p className='total rupee' onClick={() => showDetails?.(true)}>{data?.orderTotal}</p>
+						: <p className='total tenge' onClick={() => showDetails?.(true)}>{data?.orderTotal}</p>
 				}
 				<OptionButtons />
 			</div>

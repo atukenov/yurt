@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
 
 import clsx from 'clsx';
-import { Icon } from 'xtreme-ui';
+
+import Icon from '#components/base/Icon';
 
 import './collapsible.scss';
 
@@ -20,7 +21,7 @@ const Collapsible = (props: TCollapsibleProps) => {
 			<div className='collapsibleHeader' onClick={() => setExpand(!expand)}>
 				<p className='label'>{label}</p>
 				{alert && <span className='alertLabel'>{alert}</span>}
-				<Icon className='arrow' code='f063' type='solid' />
+				<Icon className='arrow' code='f063' />
 			</div>
 			<div className='collapsibleContent'>
 				{expand && children}

@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { useInView } from 'react-intersection-observer';
-import { Icon } from 'xtreme-ui';
+
+import Icon from '#components/base/Icon';
 
 import QuantityButton from '#components/base/QuantityButton';
 import { TMenu } from '#utils/database/models/menu';
@@ -43,7 +44,7 @@ const MenuCard = (props: TMenuCardProps) => {
 					{
 						item.veg &&
 						<div className={`vegIcon ${item.veg}`}>
-							<Icon className='icon' type='duotone' size={16} code={vegIcon[item.veg]} />
+							<Icon className='icon' size={16} code={vegIcon[item.veg]} />
 							<span className='label'>{item.veg.replace(/-/g, ' ')}</span>
 						</div>
 					}
@@ -59,7 +60,7 @@ const MenuCard = (props: TMenuCardProps) => {
 						</div>
 						{ !item.image && <div className='description'>{item.description}</div> }
 						<div className='footer'>
-							{!item.image && <div className='priceNoImage rupee'>{item.price}</div>}
+							{!item.image && <div className='priceNoImage tenge'>{item.price}</div>}
 							<QuantityButton className='addToCart' quantity={quantity} filled
 								increaseQuantity={() => props.increaseQuantity(item)}
 								decreaseQuantity={() => props.decreaseQuantity(item)}
@@ -68,7 +69,7 @@ const MenuCard = (props: TMenuCardProps) => {
 					</div>
 					{
 						item.image &&
-						<div className='price rupee'>
+						<div className='price tenge'>
 							<div className='ribbonTop' />
 							<div className='ribbonBottom' />
 							<span>{item.price}</span>

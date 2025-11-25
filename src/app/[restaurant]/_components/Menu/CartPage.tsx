@@ -172,9 +172,9 @@ const CartPage = (props: TCartPageProps) => {
               ) : (
                 <>
                   <p>Sub Total</p>
-                  <span className="totalValue rupee">{order?.orderTotal} </span>
+                  <span className="totalValue tenge">{order?.orderTotal} </span>
                   {order?.orderTotal && (
-                    <span className="plusTaxes"> + ₹{order?.taxTotal} Tax</span>
+                    <span className="plusTaxes"> + ₸{order?.taxTotal} Tax</span>
                   )}
                 </>
               )}
@@ -182,7 +182,6 @@ const CartPage = (props: TCartPageProps) => {
           )}
           <div className="cartAction">
             <Button
-              iconType="solid"
               size="mini"
               icon={
                 bottomBarActive

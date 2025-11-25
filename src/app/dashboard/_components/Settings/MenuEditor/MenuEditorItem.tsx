@@ -35,12 +35,11 @@ const MenuEditorItem = (props: TMenuEditorItemProps) => {
           <div className="menuItemData">
             <h5 className="menuItemTitle">{item.name}</h5>
             <p className="menuItemDesc">{item.description}</p>
-            <p className="menuItemPrice rupee">{item.price}</p>
+            <p className="menuItemPrice tenge">{item.price}</p>
           </div>
           <div className="menuItemOptions">
             <Button
               icon={item.hidden ? "f070" : "f06e"}
-              iconType="solid"
               size="mini"
               type={item.hidden ? "secondary" : "primary"}
               label={isMobile ? undefined : item.hidden ? "Hidden" : "Visible"}
@@ -49,7 +48,6 @@ const MenuEditorItem = (props: TMenuEditorItemProps) => {
             />
             <Button
               icon="f304"
-              iconType="solid"
               size="mini"
               type="primary"
               onClick={() => onEdit(item)}

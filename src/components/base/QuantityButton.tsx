@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import { Icon } from 'xtreme-ui';
+
+import Icon from './Icon';
 
 import './quantityButton.scss';
 
@@ -17,7 +18,7 @@ const QuantityButton = (props: TQuantityButtonProps) => {
 		<div className={classList}>
 			<div className='hiddenContainer'>
 				{!props.disabled && <div className='quantity decrease' onClick={decreaseQuantity}>
-					<Icon code='2d' type='solid' />
+					<Icon code='2d' />
 				</div>}
 				<div className='value'>
 					{disabled && <Icon code='f00d' />}
@@ -25,7 +26,7 @@ const QuantityButton = (props: TQuantityButtonProps) => {
 				</div>
 			</div>
 			{!disabled && <div className='quantity increase' onClick={increaseQuantity}>
-				{quantity ? <Icon code='2b' type='solid' size={16} /> : 'Add' }
+				{quantity ? <Icon code='2b' size={16} /> : 'Add' }
 			</div>}
 		</div>
 	);

@@ -43,11 +43,10 @@ const ThemeSettings = () => {
 							className='clear'
 							type='secondaryDanger'
 							icon='f00d'
-							iconType='solid'
 							disabled={loading}
 							onClick={onClear}
 						/>
-						<Button className='save' icon='f00c' iconType='solid' label='Apply' loading={loading} onClick={onSave} />
+						<Button className='save' icon='f00c' label='Apply' loading={loading} onClick={onSave} />
 					</div>
 				}
 			</div>

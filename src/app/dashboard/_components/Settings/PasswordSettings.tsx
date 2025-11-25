@@ -89,11 +89,10 @@ const PasswordSettings = () => {
 							className='clear'
 							type='secondaryDanger'
 							icon='f00d'
-							iconType='solid'
 							disabled={loading}
 							onClick={onClear}
 						/>
-						<Button className='save' icon='f00c' iconType='solid' label='Change' loading={loading} onClick={onSave} />
+						<Button className='save' icon='f00c' label='Change' loading={loading} onClick={onSave} />
 					</div>
 				}
 			</div>

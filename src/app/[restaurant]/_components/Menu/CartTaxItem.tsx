@@ -9,7 +9,7 @@ const CartTaxItem = (props: TCartTaxItemProps) => {
 		<div className={clsx('cartTaxItem', className, size)} onClick={onClick}>
 			<p className='taxName'>{name + (taxPercent ? ` (${taxPercent}%)` : '')}</p>
 			{subtitle && <p className='subtitle'>{subtitle}</p>}
-			<p className='taxAmount rupee'>{roundAmount}</p>
+			<p className='taxAmount tenge'>{roundAmount}</p>
 		</div>
 	);
 };

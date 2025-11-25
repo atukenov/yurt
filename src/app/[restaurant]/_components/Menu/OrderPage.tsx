@@ -1,8 +1,9 @@
 import { SyntheticEvent, UIEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import { signOut, useSession } from 'next-auth/react';
-import { ActionCard, Button, Icon, Spinner } from 'xtreme-ui';
+import { ActionCard, Button, Spinner } from 'xtreme-ui';
 
+import Icon from '#components/base/Icon';
 import SearchButton from '#components/base/SearchButton';
 import SideSheet from '#components/base/SideSheet';
 import { useOrder, useRestaurant } from '#components/context/useContext';
@@ -175,24 +176,22 @@ const OrderPage = () => {
 							/>
 						}
 						{
-							session.data?.role === 'admin' &&
-							<Button
-								className='dashboardButton'
-								label='Dashboard'
-								icon='e09f'
-								iconType='solid'
-								onClick={() => params.router.push('/dashboard')}
-							/>
+						session.data?.role === 'admin' &&
+						<Button
+							className='dashboardButton'
+							label='Dashboard'
+							icon='e09f'
+							onClick={() => params.router.push('/dashboard')}
+						/>
 						}
 						{
-							session.data?.role === 'kitchen' &&
-							<Button
-								className='kitchenButton'
-								label='Kitchen'
-								icon='e09f'
-								iconType='solid'
-								onClick={() => params.router.push('/kitchen')}
-							/>
+						session.data?.role === 'kitchen' &&
+						<Button
+							className='kitchenButton'
+							label='Kitchen'
+							icon='e09f'
+							onClick={() => params.router.push('/kitchen')}
+						/>
 						}
 					</div>
 				</div>
