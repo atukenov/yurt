@@ -72,21 +72,27 @@ const kitchens = [
     restaurantID: "altyncup",
     username: "altyncupKitchen1",
     password: "123456",
+    address: "Indiranagar, Benagaluru",
+  },
+  {
+    restaurantID: "altyncup",
+    username: "altyncupKitchen2",
+    password: "123456",
+    address: "Koramangala, Benagaluru",
+  },
+  {
+    restaurantID: "altyncup",
+    username: "altyncupKitchen3",
+    password: "123456",
+    address: "MG Road, Benagaluru",
   },
 ];
-
-const tables = Array.from({ length: 5 }, (_, i) => ({
-  restaurantID: "altyncup",
-  name: "Table " + i,
-  username: i.toString(),
-}));
 
 const altyncup = {
   account,
   profile,
   menus,
   kitchens,
-  tables,
 };
 
 export default altyncup;

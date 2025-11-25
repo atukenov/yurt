@@ -23,7 +23,6 @@ const OrderPage = () => {
 
 	const menus = restaurant?.menus as Array<TMenuCustom>;
 	const params = useQueryParams();
-	const table = params.get('table');
 	const searchParam = params.get('search')?.trim() ?? '';
 	const categoryParam = params.get('category')?.trim();
 	const category = useMemo(() => (categoryParam ? categoryParam.split(',') : []), [categoryParam]);
@@ -48,7 +47,8 @@ const OrderPage = () => {
 	const [hasImageItems, setHasImageItems] = useState(false);
 	const [hasNonImageItems, setHasNonImageItems] = useState(false);
 
-	const showOrderButton = restaurant?.tables?.some(({ username }) => username === table);
+	// Allow ordering if address is selected
+	const showOrderButton = !!selectedAddress;
 	const eligibleToOrder = session.data?.role === 'customer' && showOrderButton;
 
 	const onMenuScroll = (event: UIEvent<HTMLDivElement>) => {
@@ -84,8 +84,8 @@ const OrderPage = () => {
 		params.set({ category: newCategory.join(',') });
 	};
 	const onLoginClick = () => {
-		if (table) return setLoginOpen(true);
-		return params.router.push('/scan');
+		if (selectedAddress) return setLoginOpen(true);
+		return params.router.push('/address-selection?restaurant=' + restaurant?.username);
 	};
 	const increaseProductQuantity = (product: TMenuCustom) => {
 		const selection = [...selectedProducts];

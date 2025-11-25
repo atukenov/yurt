@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import connectDB from "#utils/database/connect";
 import { Accounts, TAccount } from "#utils/database/models/account";
 import { TMenu } from "#utils/database/models/menu";
-import { TTable } from "#utils/database/models/table";
 import { authOptions } from "#utils/helper/authHelper";
 import { CatchNextResponse } from "#utils/helper/common";
 
@@ -23,7 +22,6 @@ export async function GET(req: Request) {
     await connectDB();
     const account = await Accounts.findOne<TAccount>({ username })
       .populate("profile")
-      .populate("tables")
       .populate("menus")
       .lean();
     if (!account)
@@ -40,11 +38,9 @@ export async function GET(req: Request) {
         "password",
         "profile",
         "menus",
-        "tables",
       ]),
       profile: omit(account?.profile, ["__v", "_id"]),
       menus: account?.menus.map((v: TMenu) => omit(v, ["__v"])),
-      tables: account?.tables.map((v: TTable) => omit(v, ["__v", "_id"])),
     });
   } catch (err) {
     console.log(err);

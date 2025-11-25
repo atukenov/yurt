@@ -68,21 +68,15 @@ const kitchens = [
     restaurantID: "starbucks",
     username: "starbucksKitchen1",
     password: "123456",
+    address: "Indiranagar, Benagaluru",
   },
 ];
-
-const tables = Array.from({ length: 5 }, (_, i) => ({
-  restaurantID: "starbucks",
-  name: "Table " + i,
-  username: i.toString(),
-}));
 
 const starbucks = {
   account,
   profile,
   menus,
   kitchens,
-  tables,
 };
 
 export default starbucks;

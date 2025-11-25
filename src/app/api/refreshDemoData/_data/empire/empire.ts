@@ -67,21 +67,21 @@ const kitchens = [
     restaurantID: "empire",
     username: "empireKitchen1",
     password: "123456",
+    address: "Koramangala, Benagaluru",
+  },
+  {
+    restaurantID: "empire",
+    username: "empireKitchen2",
+    password: "123456",
+    address: "Jayanagar, Benagaluru",
   },
 ];
-
-const tables = Array.from({ length: 5 }, (_, i) => ({
-  restaurantID: "empire",
-  name: "Table " + i,
-  username: i.toString(),
-}));
 
 const empire = {
   account,
   profile,
   menus,
   kitchens,
-  tables,
 };
 
 export default empire;

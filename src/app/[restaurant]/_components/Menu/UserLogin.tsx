@@ -5,12 +5,15 @@ import { signIn } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import { Button, Textfield } from 'xtreme-ui';
 
+import { useRestaurant } from '#components/context/useContext';
+
 import './userLogin.scss';
 
 const mobileNumberPattern = /^(\+91[-\s]?)?[6-9]\d{9}$/;
 const UserLogin = ({ setOpen }: UserLoginProps) => {
 	const pathname = usePathname();
 	const params = useSearchParams();
+	const { selectedAddress } = useRestaurant();
 	const [page, setPage] = useState('phone');
 	const [buttonLabel, setButtonLabel] = useState('Next');
 	const [busy, setBusy] = useState(false);
@@ -37,7 +40,7 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 		}
 
 		else if (page === 'signOTP' || page === 'loginOTP') {
-			if (!params.get('table')) return toast.error('Please scan the QR Code');
+			if (!selectedAddress) return toast.error('Please select a pickup address');
 
 			setBusy(true);
 
@@ -47,7 +50,7 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 				phone: phoneNumber,
 				fname,
 				lname,
-				table: params.get('table'),
+				address: selectedAddress,
 				callbackUrl: `${window.location.origin}`,
 			});
 

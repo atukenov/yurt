@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     );
 
     const restaurantID = session?.restaurant?.username;
-    const table = session?.restaurant?.table;
+    const address = session?.restaurant?.address;
     const customer = session?.customer?._id;
     const order = await Orders.findOne<TOrder>({
       restaurantID,
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     const newOrder = new Orders({
       restaurantID,
-      table,
+      address,
       customer,
       products: products,
     });
