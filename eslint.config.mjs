@@ -2,7 +2,6 @@ import { FlatCompat } from "@eslint/eslintrc";
 import eslintPluginTs from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import reactImport from "eslint-plugin-import";
-import prettierPlugin from "eslint-plugin-prettier";
 import pluginReact from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
@@ -16,11 +15,7 @@ const __dirname = dirname(__filename);
 const compat = new FlatCompat({ baseDirectory: __dirname });
 
 const eslintConfig = [
-  ...compat.extends(
-    "next/core-web-vitals",
-    "next/typescript",
-    "prettier", // ⬅ главное: отключает все конфликтующие правила
-  ),
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: ["dist"],
     files: ["**/*.{ts,tsx}"],
@@ -109,10 +104,6 @@ const eslintConfig = [
       "no-debugger": "error",
       "no-undef": "error",
       "prefer-const": "error",
-
-      // 🟦 Formatting handled by Prettier
-      // ❗ ВАЖНО: удалены все конфликтующие правила (quotes, semi, indent, max-len и т.д.)
-      "prettier/prettier": "error",
     },
   },
 ];
