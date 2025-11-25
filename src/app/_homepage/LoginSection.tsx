@@ -141,8 +141,8 @@ const LoginSection = () => {
                       `${session.data?.customer?.fname} ${session.data?.customer?.lname}`}{" "}
                   </p>
                   <p className="address">
-                    {profile?.address ??
-                      dashboard?.address ??
+                    {profile?.addresses?.[0] ??
+                      dashboard?.addresses?.[0] ??
                       session.data?.customer?.phone}
                   </p>
                 </div>

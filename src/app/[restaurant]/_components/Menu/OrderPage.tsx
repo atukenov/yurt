@@ -19,7 +19,7 @@ import './orderPage.scss';
 const OrderPage = () => {
 	const session = useSession();
 	const { loading } = useOrder();
-	const { restaurant } = useRestaurant();
+	const { restaurant, selectedAddress } = useRestaurant();
 
 	const menus = restaurant?.menus as Array<TMenuCustom>;
 	const params = useQueryParams();
@@ -196,8 +196,16 @@ const OrderPage = () => {
 					</div>
 				</div>
 				{
+					selectedAddress && (
+						<div className='selectedAddress'>
+							<Icon code='f3c5' />
+							<span>{selectedAddress}</span>
+						</div>
+					)
+				}
+				{
 					restaurant &&
-					<div className='category'>
+					<div className={`category ${selectedAddress ? 'withAddress' : ''}`}>
 						<div className='itemCategories' ref={categories} onScroll={onCategoryScroll}>
 							{
 								restaurant?.profile?.categories?.map((item, i) => (

@@ -13,7 +13,11 @@ const profile = {
   restaurantID: "altyncup",
   description:
     "coffee chain offering an extensive range of freshly brewed coffees, teas, and assorted beverages along with a selection of delectable snacks and pastries across numerous locations worldwide.",
-  address: "Indiranagar, Benagaluru",
+  addresses: [
+    "Indiranagar, Benagaluru",
+    "Koramangala, Benagaluru",
+    "MG Road, Benagaluru",
+  ],
   themeColor: { h: 158, s: 100, l: 19 },
   avatar:
     "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/altyncup_Corporation_Logo_2011.svg/1200px-altyncup_Corporation_Logo_2011.svg.png",

@@ -30,7 +30,7 @@ const SettingsAccount = () => {
 				{profile?.avatar && <Avatar className='avatar' src={profile?.avatar} />}
 				<div className='restaurantDetails'>
 					<h1 className='name'>{restaurantName[0]} <span>{restaurantName[1]}</span></h1>
-					<h6 className='address'>{profile?.address}</h6>
+					<h6 className='address'>{profile?.addresses?.join(' • ')}</h6>
 				</div>
 				<Button
 					className='logout'

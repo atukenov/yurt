@@ -7,6 +7,7 @@ import { XProvider } from 'xtreme-ui';
 
 import { ToastManager } from '#components/base/ToastManager';
 
+import { AddressProvider } from './Address';
 import { AdminProvider } from './Admin';
 import { OrderProvider } from './Order';
 import { RestaurantProvider } from './Restaurant';
@@ -25,12 +26,14 @@ export const GlobalProvider = ({ children }: ProviderProps) => {
 
 export const CustomerProvider = ({ children }: ProviderProps) => {
 	return (
-		<RestaurantProvider>
-			<ToastManager />
-			<OrderProvider>
-				{children}
-			</OrderProvider>
-		</RestaurantProvider>
+		<AddressProvider>
+			<RestaurantProvider>
+				<ToastManager />
+				<OrderProvider>
+					{children}
+				</OrderProvider>
+			</RestaurantProvider>
+		</AddressProvider>
 	);
 };
 

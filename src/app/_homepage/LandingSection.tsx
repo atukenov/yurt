@@ -56,10 +56,10 @@ const LandingSection = () => {
 				<p className='subHead'>Dining Experience</p>
 				<p className='desc'>Gone are the days of complex ordering systems and outdated</p>
 				<p className='desc'>paper menus. It&apos;s time for the new normal, OrderWorder</p>
-				<div className='greetingAction'>
-					<Button label='Learn more' type='secondary' onClick={() => scrollToSection('homepage-aboutus')} />
-					<Button label='Order now' onClick={() => router.push('/scan')} />
-				</div>
+			<div className='greetingAction'>
+				<Button label='Learn more' type='secondary' onClick={() => scrollToSection('homepage-aboutus')} />
+				<Button label='Order now' onClick={() => router.push('/address-selection?restaurant=altyncup')} />
+			</div>
 			</div>
 		</section>
 	);
