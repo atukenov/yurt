@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
 
 import Textfield from '#components/base/Textfield';
 import { useRestaurant } from '#components/context/useContext';
+import { saveCustomerToStorage, getCustomerFromStorage, isStoredCustomerForRestaurant } from '#utils/helper/customerStorage';
 
 import './userLogin.scss';
 
@@ -13,10 +14,12 @@ const mobileNumberPattern = /^(\+91[-\s]?)?[6-9]\d{9}$/;
 const UserLogin = ({ setOpen }: UserLoginProps) => {
 	const pathname = usePathname();
 	const params = useSearchParams();
+	const session = useSession();
 	const { selectedAddress } = useRestaurant();
 	const [page, setPage] = useState('phone');
 	const [buttonLabel, setButtonLabel] = useState('Next');
 	const [busy, setBusy] = useState(false);
+	const [autoLoginAttempted, setAutoLoginAttempted] = useState(false);
 
 	const [dialCode] = useState('7');
 	const [phone, setPhone] = useState('');
@@ -25,7 +28,51 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 	const [lname, setLName] = useState('');
 	const [heading, setHeading] = useState(['Let\'s', ' start ordering']);
 
+	const restaurantUsername = pathname.replaceAll('/', '');
 	const phoneNumber = `+${dialCode}${phone}`;
+	
+	// Auto-login function
+	const attemptAutoLogin = async (storedCustomer: any) => {
+		if (!selectedAddress) return false;
+
+		try {
+			// Verify customer exists in database
+			const verifyRes = await fetch('/api/customer/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ phone: storedCustomer.phone }),
+			});
+
+			const verifyData = await verifyRes.json();
+
+			if (!verifyData.exists) {
+				return false;
+			}
+
+			// Attempt login
+			const res = await signIn('customer', {
+				redirect: false,
+				restaurant: restaurantUsername,
+				phone: storedCustomer.phone,
+				fname: storedCustomer.fname,
+				lname: storedCustomer.lname,
+				address: selectedAddress,
+				callbackUrl: `${window.location.origin}`,
+			});
+
+			if (res?.error) {
+				return false;
+			}
+
+			// Login successful
+			setOpen(false);
+			return true;
+		} catch (error) {
+			console.error('Auto-login failed:', error);
+			return false;
+		}
+	};
+
 	const onNext = async () => {
 		if (page === 'phone') {
 			if (phone.length < 10) {
@@ -46,7 +93,7 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 
 			const res = await signIn('customer', {
 				redirect: false,
-				restaurant: pathname.replaceAll('/', ''),
+				restaurant: restaurantUsername,
 				phone: phoneNumber,
 				fname,
 				lname,
@@ -56,7 +103,18 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 
 			if (res?.error) {
 				toast.error(res?.error);
+				setBusy(false);
+				return;
 			}
+
+			// Save customer to storage for auto-login
+			saveCustomerToStorage({
+				phone: phoneNumber,
+				fname,
+				lname,
+				restaurant: restaurantUsername,
+			});
+
 			setOpen(false);
 			setBusy(false);
 		}
@@ -74,6 +132,49 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 			setButtonLabel('Log In');
 		}
 	}, [page]);
+
+	// Auto-login on mount if customer is already authenticated or has stored credentials
+	useEffect(() => {
+		const handleAutoLogin = async () => {
+			// Skip if already logged in or auto-login already attempted
+			if (session.status === 'authenticated' || autoLoginAttempted) return;
+			
+			setAutoLoginAttempted(true);
+
+			// Check if there's a stored customer for this restaurant
+			if (!isStoredCustomerForRestaurant(restaurantUsername)) return;
+
+			const storedCustomer = getCustomerFromStorage();
+			if (!storedCustomer) return;
+
+			// Only auto-login if address is selected
+			if (!selectedAddress) {
+				// Pre-fill the form with stored data
+				const phoneWithoutCode = storedCustomer.phone.replace('+7', '');
+				setPhone(phoneWithoutCode);
+				setFName(storedCustomer.fname);
+				setLName(storedCustomer.lname);
+				return;
+			}
+
+			// Attempt auto-login
+			setBusy(true);
+			const success = await attemptAutoLogin(storedCustomer);
+			setBusy(false);
+
+			if (success) {
+				toast.success('Welcome back!');
+			} else {
+				// Pre-fill form if auto-login failed
+				const phoneWithoutCode = storedCustomer.phone.replace('+7', '');
+				setPhone(phoneWithoutCode);
+				setFName(storedCustomer.fname);
+				setLName(storedCustomer.lname);
+			}
+		};
+
+		handleAutoLogin();
+	}, [selectedAddress, session.status, autoLoginAttempted, restaurantUsername]);
 
 	return (
 		<div className={`userLogin ${page}`}>

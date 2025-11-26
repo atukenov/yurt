@@ -72,8 +72,6 @@ const CartPage = (props: TCartPageProps) => {
       await cancelOrder();
       signOut();
     };
-
-    if (order?.table && order?.table !== table) cancelAndSignout();
   }, [cancelOrder, order, table]);
 
   // useEffect(() => {
@@ -100,7 +98,6 @@ const CartPage = (props: TCartPageProps) => {
           <Lottie
             className="burgerLoader"
             src={getAnimSrc("FoodCook")}
-            size={250}
           />
           <div className="approvalHeading">
             <p>Your order</p>
