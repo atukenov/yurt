@@ -11,7 +11,7 @@ const OrdersCard = (props: TOrdersCard) => {
 	const queryParams = useSearchParams();
 	const subTab = queryParams.get('subTab') ?? '';
 
-	const tableName = data.table;
+	const address = data.address;
 	const customerName = `${data?.customer?.fname} ${data?.customer?.lname}`;
 
 	const OptionButtons = () => {
@@ -84,8 +84,8 @@ const OrdersCard = (props: TOrdersCard) => {
 			}}
 		>
 			<div className='content'>
-				<p className='table'>{!reject || details ? `Table: ${tableName}` : 'Are you sure?'}</p>
-				<p className='name'>{!reject || details ? customerName : `Table: ${tableName}`}</p>
+				<p className='table'>{!reject || details ? `Address: ${address}` : 'Are you sure?'}</p>
+				<p className='name'>{!reject || details ? customerName : `Address: ${address}`}</p>
 				{
 					!data?.products?.length
 						? <p className='noContent'>No orders yet</p>

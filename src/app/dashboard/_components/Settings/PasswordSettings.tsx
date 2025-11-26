@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import { toast } from 'react-toastify';
-import { Button, Spinner, Textfield } from 'xtreme-ui';
+import { Button, Spinner } from 'xtreme-ui';
+
+import Textfield from '#components/base/Textfield';
 
 import './passwordSettings.scss';
 

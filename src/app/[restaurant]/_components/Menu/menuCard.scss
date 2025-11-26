@@ -184,7 +184,7 @@
     border: 1px solid var(--colorContentTertiary);
 
     &.veg .icon {
-      color: rgb(var(--colorAlertSuccessRGB));
+      color: hsl(var(--colorBrandPrimary));
     }
 
     /* stylelint-disable-next-line selector-class-pattern */
@@ -199,6 +199,10 @@
 
     .icon {
       padding: 16px;
+
+      svg {
+        color: inherit;
+      }
     }
 
     .label {

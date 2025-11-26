@@ -1,0 +1,73 @@
+.textfield {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--colorBackgroundSecondary);
+  border: 1px solid var(--colorContentTertiary);
+  border-radius: 12px;
+  padding: 0 15px;
+  height: 45px;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: hsl(var(--colorBrandPrimary));
+    box-shadow: 0 0 0 3px hsla(var(--colorBrandPrimary), 0.1);
+  }
+
+  .textfieldIcon {
+    color: var(--colorContentSecondary);
+    font-size: 16px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .textfieldInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: var(--colorContentPrimary);
+    font-variation-settings:
+      "wdth" 75,
+      "wght" 400;
+    height: 100%;
+    padding: 0;
+
+    &::placeholder {
+      color: var(--colorContentSecondary);
+      opacity: 0.7;
+    }
+
+    &:autofill,
+    &:-webkit-autofill {
+      box-shadow: 0 0 0 1000px var(--colorBackgroundSecondary) inset;
+      -webkit-text-fill-color: var(--colorContentPrimary);
+    }
+  }
+
+  &.shake {
+    animation: shake 0.6s;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
