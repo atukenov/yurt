@@ -58,7 +58,7 @@ const LandingSection = () => {
 				<p className='desc'>paper menus. It&apos;s time for the new normal, OrderWorder</p>
 			<div className='greetingAction'>
 				<Button label='Learn more' type='secondary' onClick={() => scrollToSection('homepage-aboutus')} />
-				<Button label='Order now' onClick={() => router.push('/address-selection?restaurant=altyncup')} />
+				<Button label='Order now' onClick={() => router.push('/address-selection')} />
 			</div>
 			</div>
 		</section>
