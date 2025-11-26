@@ -1,203 +1,244 @@
 .ordersCard {
-	position: relative;
-	width: 100%;
-	height: 110px;
-	cursor: pointer;
-	box-sizing: content;
-	border: 10px solid transparent;
-	border-width: 6px 20px;
+  position: relative;
+  width: 100%;
+  height: 110px;
+  cursor: pointer;
+  box-sizing: content;
+  border: 10px solid transparent;
+  border-width: 6px 20px;
 
-	&.active {
-		margin: 2px 0;
-		border-width: 0 14px;
-		cursor: auto;
+  .xButton {
+    width: 100%;
+    height: 32px;
+    border: none;
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-variation-settings:
+      "wdth" 75,
+      "wght" 500;
+    text-transform: none;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    overflow: hidden;
+    color: var(--colorBackgroundPrimary);
+    background-color: hsl(var(--colorBrandPrimary));
+    border: 1px solid transparent;
 
-		.content {
-			background-color: hsl(var(--colorBrandPrimary));
-			box-shadow: 0 0 12px hsl(var(--colorBrandPrimary));
-			transition: all 0.2s ease-out;
+    @media (hover: hover) {
+      &:hover {
+        color: var(--colorBackgroundPrimary);
+        background-color: hsl(var(--colorBrandPrimary));
+        filter: brightness(1.1);
+      }
+    }
 
-			> p {
-				color: white;
-			}
-		}
-	}
+    &:active {
+      filter: brightness(0.9);
+    }
 
-	&.reject {
-		.content {
-			background-color: rgb(var(--colorAlertErrorRGB));
-			box-shadow: 0 0 5px rgb(var(--colorAlertErrorRGB));
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-			> p {
-				&.total {
-					pointer-events: none !important;
+    &.accept {
+      color: white;
+      background-color: #045f09;
+      border-color: #045f09;
+      margin-top: 5px;
+    }
 
-					&::after {
-						content: '' !important;
-					}
-				}
-			}
+    &.reject {
+      color: white;
+      background-color: #a10000;
+      border-color: #a10000;
+    }
+  }
 
-			.options {
-				> .button {
-					&.accept {
-						color: var(--colorBackgroundPrimary);
-						background-color: rgb(var(--colorAlertErrorRGB));
-						border-color: rgb(var(--colorAlertErrorRGB));
-					}
+  &.active {
+    margin: 2px 0;
+    border-width: 0 14px;
+    cursor: auto;
 
-					&.reject {
-						color: var(--colorContentSecondary);
+    .content {
+      background-color: hsl(var(--colorBrandPrimary));
+      box-shadow: 0 0 12px hsl(var(--colorBrandPrimary));
+      transition: all 0.2s ease-out;
 
-						@media (hover: hover) {
-							&:hover {
-								background-color: var(--colorBackgroundTertiary);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+      > p {
+        color: white;
+      }
+    }
+  }
 
-	.content {
-		position: relative;
-		width: 100%;
-		height: 100%;
-		min-height: 98px;
-		background-color: var(--colorBackgroundPrimary);
-		border-radius: 15px;
-		box-shadow: 0 0 8px rgb(150 150 150 / 15%);
-		overflow: hidden;
-		padding: 0;
+  &.reject {
+    .content {
+      background-color: #a10000;
+      box-shadow: 0 0 5px #a10000;
 
-		> p {
-			position: absolute;
-			user-select: none;
-			margin: 0;
+      > p {
+        &.total {
+          pointer-events: none !important;
 
-			&.table {
-				top: 15px; left: 20px;
-				font-variation-settings: 'wdth' 75, 'wght' 500;
-				font-size: 16px;
-			}
+          &::after {
+            content: "" !important;
+          }
+        }
+      }
 
-			&.name {
-				top: 37px; left: 20px;
-				font-variation-settings: 'wdth' 75, 'wght' 400;
-				font-size: 12px;
-			}
+      .options {
+        .xButton {
+          &.accept {
+            color: white;
+            background-color: #045f09;
+            border-color: #045f09;
+          }
 
-			&.total {
-				bottom: 0; left: 0;
-				font-variation-settings: 'wdth' 75, 'wght' 500;
-				letter-spacing: 1.02px;
-				font-size: 14px;
-				padding: 15px 20px;
-				cursor: pointer;
-				pointer-events: none;
-			}
+          &.reject {
+            color: white;
+            background-color: #a10000;
 
-			&.noContent {
-				bottom: 0; left: 0;
-				font-variation-settings: 'wdth' 75, 'wght' 500;
-				letter-spacing: 1.02px;
-				font-size: 14px;
-				padding: 15px 20px;
-				cursor: pointer;
-				pointer-events: none;
-			}
-		}
+            @media (hover: hover) {
+              &:hover {
+                background-color: #a10000;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
-		.options {
-			position: relative;
-			width: 170px;
-			height: 100%;
-			display: none;
-			flex-direction: column-reverse;
-			align-items: flex-end;
-			float: right;
-			padding: 15px;
-			overflow: hidden;
-			user-select: none;
-			gap: 8px;
+  .content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 98px;
+    background-color: var(--colorBackgroundPrimary);
+    border-radius: 15px;
+    box-shadow: 0 0 8px rgb(150 150 150 / 15%);
+    overflow: hidden;
+    padding: 0;
 
-			> .button {
-				width: 100%;
+    > p {
+      position: absolute;
+      user-select: none;
+      margin: 0;
 
-				--buttonHeight: 32px;
+      &.table {
+        top: 15px;
+        left: 20px;
+        font-variation-settings:
+          "wdth" 75,
+          "wght" 500;
+        font-size: 16px;
+      }
 
-				overflow: hidden;
-				color: var(--colorBackgroundPrimary);
-				border-color: transparent;
-				text-transform: none;
+      &.name {
+        top: 37px;
+        left: 20px;
+        font-variation-settings:
+          "wdth" 75,
+          "wght" 400;
+        font-size: 12px;
+      }
 
-				@media (hover: hover) {
-					&:hover {
-						color: var(--colorBackgroundPrimary);
-						background-color: hsl(var(--colorBrandPrimary));
-					}
-				}
+      &.total {
+        bottom: 0;
+        left: 0;
+        font-variation-settings:
+          "wdth" 75,
+          "wght" 500;
+        letter-spacing: 1.02px;
+        font-size: 14px;
+        padding: 15px 20px;
+        cursor: pointer;
+        pointer-events: none;
+      }
 
-				&.accept {
-					color: hsl(var(--colorBrandPrimary));
-					background-color: var(--colorBackgroundPrimary);
-					border-color: var(--colorBackgroundPrimary);
-					margin-top: 5px;
-				}
-			}
-		}
-	}
+      &.noContent {
+        bottom: 0;
+        left: 0;
+        font-variation-settings:
+          "wdth" 75,
+          "wght" 500;
+        letter-spacing: 1.02px;
+        font-size: 14px;
+        padding: 15px 20px;
+        cursor: pointer;
+        pointer-events: none;
+      }
+    }
+
+    .options {
+      position: relative;
+      width: 170px;
+      height: 100%;
+      display: none;
+      flex-direction: column-reverse;
+      align-items: flex-end;
+      float: right;
+      padding: 15px;
+      overflow: hidden;
+      user-select: none;
+      gap: 8px;
+    }
+  }
 }
 
 @media (width <= 750px) {
-	.ordersCard {
-		&.active {
-			> .content {
-				background-color: var(--colorBackgroundPrimary);
+  .ordersCard {
+    &.active {
+      > .content {
+        background-color: var(--colorBackgroundPrimary);
 
-				> p {
-					color: var(--colorContentPrimary);
-				}
+        > p {
+          color: var(--colorContentPrimary);
+        }
 
-				> p.total {
-					pointer-events: all;
+        > p.total {
+          pointer-events: all;
 
-					&::after {
-						content: '(show details)';
-						font-size: 10px;
-						margin-left: 8px;
-						text-transform: capitalize;
-					}
-				}
+          &::after {
+            content: "(show details)";
+            font-size: 10px;
+            margin-left: 8px;
+            text-transform: capitalize;
+          }
+        }
 
-				> p.noContent {
-					pointer-events: all;
+        > p.noContent {
+          pointer-events: all;
 
-					&::after {
-						font-size: 10px;
-						margin-left: 8px;
-					}
-				}
+          &::after {
+            font-size: 10px;
+            margin-left: 8px;
+          }
+        }
 
-				.options {
-					display: flex;
-				}
-			}
-		}
+        .options {
+          display: flex;
+        }
+      }
+    }
 
-		&.busy {
-			> .content {
-				.options {
-					display: flex;
-				}
-			}
-		}
-	}
+    &.busy {
+      > .content {
+        .options {
+          display: flex;
+        }
+      }
+    }
+  }
 }
 
 @media (width <= 530px) {
-	.ordersCard {
-		height: 130px;
-	}
+  .ordersCard {
+    height: 130px;
+  }
 }

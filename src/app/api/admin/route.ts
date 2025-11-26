@@ -24,10 +24,9 @@ export async function GET() {
     return NextResponse.json({
       profile: account.profile,
       menus: account.menus,
-      tables: account.tables,
     });
   } catch (err) {
-    console.log(err);
+    console.log("Error:", err);
     return CatchNextResponse(err);
   }
 }

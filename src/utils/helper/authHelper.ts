@@ -60,9 +60,10 @@ export const authOptions: AuthOptions = {
           return {
             id: account._id.toString(),
             role: "kitchen",
+            username: account.username,
+            email: account.email,
             themeColor: account?.profile?.themeColor,
-            ...account,
-          };
+          } as any;
         } else {
           if (!(await verifyPassword(cred?.password, account?.password)))
             throw new Error("Invalid admin credentials");
@@ -70,9 +71,10 @@ export const authOptions: AuthOptions = {
           return {
             id: account._id.toString(),
             role: "admin",
+            username: account.username,
+            email: account.email,
             themeColor: account?.profile?.themeColor,
-            ...account,
-          };
+          } as any;
         }
       },
     }),
@@ -143,7 +145,7 @@ export const authOptions: AuthOptions = {
             name: account?.profile?.name,
             avatar: account?.profile?.avatar,
           },
-        };
+        } as any;
       },
     }),
   ],
@@ -161,22 +163,20 @@ export const authOptions: AuthOptions = {
       if (account?.provider === "restaurant") {
         if (user) {
           token.user = {
-            role: user?.role,
-            themeColor: user?.themeColor,
-            ...pick(user._doc, [
-              "email",
-              "accountActive",
-              "subscriptionActive:",
-              "username",
-              "verified",
-            ]),
+            role: (user as any)?.role,
+            themeColor: (user as any)?.themeColor,
+            username: (user as any)?.username,
+            email: (user as any)?.email,
+            accountActive: (user as any)?.accountActive,
+            subscriptionActive: (user as any)?.subscriptionActive,
+            verified: (user as any)?.verified,
           };
         }
       }
 
       if (account?.provider === "customer") {
         if (user) {
-          token.user = user;
+          token.user = user as any;
         }
       }
       return token;

@@ -84,7 +84,7 @@ const OrderRequests = (props: TOrderRequestsProps) => {
 						</div>
 					</div>
 			}
-			<SideSheet title={[activeCardData ? `Table: ${activeCardData?.table}` : '']} open={sideSheetOpen} setOpen={setSideSheetOpen}>
+			<SideSheet title={[activeCardData ? `Address: ${activeCardData?.address}` : '']} open={sideSheetOpen} setOpen={setSideSheetOpen}>
 				{
 					activeCardData && activeCardData.products.map((product, key) => {
 						return <ItemCard item={product as unknown as TMenuCustom} key={key} staticCard />;

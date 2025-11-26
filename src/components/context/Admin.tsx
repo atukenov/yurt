@@ -43,7 +43,12 @@ export const AdminProvider = ({ children }: TAdminProviderProps) => {
     data: orderData = [],
     isLoading: orderLoading,
     mutate,
-  } = useSWR("/api/admin/order", fetcher, { refreshInterval: 5000 });
+  } = useSWR("/api/admin/order", fetcher, { 
+    refreshInterval: 5000,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 0,
+  });
   const [orderActionLoading, setOrderActionLoading] = useState(false);
 
   const { orderRequest, orderActive, orderHistory } =

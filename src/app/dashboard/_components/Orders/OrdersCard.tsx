@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useSearchParams } from 'next/navigation';
-import { Button } from 'xtreme-ui';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 
 import { TOrder } from '#utils/database/models/order';
 
@@ -20,50 +20,50 @@ const OrdersCard = (props: TOrdersCard) => {
 		if (subTab === 'active') {
 			return (
 				<div className='options'>
-					<Button
-						className='accept'
-						size='mini'
-						icon='f00c'
-						label={!props.reject ? 'Complete' : 'Yes do it!'}
+					<button
+						className='accept xButton'
 						onClick={() => action?.(data._id.toString())}
-						loading={busy}
-					/>
+						disabled={busy}
+					>
+						<FaCheck color='white'/> {!props.reject ? 'Complete' : 'Yes do it!'}
+					</button>
 					{
 						!busy &&
-						<Button className='reject' size='mini'
-							type='primaryDanger' icon='f00d'
-							label={!reject ? 'Cancel' : 'No Don\'t'}
+						<button className='reject xButton'
 							onClick={() => {
 								setReject?.({
 									_id: !reject ? data._id.toString() : null,
 									details: false,
 								});
 							}}
-						/>
+						>
+							<FaTimes /> {!reject ? 'Cancel' : 'No Don\'t'}
+						</button>
 					}
 				</div>
 			);
 		}
 		return (
 			<div className='options'>
-				<Button className='accept' label={!reject ? 'Accept' : 'Yes do it!'}
-					size='mini'
-					icon='f00c'
-					onClick={() => action?.(data._id.toString())} loading={busy}
-				/>
+				<button className='accept xButton'
+					onClick={() => action?.(data._id.toString())}
+					disabled={busy}
+				>
+					<FaCheck color='white'/> {!reject ? 'Accept' : 'Yes do it!'}
+				</button>
 				{
 					!busy &&
-					<Button
-						className='reject'
-						size='mini'
-						type='primaryDanger' icon='f00d'
+					<button
+						className='reject xButton'
 						onClick={() => {
 							setReject?.({
 								_id: !reject ? data._id.toString() : null,
 								details: false,
 							});
-						}} label={!reject ? 'Reject' : 'No Don\'t'}
-					/>
+						}}
+					>
+						<FaTimes /> {!reject ? 'Reject' : 'No Don\'t'}
+					</button>
 				}
 			</div>
 		);

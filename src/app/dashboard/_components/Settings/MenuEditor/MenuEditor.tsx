@@ -1,19 +1,21 @@
 import { UIEvent, useRef, useState } from "react";
 
 import { toast } from "react-toastify";
-import { Button, Spinner } from "xtreme-ui";
+import { Spinner } from "xtreme-ui";
+import { FaPlus } from "react-icons/fa";
 
 import Icon from "#components/base/Icon";
 import { useAdmin } from "#components/context/useContext";
 import { TMenu } from "#utils/database/models/menu";
 
 import MenuEditorItem from "./MenuEditorItem";
+import MenuItemModal from "./MenuItemModal";
 import "./menuEditor.scss";
 
 const MenuEditor = () => {
   const { profile, menus, profileLoading, profileMutate } = useAdmin();
-  const [modalState, setModalState] = useState("");
-  const [editItem, setEditItem] = useState<TMenu>();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editItem, setEditItem] = useState<TMenu | undefined>();
   const [hideSettingsLoading, setHideSettingsLoading] = useState<string[]>([]);
   const [category, setCategory] = useState(0);
 
@@ -55,7 +57,16 @@ const MenuEditor = () => {
   };
   const onEdit = (item: TMenu) => {
     setEditItem(item);
-    setModalState("menuItemEditState");
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setEditItem(undefined);
+  };
+
+  const handleSave = async () => {
+    await profileMutate();
   };
 
   if (profileLoading) return <Spinner fullpage label="Loading Menu..." />;
@@ -115,10 +126,20 @@ const MenuEditor = () => {
           ))}
         </div>
       </div>
-      <Button
-        className={`menuEditorAdd ${modalState ? "active" : ""}`}
-        onClick={() => setModalState("newState")}
-        icon="2b"
+      <button
+        className={`menuEditorAdd xButton ${modalOpen ? "active" : ""}`}
+        onClick={() => {
+          setEditItem(undefined);
+          setModalOpen(true);
+        }}
+      >
+        <FaPlus />
+      </button>
+      <MenuItemModal
+        open={modalOpen}
+        setOpen={handleModalClose}
+        editItem={editItem}
+        onSave={handleSave}
       />
     </div>
   );

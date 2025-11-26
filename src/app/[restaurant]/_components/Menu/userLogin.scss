@@ -42,6 +42,45 @@
     align-items: center;
     transition: all var(--userLoginDuration) ease-out;
 
+    .phoneInputWrapper {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 1;
+      transition: all var(--userLoginDuration) ease-out;
+
+      .countryCode {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 12px;
+        height: 45px;
+        background-color: var(--colorBackgroundSecondary);
+        border: 1px solid var(--colorContentTertiary);
+        border-radius: 12px;
+        user-select: none;
+
+        .flag {
+          font-size: 20px;
+          line-height: 1;
+        }
+
+        .code {
+          font-size: 14px;
+          color: var(--colorContentPrimary);
+          font-variation-settings:
+            "wdth" 75,
+            "wght" 500;
+        }
+      }
+
+      .phone {
+        flex: 1;
+      }
+    }
+
     > .phone,
     .name {
       position: absolute;
@@ -52,7 +91,7 @@
 
     .otpContainer {
       position: absolute;
-      width: 100%;
+
       height: 100%;
       opacity: 0;
       display: flex;
@@ -89,7 +128,7 @@
     .content {
       height: 100px;
 
-      > .phone {
+      .phoneInputWrapper {
         opacity: 0;
         transform: translateX(-100%);
       }

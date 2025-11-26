@@ -27,7 +27,7 @@ const MenuEditorItem = (props: TMenuEditorItemProps) => {
             )}
             {item.veg && (
               <div className={`vegIcon ${item.veg}`}>
-                <FaLeaf className="icon" color="hsl(var(--colorBrandPrimary))"/>
+                <FaLeaf className="icon"/>
                 <span className="label">{item.veg.replace(/-/g, " ")}</span>
               </div>
             )}

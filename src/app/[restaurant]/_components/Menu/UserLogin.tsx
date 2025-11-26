@@ -18,7 +18,7 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 	const [buttonLabel, setButtonLabel] = useState('Next');
 	const [busy, setBusy] = useState(false);
 
-	const [dialCode] = useState('91');
+	const [dialCode] = useState('7');
 	const [phone, setPhone] = useState('');
 
 	const [fname, setFName] = useState('');
@@ -28,7 +28,7 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 	const phoneNumber = `+${dialCode}${phone}`;
 	const onNext = async () => {
 		if (page === 'phone') {
-			if (!mobileNumberPattern.test(phoneNumber)) {
+			if (phone.length < 10) {
 				return toast.error('Please enter a valid phone number');
 			}
 
@@ -81,14 +81,21 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 				<span className='heading'><span>{heading[0]}</span>{heading[1]}</span>
 			</div>
 			<div className='content'>
-				<Textfield
-					className='phone'
-					type='phone'
-					autoComplete='tel-local'
-					value={phone}
-					onEnterKey={onNext}
-					onChange={(e) => setPhone(e.target.value)}
-				/>
+				<div className='phoneInputWrapper'>
+					<div className='countryCode'>
+						<span className='flag'>🇰🇿</span>
+						<span className='code'>+7</span>
+					</div>
+					<Textfield
+						className='phone'
+						type='tel'
+						autoComplete='tel-local'
+						placeholder='Phone number'
+						value={phone}
+						onEnterKey={onNext}
+						onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+					/>
+				</div>
 				<div className='otpContainer'>
 					<Textfield
 						className='fName'
