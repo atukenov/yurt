@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { toast } from 'react-toastify';
-import { Button, Textfield } from 'xtreme-ui';
+import { Textfield } from 'xtreme-ui';
 
 import { useRestaurant } from '#components/context/useContext';
 
@@ -115,7 +115,9 @@ const UserLogin = ({ setOpen }: UserLoginProps) => {
 				</div>
 			</div>
 			<div className='footer'>
-				<Button label={buttonLabel} onClick={onNext} loading={busy} />
+				<button className='xButton loginButton' disabled={busy} onClick={onNext}>
+					{busy ? 'Loading...' : buttonLabel}
+				</button>
 			</div>
 		</div>
 	);

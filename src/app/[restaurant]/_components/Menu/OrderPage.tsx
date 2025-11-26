@@ -1,7 +1,7 @@
 import { SyntheticEvent, UIEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import { signOut, useSession } from 'next-auth/react';
-import { ActionCard, Button, Spinner } from 'xtreme-ui';
+import { ActionCard, Spinner } from 'xtreme-ui';
 import { FaMapMarkerAlt, FaChevronLeft, FaChevronRight, FaShoppingCart, FaTh } from 'react-icons/fa';
 
 import SearchButton from '#components/base/SearchButton';
@@ -164,34 +164,40 @@ const OrderPage = () => {
 							setValue={setSearchValue}
 						/>
 						{
-							(!session.data?.role || !showOrderButton) &&
-							<Button className='loginButton' label={showOrderButton ? 'Order' : 'Scan'} onClick={onLoginClick} />
+						(!session.data?.role || !showOrderButton) &&
+						<button className='loginButton xButton' onClick={onLoginClick}>
+							{showOrderButton ? 'Order' : 'Scan'}
+						</button>
 						}
 						{
 						eligibleToOrder &&
-						<Button
-							icon='e43b'
-							label={(selectedProducts?.length > 0 ? selectedProducts?.length : '') + ''}
+						<button
+							className='cartButton xButton'
 							onClick={() => setSideSheetOpen(true)}
-						/>
+						>
+							<FaShoppingCart />
+							{selectedProducts?.length > 0 && <span className='badge'>{selectedProducts.length}</span>}
+						</button>
 						}
 						{
 						session.data?.role === 'admin' &&
-						<Button
-							className='dashboardButton'
-							label='Dashboard'
-							icon='e09f'
+						<button
+							className='dashboardButton xButton'
 							onClick={() => params.router.push('/dashboard')}
-						/>
+						>
+							<FaTh />
+							<span>Dashboard</span>
+						</button>
 						}
 						{
 						session.data?.role === 'kitchen' &&
-						<Button
-							className='kitchenButton'
-							label='Kitchen'
-							icon='e09f'
+						<button
+							className='kitchenButton xButton'
 							onClick={() => params.router.push('/kitchen')}
-						/>
+						>
+							<FaTh />
+							<span>Kitchen</span>
+						</button>
 						}
 					</div>
 				</div>

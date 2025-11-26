@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { Button } from "xtreme-ui";
+import { FaChevronDown, FaShoppingCart, FaMoneyBillWave } from "react-icons/fa";
 
 import Lottie from "#components/base/Lottie";
 import { useOrder } from "#components/context/useContext";
@@ -106,14 +106,13 @@ const CartPage = (props: TCartPageProps) => {
             <p>Your order</p>
             <p>will be accepted soon</p>
           </div>
-          <Button
-            className="endOrder"
-            type="secondaryDanger"
-            size="mini"
-            label="Cancel Order"
-            loading={cancelingOrder}
+          <button
+            className="endOrder xButton secondaryDanger"
+            disabled={cancelingOrder}
             onClick={onCancelOrder}
-          />
+          >
+            {cancelingOrder ? 'Canceling...' : 'Cancel Order'}
+          </button>
         </div>
       </div>
     );
@@ -181,25 +180,19 @@ const CartPage = (props: TCartPageProps) => {
             </div>
           )}
           <div className="cartAction">
-            <Button
-              size="mini"
-              icon={
-                bottomBarActive
-                  ? "f078"
-                  : props.selectedProducts.length > 0
-                    ? "e1bc"
-                    : "f09d"
-              }
-              label={
-                bottomBarActive
-                  ? "close"
-                  : props.selectedProducts.length > 0
-                    ? `${selectionTotal} | ${order?.products?.length ? "Add to order" : "Place order"}`
-                    : "Proceed to Pay"
-              }
-              loading={placingOrder}
+            <button
+              className="xButton cartActionButton"
+              disabled={placingOrder}
               onClick={onOrderAction}
-            />
+            >
+              {bottomBarActive ? (
+                <><FaChevronDown /> close</>
+              ) : props.selectedProducts.length > 0 ? (
+                <><FaShoppingCart /> {selectionTotal} | {order?.products?.length ? "Add to order" : "Place order"}</>
+              ) : (
+                <><FaMoneyBillWave /> {placingOrder ? 'Processing...' : 'Proceed to Pay'}</>
+              )}
+            </button>
           </div>
         </div>
         {order && (

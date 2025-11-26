@@ -1,151 +1,196 @@
 .userLogin {
-	--userLoginDuration: 0.3s;
-	--footerHeight: 60px;
-	--headerHeight: calc(var(--footerHeight) + 2px);
+  --userLoginDuration: 0.3s;
+  --footerHeight: 60px;
+  --headerHeight: calc(var(--footerHeight) + 2px);
 
-	position: relative;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	
-	.header {
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-end;
-		transition: all var(--userLoginDuration) ease-out;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 
-		.heading {
-			bottom: 0;
-			font-variation-settings: 'wdth' 75, 'wght' 300;
-			font-size: 25px;
-			color: var(--colorContentPrimary);
-			user-select: none;
+  .header {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    transition: all var(--userLoginDuration) ease-out;
 
-			span {
-				font-variation-settings: 'wdth' 75, 'wght' 500;
-			}
-		}
-	}
+    .heading {
+      bottom: 0;
+      font-variation-settings:
+        "wdth" 75,
+        "wght" 300;
+      font-size: 25px;
+      color: var(--colorContentPrimary);
+      user-select: none;
 
-	.content {
-		position: relative;
-		display: flex;
-		height: 100px;
-		flex-direction: column;
-		flex-grow: 1;
-		justify-content: center;
-		align-items: center;
-		transition: all var(--userLoginDuration) ease-out;
+      span {
+        font-variation-settings:
+          "wdth" 75,
+          "wght" 500;
+      }
+    }
+  }
 
-		> .phone, .name {
-			position: absolute;
-			width: 100%;
-			opacity: 1;
-			transition: all var(--userLoginDuration) ease-out;
-		}
+  .content {
+    position: relative;
+    display: flex;
+    height: 100px;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    transition: all var(--userLoginDuration) ease-out;
 
-		.otpContainer {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			opacity: 0;
-			display: flex;
-			align-items: center;
-			transform: translateX(100%);
-			transition: all var(--userLoginDuration) ease-out;
-			gap: 16px;
+    > .phone,
+    .name {
+      position: absolute;
+      width: 100%;
+      opacity: 1;
+      transition: all var(--userLoginDuration) ease-out;
+    }
 
-			> .textInput {
-				width: 100%;
-				height: 45px;
+    .otpContainer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      transform: translateX(100%);
+      transition: all var(--userLoginDuration) ease-out;
+      gap: 16px;
 
-				&.otp {
-					margin-top: 30px;
-					height: auto;
-				}
-			}
-		}
-	}
+      > .textInput {
+        width: 100%;
+        height: 45px;
 
-	.footer {
-		transition: all var(--userLoginDuration) ease-out;
-		display: flex;
-		justify-content: flex-end;
+        &.otp {
+          margin-top: 30px;
+          height: auto;
+        }
+      }
+    }
+  }
 
-		> .button {
-			--buttonWidth: 100px;
-			--buttonHeight: 35px;
-		}
-	}
+  .footer {
+    transition: all var(--userLoginDuration) ease-out;
+    display: flex;
+    justify-content: flex-end;
 
-	&.loginOTP, &.signOTP {
-		.content {
-			height: 100px;
+    > .button {
+      --buttonWidth: 100px;
+      --buttonHeight: 35px;
+    }
+  }
 
-			> .phone {
-				opacity: 0;
-				transform: translateX(-100%);
-			}
+  &.loginOTP,
+  &.signOTP {
+    .content {
+      height: 100px;
 
-			.otpContainer {
-				opacity: 1;
-				transform: translateX(0);
-			}
-		}
+      > .phone {
+        opacity: 0;
+        transform: translateX(-100%);
+      }
 
-		.footer > .button {
-			--buttonWidth: 120px;
-		}
-	}
+      .otpContainer {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
 
-	&.loginOTP {
-		.content {
-			height: 150px;
+    .footer > .button {
+      --buttonWidth: 120px;
+    }
+  }
 
-			.otpContainer {
-				> .textInput {
-					&.name {
-						display: none;
-					}
+  &.loginOTP {
+    .content {
+      height: 150px;
 
-					&.otp {
-						margin-top: 0;
-					}
-				}
-			}
-		}
-	}
+      .otpContainer {
+        > .textInput {
+          &.name {
+            display: none;
+          }
+
+          &.otp {
+            margin-top: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+.xButton {
+  border: none;
+  padding: 10px 20px;
+  font-size: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-variation-settings:
+    "wdth" 75,
+    "wght" 500;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  background-color: hsl(var(--colorBrandPrimary));
+  color: white;
+  box-shadow: var(--boxShadowGlow);
+
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: var(--boxShadowGlowHover);
+    }
+  }
+
+  &:active {
+    box-shadow: var(--boxShadowGlowActive);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.loginButton {
+    border-radius: 10px;
+  }
 }
 
 @media (height <= 535px) {
-	.userLogin {
-		&.openCodeSelector {
-			.header {
-				opacity: 0;
-				margin-top: calc(var(--headerHeight) * -1);
-			}
-		}
-	}
+  .userLogin {
+    &.openCodeSelector {
+      .header {
+        opacity: 0;
+        margin-top: calc(var(--headerHeight) * -1);
+      }
+    }
+  }
 }
 
 @media (height <= 470px) {
-	.userLogin {
-		&.openCodeSelector {
-			.content {
-				height: 250px;
-			}
-		}
-	}
+  .userLogin {
+    &.openCodeSelector {
+      .content {
+        height: 250px;
+      }
+    }
+  }
 }
 
 @media (height <= 420px) {
-	.userLogin {
-		&.openCodeSelector {
-			.footer {
-				opacity: 0;
-				margin-bottom: calc(var(--footerHeight) * -1);
-			}
-		}
-	}
+  .userLogin {
+    &.openCodeSelector {
+      .footer {
+        opacity: 0;
+        margin-bottom: calc(var(--footerHeight) * -1);
+      }
+    }
+  }
 }

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 import clsx from 'clsx';
-import { Button } from 'xtreme-ui';
+import { FaTimes } from 'react-icons/fa';
 
 import './sideSheet.scss';
 
@@ -13,10 +13,10 @@ const SideSheet = (props: SideSheetProps) => {
 		<div className={classList}>
 			<div className='backdrop' onClick={() => setOpen(false)} />
 			<div className='sideContainer'>
-				<div className='sheetHeader'>
-					<h1 className='title'>{title[0]} <span>{title[1]}</span></h1>
-					<Button icon='f00d' size='mini' onClick={() => setOpen(false)} />
-				</div>
+			<div className='sheetHeader'>
+				<h1 className='title'>{title[0]} <span>{title[1]}</span></h1>
+				<button className='xButton closeButton' onClick={() => setOpen(false)}><FaTimes /></button>
+			</div>
 				<div className='sheetContent'>{children}</div>
 			</div>
 		</div>

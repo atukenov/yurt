@@ -1,12 +1,12 @@
 import { ReactNode } from 'react';
 
 import clsx from 'clsx';
-import { Button } from 'xtreme-ui';
+import { FaTimes } from 'react-icons/fa';
 
 import './modal.scss';
 
 const Modal = (props: TModal) => {
-	const { children, open, setOpen, closeIcon = 'e59b' } = props;
+	const { children, open, setOpen, closeIcon = true } = props;
 	const classList = clsx(
 		'modal',
 		open && 'open',
@@ -17,7 +17,7 @@ const Modal = (props: TModal) => {
 			<div className='backdrop' onClick={() => setOpen(false)} />
 			<div className='modalPane'>
 				{children}
-				{ closeIcon && <Button className='closeModal' size='mini' icon={closeIcon} onClick={() => setOpen(false)} /> }
+				{ closeIcon && <button className='closeModal xButton' onClick={() => setOpen(false)}><FaTimes /></button> }
 			</div>
 		</div>
 	);
@@ -27,7 +27,7 @@ export default Modal;
 
 type TModal = {
 	open: boolean;
-	closeIcon?: string;
+	closeIcon?: boolean;
 	setOpen: (open: boolean) => void
 	children: ReactNode;
 }
