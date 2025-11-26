@@ -6,7 +6,7 @@ import { montserrat } from "#utils/helper/fontHelper";
 import "./globals.scss";
 
 export const metadata = {
-  title: "OrderWorder",
+  title: "YURT",
 };
 export default function RootLayout({ children }: IRootProps) {
   return (
