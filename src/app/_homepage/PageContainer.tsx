@@ -3,11 +3,14 @@
 import { useState } from 'react';
 
 import AboutSection from './AboutSection';
+import CustomerLoginSection from './CustomerLoginSection';
 import FeatureSection from './FeatureSection';
 import FooterSection from './FooterSection';
 import LandingSection from './LandingSection';
 import LoginSection from './LoginSection';
 import Navbar from './Navbar';
+
+import './pageContainer.scss';
 
 export default function PageContainer () {
 	const [menuOpen, setMenuOpen] = useState(false);
@@ -22,7 +25,8 @@ export default function PageContainer () {
 					{/* <LandingSection /> */}
 					{/* <AboutSection /> */}
 					{/* <FeatureSection /> */}
-					<LoginSection />
+					<CustomerLoginSection />
+					{/* <LoginSection /> */}
 					<FooterSection />
 				</div>
 			</div>

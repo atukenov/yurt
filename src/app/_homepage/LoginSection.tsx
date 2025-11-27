@@ -83,13 +83,6 @@ const LoginSection = () => {
 
   return (
     <section className="loginSection" id="homepage-login">
-      <div className="loginAnim">
-        <Lottie
-          className="welcomeAnim"
-          src={getAnimSrc("Welcome")}
-          speed={0.6}
-        />
-      </div>
       <div className={`loginContainer ${profile || loggedIn ? "profile" : ""}`}>
         <div className="loginCard front">
           <div className="header">
