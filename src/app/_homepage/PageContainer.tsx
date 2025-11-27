@@ -19,9 +19,9 @@ export default function PageContainer () {
 				<div
 					className={`homepageSections ${menuOpen ? 'menuOpen' : ''}`}
 				>
-					<LandingSection />
-					<AboutSection />
-					<FeatureSection />
+					{/* <LandingSection /> */}
+					{/* <AboutSection /> */}
+					{/* <FeatureSection /> */}
 					<LoginSection />
 					<FooterSection />
 				</div>

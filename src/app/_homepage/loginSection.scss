@@ -1,256 +1,271 @@
 .loginSection {
-	position: relative;
-	width: 100dvw;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 12rem 0 30rem 0;
+  position: relative;
+  width: 100dvw;
+  min-height: calc(100dvh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8rem 0 8rem 0;
+  z-index: 100;
 
-	.loginAnim {
-		flex: 1;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+  .loginAnim {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-		.welcomeAnim {
-			width: 80%;
-			height: 80%;
-		}
-	}
+    .welcomeAnim {
+      width: 80%;
+      height: 80%;
+    }
+  }
 
-	.loginContainer {
-		width: 50%;
-		min-width: 600px;
-		margin-right: 50px;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		perspective: 1000px;
-		transform-style: preserve-3d;
-		transition: all var(--animDurSlow) var(--cubicBezierPrimary);
+  .loginContainer {
+    width: 50%;
+    min-width: 600px;
+    margin-right: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    transition: all var(--animDurSlow) var(--cubicBezierPrimary);
 
-		&.profile {
-			transform: rotateY(180deg);
+    &.profile {
+      transform: rotateY(180deg);
 
-			.loginCard {
-				&.front {
-					pointer-events: none;
-				}
+      .loginCard {
+        &.front {
+          pointer-events: none;
+        }
 
-				&.back {
-					pointer-events: all;
-				}
-			}
-		}
+        &.back {
+          pointer-events: all;
+        }
+      }
+    }
 
-		.loginCard {
-			position: absolute;
-			width: 500px;
-			border-radius: 18px;
-			box-shadow: 0 20px 40px rgb(0 0 0 / 20%), 0 20px 40px hsl(0deg 0 100% / 15%);
-			padding: 28px;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			overflow: hidden;
-			background-color: var(--colorBackgroundPrimary);
-			backface-visibility: hidden;
-			transition: all var(--animDurSlow) var(--cubicBezierPrimary);
+    .loginCard {
+      position: absolute;
+      width: 500px;
+      border-radius: 18px;
+      box-shadow:
+        0 20px 40px rgb(0 0 0 / 20%),
+        0 20px 40px hsl(0deg 0 100% / 15%);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      background-color: var(--colorBackgroundPrimary);
+      backface-visibility: hidden;
+      transition: all var(--animDurSlow) var(--cubicBezierPrimary);
 
-			.logout {
-				position: absolute;
-				right: 0;
-			}
+      .logout {
+        position: absolute;
+        right: 0;
+      }
 
-			.inputContainer {
-				--inputHeight: 50px;
+      .inputContainer {
+        --inputHeight: 50px;
 
-				position: relative;
-				width: 100%;
-				margin: 30px 0;
-				display: flex;
-				flex-direction: column;
-				gap: 12px;
+        position: relative;
+        width: 100%;
+        margin: 30px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
 
-				.email, .username, .password {
-					--iconSize: var(--inputHeight);
-	
-					position: relative;
-					width: 100%;
+        .email,
+        .username,
+        .password {
+          --iconSize: var(--inputHeight);
 
-					.label {
-						margin-left: 12px !important;
-					}
-				}
+          position: relative;
+          width: 100%;
 
-				.username {
-					height: 0;
-					opacity: 0;
-					transition: all var(--animDurFast) var(--cubicBezierPrimary);
+          .label {
+            margin-left: 12px !important;
+          }
+        }
 
-					&.show {
-						height: 40px;
-						opacity: 1;
-					}
-				}
-			}
+        .username {
+          height: 0;
+          opacity: 0;
+          transition: all var(--animDurFast) var(--cubicBezierPrimary);
 
-			.loginAction {
-				width: 100%;
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				padding-top: 8px;
-				gap: 8px;
+          &.show {
+            height: 40px;
+            opacity: 1;
+          }
+        }
+      }
 
-				.kitchenMode {
-					&:not(.active) {
-						background: transparent;
+      .loginAction {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 8px;
+        gap: 8px;
 
-						span {
-							font-variation-settings: 'wdth' 75, 'wght' 600;
-						}
-					}
-				}
+        .kitchenMode {
+          &:not(.active) {
+            background: transparent;
 
-				.next {
-					margin-left: auto;
-				}
-			}
+            span {
+              font-variation-settings:
+                "wdth" 75,
+                "wght" 600;
+            }
+          }
+        }
 
-			.loggedInAction {
-				display: flex;
-				gap: 16px;
-				margin-top: 32px;
-			}
+        .next {
+          margin-left: auto;
+        }
+      }
 
-			&.front {
-				.header {
-					position: relative;
-					width: 100%;
-					display: flex;
-					flex-direction: column;
-					align-items: center;
-					justify-content: center;
+      .loggedInAction {
+        display: flex;
+        gap: 16px;
+        margin-top: 32px;
+      }
 
-					> h3, > h4 {
-						width: 100%;
-						font-size: 42px;
-						font-variation-settings: 'wdth' 75, 'wght' 300;;
-						text-align: left;
-						user-select: none;
-						margin: 0;
-					}
-		
-					> h4 {
-						font-size: 16px;
-						margin-top: 5px;
-					}
-				}
-			}
+      &.front {
+        .header {
+          position: relative;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
 
-			&.back {
-				pointer-events: none;
-				transform: rotateY(180deg);
+          > h3,
+          > h4 {
+            width: 100%;
+            font-size: 42px;
+            font-variation-settings:
+              "wdth" 75,
+              "wght" 300;
+            text-align: left;
+            user-select: none;
+            margin: 0;
+          }
 
-				.header {
-					position: relative;
-					width: 100%;
-					display: flex;
-					align-items: center;
-					gap: 16px;
+          > h4 {
+            font-size: 16px;
+            margin-top: 5px;
+          }
+        }
+      }
 
-					.details {
-						display: flex;
-						flex-direction: column;
-						justify-content: center;
-						gap: 2px;
+      &.back {
+        pointer-events: none;
+        transform: rotateY(180deg);
 
-						.name {
-							margin: 0;
-							font-size: 20px;
-							font-variation-settings: 'wdth' 75, 'wght' 600;
-						}
+        .header {
+          position: relative;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 16px;
 
-						.address {
-							margin: 0;
-							font-size: 14px;
-							font-variation-settings: 'wdth' 75, 'wght' 400;
-						}
-					}
-				}
+          .details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
 
-				.body {
-					width: 100%;
-					flex: 1;
-				}
-			}
-		}
-	}
+            .name {
+              margin: 0;
+              font-size: 20px;
+              font-variation-settings:
+                "wdth" 75,
+                "wght" 600;
+            }
+
+            .address {
+              margin: 0;
+              font-size: 14px;
+              font-variation-settings:
+                "wdth" 75,
+                "wght" 400;
+            }
+          }
+        }
+
+        .body {
+          width: 100%;
+          flex: 1;
+        }
+      }
+    }
+  }
 }
 
 @media (width <= 1100px) {
-	.loginSection {
-		.loginContainer {
-			min-width: 500px;
+  .loginSection {
+    .loginContainer {
+      min-width: 500px;
 
-			.loginCard {
-				transform: scale(0.9);
-			}
-		}
-	}
+      .loginCard {
+        transform: scale(0.9);
+      }
+    }
+  }
 }
 
 @media (width <= 830px) {
-	.loginSection {
-		flex-direction: column;
+  .loginSection {
+    flex-direction: column;
 
-		.loginAnim {
-			flex: 1;
-			justify-content: center;
-			align-items: flex-start;
-		}
+    .loginAnim {
+      flex: 1;
+      justify-content: center;
+      align-items: flex-start;
+    }
 
-		.loginContainer {
-			margin: 0 0 220px;
-		}
-	}
+    .loginContainer {
+      margin: 0 0 220px;
+    }
+  }
 }
 
 @media (width <= 600px) {
-	.loginSection {
-		.loginAnim {
-			width: 90%;
+  .loginSection {
+    .loginAnim {
+      width: 90%;
 
-			.welcomeAnim {
-				margin: auto;
-				width: 100%;
-				height: 65%;
-			}
-		}
+      .welcomeAnim {
+        margin: auto;
+        width: 100%;
+        height: 65%;
+      }
+    }
 
-		.loginContainer {
-			min-width: 100%;
-			margin: 0 0 135px;
+    .loginContainer {
+      min-width: 100%;
+      margin: 0 0 135px;
 
-			.loginCard {
-				width: 100%;
-				border-radius: 40px 40px 0 0;
-				box-shadow: 0 -5px 5px rgb(0 0 0 / 10%);
-				transform: scale(1);
-			}
-		}
-	}
+      .loginCard {
+        width: 100%;
+        border-radius: 40px 40px 0 0;
+        box-shadow: 0 -5px 5px rgb(0 0 0 / 10%);
+        transform: scale(1);
+      }
+    }
+  }
 }
 
 @media (width <= 430px) {
-	.loginSection {
-		.loginAnim {
-			.welcomeAnim {
-				height: 45%;
-			}
-		}
-	}
+  .loginSection {
+    .loginAnim {
+      .welcomeAnim {
+        height: 45%;
+      }
+    }
+  }
 }

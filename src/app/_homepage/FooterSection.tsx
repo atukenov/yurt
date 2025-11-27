@@ -5,7 +5,7 @@ const FooterSection = () => {
 	return (
 		<section className='footerSection' id='homepage-footer'>
 			<p>
-				© {new Date().getFullYear()} OrderWorder, Inc. All rights
+				© {new Date().getFullYear()} 💎, Inc. All rights
 				reserved.
 			</p>
 			<Lightings />

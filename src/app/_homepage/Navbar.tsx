@@ -8,7 +8,7 @@ export default function Navbar ({ menuOpen, setMenuOpen }: TNavBarProps) {
 
 	return (
 		<div className='homeNavbar' id='homepage-navBar'>
-			<div className='logo' onClick={() => scrollToSection()}>ORDER WORDER</div>
+			<div className='logo' onClick={() => scrollToSection()}>YURT</div>
 			<div className={`menu ${menuOpen ? 'open' : ''}`}>
 				<div className='icon round' onClick={() => setMenuOpen(!menuOpen)}>
 					<span className='line1' />
@@ -16,7 +16,7 @@ export default function Navbar ({ menuOpen, setMenuOpen }: TNavBarProps) {
 				</div>
 				<div className='container'>
 					{
-						['About Us', 'Features'].map((item, key) => {
+						['About Us'].map((item, key) => {
 							return (
 								<div
 									key={key}
