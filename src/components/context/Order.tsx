@@ -13,6 +13,8 @@ import { fetcher } from '#utils/helper/common';
 const OrderDefault: TOrderInitialType = {
 	order: undefined,
 	loading: false,
+	orderHistory: [],
+	historyLoading: false,
 	placeOrder: () => new Promise(noop),
 	placingOrder: false,
 	cancelOrder: noop,
@@ -24,6 +26,7 @@ export const OrderProvider = ({ children }: TOrderProviderProps) => {
 	const session = useSession();
 	const authenticated = session.status === 'authenticated';
 	const { data: order, isLoading: loading, mutate } = useSWR(authenticated ? '/api/order' : null, fetcher, { refreshInterval: 5000 });
+	const { data: orderHistory = [], isLoading: historyLoading, mutate: mutateHistory } = useSWR(authenticated ? '/api/order/history' : null, fetcher, { refreshInterval: 10000 });
 
 	const [placingOrder, setPlacingOrder] = useState(false);
 	const [cancelingOrder, setCancelingOrder] = useState(false);
@@ -51,10 +54,11 @@ export const OrderProvider = ({ children }: TOrderProviderProps) => {
 
 	useEffect(() => {
 		mutate();
-	}, [mutate, session.status]);
+		mutateHistory();
+	}, [mutate, mutateHistory, session.status]);
 
 	return (
-		<OrderContext.Provider value={{ order, loading, placeOrder, placingOrder, cancelOrder, cancelingOrder }}>
+		<OrderContext.Provider value={{ order, loading, orderHistory, historyLoading, placeOrder, placingOrder, cancelOrder, cancelingOrder }}>
 			{children}
 		</OrderContext.Provider>
 	);
@@ -67,6 +71,8 @@ export type TOrderProviderProps = {
 export type TOrderInitialType = {
 	order?: TOrder,
 	loading: boolean,
+	orderHistory: TOrder[],
+	historyLoading: boolean,
 	placeOrder: (products: Array<TMenuCustom>) => Promise<void>
 	placingOrder: boolean,
 	cancelOrder: () => void,

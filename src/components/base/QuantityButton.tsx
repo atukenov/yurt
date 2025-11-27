@@ -1,6 +1,5 @@
 import clsx from 'clsx';
-
-import Icon from './Icon';
+import { FaMinus, FaPlus, FaTimes } from 'react-icons/fa';
 
 import './quantityButton.scss';
 
@@ -18,15 +17,15 @@ const QuantityButton = (props: TQuantityButtonProps) => {
 		<div className={classList}>
 			<div className='hiddenContainer'>
 				{!props.disabled && <div className='quantity decrease' onClick={decreaseQuantity}>
-					<Icon code='2d' />
+					<FaMinus />
 				</div>}
 				<div className='value'>
-					{disabled && <Icon code='f00d' />}
+					{disabled && <FaTimes />}
 					<p>{quantity || '0'}</p>
 				</div>
 			</div>
 			{!disabled && <div className='quantity increase' onClick={increaseQuantity}>
-				{quantity ? <Icon code='2b' size={16} /> : 'Add' }
+				{quantity ? <FaPlus size={16} /> : 'Add' }
 			</div>}
 		</div>
 	);

@@ -23,6 +23,7 @@ const CartPage = (props: TCartPageProps) => {
     increaseProductQuantity,
     decreaseProductQuantity,
     resetSelectedProducts,
+    setCurrentTab,
   } = props;
   const params = useSearchParams();
   const table = params.get("table");
@@ -50,6 +51,11 @@ const CartPage = (props: TCartPageProps) => {
 
     await placeOrder(selectedProducts);
     resetSelectedProducts();
+    
+    // Switch to active orders tab after placing order
+    if (setCurrentTab) {
+      setTimeout(() => setCurrentTab('active'), 500);
+    }
   };
   const onCancelOrder = async () => {
     await cancelOrder();
@@ -234,6 +240,7 @@ type TCartPageProps = {
   decreaseProductQuantity: (product: TMenuCustom) => void;
   resetSelectedProducts: () => void;
   setSideSheetHeading: (heading: [string, string]) => void;
+  setCurrentTab?: (tab: string) => void;
 };
 
 type TMenuCustom = TMenu & { quantity: number };

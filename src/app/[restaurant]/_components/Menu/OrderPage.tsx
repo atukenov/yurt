@@ -12,13 +12,16 @@ import { TMenu } from '#utils/database/models/menu';
 import { useQueryParams } from '#utils/hooks/useQueryParams';
 
 import CartPage from './CartPage';
+import CustomerActiveOrders from './CustomerActiveOrders';
+import CustomerOrderHistory from './CustomerOrderHistory';
 import MenuCard from './MenuCard';
+import OrderTabs from './OrderTabs';
 import UserLogin from './UserLogin';
 import './orderPage.scss';
 
 const OrderPage = () => {
 	const session = useSession();
-	const { loading } = useOrder();
+	const { loading, order: customerOrder } = useOrder();
 	const { restaurant, selectedAddress } = useRestaurant();
 
 	const menus = restaurant?.menus as Array<TMenuCustom>;
@@ -31,6 +34,7 @@ const OrderPage = () => {
 	const categories = useRef<HTMLDivElement>(null);
 	const [loginOpen, setLoginOpen] = useState(false);
 	const [sideSheetOpen, setSideSheetOpen] = useState(false);
+	const [currentTab, setCurrentTab] = useState('cart');
 	const [topHeading, setTopHeading] = useState(['Menu', 'Category']);
 	const [orderHeading, setOrderHeading] = useState(['Explore', 'Menu']);
 	const [sideSheetHeading, setSideSheetHeading] = useState(['Your', 'Order']);
@@ -150,6 +154,24 @@ const OrderPage = () => {
 	useEffect(() => {
 		if (session.status === 'authenticated' && session.data?.restaurant?.username !== restaurant?.username) signOut();
 	}, [restaurant?.username, session.data?.restaurant?.username, session.status]);
+
+	useEffect(() => {
+		// Update side sheet heading based on current tab
+		if (currentTab === 'cart') setSideSheetHeading(['Your', 'Order']);
+		else if (currentTab === 'active') setSideSheetHeading(['Active', 'Orders']);
+		else if (currentTab === 'history') setSideSheetHeading(['Order', 'History']);
+	}, [currentTab]);
+
+	// When opening side sheet, determine which tab to show
+	useEffect(() => {
+		if (sideSheetOpen) {
+			if (selectedProducts.length > 0) {
+				setCurrentTab('cart');
+			} else if (customerOrder?.products?.length && customerOrder.products.some((p: any) => p.adminApproved)) {
+				setCurrentTab('active');
+			}
+		}
+	}, [sideSheetOpen, selectedProducts.length, customerOrder]);
 
 	return (
 		<div className='orderPage'>
@@ -289,18 +311,29 @@ const OrderPage = () => {
 				}
 			</div>
 			<SideSheet title={sideSheetHeading} open={sideSheetOpen} setOpen={setSideSheetOpen}>
-				{
-					loading ?
-						<Spinner label='Loading Order...' fullpage />
-						:
-						<CartPage
-							selectedProducts={selectedProducts}
-							increaseProductQuantity={increaseProductQuantity}
-							decreaseProductQuantity={decreaseProductQuantity}
-							resetSelectedProducts={() => setSelectedProducts([])}
-							setSideSheetHeading={setSideSheetHeading}
-						/>
-				}
+				<div className='orderSideSheetContent'>
+					<OrderTabs currentTab={currentTab} setCurrentTab={setCurrentTab} />
+					<div className='tabContent'>
+						{loading ? (
+							<Spinner label='Loading Order...' fullpage />
+						) : (
+							<>
+								{currentTab === 'cart' && (
+									<CartPage
+										selectedProducts={selectedProducts}
+										increaseProductQuantity={increaseProductQuantity}
+										decreaseProductQuantity={decreaseProductQuantity}
+										resetSelectedProducts={() => setSelectedProducts([])}
+										setSideSheetHeading={setSideSheetHeading}
+										setCurrentTab={setCurrentTab}
+									/>
+								)}
+								{currentTab === 'active' && <CustomerActiveOrders />}
+								{currentTab === 'history' && <CustomerOrderHistory />}
+							</>
+						)}
+					</div>
+				</div>
 			</SideSheet>
 			<Modal open={loginOpen} setOpen={setLoginOpen}>
 				<UserLogin setOpen={setLoginOpen} />
