@@ -8,6 +8,7 @@
     width: 100%;
     min-height: 100dvh;
     transition: filter var(--animDurDefault) var(--cubicBezierPrimary);
+    z-index: 1;
 
     &.menuOpen {
       filter: blur(10px);
@@ -23,7 +24,6 @@
     justify-content: center;
     align-items: center;
     padding: 8rem 0;
-    z-index: 100;
 
     .loginAnim {
       flex: 1;

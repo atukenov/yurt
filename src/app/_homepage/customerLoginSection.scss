@@ -79,6 +79,7 @@
         .logo {
           font-weight: 800;
           font-size: 42px;
+          color: hsl(var(--colorBrandPrimary));
         }
       }
 
@@ -120,8 +121,9 @@
         }
 
         .coffeeShopsButton {
-          background-color: var(--colorPrimary);
+          background-color: var(--colorBackgroundSecondary);
           color: var(--colorContentInverse);
+          border: 1px solid hsl(var(--colorBrandPrimary));
 
           &:hover {
             opacity: 0.9;
@@ -131,7 +133,7 @@
         .loginButton {
           background-color: var(--colorBackgroundSecondary);
           color: var(--colorContentPrimary);
-          border: 2px solid var(--colorBorder);
+          border: 2px solid hsl(var(--colorBrandPrimary));
 
           &:hover {
             border-color: var(--colorPrimary);
