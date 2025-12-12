@@ -21,6 +21,7 @@ const NavSideBar = (props: TNavSideBar) => {
 
   const onNavClick = (tab: string) => {
     if (tab === "signout") return router.push("/logout");
+		if (tab === "explore") return router.push("/");
     queryParams.set({ tab });
   };
 

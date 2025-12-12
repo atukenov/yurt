@@ -1,27 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaCoffee, FaUserCircle } from 'react-icons/fa';
-
-import Lottie from '#components/base/Lottie';
-import Modal from '#components/layout/Modal';
-import { getAnimSrc } from '#utils/constants/common';
-import UserLogin from '../[restaurant]/_components/Menu/UserLogin';
+import { FaCoffee } from 'react-icons/fa';
 
 import './customerLoginSection.scss';
 
 const CustomerLoginSection = () => {
 	const router = useRouter();
-	const [loginModalOpen, setLoginModalOpen] = useState(false);
 
 	const handleCoffeeShopsClick = () => {
-		router.push('/address-selection');
-	};
-
-	const handleLoginSuccess = () => {
-		setLoginModalOpen(false);
 		router.push('/address-selection');
 	};
 
@@ -41,13 +29,6 @@ const CustomerLoginSection = () => {
 							<FaCoffee />
 							<span>Browse Coffee Shops</span>
 						</button>
-						<button
-							className="loginButton"
-							onClick={() => setLoginModalOpen(true)}
-						>
-							<FaUserCircle />
-							<span>Quick Login</span>
-						</button>
 					</div>
 					<div className="adminLinkContainer">
 						<p className="adminText">
@@ -59,10 +40,6 @@ const CustomerLoginSection = () => {
 					</div>
 				</div>
 			</div>
-
-			<Modal open={loginModalOpen} setOpen={setLoginModalOpen}>
-				<UserLogin setOpen={handleLoginSuccess} />
-			</Modal>
 		</section>
 	);
 };
