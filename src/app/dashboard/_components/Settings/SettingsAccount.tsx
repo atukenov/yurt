@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Avatar, Button, Spinner } from 'xtreme-ui';
+import { Avatar, Spinner } from 'xtreme-ui';
+import Button from '#components/base/Button';
 
 import { useAdmin } from '#components/context/useContext';
 import { splitStringByFirstWord } from '#utils/helper/common';

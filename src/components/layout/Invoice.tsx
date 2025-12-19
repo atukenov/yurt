@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-import { Button } from 'xtreme-ui';
+import Button from '#components/base/Button';
 import { TOrder } from '#utils/database/models/order';
 
 import './invoice.scss';

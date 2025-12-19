@@ -1,6 +1,5 @@
-import { Button } from "xtreme-ui";
-
 import Lottie from "#components/base/Lottie";
+import Button from "#components/base/Button";
 import { getAnimSrc } from "#utils/constants/common";
 import { scrollToSection } from "#utils/helper/common";
 

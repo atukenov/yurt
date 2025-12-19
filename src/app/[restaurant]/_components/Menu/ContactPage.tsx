@@ -1,7 +1,7 @@
 'use client';
 
 import { FaMapMarkerAlt, FaEnvelope } from 'react-icons/fa';
-import { Button } from 'xtreme-ui';
+import Button from '#components/base/Button';
 
 import { useRestaurant } from '#components/context/useContext';
 import NoContent from '#components/layout/NoContent';

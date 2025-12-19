@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "xtreme-ui";
+import Button from "#components/base/Button";
 
 import "./addressSelection.scss";
 

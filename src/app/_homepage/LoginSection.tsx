@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { Avatar, Button, useXTheme } from "xtreme-ui";
+import { Avatar, useXTheme } from "xtreme-ui";
+import Button from "#components/base/Button";
 
 import Lottie from "#components/base/Lottie";
 import Textfield from "#components/base/Textfield";

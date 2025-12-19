@@ -1,4 +1,4 @@
-import { FaCog, FaReceipt } from "react-icons/fa";
+import { FaCog, FaHome, FaReceipt } from "react-icons/fa";
 import { capitalize } from "xtreme-ui";
 
 import { DashboardProvider } from "#components/context";
@@ -8,6 +8,7 @@ import PageContainer from "./_components/PageContainer";
 import "./dashboard.scss";
 
 const navItems = [
+  { label: "explore", value: "explore", icon: <FaHome /> },
   { label: "orders", icon: <FaReceipt />, value: "orders" },
   { label: "settings", icon: <FaCog />, value: "settings" },
 ];

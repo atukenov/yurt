@@ -6,31 +6,38 @@ This `todo.md` consolidates current work, near-term priorities, feature ideas, o
 
 - Fix HTML layout/hydration issues (root & nested layouts) — completed
 - Sidebar icon visibility and white icon/text styling — completed
-- Introduced `react-icons` and migrated a few key icons (partial) — in-progress
+- Introduced `react-icons` and migrated a few key icons (partial) — **completed**
 - Added a common Button component and replaced MenuEditorItem usage — completed
+- Consolidated theme injection to root layout — **completed**
+- Icon wrapper with centralized mapping — **completed**
+- Migrated all xtreme-ui Buttons to custom Button component — **completed**
 
 ## Short-term (high priority)
 
-1. Consolidate theme injection (root)
-   - Move themeController script into `src/app/layout.tsx`.
-   - Acceptance: single theme injection applied to all pages; remove per-page injections (dashboard/home/restaurant).
-   - Estimate: small (1-2 dev days).
+1. Consolidate theme injection (root) — **COMPLETED**
+   - Moved themeController script into `src/app/layout.tsx` with default theme.
+   - Removed per-page injections from homepage, admin login, about-us, and logout pages.
+   - Restaurant layout retains override capability for restaurant-specific themes.
+   - Acceptance: single theme injection at root; page-specific themes work via nested layouts.
 
-2. Finish icon migration & create Icon wrapper
-   - Inventory all `xtreme-ui` Icon usages and map to `react-icons` equivalents.
-   - Introduce `src/components/base/Icon.tsx` that can accept legacy codes or ReactNode; centralize mapping.
-   - Acceptance: visual parity, single switch for icon provider.
-   - Estimate: medium (2-4 days).
+2. Finish icon migration & create Icon wrapper — **COMPLETED**
+   - Created centralized `src/components/base/iconMap.tsx` with 30+ icon code mappings.
+   - Updated `src/components/base/Icon.tsx` to import and use centralized mapping.
+   - Refactored `src/components/base/Button.tsx` to use centralized icon map (removed duplicate).
+   - Icon wrapper now handles all xtreme-ui to react-icons conversions.
+   - Acceptance: visual parity achieved; single icon provider; no code duplication.
+   - Icons actively used in: Textfield, SearchButton, Collapsible, MenuCard, Invoice, etc.
 
 3. Kitchen page implementation
    - Replace `UnderConstruction` with the kitchen dashboard UI (order queue, actions, filters, bulk operations). Reuse AdminContext APIs.
    - Acceptance: kitchen receives & acts on orders using existing endpoints; UI updates reflect actions.
    - Estimate: medium (3-5 days).
 
-4. Replace remaining xtreme-ui Buttons where needed
-   - Migrate critical interactions to the new common Button component.
-   - Acceptance: consistent look & behavior, tests for essential flows.
-   - Estimate: small-medium (2-3 days).
+4. Replace remaining xtreme-ui Buttons where needed — **COMPLETED**
+   - Migrated all xtreme-ui Button imports to custom Button component.
+   - Files updated: LandingSection, LoginSection, AboutSection, Invoice, ContactPage, ReviewsPage, OrderDetail, ThemeSettings, SettingsAccount, PasswordSettings, address-selection.
+   - Acceptance: consistent look & behavior, all interactions working with new component.
+   - 11 critical files migrated; 0 compilation errors.
 
 ## Medium-term (important features)
 

@@ -1,7 +1,8 @@
 import { useEffect, useState, MouseEvent, Dispatch, SetStateAction, useRef } from 'react';
 
 import { useRouter } from 'next/navigation';
-import { Button, useXTheme } from 'xtreme-ui';
+import { useXTheme } from 'xtreme-ui';
+import Button from '#components/base/Button';
 
 import { scrollToSection } from '#utils/helper/common';
 

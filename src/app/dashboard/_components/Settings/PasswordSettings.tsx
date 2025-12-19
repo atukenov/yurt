@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 import { toast } from 'react-toastify';
-import { Button, Spinner } from 'xtreme-ui';
+import { Spinner } from 'xtreme-ui';
+import Button from '#components/base/Button';
 
 import Textfield from '#components/base/Textfield';
 

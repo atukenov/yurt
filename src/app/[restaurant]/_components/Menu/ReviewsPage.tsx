@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { FaStar, FaPlus } from 'react-icons/fa';
-import { Spinner, Button, Icon } from 'xtreme-ui';
+import { Spinner, Icon } from 'xtreme-ui';
+import Button from '#components/base/Button';
 import { toast } from 'react-toastify';
 
 import { useRestaurant } from '#components/context/useContext';
