@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Button from "#components/base/Button";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import "./addressSelection.scss";
 
@@ -22,7 +22,8 @@ const AddressSelection = () => {
 
   const [step, setStep] = useState<"restaurant" | "address">("restaurant");
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] =
+    useState<Restaurant | null>(null);
   const [addresses, setAddresses] = useState<string[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,7 +34,7 @@ const AddressSelection = () => {
     const fetchRestaurants = async () => {
       try {
         const response = await fetch("/api/restaurants");
-        
+
         if (!response.ok) {
           throw new Error("Failed to fetch restaurants");
         }
@@ -49,15 +50,17 @@ const AddressSelection = () => {
           if (restaurant) {
             setSelectedRestaurant(restaurant);
             setAddresses(restaurant.addresses || []);
-            
+
             // Auto-redirect if exactly one address
             if (restaurant.addresses?.length === 1) {
               const address = restaurant.addresses[0];
               sessionStorage.setItem("selectedAddress", address);
-              router.push(`/${restaurantParam}?tab=menu&address=${encodeURIComponent(address)}`);
+              router.push(
+                `/${restaurantParam}?tab=menu&address=${encodeURIComponent(address)}`
+              );
               return;
             }
-            
+
             setStep("address");
           }
         }
@@ -72,9 +75,10 @@ const AddressSelection = () => {
     fetchRestaurants();
   }, [restaurantParam, router]);
 
-  const filteredRestaurants = restaurants.filter((restaurant) =>
-    restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    restaurant.restaurantID.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredRestaurants = restaurants.filter(
+    (restaurant) =>
+      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      restaurant.restaurantID.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredAddresses = addresses.filter((address) =>
@@ -85,15 +89,17 @@ const AddressSelection = () => {
     setSelectedRestaurant(restaurant);
     setAddresses(restaurant.addresses || []);
     setSearchQuery("");
-    
+
     // Auto-redirect if exactly one address
     if (restaurant.addresses?.length === 1) {
       const address = restaurant.addresses[0];
       sessionStorage.setItem("selectedAddress", address);
-      router.push(`/${restaurant.restaurantID}?tab=menu&address=${encodeURIComponent(address)}`);
+      router.push(
+        `/${restaurant.restaurantID}?tab=menu&address=${encodeURIComponent(address)}`
+      );
       return;
     }
-    
+
     setStep("address");
   };
 
@@ -104,7 +110,9 @@ const AddressSelection = () => {
   const handleContinue = () => {
     if (selectedAddress && selectedRestaurant) {
       sessionStorage.setItem("selectedAddress", selectedAddress);
-      router.push(`/${selectedRestaurant.restaurantID}?tab=menu&address=${encodeURIComponent(selectedAddress)}`);
+      router.push(
+        `/${selectedRestaurant.restaurantID}?tab=menu&address=${encodeURIComponent(selectedAddress)}`
+      );
     }
   };
 
@@ -184,10 +192,13 @@ const AddressSelection = () => {
                 <div className="restaurantInfo">
                   <h3 className="restaurantName">{restaurant.name}</h3>
                   {restaurant.description && (
-                    <p className="restaurantDescription">{restaurant.description}</p>
+                    <p className="restaurantDescription">
+                      {restaurant.description}
+                    </p>
                   )}
                   <p className="restaurantAddressCount">
-                    {restaurant.addresses?.length || 0} location{restaurant.addresses?.length !== 1 ? 's' : ''}
+                    {restaurant.addresses?.length || 0} location
+                    {restaurant.addresses?.length !== 1 ? "s" : ""}
                   </p>
                 </div>
               </div>
@@ -266,11 +277,7 @@ const AddressSelection = () => {
             onClick={handleContinue}
             disabled={!selectedAddress}
           />
-          <Button
-            label="Back"
-            onClick={handleBack}
-            type="secondary"
-          />
+          <Button label="Back" onClick={handleBack} type="secondary" />
         </div>
       </div>
     </div>

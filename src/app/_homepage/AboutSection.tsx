@@ -1,5 +1,5 @@
-import Lottie from "#components/base/Lottie";
 import Button from "#components/base/Button";
+import Lottie from "#components/base/Lottie";
 import { getAnimSrc } from "#utils/constants/common";
 import { scrollToSection } from "#utils/helper/common";
 
