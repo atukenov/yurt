@@ -11,6 +11,7 @@ This `todo.md` consolidates current work, near-term priorities, feature ideas, o
 - Consolidated theme injection to root layout — **completed**
 - Icon wrapper with centralized mapping — **completed**
 - Migrated all xtreme-ui Buttons to custom Button component — **completed**
+- Real-time notifications & alerts using SSE for admin/kitchen and customer — **completed**
 
 ## Short-term (high priority)
 
@@ -40,6 +41,20 @@ This `todo.md` consolidates current work, near-term priorities, feature ideas, o
    - 11 critical files migrated; 0 compilation errors.
 
 ## Medium-term (important features)
+
+- Real-time notifications & alerts (WS or SSE) for admin/kitchen — **IN PROGRESS**
+  - ✅ Created notification infrastructure using Server-Sent Events (SSE)
+  - ✅ Implemented NotificationManager for broadcasting to clients
+  - ✅ Created `/api/notifications/subscribe` endpoint for SSE connections
+  - ✅ Kitchen receives NEW_ORDER notifications when customers place orders
+  - ✅ Customers receive ORDER_ACCEPTED/REJECTED/COMPLETED notifications
+  - ✅ Built comprehensive Kitchen Dashboard page with real-time order queue
+  - ✅ Added NotificationBell component showing connection status and notification count
+  - ✅ Auto-reconnect on connection loss with 5-second retry
+  - ✅ Toast notifications display updates to users
+  - Files created: notificationManager, subscribe route, Notification context, NotificationToast, NotificationBell, Kitchen dashboard
+  - Acceptance: admin/kitchen receive instant NEW_ORDER alerts; customers get status updates; 0 compilation errors.
+  - Estimate: completed in this session.
 
 - Restaurant pages: Explore, Reviews, Contact — implement full features and endpoints.
 - Real-time notifications & alerts (WS or SSE) for admin/kitchen.

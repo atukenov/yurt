@@ -4,6 +4,7 @@ import Script from "next/script";
 import { themeController } from "xtreme-ui";
 
 import { getThemeColor } from "#utils/database/helper/getThemeColor";
+import { RestaurantClientLayout } from "./_layout/ClientLayout";
 
 export default async function RestaurantLayout({
   children,
@@ -20,7 +21,7 @@ export default async function RestaurantLayout({
         }}
         suppressHydrationWarning
       />
-      {children}
+      <RestaurantClientLayout>{children}</RestaurantClientLayout>
     </>
   );
 }
