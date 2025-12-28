@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
-  "name": "yurt",
-=======
   "name": "yurt-v2",
->>>>>>> 05d75f6 (init v2)
   "version": "0.1.0",
   "private": true,
   "scripts": {
