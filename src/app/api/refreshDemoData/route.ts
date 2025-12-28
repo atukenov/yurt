@@ -1,26 +1,22 @@
-import connectDB from "#utils/database/connect";
-import { Accounts } from "#utils/database/models/account";
-import { Kitchens } from "#utils/database/models/kitchen";
-import { Menus } from "#utils/database/models/menu";
-import { Profiles } from "#utils/database/models/profile";
-import { CatchNextResponse } from "#utils/helper/common";
+import { connectDB } from "@/lib/mongodb";
+import { Location } from "@/models/Location";
+import { MenuItem } from "@/models/MenuItem";
+import { Topping } from "@/models/Topping";
+import { User } from "@/models/User";
+import { coffeeShopData } from "./_data/coffeeShop";
 
-import altyncup from "./_data/altyncup/altyncup";
-import empire from "./_data/empire/empire";
-import starbucks from "./_data/starbucks/starbucks";
-
-const deleteData = async (ids: string[]) => {
+const deleteData = async () => {
   const start = performance.now();
   const models = [
-    { model: Menus, name: "Menus" },
-    { model: Kitchens, name: "Kitchens" },
-    { model: Profiles, name: "Profiles" },
-    { model: Accounts, name: "Accounts", field: "username" },
+    { model: MenuItem, name: "MenuItems" },
+    { model: Topping, name: "Toppings" },
+    { model: Location, name: "Locations" },
+    { model: User, name: "Users" },
   ];
 
   const results = await Promise.all(
-    models.map(async ({ model, name, field = "restaurantID" }) => {
-      const res = await model.deleteMany({ [field]: { $in: ids } });
+    models.map(async ({ model, name }) => {
+      const res = await model.deleteMany({});
       return { model: name, ...res };
     })
   );
@@ -31,22 +27,27 @@ const deleteData = async (ids: string[]) => {
   };
 };
 
-const createData = async (props: TDocumentData) => {
-  const { account, profile, menus, kitchens } = props;
+const createData = async () => {
+  const { users, menuItems, toppings, locations } = coffeeShopData;
   const start = performance.now();
-  const newAccount = await new Accounts(account).save();
-  const newProfile = await new Profiles(profile).save();
-  const [newMenus, newKitchen] = await Promise.all([
-    Promise.all(menus.map((m) => new Menus(m).save())),
-    Promise.all(kitchens.map((k) => new Kitchens(k).save())),
-  ]);
+
+  const newUsers = await Promise.all(users.map((u) => new User(u).save()));
+  const newMenuItems = await Promise.all(
+    menuItems.map((m) => new MenuItem(m).save())
+  );
+  const newToppings = await Promise.all(
+    toppings.map((t) => new Topping(t).save())
+  );
+  const newLocations = await Promise.all(
+    locations.map((l) => new Location(l).save())
+  );
 
   return {
     processTime: (performance.now() - start) / 1000,
-    account: newAccount,
-    profile: newProfile,
-    menus: newMenus,
-    kitchens: newKitchen,
+    users: newUsers,
+    menuItems: newMenuItems,
+    toppings: newToppings,
+    locations: newLocations,
   };
 };
 
@@ -54,30 +55,19 @@ export async function GET() {
   await connectDB();
   try {
     const start = performance.now();
-    const deleteResult = await deleteData(["empire", "starbucks", "altyncup"]);
-    const [empireResult, starbucksResult, altyncupResult] = await Promise.all([
-      createData(empire),
-      createData(starbucks),
-      createData(altyncup),
-    ]);
+    const deleteResult = await deleteData();
+    const createResult = await createData();
 
     const res = {
       totalProcessTime: (performance.now() - start) / 1000,
       delete: deleteResult,
-      empire: empireResult,
-      starbucks: starbucksResult,
-      altyncup: altyncupResult,
+      created: createResult,
     };
     return new Response(JSON.stringify(res, null, 4));
   } catch (err) {
-    console.log(err);
-    return CatchNextResponse(err);
+    console.error("Demo data refresh error:", err);
+    return new Response(JSON.stringify({ error: String(err) }, null, 4), {
+      status: 500,
+    });
   }
 }
-
-type TDocumentData = {
-  account: unknown;
-  profile: unknown;
-  menus: Array<unknown>;
-  kitchens: Array<unknown>;
-};

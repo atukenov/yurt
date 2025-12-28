@@ -1,37 +1,17 @@
-import "next-auth";
-
-import { TAccount } from "#utils/database/models/account";
-import { TCustomer } from "#utils/database/models/customer";
-import { TProfile } from "#utils/database/models/profile";
-
-type AuthUser = Partial<
-  Omit<TAccount, "profile"> & {
-    role: "admin" | "kitchen" | "customer";
-    customer: Partial<TCustomer>;
-    themeColor: TProfile.themeColor;
-    restaurant: Partial<{
-      username: TProfile.username;
-      address: string;
-      name: TProfile.name;
-      avatar: TProfile.avatar;
-    }>;
-  }
->;
+import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
-  interface User {
-    role: "admin" | "kitchen" | "customer";
-    themeColor: TProfile.themeColor;
-    _doc: AuthUser;
-  }
-
-  interface Session extends AuthUser {
-    expires: string;
+  interface Session {
+    user?: {
+      id?: string;
+      role?: "customer" | "admin";
+    } & DefaultSession["user"];
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    user: AuthUser;
+    id?: string;
+    role?: "customer" | "admin";
   }
 }
