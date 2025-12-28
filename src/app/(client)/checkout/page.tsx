@@ -37,7 +37,12 @@ export default function CheckoutPage() {
   if (!mounted) return null;
 
   const handleSubmitOrder = async () => {
-    if (!locationId || !session?.user?.id) {
+    if (!session?.user?.id) {
+      setError("You must be logged in to place an order.");
+      return;
+    }
+
+    if (!locationId) {
       setError("Please select a location");
       return;
     }

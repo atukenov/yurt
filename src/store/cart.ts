@@ -57,7 +57,7 @@ export const useCartStore = create<CartStore>()(
           ),
         })),
 
-      clearCart: () => set({ items: [], locationId: null }),
+      clearCart: () => set({ items: [] }),
 
       setLocation: (locationId) => set({ locationId }),
 
