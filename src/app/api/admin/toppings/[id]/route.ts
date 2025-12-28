@@ -38,7 +38,7 @@ export async function PUT(
     return Response.json({ topping });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return Response.json({ error: error.errors }, { status: 400 });
+      return Response.json({ error: error.issues }, { status: 400 });
     }
     console.error("Error updating topping:", error);
     return Response.json(

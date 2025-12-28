@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     return Response.json({ topping }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return Response.json({ error: error.errors }, { status: 400 });
+      return Response.json({ error: error.issues }, { status: 400 });
     }
     console.error("Error creating topping:", error);
     return Response.json(
