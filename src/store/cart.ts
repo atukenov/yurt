@@ -22,6 +22,7 @@ interface CartStore {
   setLocation: (locationId: string) => void;
   getTotalPrice: () => number;
   getEstimatedTime: () => number;
+  isLocationSelected: () => boolean;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -76,6 +77,10 @@ export const useCartStore = create<CartStore>()(
           0
         );
         return 5 + itemCount * 2;
+      },
+
+      isLocationSelected: () => {
+        return get().locationId !== null && get().locationId !== "";
       },
     }),
     {

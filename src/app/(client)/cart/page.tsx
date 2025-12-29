@@ -16,8 +16,15 @@ export default function CartPage() {
   });
 
   const [mounted, setMounted] = useState(false);
-  const { items, getTotalPrice, removeItem, updateItem, clearCart } =
-    useCartStore();
+  const {
+    items,
+    locationId,
+    getTotalPrice,
+    removeItem,
+    updateItem,
+    clearCart,
+    isLocationSelected,
+  } = useCartStore();
 
   useEffect(() => {
     setMounted(true);
@@ -148,9 +155,25 @@ export default function CartPage() {
           </div>
 
           <div className="space-y-3">
+            {!isLocationSelected() && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-red-700 text-sm font-semibold">
+                  ⚠️ Please select a location before checkout
+                </p>
+              </div>
+            )}
             <Link
               href="/checkout"
-              className="block w-full px-4 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold text-center"
+              className={`block w-full px-4 py-3 rounded-lg transition font-semibold text-center ${
+                isLocationSelected()
+                  ? "bg-amber-600 text-white hover:bg-amber-700"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+              onClick={(e) => {
+                if (!isLocationSelected()) {
+                  e.preventDefault();
+                }
+              }}
             >
               Proceed to Checkout
             </Link>
