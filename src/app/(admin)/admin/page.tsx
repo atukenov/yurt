@@ -26,10 +26,19 @@ function AdminDashboardContent() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<OrderFilters>({
-    status: "pending",
-  });
   const [exporting, setExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
+
+  // Initialize filters with today's date
+  const getTodayDateString = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
+  const [filters, setFilters] = useState<OrderFilters>({
+    startDate: getTodayDateString(),
+    endDate: getTodayDateString(),
+  });
 
   // Fetch locations for filter dropdown
   useEffect(() => {
@@ -129,6 +138,8 @@ function AdminDashboardContent() {
       orderEvents.orderCreated((newOrder: IOrder) => {
         console.log("[Admin] New order received:", newOrder);
         setOrders((prev) => [newOrder, ...prev]);
+        // Also update allOrders for live count updates
+        setAllOrders((prev) => [newOrder, ...prev]);
       });
     }
 
@@ -136,6 +147,12 @@ function AdminDashboardContent() {
       orderEvents.orderUpdated((updatedOrder: any) => {
         console.log("[Admin] Order updated:", updatedOrder);
         setOrders((prev) =>
+          prev.map((order) =>
+            order._id === updatedOrder._id ? updatedOrder : order
+          )
+        );
+        // Also update allOrders
+        setAllOrders((prev) =>
           prev.map((order) =>
             order._id === updatedOrder._id ? updatedOrder : order
           )
@@ -148,6 +165,14 @@ function AdminDashboardContent() {
         (data: { orderId: string; status: string }) => {
           console.log("[Admin] Order status changed:", data);
           setOrders((prev) =>
+            prev.map((order) =>
+              order._id === data.orderId
+                ? { ...order, status: data.status as any }
+                : order
+            )
+          );
+          // Also update allOrders for live count updates
+          setAllOrders((prev) =>
             prev.map((order) =>
               order._id === data.orderId
                 ? { ...order, status: data.status as any }
@@ -278,29 +303,103 @@ function AdminDashboardContent() {
     );
   }
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">
-          Admin Dashboard
-        </h1>
+  // Group orders by status for Kanban view
+  const pendingOrders = allOrders.filter((order) => order.status === "pending");
+  const acceptedOrders = allOrders.filter(
+    (order) => order.status === "accepted"
+  );
+  const completedOrders = allOrders.filter(
+    (order) => order.status === "completed"
+  );
+  const rejectedOrders = allOrders.filter(
+    (order) => order.status === "rejected"
+  );
 
-        {/* Advanced Filter Panel */}
-        <OrderFilterPanel onFiltersChange={setFilters} locations={locations} />
+  return (
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600 mt-2">
+            Manage orders in real-time with Kanban view
+          </p>
+
+          {/* Filter Panel */}
+          <div className="mt-6">
+            <OrderFilterPanel
+              onFiltersChange={setFilters}
+              locations={locations}
+            />
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Orders</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {allOrders.length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-3xl font-bold text-yellow-600">
+                  {pendingOrders.length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Accepted</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {acceptedOrders.length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {completedOrders.length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Rejected</p>
+                <p className="text-3xl font-bold text-red-600">
+                  {rejectedOrders.length}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Export Buttons */}
-        {orders.length > 0 && (
-          <div className="flex gap-3 mb-6">
+        {allOrders.length > 0 && (
+          <div className="flex gap-3 mb-8">
             <button
               onClick={async () => {
                 try {
                   setExporting(true);
                   exportOrdersToCSV(
-                    orders,
+                    allOrders,
                     `orders-${new Date().toISOString().split("T")[0]}.csv`
                   );
                   errorLogger.info("Exported orders to CSV", {
-                    count: orders.length,
+                    count: allOrders.length,
                   });
                 } catch (error) {
                   errorLogger.error(
@@ -316,15 +415,15 @@ function AdminDashboardContent() {
               disabled={exporting}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold transition flex items-center gap-2"
             >
-              📥 Export CSV ({orders.length})
+              📥 Export CSV ({allOrders.length})
             </button>
             <button
               onClick={async () => {
                 try {
                   setExporting(true);
-                  exportOrdersToPDF(orders);
+                  exportOrdersToPDF(allOrders);
                   errorLogger.info("Exported orders to PDF", {
-                    count: orders.length,
+                    count: allOrders.length,
                   });
                 } catch (error) {
                   errorLogger.error(
@@ -340,103 +439,260 @@ function AdminDashboardContent() {
               disabled={exporting}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold transition flex items-center gap-2"
             >
-              📄 Export PDF ({orders.length})
+              📄 Export PDF ({allOrders.length})
             </button>
           </div>
         )}
 
-        {/* Status Overview Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-yellow-100 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-700">
-              {allOrders.filter((o) => o.status === "pending").length}
+        {/* Kanban Board Section with Tabs */}
+        <div>
+          <div className="flex items-center gap-4 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Order Board</h2>
+            <div className="flex gap-2 border-b border-gray-200">
+              <button
+                onClick={() => setActiveTab("active")}
+                className={`px-6 py-3 font-semibold transition-colors ${
+                  activeTab === "active"
+                    ? "text-amber-600 border-b-2 border-amber-600"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Active Orders
+              </button>
+              <button
+                onClick={() => setActiveTab("completed")}
+                className={`px-6 py-3 font-semibold transition-colors ${
+                  activeTab === "completed"
+                    ? "text-gray-900 border-b-2 border-gray-900"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Completed & Rejected
+              </button>
             </div>
-            <div className="text-sm text-yellow-600">Pending</div>
           </div>
-          <div className="bg-blue-100 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-blue-700">
-              {allOrders.filter((o) => o.status === "accepted").length}
-            </div>
-            <div className="text-sm text-blue-600">Accepted</div>
-          </div>
-          <div className="bg-green-100 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-green-700">
-              {allOrders.filter((o) => o.status === "completed").length}
-            </div>
-            <div className="text-sm text-green-600">Completed</div>
-          </div>
-          <div className="bg-red-100 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-red-700">
-              {allOrders.filter((o) => o.status === "rejected").length}
-            </div>
-            <div className="text-sm text-red-600">Rejected</div>
-          </div>
-        </div>
-      </div>
 
-      {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">Loading orders...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Orders List */}
-          <div className="lg:col-span-2 space-y-4">
-            {orders.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center">
-                <p className="text-gray-600">No orders found</p>
-              </div>
-            ) : (
-              orders.map((order) => (
-                <button
-                  key={order._id}
-                  onClick={() => setSelectedOrder(order)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition ${
-                    selectedOrder?._id === order._id
-                      ? "border-amber-600 bg-amber-50"
-                      : "border-gray-200 bg-white hover:border-amber-300"
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold text-gray-900">
-                        {order.orderNumber}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {getCustomerName(order.customer)} -{" "}
-                        {getCustomerEmail(order.customer)}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusColor(
-                        order.status
-                      )}`}
+          {loading && (
+            <div className="p-6">
+              <OrderGridSkeleton count={5} />
+            </div>
+          )}
+
+          {!loading && activeTab === "active" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pending Column */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="border-b border-gray-200 px-6 py-4 bg-yellow-50">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Pending ({pendingOrders.length})
+                  </h3>
+                </div>
+                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                  {pendingOrders.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">
+                      No pending orders
+                    </p>
+                  )}
+                  {pendingOrders.map((order: IOrder) => (
+                    <button
+                      key={order._id}
+                      onClick={() => setSelectedOrder(order)}
+                      className={`w-full text-left border border-yellow-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                        selectedOrder?._id === order._id
+                          ? "bg-yellow-100 border-yellow-500"
+                          : "bg-yellow-50 hover:bg-yellow-100"
+                      }`}
                     >
-                      {order.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {order.items?.length || 0} items - $
-                    {order.totalPrice.toFixed(2)}
-                  </p>
-                </button>
-              ))
-            )}
-          </div>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-gray-900">
+                          {order.orderNumber}
+                        </span>
+                        <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
+                          Pending
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 font-medium">
+                        {getCustomerName(order.customer)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {order.items?.length || 0} items
+                      </p>
+                      <p className="text-lg font-bold text-gray-900 mt-3">
+                        ${order.totalPrice.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(order.createdAt || "").toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Order Details Panel */}
-          {selectedOrder && (
-            <div className="bg-white rounded-lg shadow p-6 h-fit">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Order Details
-              </h2>
+              {/* Accepted Column */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="border-b border-gray-200 px-6 py-4 bg-blue-50">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Accepted ({acceptedOrders.length})
+                  </h3>
+                </div>
+                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                  {acceptedOrders.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">
+                      No accepted orders
+                    </p>
+                  )}
+                  {acceptedOrders.map((order: IOrder) => (
+                    <button
+                      key={order._id}
+                      onClick={() => setSelectedOrder(order)}
+                      className={`w-full text-left border border-blue-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                        selectedOrder?._id === order._id
+                          ? "bg-blue-100 border-blue-500"
+                          : "bg-blue-50 hover:bg-blue-100"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-gray-900">
+                          {order.orderNumber}
+                        </span>
+                        <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                          Accepted
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 font-medium">
+                        {getCustomerName(order.customer)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {order.items?.length || 0} items
+                      </p>
+                      <p className="text-lg font-bold text-gray-900 mt-3">
+                        ${order.totalPrice.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(order.createdAt || "").toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
-              <div className="space-y-4 mb-6 pb-6 border-b">
+          {!loading && activeTab === "completed" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Completed Column */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="border-b border-gray-200 px-6 py-4 bg-green-50">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Completed ({completedOrders.length})
+                  </h3>
+                </div>
+                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                  {completedOrders.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">
+                      No completed orders
+                    </p>
+                  )}
+                  {completedOrders.map((order: IOrder) => (
+                    <button
+                      key={order._id}
+                      onClick={() => setSelectedOrder(order)}
+                      className={`w-full text-left border border-green-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                        selectedOrder?._id === order._id
+                          ? "bg-green-100 border-green-500"
+                          : "bg-green-50 hover:bg-green-100"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-gray-900">
+                          {order.orderNumber}
+                        </span>
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                          Completed
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 font-medium">
+                        {getCustomerName(order.customer)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {order.items?.length || 0} items
+                      </p>
+                      <p className="text-lg font-bold text-gray-900 mt-3">
+                        ${order.totalPrice.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(order.createdAt || "").toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rejected Column */}
+              <div className="bg-white rounded-lg shadow">
+                <div className="border-b border-gray-200 px-6 py-4 bg-red-50">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Rejected ({rejectedOrders.length})
+                  </h3>
+                </div>
+                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                  {rejectedOrders.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">
+                      No rejected orders
+                    </p>
+                  )}
+                  {rejectedOrders.map((order: IOrder) => (
+                    <button
+                      key={order._id}
+                      onClick={() => setSelectedOrder(order)}
+                      className={`w-full text-left border border-red-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                        selectedOrder?._id === order._id
+                          ? "bg-red-100 border-red-500"
+                          : "bg-red-50 hover:bg-red-100"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-gray-900">
+                          {order.orderNumber}
+                        </span>
+                        <span className="text-xs bg-red-200 text-red-800 px-2 py-1 rounded">
+                          Rejected
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 font-medium">
+                        {getCustomerName(order.customer)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {order.items?.length || 0} items
+                      </p>
+                      <p className="text-lg font-bold text-gray-900 mt-3">
+                        ${order.totalPrice.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(order.createdAt || "").toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Order Details Panel - Below Kanban */}
+        {selectedOrder && (
+          <div className="mt-8 bg-white rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Order Details
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
                 <div>
                   <p className="text-xs text-gray-600 uppercase">
                     Order Number
                   </p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-gray-900 text-lg">
                     {selectedOrder.orderNumber}
                   </p>
                 </div>
@@ -484,87 +740,101 @@ function AdminDashboardContent() {
               </div>
 
               {/* Action Buttons */}
-              {selectedOrder.status === "pending" && (
-                <div className="space-y-3">
-                  <select
-                    defaultValue="15"
-                    id="prep-time"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  >
-                    <option value="10">10 minutes</option>
-                    <option value="15">15 minutes</option>
-                    <option value="30">30 minutes</option>
-                  </select>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Actions
+                </h3>
+
+                {selectedOrder.status === "pending" && (
+                  <div className="space-y-3">
+                    <select
+                      defaultValue="15"
+                      id="prep-time"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    >
+                      <option value="10">10 minutes</option>
+                      <option value="15">15 minutes</option>
+                      <option value="30">30 minutes</option>
+                    </select>
+                    <button
+                      onClick={() => {
+                        const prepTime = parseInt(
+                          (
+                            document.getElementById(
+                              "prep-time"
+                            ) as HTMLSelectElement
+                          )?.value || "15"
+                        );
+                        handleAcceptOrder(selectedOrder._id, prepTime);
+                      }}
+                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition"
+                    >
+                      Accept Order
+                    </button>
+
+                    <select
+                      defaultValue="no_milk"
+                      id="reject-reason"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    >
+                      <option value="no_milk">No Milk</option>
+                      <option value="no_coffee_beans">No Coffee Beans</option>
+                      <option value="size_unavailable">Size Unavailable</option>
+                      <option value="equipment_issue">Equipment Issue</option>
+                      <option value="custom">Custom Reason</option>
+                    </select>
+
+                    <textarea
+                      id="reject-comment"
+                      placeholder="Additional comment (optional)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                      rows={2}
+                    />
+
+                    <button
+                      onClick={() => {
+                        const reason =
+                          (
+                            document.getElementById(
+                              "reject-reason"
+                            ) as HTMLSelectElement
+                          )?.value || "";
+                        const comment =
+                          (
+                            document.getElementById(
+                              "reject-comment"
+                            ) as HTMLTextAreaElement
+                          )?.value || "";
+                        handleRejectOrder(selectedOrder._id, reason, comment);
+                      }}
+                      className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition"
+                    >
+                      Reject Order
+                    </button>
+                  </div>
+                )}
+
+                {selectedOrder.status === "accepted" && (
                   <button
-                    onClick={() => {
-                      const prepTime = parseInt(
-                        (
-                          document.getElementById(
-                            "prep-time"
-                          ) as HTMLSelectElement
-                        )?.value || "15"
-                      );
-                      handleAcceptOrder(selectedOrder._id, prepTime);
-                    }}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition"
+                    onClick={() => handleCompleteOrder(selectedOrder._id)}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
                   >
-                    Accept Order
+                    Mark as Completed
                   </button>
+                )}
 
-                  <select
-                    defaultValue="no_milk"
-                    id="reject-reason"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  >
-                    <option value="no_milk">No Milk</option>
-                    <option value="no_coffee_beans">No Coffee Beans</option>
-                    <option value="size_unavailable">Size Unavailable</option>
-                    <option value="equipment_issue">Equipment Issue</option>
-                    <option value="custom">Custom Reason</option>
-                  </select>
-
-                  <textarea
-                    id="reject-comment"
-                    placeholder="Additional comment (optional)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
-                    rows={2}
-                  />
-
-                  <button
-                    onClick={() => {
-                      const reason =
-                        (
-                          document.getElementById(
-                            "reject-reason"
-                          ) as HTMLSelectElement
-                        )?.value || "";
-                      const comment =
-                        (
-                          document.getElementById(
-                            "reject-comment"
-                          ) as HTMLTextAreaElement
-                        )?.value || "";
-                      handleRejectOrder(selectedOrder._id, reason, comment);
-                    }}
-                    className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition"
-                  >
-                    Reject Order
-                  </button>
-                </div>
-              )}
-
-              {selectedOrder.status === "accepted" && (
-                <button
-                  onClick={() => handleCompleteOrder(selectedOrder._id)}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
-                >
-                  Mark as Completed
-                </button>
-              )}
+                {selectedOrder.status === "completed" && (
+                  <div className="bg-green-100 border border-green-300 rounded-lg p-4 text-center">
+                    <p className="text-green-800 font-semibold">
+                      Order Completed ✓
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

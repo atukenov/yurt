@@ -27,8 +27,9 @@ export function Header() {
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    if (pathname === "/menu" && query) {
-      router.push(`/menu?search=${encodeURIComponent(query)}`);
+    if (pathname === "/menu") {
+      const url = query ? `/menu?search=${encodeURIComponent(query)}` : "/menu";
+      router.push(url);
     }
   };
 

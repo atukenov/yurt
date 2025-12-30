@@ -1,5 +1,7 @@
 "use client";
 
+import { DisplayReview, ReviewDisplay } from "@/components/ReviewDisplay";
+import { ReviewForm } from "@/components/ReviewForm";
 import { OrderDetailsSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
 import { IOrder } from "@/types";
@@ -18,6 +20,8 @@ export default function OrderDetailsPage() {
   const [order, setOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<DisplayReview[]>([]);
+  const [reviewingItemId, setReviewingItemId] = useState<string | null>(null);
 
   useEffect(() => {
     // Wait for session to load
@@ -67,6 +71,13 @@ export default function OrderDetailsPage() {
         const data = await res.json();
         setOrder(data.order);
         setError(null);
+
+        // Fetch reviews for this order
+        const reviewsRes = await fetch(`/api/reviews?orderId=${orderId}`);
+        if (reviewsRes.ok) {
+          const reviewsData = await reviewsRes.json();
+          setReviews(reviewsData.reviews || []);
+        }
       } else if (res.status === 404) {
         setError("Order not found");
       } else {
@@ -301,6 +312,120 @@ export default function OrderDetailsPage() {
             </div>
           )}
         </div>
+
+        {/* Reviews Section */}
+        {order && order.status === "completed" && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Reviews & Ratings
+            </h2>
+
+            {/* Review Forms for Each Item */}
+            <div className="grid grid-cols-1 gap-6 mb-8">
+              {order.items?.map((item) => {
+                const menuItem =
+                  typeof item.menuItem === "object" ? item.menuItem : null;
+                const menuItemId =
+                  typeof item.menuItem === "string"
+                    ? item.menuItem
+                    : item.menuItem?._id;
+                const menuItemName =
+                  menuItem?.name ||
+                  (typeof item.menuItem === "object"
+                    ? item.menuItem.name
+                    : "Unknown Item");
+
+                const itemReview = reviews.find(
+                  (r) => r.menuItem._id === menuItemId
+                );
+                const hasReviewedItem = itemReview !== undefined;
+
+                return (
+                  <div
+                    key={menuItemId}
+                    className="bg-white rounded-lg shadow p-6"
+                  >
+                    <div className="mb-4">
+                      <h3 className="font-bold text-lg text-gray-900">
+                        {menuItemName}
+                      </h3>
+                      {hasReviewedItem && itemReview && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span
+                                key={star}
+                                className={
+                                  star <= itemReview.rating
+                                    ? "text-yellow-400"
+                                    : "text-gray-300"
+                                }
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            Your rating: {itemReview.rating}/5
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {!hasReviewedItem ? (
+                      <>
+                        {reviewingItemId !== menuItemId ? (
+                          <button
+                            onClick={() => setReviewingItemId(menuItemId)}
+                            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+                          >
+                            Write Review
+                          </button>
+                        ) : (
+                          <ReviewForm
+                            orderId={orderId}
+                            menuItem={
+                              {
+                                _id: menuItemId,
+                                name: menuItemName,
+                              } as any
+                            }
+                            onSubmit={() => {
+                              setReviewingItemId(null);
+                              fetchOrder();
+                            }}
+                            onCancel={() => setReviewingItemId(null)}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p className="text-green-700 text-sm">
+                          ✓ You've already reviewed this item
+                        </p>
+                        {itemReview.comment && (
+                          <p className="mt-2 text-gray-700">
+                            "{itemReview.comment}"
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* All Reviews for This Order */}
+            {reviews.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="font-bold text-lg text-gray-900 mb-4">
+                  Your Reviews
+                </h3>
+                <ReviewDisplay reviews={reviews} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

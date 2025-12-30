@@ -82,10 +82,11 @@ export interface IOrder {
 export interface IReview {
   _id: string;
   order: string;
-  customer: string;
-  menuItem: string;
+  customer: string | IUser;
+  menuItem: string | IMenuItem;
   rating: number;
   comment?: string;
+  isApproved?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
