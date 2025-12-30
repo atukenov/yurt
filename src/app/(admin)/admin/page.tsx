@@ -1,5 +1,7 @@
 "use client";
 
+import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
+import { useSocket } from "@/components/SocketProvider";
 import { IOrder, IOrderItem } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -8,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 export default function AdminDashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { isConnected, isAvailable, orderEvents } = useSocket();
 
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
@@ -53,9 +56,50 @@ export default function AdminDashboard() {
     }
 
     fetchOrders();
-    // Poll for updates every 3 seconds
-    const interval = setInterval(fetchOrders, 5000);
-    return () => clearInterval(interval);
+
+    // Setup Socket.io listeners for real-time updates
+    if (orderEvents.orderCreated) {
+      orderEvents.orderCreated((newOrder: IOrder) => {
+        console.log("[Admin] New order received:", newOrder);
+        setOrders((prev) => [newOrder, ...prev]);
+      });
+    }
+
+    if (orderEvents.orderUpdated) {
+      orderEvents.orderUpdated((updatedOrder: any) => {
+        console.log("[Admin] Order updated:", updatedOrder);
+        setOrders((prev) =>
+          prev.map((order) =>
+            order._id === updatedOrder._id ? updatedOrder : order
+          )
+        );
+      });
+    }
+
+    if (orderEvents.orderStatusChanged) {
+      orderEvents.orderStatusChanged(
+        (data: { orderId: string; status: string }) => {
+          console.log("[Admin] Order status changed:", data);
+          setOrders((prev) =>
+            prev.map((order) =>
+              order._id === data.orderId
+                ? { ...order, status: data.status as any }
+                : order
+            )
+          );
+        }
+      );
+    }
+
+    // Fallback to polling every 10 seconds if Socket.io is not connected
+    const pollInterval = setInterval(() => {
+      if (!isConnected) {
+        console.log("[Admin] WebSocket not connected, using polling...");
+        fetchOrders();
+      }
+    }, 10000);
+
+    return () => clearInterval(pollInterval);
   }, [status, session, filter, router, fetchOrders]);
 
   const handleAcceptOrder = async (orderId: string, prepTime: number) => {
@@ -158,8 +202,11 @@ export default function AdminDashboard() {
   // Show loading state while checking authentication
   if (status === "loading" || session?.user?.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-6 h-8 bg-gray-300 rounded w-48 animate-pulse"></div>
+          <OrderGridSkeleton count={6} />
+        </div>
       </div>
     );
   }

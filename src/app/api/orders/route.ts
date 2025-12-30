@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
+import { emitOrderCreated } from "@/lib/socket";
 import { Notification, Order, User } from "@/models";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
@@ -75,6 +76,18 @@ export async function POST(request: Request) {
         message: `New order ${orderNumber} received`,
       });
     }
+
+    // Emit Socket.io event to notify admins and customer in real-time
+    const populatedOrder = await order.populate([
+      { path: "customer", select: "name email phone" },
+      { path: "location", select: "name address city" },
+      { path: "items.menuItem", select: "name basePrice" },
+    ]);
+
+    emitOrderCreated({
+      ...populatedOrder.toObject(),
+      userId: session.user.id,
+    });
 
     return Response.json(
       {

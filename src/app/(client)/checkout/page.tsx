@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckoutSkeleton } from "@/components/SkeletonLoaders";
 import { useCartStore } from "@/store/cart";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,9 @@ export default function CheckoutPage() {
     }
   }, [mounted, items.length, router]);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return <CheckoutSkeleton />;
+  }
 
   const handleSubmitOrder = async () => {
     if (!session?.user?.id) {

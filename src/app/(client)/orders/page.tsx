@@ -1,5 +1,7 @@
 "use client";
 
+import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
+import { useSocket } from "@/components/SocketProvider";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -9,6 +11,7 @@ import { useEffect, useState } from "react";
 export default function OrdersPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { isConnected, isAvailable, orderEvents } = useSocket();
 
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,9 +29,39 @@ export default function OrdersPage() {
     }
 
     fetchOrders();
-    // Poll for updates every 5 seconds
-    const interval = setInterval(fetchOrders, 5000);
-    return () => clearInterval(interval);
+
+    // Setup Socket.io listeners for real-time updates
+    if (orderEvents.orderCreated) {
+      orderEvents.orderCreated((newOrder: IOrder) => {
+        console.log("[Customer] New order:", newOrder);
+        setOrders((prev) => [newOrder, ...prev]);
+      });
+    }
+
+    if (orderEvents.orderStatusChanged) {
+      orderEvents.orderStatusChanged(
+        (data: { orderId: string; status: string }) => {
+          console.log("[Customer] Order status changed:", data);
+          setOrders((prev) =>
+            prev.map((order) =>
+              order._id === data.orderId
+                ? { ...order, status: data.status as any }
+                : order
+            )
+          );
+        }
+      );
+    }
+
+    // Fallback to polling every 10 seconds if Socket.io is not connected
+    const pollInterval = setInterval(() => {
+      if (!isConnected) {
+        console.log("[Customer] WebSocket not connected, using polling...");
+        fetchOrders();
+      }
+    }, 10000);
+
+    return () => clearInterval(pollInterval);
   }, [status, router]);
 
   const fetchOrders = async () => {
@@ -77,16 +110,16 @@ export default function OrdersPage() {
 
   if (status === "loading") {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <p className="text-gray-600">Loading...</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <OrderGridSkeleton count={3} />
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <p className="text-gray-600">Loading orders...</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <OrderGridSkeleton count={3} />
       </div>
     );
   }
