@@ -16,6 +16,7 @@ export default function AdminMenuPage() {
   const [formData, setFormData] = useState<{
     name: string;
     description: string;
+    image: string;
     category:
       | "hot"
       | "cold"
@@ -28,6 +29,7 @@ export default function AdminMenuPage() {
   }>({
     name: "",
     description: "",
+    image: "",
     category: "hot",
     basePrice: 0,
     preparationTime: 5,
@@ -106,6 +108,7 @@ export default function AdminMenuPage() {
         setFormData({
           name: "",
           description: "",
+          image: "",
           category: "hot",
           basePrice: 0,
           preparationTime: 5,
@@ -134,6 +137,7 @@ export default function AdminMenuPage() {
     setFormData({
       name: item.name,
       description: item.description || "",
+      image: item.image || "",
       category: item.category,
       basePrice: item.basePrice,
       preparationTime: item.preparationTime,
@@ -161,6 +165,7 @@ export default function AdminMenuPage() {
             setFormData({
               name: "",
               description: "",
+              image: "",
               category: "hot",
               basePrice: 0,
               preparationTime: 5,
@@ -270,6 +275,34 @@ export default function AdminMenuPage() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image URL
+              </label>
+              <input
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={formData.image}
+                onChange={(e) =>
+                  setFormData({ ...formData, image: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {formData.image && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                  <img
+                    src={formData.image}
+                    alt="Preview"
+                    className="h-32 w-32 object-cover rounded-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "";
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
             <button
               type="submit"
               className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold"
@@ -288,8 +321,28 @@ export default function AdminMenuPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item) => (
             <div key={item._id} className="bg-white rounded-lg shadow p-6">
-              <div className="bg-amber-100 rounded-lg h-32 flex items-center justify-center text-4xl mb-4">
-                ☕
+              <div className="bg-gray-100 rounded-lg h-40 flex items-center justify-center mb-4 overflow-hidden">
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                      if ((e.target as HTMLImageElement).nextElementSibling) {
+                        (
+                          (e.target as HTMLImageElement)
+                            .nextElementSibling as HTMLElement
+                        ).style.display = "flex";
+                      }
+                    }}
+                  />
+                ) : null}
+                {!item.image && (
+                  <div className="w-full h-full flex items-center justify-center bg-amber-100 text-4xl">
+                    ☕
+                  </div>
+                )}
               </div>
               <h3 className="font-bold text-lg text-gray-900 mb-1">
                 {item.name}

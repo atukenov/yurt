@@ -1,5 +1,8 @@
 "use client";
 
+import { FormError, FormField, FormSuccess } from "@/components/FormFields";
+import { errorLogger } from "@/lib/logger";
+import { RegisterSchema, validateFormData } from "@/lib/validation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,12 +14,30 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setErrors({});
+    setSuccess("");
     setLoading(true);
+
+    // Validate input with Zod
+    const validation = validateFormData(RegisterSchema, {
+      email,
+      password,
+      name,
+      phone: phone || undefined,
+    });
+    if (!validation.success) {
+      setErrors(validation.errors || {});
+      setLoading(false);
+      errorLogger.warn("Register validation failed", { email, name });
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -27,13 +48,30 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Registration failed");
+        const message = data.error || "Registration failed";
+        setError(message);
+        errorLogger.warn(
+          "Register API failed",
+          { email, name },
+          new Error(message)
+        );
         return;
       }
 
-      router.push("/login?registered=true");
+      setSuccess("Account created successfully! Redirecting to login...");
+      errorLogger.info("User registered successfully", { email, name });
+      setTimeout(() => router.push("/login?registered=true"), 1500);
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      const message =
+        err instanceof Error
+          ? err.message
+          : "An error occurred. Please try again.";
+      setError(message);
+      errorLogger.error(
+        "Register error",
+        { email, name },
+        err instanceof Error ? err : new Error(message)
+      );
     } finally {
       setLoading(false);
     }
@@ -59,83 +97,52 @@ export default function RegisterPage() {
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+          {error && <FormError error={error} />}
+          {success && <FormSuccess message={success} />}
 
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Full Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-amber-500"
-              placeholder="John Doe"
-            />
-          </div>
+          <FormField
+            id="name"
+            label="Full Name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            error={errors?.name}
+            placeholder="John Doe"
+            required
+          />
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-amber-500"
-              placeholder="you@example.com"
-            />
-          </div>
+          <FormField
+            id="email"
+            label="Email address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={errors?.email}
+            placeholder="you@example.com"
+            required
+          />
 
-          <div>
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Phone (Optional)
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-amber-500"
-              placeholder="+1 (555) 123-4567"
-            />
-          </div>
+          <FormField
+            id="phone"
+            label="Phone (Optional)"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            error={errors?.phone}
+            placeholder="+1 (555) 123-4567"
+          />
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-amber-500"
-              placeholder="••••••••"
-            />
-            <p className="mt-1 text-xs text-gray-500">At least 6 characters</p>
-          </div>
+          <FormField
+            id="password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={errors?.password}
+            placeholder="••••••••"
+            hint="At least 6 characters"
+            required
+          />
 
           <button
             type="submit"

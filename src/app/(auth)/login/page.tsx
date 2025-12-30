@@ -1,5 +1,8 @@
 "use client";
 
+import { FormError, FormField } from "@/components/FormFields";
+import { errorLogger } from "@/lib/logger";
+import { LoginSchema, validateFormData } from "@/lib/validation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,24 +12,42 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
+    setErrors({});
     setLoading(true);
 
     try {
+      // Validate input
+      const validation = validateFormData(LoginSchema, { email, password });
+      if (!validation.success || !validation.data) {
+        setErrors(validation.errors || {});
+        setLoading(false);
+        return;
+      }
+
       const result = await signIn("credentials", {
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError(result.error);
+        errorLogger.warn("Login failed", { email });
+        if (result.error === "CredentialsSignin") {
+          setError("Invalid email or password");
+        } else {
+          setError(result.error || "Login failed");
+        }
       } else if (result?.ok) {
+        setSuccess("Login successful! Redirecting...");
         // Fetch session to check user role
         const response = await fetch("/api/auth/session");
         const session = await response.json();
@@ -39,7 +60,13 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      const message = err instanceof Error ? err.message : "An error occurred";
+      errorLogger.error(
+        "Login error",
+        { email },
+        err instanceof Error ? err : undefined
+      );
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -65,47 +92,29 @@ export default function LoginPage() {
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+          {error && <FormError error={error} />}
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-amber-500"
-              placeholder="you@example.com"
-            />
-          </div>
+          <FormField
+            id="email"
+            label="Email address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={errors?.email}
+            placeholder="you@example.com"
+            required
+          />
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-amber-500"
-              placeholder="••••••••"
-            />
-          </div>
+          <FormField
+            id="password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={errors?.password}
+            placeholder="••••••••"
+            required
+          />
 
           <button
             type="submit"

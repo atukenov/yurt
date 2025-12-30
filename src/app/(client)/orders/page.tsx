@@ -1,5 +1,6 @@
 "use client";
 
+import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
 import { IOrder } from "@/types";
@@ -8,7 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function OrdersPage() {
+function OrdersPageContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { isConnected, isAvailable, orderEvents } = useSocket();
@@ -237,3 +238,6 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+const OrdersPage = withErrorBoundary(OrdersPageContent, "Orders");
+export default OrdersPage;

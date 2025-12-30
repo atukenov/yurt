@@ -1,41 +1,107 @@
 "use client";
 
+import { withErrorBoundary } from "@/components/ErrorBoundary";
+import { OrderFilterPanel, OrderFilters } from "@/components/OrderFilterPanel";
 import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
+import { errorLogger } from "@/lib/logger";
+import { exportOrdersToCSV, exportOrdersToPDF } from "@/lib/orderExport";
 import { IOrder, IOrderItem } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-export default function AdminDashboard() {
+interface Location {
+  _id: string;
+  name: string;
+}
+
+function AdminDashboardContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { isConnected, isAvailable, orderEvents } = useSocket();
 
   const [orders, setOrders] = useState<IOrder[]>([]);
+  const [allOrders, setAllOrders] = useState<IOrder[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<
-    "pending" | "accepted" | "rejected" | "completed" | "all"
-  >("pending");
+  const [filters, setFilters] = useState<OrderFilters>({
+    status: "pending",
+  });
+  const [exporting, setExporting] = useState(false);
+
+  // Fetch locations for filter dropdown
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await fetch("/api/locations");
+        if (res.ok) {
+          const data = await res.json();
+          setLocations(data.locations || []);
+        }
+      } catch (error) {
+        errorLogger.error(
+          "Error fetching locations",
+          {},
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  // Fetch all orders for status overview cards
+  const fetchAllOrders = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/orders");
+      if (res.ok) {
+        const data = await res.json();
+        setAllOrders(data.orders);
+      }
+    } catch (error) {
+      errorLogger.error(
+        "Error fetching all orders for overview",
+        {},
+        error instanceof Error ? error : new Error(String(error))
+      );
+    }
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     try {
-      const url =
-        filter === "all"
-          ? "/api/admin/orders"
-          : `/api/admin/orders?status=${filter}`;
+      setLoading(true);
+      // Build query string from filters
+      const queryParams = new URLSearchParams();
+
+      if (filters.status) queryParams.append("status", filters.status);
+      if (filters.paymentMethod)
+        queryParams.append("paymentMethod", filters.paymentMethod);
+      if (filters.locationId)
+        queryParams.append("locationId", filters.locationId);
+      if (filters.searchQuery)
+        queryParams.append("searchQuery", filters.searchQuery);
+      if (filters.startDate) queryParams.append("startDate", filters.startDate);
+      if (filters.endDate) queryParams.append("endDate", filters.endDate);
+
+      const url = `/api/admin/orders?${queryParams.toString()}`;
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setOrders(data.orders);
+      } else {
+        errorLogger.warn("Failed to fetch admin orders", { filters });
       }
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      errorLogger.error(
+        "Error fetching admin orders",
+        { filters },
+        error instanceof Error ? error : new Error(String(error))
+      );
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filters]);
 
   useEffect(() => {
     // Wait for session to load
@@ -56,6 +122,7 @@ export default function AdminDashboard() {
     }
 
     fetchOrders();
+    fetchAllOrders();
 
     // Setup Socket.io listeners for real-time updates
     if (orderEvents.orderCreated) {
@@ -100,7 +167,7 @@ export default function AdminDashboard() {
     }, 10000);
 
     return () => clearInterval(pollInterval);
-  }, [status, session, filter, router, fetchOrders]);
+  }, [status, session, filters, router, fetchOrders, fetchAllOrders]);
 
   const handleAcceptOrder = async (orderId: string, prepTime: number) => {
     try {
@@ -214,25 +281,96 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
           Admin Dashboard
         </h1>
-        <div className="flex gap-2 flex-wrap">
-          {(
-            ["pending", "accepted", "completed", "rejected", "all"] as const
-          ).map((status) => (
+
+        {/* Advanced Filter Panel */}
+        <OrderFilterPanel onFiltersChange={setFilters} locations={locations} />
+
+        {/* Export Buttons */}
+        {orders.length > 0 && (
+          <div className="flex gap-3 mb-6">
             <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-4 py-2 rounded-lg font-semibold transition capitalize ${
-                filter === status
-                  ? "bg-amber-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              onClick={async () => {
+                try {
+                  setExporting(true);
+                  exportOrdersToCSV(
+                    orders,
+                    `orders-${new Date().toISOString().split("T")[0]}.csv`
+                  );
+                  errorLogger.info("Exported orders to CSV", {
+                    count: orders.length,
+                  });
+                } catch (error) {
+                  errorLogger.error(
+                    "Error exporting CSV",
+                    {},
+                    error instanceof Error ? error : new Error("Export failed")
+                  );
+                  alert("Failed to export CSV");
+                } finally {
+                  setExporting(false);
+                }
+              }}
+              disabled={exporting}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold transition flex items-center gap-2"
             >
-              {status}
+              📥 Export CSV ({orders.length})
             </button>
-          ))}
+            <button
+              onClick={async () => {
+                try {
+                  setExporting(true);
+                  exportOrdersToPDF(orders);
+                  errorLogger.info("Exported orders to PDF", {
+                    count: orders.length,
+                  });
+                } catch (error) {
+                  errorLogger.error(
+                    "Error exporting PDF",
+                    {},
+                    error instanceof Error ? error : new Error("Export failed")
+                  );
+                  alert("Failed to export PDF");
+                } finally {
+                  setExporting(false);
+                }
+              }}
+              disabled={exporting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold transition flex items-center gap-2"
+            >
+              📄 Export PDF ({orders.length})
+            </button>
+          </div>
+        )}
+
+        {/* Status Overview Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-yellow-100 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-yellow-700">
+              {allOrders.filter((o) => o.status === "pending").length}
+            </div>
+            <div className="text-sm text-yellow-600">Pending</div>
+          </div>
+          <div className="bg-blue-100 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-blue-700">
+              {allOrders.filter((o) => o.status === "accepted").length}
+            </div>
+            <div className="text-sm text-blue-600">Accepted</div>
+          </div>
+          <div className="bg-green-100 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-green-700">
+              {allOrders.filter((o) => o.status === "completed").length}
+            </div>
+            <div className="text-sm text-green-600">Completed</div>
+          </div>
+          <div className="bg-red-100 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-red-700">
+              {allOrders.filter((o) => o.status === "rejected").length}
+            </div>
+            <div className="text-sm text-red-600">Rejected</div>
+          </div>
         </div>
       </div>
 
@@ -430,3 +568,9 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+const AdminDashboard = withErrorBoundary(
+  AdminDashboardContent,
+  "Admin Dashboard"
+);
+export default AdminDashboard;

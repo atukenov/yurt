@@ -1,12 +1,16 @@
 "use client";
 
+import { withErrorBoundary } from "@/components/ErrorBoundary";
+import { FormError } from "@/components/FormFields";
 import { CheckoutSkeleton } from "@/components/SkeletonLoaders";
+import { errorLogger } from "@/lib/logger";
+import { CheckoutSchema, validateFormData } from "@/lib/validation";
 import { useCartStore } from "@/store/cart";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const router = useRouter();
   const { data: session } = useSession({
     required: true,
@@ -50,6 +54,23 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate checkout input
+    const validation = validateFormData(CheckoutSchema, {
+      locationId,
+      paymentMethod,
+      notes: notes || undefined,
+    });
+    if (!validation.success) {
+      setError(
+        Object.values(validation.errors || {})[0] || "Invalid checkout data"
+      );
+      errorLogger.warn("Checkout validation failed", {
+        locationId,
+        paymentMethod,
+      });
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -76,15 +97,34 @@ export default function CheckoutPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to create order");
+        const message = data.error || "Failed to create order";
+        setError(message);
+        errorLogger.warn(
+          "Order creation failed",
+          { locationId, paymentMethod },
+          new Error(message)
+        );
         return;
       }
 
       const data = await res.json();
+      errorLogger.info("Order placed successfully", {
+        orderId: data.order.id,
+        total,
+      });
       clearCart();
       router.push(`/orders/${data.order.id}?status=confirmed`);
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      const message =
+        err instanceof Error
+          ? err.message
+          : "An error occurred. Please try again.";
+      setError(message);
+      errorLogger.error(
+        "Checkout error",
+        { locationId },
+        err instanceof Error ? err : new Error(message)
+      );
     } finally {
       setLoading(false);
     }
@@ -225,11 +265,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-4 mb-6">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+          {error && <FormError error={error} />}
 
           <button
             onClick={handleSubmitOrder}
@@ -247,3 +283,6 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+const CheckoutPage = withErrorBoundary(CheckoutPageContent, "Checkout");
+export default CheckoutPage;

@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import { errorLogger } from "@/lib/logger";
 import { connectDB } from "@/lib/mongodb";
 import { Order } from "@/models/Order";
 import { getServerSession } from "next-auth/next";
@@ -29,10 +30,21 @@ export async function GET(request: Request) {
       filter.location = locationId;
     }
 
-    // Filter by customer
-    const customerId = searchParams.get("customerId");
-    if (customerId) {
-      filter.customer = customerId;
+    // Filter by payment method
+    const paymentMethod = searchParams.get("paymentMethod");
+    if (paymentMethod) {
+      filter.paymentMethod = paymentMethod;
+    }
+
+    // Search by order ID or customer name/email
+    const searchQuery = searchParams.get("searchQuery");
+    if (searchQuery) {
+      const searchRegex = { $regex: searchQuery, $options: "i" };
+      filter.$or = [
+        { orderNumber: searchRegex },
+        { "customer.name": searchRegex },
+        { "customer.email": searchRegex },
+      ];
     }
 
     // Filter by date range
@@ -41,17 +53,17 @@ export async function GET(request: Request) {
     if (startDate || endDate) {
       filter.createdAt = {};
       if (startDate) {
-        filter.createdAt.$gte = new Date(startDate);
+        // Set to start of day
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        filter.createdAt.$gte = start;
       }
       if (endDate) {
-        filter.createdAt.$lte = new Date(endDate);
+        // Set to end of day
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = end;
       }
-    }
-
-    // Filter by payment status
-    const paymentStatus = searchParams.get("paymentStatus");
-    if (paymentStatus) {
-      filter.paymentStatus = paymentStatus;
     }
 
     // Get sort and pagination
@@ -66,12 +78,21 @@ export async function GET(request: Request) {
       .populate("customer", "name email phone")
       .populate("location", "name address city")
       .populate("items.menuItem", "name basePrice")
+      .populate("items.toppings", "name price")
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     // Get total count for pagination
     const total = await Order.countDocuments(filter);
+
+    errorLogger.info("Admin fetched filtered orders", {
+      userId: session.user.id,
+      filters: { status, locationId, paymentMethod, searchQuery },
+      resultCount: orders.length,
+      total,
+    });
 
     return Response.json({
       orders,
@@ -83,7 +104,13 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    return Response.json({ error: "Failed to fetch orders" }, { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch orders";
+    errorLogger.error(
+      "Error fetching admin orders",
+      {},
+      error instanceof Error ? error : new Error(message)
+    );
+    return Response.json({ error: message }, { status: 500 });
   }
 }
