@@ -283,11 +283,17 @@
   - Estimated effort: 2 days
   - Priority: **LOW** - Marketing
 
-- [ ] **Multi-language Support**
-  - Add i18n/internationalization
-  - Support multiple languages
-  - Right-to-left support (RTL)
-  - Estimated effort: 1-2 daysй
+- [x] **Multi-language Support** ✅ COMPLETE
+  - ✅ Add i18n/internationalization (next-i18next)
+  - ✅ Support russian language (with cyrillic)
+  - ✅ Right-to-left support (RTL for Arabic)
+  - ✅ Language selector component
+  - ✅ Browser language detection
+  - ✅ Persistent language preference (localStorage)
+  - ✅ Translation files (common, menu, checkout, admin)
+  - ✅ Layout integration with i18n provider
+  - ✅ RTL CSS support for Arabic
+  - Estimated effort: 1-2 days (Completed)
   - Priority: **LOW** - Expansion
 
 ### Admin Features

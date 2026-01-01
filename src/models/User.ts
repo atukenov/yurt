@@ -18,6 +18,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    firstName: {
+      type: String,
+    },
+    lastName: {
+      type: String,
+    },
     phone: {
       type: String,
     },

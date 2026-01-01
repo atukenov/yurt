@@ -11,9 +11,13 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
+    "i18next": "^25.7.3",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
     "mongoose": "^9.0.2",
     "next": "16.1.1",
     "next-auth": "^4.24.13",
+    "next-i18next": "^15.4.3",
     "nodemailer": "^7.0.12",
     "react": "19.2.3",
     "react-dom": "19.2.3",
