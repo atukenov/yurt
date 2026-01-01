@@ -60,6 +60,7 @@ const locationSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
     },
     availableMenuItems: [
       {
@@ -70,6 +71,11 @@ const locationSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexes for location queries
+locationSchema.index({ name: 1 });
+locationSchema.index({ city: 1 });
+locationSchema.index({ isActive: 1, city: 1 });
 
 export const Location =
   mongoose.models.Location || mongoose.model("Location", locationSchema);

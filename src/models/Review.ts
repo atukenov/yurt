@@ -6,16 +6,19 @@ const reviewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
       required: true,
+      index: true,
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     menuItem: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "MenuItem",
       required: true,
+      index: true,
     },
     rating: {
       type: Number,
@@ -27,10 +30,16 @@ const reviewSchema = new mongoose.Schema(
     isApproved: {
       type: Boolean,
       default: false,
+      index: true,
     },
   },
   { timestamps: true }
 );
+
+// Compound indexes for common queries
+reviewSchema.index({ menuItem: 1, isApproved: 1 });
+reviewSchema.index({ isApproved: 1, createdAt: -1 });
+reviewSchema.index({ customer: 1, createdAt: -1 });
 
 export const Review =
   mongoose.models.Review || mongoose.model("Review", reviewSchema);

@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import cache, { cacheKeys } from "@/lib/cache";
 import { connectDB } from "@/lib/mongodb";
 import { Location } from "@/models/Location";
 import { getServerSession } from "next-auth/next";
@@ -45,6 +46,10 @@ export async function POST(request: Request) {
     }
 
     const location = await Location.create(validation.data);
+
+    // Invalidate locations cache when new location is created
+    cache.delete(cacheKeys.locations());
+    cache.delete(cacheKeys.adminLocations());
 
     return Response.json(
       {

@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import cache, { cacheKeys } from "@/lib/cache";
 import { connectDB } from "@/lib/mongodb";
 import { Location } from "@/models/Location";
 import { getServerSession } from "next-auth/next";
@@ -43,6 +44,10 @@ export async function PUT(
       return Response.json({ error: "Location not found" }, { status: 404 });
     }
 
+    // Invalidate locations cache when location is updated
+    cache.delete(cacheKeys.locations());
+    cache.delete(cacheKeys.adminLocations());
+
     return Response.json({ location });
   } catch (error) {
     console.error("Error updating location:", error);
@@ -67,6 +72,10 @@ export async function DELETE(
     }
 
     await Location.findByIdAndDelete(id);
+
+    // Invalidate locations cache when location is deleted
+    cache.delete(cacheKeys.locations());
+    cache.delete(cacheKeys.adminLocations());
 
     return Response.json({ message: "Location deleted" });
   } catch (error) {

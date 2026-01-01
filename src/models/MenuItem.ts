@@ -42,8 +42,12 @@ const menuItemSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Index for faster searches
+// Indexes for faster searches and queries
 menuItemSchema.index({ name: "text", category: 1 });
+menuItemSchema.index({ category: 1, isAvailable: 1 });
+menuItemSchema.index({ isAvailable: 1, createdAt: -1 });
+menuItemSchema.index({ basePrice: 1 });
+menuItemSchema.index({ category: 1, basePrice: 1 });
 
 export const MenuItem =
   mongoose.models.MenuItem || mongoose.model("MenuItem", menuItemSchema);

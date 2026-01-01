@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import cache, { cacheKeys } from "@/lib/cache";
 import { connectDB } from "@/lib/mongodb";
 import { Topping } from "@/models/Topping";
 import { getServerSession } from "next-auth/next";
@@ -39,6 +40,9 @@ export async function POST(request: Request) {
 
     const topping = new Topping(validatedData);
     await topping.save();
+
+    // Invalidate toppings cache when new topping is created
+    cache.delete(cacheKeys.toppings());
 
     return Response.json({ topping }, { status: 201 });
   } catch (error) {

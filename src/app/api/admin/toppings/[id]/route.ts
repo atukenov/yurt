@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import cache, { cacheKeys } from "@/lib/cache";
 import { connectDB } from "@/lib/mongodb";
 import { Topping } from "@/models/Topping";
 import { getServerSession } from "next-auth/next";
@@ -35,6 +36,9 @@ export async function PUT(
       return Response.json({ error: "Topping not found" }, { status: 404 });
     }
 
+    // Invalidate toppings cache when topping is updated
+    cache.delete(cacheKeys.toppings());
+
     return Response.json({ topping });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -66,6 +70,9 @@ export async function DELETE(
     if (!topping) {
       return Response.json({ error: "Topping not found" }, { status: 404 });
     }
+
+    // Invalidate toppings cache when topping is deleted
+    cache.delete(cacheKeys.toppings());
 
     return Response.json({ message: "Topping deleted successfully" });
   } catch (error) {

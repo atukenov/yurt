@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import cache, { cacheKeys } from "@/lib/cache";
 import { connectDB } from "@/lib/mongodb";
 import { MenuItem } from "@/models/MenuItem";
 import { getServerSession } from "next-auth/next";
@@ -57,6 +58,10 @@ export async function POST(request: Request) {
     }
 
     const item = await MenuItem.create(validation.data);
+
+    // Invalidate menu cache when new item is created
+    cache.delete(cacheKeys.menuItems());
+    cache.delete(cacheKeys.menuItems(validation.data.category));
 
     return Response.json(
       {

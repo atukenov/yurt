@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
+      index: true,
     },
     password: {
       type: String,
@@ -15,6 +16,7 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      index: true,
     },
     phone: {
       type: String,
@@ -23,6 +25,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["customer", "admin"],
       default: "customer",
+      index: true,
     },
     image: {
       type: String,
@@ -30,5 +33,8 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Compound index for role-based queries
+userSchema.index({ role: 1, createdAt: -1 });
 
 export const User = mongoose.models.User || mongoose.model("User", userSchema);

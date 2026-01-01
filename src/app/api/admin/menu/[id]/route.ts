@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import cache, { cacheKeys } from "@/lib/cache";
 import { connectDB } from "@/lib/mongodb";
 import { MenuItem } from "@/models/MenuItem";
 import { getServerSession } from "next-auth/next";
@@ -52,6 +53,12 @@ export async function PUT(
       return Response.json({ error: "Menu item not found" }, { status: 404 });
     }
 
+    // Invalidate menu cache when item is updated
+    cache.delete(cacheKeys.menuItems());
+    if (item.category) {
+      cache.delete(cacheKeys.menuItems(item.category));
+    }
+
     return Response.json({ item });
   } catch (error) {
     console.error("Error updating menu item:", error);
@@ -75,7 +82,13 @@ export async function DELETE(
       return Response.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await MenuItem.findByIdAndDelete(id);
+    const item = await MenuItem.findByIdAndDelete(id);
+
+    // Invalidate menu cache when item is deleted
+    cache.delete(cacheKeys.menuItems());
+    if (item?.category) {
+      cache.delete(cacheKeys.menuItems(item.category));
+    }
 
     return Response.json({ message: "Menu item deleted" });
   } catch (error) {
