@@ -1,7 +1,8 @@
 import { authOptions } from "@/lib/auth";
+import { isLocationOpen } from "@/lib/locationAvailability";
 import { connectDB } from "@/lib/mongodb";
 import { emitOrderCreated } from "@/lib/socket";
-import { Notification, Order, User } from "@/models";
+import { Location, Notification, Order, User } from "@/models";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
 
@@ -39,6 +40,23 @@ export async function POST(request: Request) {
 
     const { locationId, items, totalPrice, paymentMethod, notes } =
       validation.data;
+
+    // Check if location is open
+    const location = await Location.findById(locationId);
+    if (!location) {
+      return Response.json({ error: "Location not found" }, { status: 404 });
+    }
+
+    const availability = isLocationOpen(location);
+    if (!availability.isOpen) {
+      return Response.json(
+        {
+          error: availability.reason || "Location is currently closed",
+          isLocationClosed: true,
+        },
+        { status: 400 }
+      );
+    }
 
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random()

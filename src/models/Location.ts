@@ -62,6 +62,17 @@ const locationSchema = new mongoose.Schema(
       default: true,
       index: true,
     },
+    holidays: [
+      {
+        date: { type: Date, required: true },
+        name: { type: String },
+        isClosed: { type: Boolean, default: true },
+        customHours: {
+          open: { type: String },
+          close: { type: String },
+        },
+      },
+    ],
     availableMenuItems: [
       {
         type: mongoose.Schema.Types.ObjectId,

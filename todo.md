@@ -71,13 +71,20 @@
 
 ### Location Management
 
-- [ ] **Implement Location Hours & Availability**
+- 🔄 **Implement Location Hours & Availability** 🔄 IN PROGRESS
   - Issue #8 on GitHub
-  - Add opening/closing hours per location
-  - Set daily hours (different by day)
-  - Add holiday/special hours
-  - Show availability on checkout
-  - Block orders outside working hours
+  - ✅ Add opening/closing hours per location (workingHours schema)
+  - ✅ Set daily hours (different by day)
+  - ✅ Add holiday/special hours support with holidays array
+  - ✅ Create location availability utilities (4 functions)
+  - ✅ Create GET /api/locations/[id]/availability endpoint
+  - ✅ Create PUT /api/locations/[id]/hours admin endpoint
+  - ✅ Add LocationAvailabilityDisplay component
+  - ✅ Integrate availability check on checkout page
+  - ✅ Block orders if location is closed (in orders API)
+  - ✅ Create LocationHoursManager admin component
+  - 📋 Integrate admin hours manager into location edit page
+  - 📋 Show availability status on LocationSelector
   - Estimated effort: 1-2 days
   - Priority: **HIGH** - Business logic
 

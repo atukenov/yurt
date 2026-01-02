@@ -2,6 +2,7 @@
 
 import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { FormError } from "@/components/FormFields";
+import { LocationAvailabilityDisplay } from "@/components/LocationAvailabilityDisplay";
 import { CheckoutSkeleton } from "@/components/SkeletonLoaders";
 import { errorLogger } from "@/lib/logger";
 import { CheckoutSchema, validateFormData } from "@/lib/validation";
@@ -26,6 +27,7 @@ function CheckoutPageContent() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [locationAvailable, setLocationAvailable] = useState(true);
 
   const { items, locationId, getTotalPrice, clearCart } = useCartStore();
 
@@ -51,6 +53,14 @@ function CheckoutPageContent() {
 
     if (!locationId) {
       setError("Please select a location");
+      return;
+    }
+
+    // Check location availability first
+    if (!locationAvailable) {
+      setError(
+        "This location is currently closed. Please try again during business hours."
+      );
       return;
     }
 
@@ -142,6 +152,16 @@ function CheckoutPageContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Order Details */}
         <div className="lg:col-span-2">
+          {/* Location Availability Status */}
+          {locationId && (
+            <div className="mb-6">
+              <LocationAvailabilityDisplay
+                locationId={locationId}
+                onAvailabilityChange={setLocationAvailable}
+              />
+            </div>
+          )}
+
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               Order Items
@@ -269,7 +289,7 @@ function CheckoutPageContent() {
 
           <button
             onClick={handleSubmitOrder}
-            disabled={loading}
+            disabled={loading || !locationAvailable}
             className="w-full px-4 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
           >
             {loading ? "Processing..." : "Place Order"}
