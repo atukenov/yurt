@@ -4,9 +4,16 @@ import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { OrderFilterPanel, OrderFilters } from "@/components/OrderFilterPanel";
 import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
+import {
+  getCustomerEmail,
+  getCustomerName,
+  getCustomerPhone,
+  getLocationName,
+  getMenuItemName,
+} from "@/lib/helpers";
 import { errorLogger } from "@/lib/logger";
 import { exportOrdersToCSV, exportOrdersToPDF } from "@/lib/orderExport";
-import { IOrder, IOrderItem } from "@/types";
+import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -271,24 +278,12 @@ function AdminDashboardContent() {
     }
   };
 
-  const getCustomerName = (customer: IOrder["customer"]) => {
-    return customer && typeof customer === "object" ? customer.name : "";
-  };
-
-  const getCustomerEmail = (customer: IOrder["customer"]) => {
-    return customer && typeof customer === "object" ? customer.email : "";
-  };
-
-  const getCustomerPhone = (customer: IOrder["customer"]) => {
-    return customer && typeof customer === "object" ? customer.phone || "" : "";
-  };
-
-  const getLocationName = (location: IOrder["location"]) => {
-    return location && typeof location === "object" ? location.name : "";
-  };
-
-  const getMenuItemName = (menuItem: IOrderItem["menuItem"]) => {
-    return menuItem && typeof menuItem === "object" ? menuItem.name || "" : "";
+  const getToppingName = (topping: any) => {
+    // Using imported getToppingName from helpers is preferred,
+    // but keeping this wrapper for compatibility with local state
+    return topping && typeof topping === "object"
+      ? topping.name || ""
+      : topping || "";
   };
 
   // Show loading state while checking authentication
@@ -444,396 +439,537 @@ function AdminDashboardContent() {
           </div>
         )}
 
-        {/* Kanban Board Section with Tabs */}
-        <div>
-          <div className="flex items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Order Board</h2>
-            <div className="flex gap-2 border-b border-gray-200">
-              <button
-                onClick={() => setActiveTab("active")}
-                className={`px-6 py-3 font-semibold transition-colors ${
-                  activeTab === "active"
-                    ? "text-amber-600 border-b-2 border-amber-600"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Active Orders
-              </button>
-              <button
-                onClick={() => setActiveTab("completed")}
-                className={`px-6 py-3 font-semibold transition-colors ${
-                  activeTab === "completed"
-                    ? "text-gray-900 border-b-2 border-gray-900"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                Completed & Rejected
-              </button>
+        {/* Kanban Board with Right Sidebar Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Left side - Kanban Board (2 columns on desktop) */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Order Board</h2>
+              <div className="flex gap-2 border-b border-gray-200">
+                <button
+                  onClick={() => setActiveTab("active")}
+                  className={`px-6 py-3 font-semibold transition-colors ${
+                    activeTab === "active"
+                      ? "text-amber-600 border-b-2 border-amber-600"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Active Orders
+                </button>
+                <button
+                  onClick={() => setActiveTab("completed")}
+                  className={`px-6 py-3 font-semibold transition-colors ${
+                    activeTab === "completed"
+                      ? "text-gray-900 border-b-2 border-gray-900"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Completed & Rejected
+                </button>
+              </div>
             </div>
+
+            {loading && (
+              <div className="p-6">
+                <OrderGridSkeleton count={5} />
+              </div>
+            )}
+
+            {!loading && activeTab === "active" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Pending Column */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="border-b border-gray-200 px-6 py-4 bg-yellow-50">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Pending ({pendingOrders.length})
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                    {pendingOrders.length === 0 && (
+                      <p className="text-center text-gray-500 py-8">
+                        No pending orders
+                      </p>
+                    )}
+                    {pendingOrders.map((order: IOrder) => (
+                      <button
+                        key={order._id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`w-full text-left border border-yellow-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                          selectedOrder?._id === order._id
+                            ? "bg-yellow-100 border-yellow-500"
+                            : "bg-yellow-50 hover:bg-yellow-100"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-bold text-gray-900">
+                            {order.orderNumber}
+                          </span>
+                          <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
+                            Pending
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 font-medium">
+                          {getCustomerName(order.customer)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {order.items?.length || 0} items
+                        </p>
+                        <p className="text-lg font-bold text-gray-900 mt-3">
+                          ${order.totalPrice.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {new Date(order.createdAt || "").toLocaleDateString()}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Accepted Column */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="border-b border-gray-200 px-6 py-4 bg-blue-50">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Accepted ({acceptedOrders.length})
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                    {acceptedOrders.length === 0 && (
+                      <p className="text-center text-gray-500 py-8">
+                        No accepted orders
+                      </p>
+                    )}
+                    {acceptedOrders.map((order: IOrder) => (
+                      <button
+                        key={order._id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`w-full text-left border border-blue-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                          selectedOrder?._id === order._id
+                            ? "bg-blue-100 border-blue-500"
+                            : "bg-blue-50 hover:bg-blue-100"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-bold text-gray-900">
+                            {order.orderNumber}
+                          </span>
+                          <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                            Accepted
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 font-medium">
+                          {getCustomerName(order.customer)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {order.items?.length || 0} items
+                        </p>
+                        <p className="text-lg font-bold text-gray-900 mt-3">
+                          ${order.totalPrice.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {new Date(order.createdAt || "").toLocaleDateString()}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!loading && activeTab === "completed" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Completed Column */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="border-b border-gray-200 px-6 py-4 bg-green-50">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Completed ({completedOrders.length})
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                    {completedOrders.length === 0 && (
+                      <p className="text-center text-gray-500 py-8">
+                        No completed orders
+                      </p>
+                    )}
+                    {completedOrders.map((order: IOrder) => (
+                      <button
+                        key={order._id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`w-full text-left border border-green-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                          selectedOrder?._id === order._id
+                            ? "bg-green-100 border-green-500"
+                            : "bg-green-50 hover:bg-green-100"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-bold text-gray-900">
+                            {order.orderNumber}
+                          </span>
+                          <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                            Completed
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 font-medium">
+                          {getCustomerName(order.customer)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {order.items?.length || 0} items
+                        </p>
+                        <p className="text-lg font-bold text-gray-900 mt-3">
+                          ${order.totalPrice.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {new Date(order.createdAt || "").toLocaleDateString()}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rejected Column */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="border-b border-gray-200 px-6 py-4 bg-red-50">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Rejected ({rejectedOrders.length})
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                    {rejectedOrders.length === 0 && (
+                      <p className="text-center text-gray-500 py-8">
+                        No rejected orders
+                      </p>
+                    )}
+                    {rejectedOrders.map((order: IOrder) => (
+                      <button
+                        key={order._id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`w-full text-left border border-red-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
+                          selectedOrder?._id === order._id
+                            ? "bg-red-100 border-red-500"
+                            : "bg-red-50 hover:bg-red-100"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-bold text-gray-900">
+                            {order.orderNumber}
+                          </span>
+                          <span className="text-xs bg-red-200 text-red-800 px-2 py-1 rounded">
+                            Rejected
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 font-medium">
+                          {getCustomerName(order.customer)}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {order.items?.length || 0} items
+                        </p>
+                        <p className="text-lg font-bold text-gray-900 mt-3">
+                          ${order.totalPrice.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {new Date(order.createdAt || "").toLocaleDateString()}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {loading && (
-            <div className="p-6">
-              <OrderGridSkeleton count={5} />
-            </div>
-          )}
-
-          {!loading && activeTab === "active" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Pending Column */}
-              <div className="bg-white rounded-lg shadow">
-                <div className="border-b border-gray-200 px-6 py-4 bg-yellow-50">
+          {/* Right side - Order Details Sidebar */}
+          {selectedOrder && (
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow sticky top-8 max-h-[calc(100vh-10rem)] overflow-y-auto">
+                <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-amber-50 to-amber-100">
                   <h3 className="text-lg font-bold text-gray-900">
-                    Pending ({pendingOrders.length})
+                    Order {selectedOrder.orderNumber}
                   </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {new Date(selectedOrder.createdAt || "").toLocaleString()}
+                  </p>
                 </div>
-                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
-                  {pendingOrders.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">
-                      No pending orders
-                    </p>
-                  )}
-                  {pendingOrders.map((order: IOrder) => (
-                    <button
-                      key={order._id}
-                      onClick={() => setSelectedOrder(order)}
-                      className={`w-full text-left border border-yellow-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
-                        selectedOrder?._id === order._id
-                          ? "bg-yellow-100 border-yellow-500"
-                          : "bg-yellow-50 hover:bg-yellow-100"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-gray-900">
-                          {order.orderNumber}
-                        </span>
-                        <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
-                          Pending
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 font-medium">
-                        {getCustomerName(order.customer)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {order.items?.length || 0} items
-                      </p>
-                      <p className="text-lg font-bold text-gray-900 mt-3">
-                        ${order.totalPrice.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(order.createdAt || "").toLocaleDateString()}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Accepted Column */}
-              <div className="bg-white rounded-lg shadow">
-                <div className="border-b border-gray-200 px-6 py-4 bg-blue-50">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Accepted ({acceptedOrders.length})
-                  </h3>
-                </div>
-                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
-                  {acceptedOrders.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">
-                      No accepted orders
+                <div className="p-6 space-y-6">
+                  {/* Customer Info */}
+                  <div>
+                    <p className="text-xs text-gray-600 uppercase font-bold">
+                      Customer
                     </p>
-                  )}
-                  {acceptedOrders.map((order: IOrder) => (
-                    <button
-                      key={order._id}
-                      onClick={() => setSelectedOrder(order)}
-                      className={`w-full text-left border border-blue-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
-                        selectedOrder?._id === order._id
-                          ? "bg-blue-100 border-blue-500"
-                          : "bg-blue-50 hover:bg-blue-100"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-gray-900">
-                          {order.orderNumber}
-                        </span>
-                        <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
-                          Accepted
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 font-medium">
-                        {getCustomerName(order.customer)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {order.items?.length || 0} items
-                      </p>
-                      <p className="text-lg font-bold text-gray-900 mt-3">
-                        ${order.totalPrice.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(order.createdAt || "").toLocaleDateString()}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+                    <p className="font-semibold text-gray-900 mt-2">
+                      {getCustomerName(selectedOrder.customer)}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {getCustomerEmail(selectedOrder.customer)}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {getCustomerPhone(selectedOrder.customer)}
+                    </p>
+                  </div>
 
-          {!loading && activeTab === "completed" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Completed Column */}
-              <div className="bg-white rounded-lg shadow">
-                <div className="border-b border-gray-200 px-6 py-4 bg-green-50">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Completed ({completedOrders.length})
-                  </h3>
-                </div>
-                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
-                  {completedOrders.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">
-                      No completed orders
+                  {/* Location Info */}
+                  <div>
+                    <p className="text-xs text-gray-600 uppercase font-bold">
+                      Location
                     </p>
-                  )}
-                  {completedOrders.map((order: IOrder) => (
-                    <button
-                      key={order._id}
-                      onClick={() => setSelectedOrder(order)}
-                      className={`w-full text-left border border-green-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
-                        selectedOrder?._id === order._id
-                          ? "bg-green-100 border-green-500"
-                          : "bg-green-50 hover:bg-green-100"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-gray-900">
-                          {order.orderNumber}
-                        </span>
-                        <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
-                          Completed
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 font-medium">
-                        {getCustomerName(order.customer)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {order.items?.length || 0} items
-                      </p>
-                      <p className="text-lg font-bold text-gray-900 mt-3">
-                        ${order.totalPrice.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(order.createdAt || "").toLocaleDateString()}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    <p className="font-semibold text-gray-900 mt-2">
+                      {getLocationName(selectedOrder.location)}
+                    </p>
+                  </div>
 
-              {/* Rejected Column */}
-              <div className="bg-white rounded-lg shadow">
-                <div className="border-b border-gray-200 px-6 py-4 bg-red-50">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Rejected ({rejectedOrders.length})
-                  </h3>
-                </div>
-                <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
-                  {rejectedOrders.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">
-                      No rejected orders
+                  {/* Order Items with Detailed Info */}
+                  <div>
+                    <p className="text-xs text-gray-600 uppercase font-bold mb-3">
+                      Items ({selectedOrder.items?.length || 0})
                     </p>
+                    <div className="space-y-3">
+                      {selectedOrder.items?.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <p className="font-semibold text-gray-900">
+                              {getMenuItemName(item.menuItem)}
+                            </p>
+                            <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                              x{item.quantity}
+                            </span>
+                          </div>
+
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p>
+                              <span className="font-medium">Size:</span>{" "}
+                              {item.size.charAt(0).toUpperCase() +
+                                item.size.slice(1)}
+                            </p>
+
+                            {item.toppings && item.toppings.length > 0 && (
+                              <div>
+                                <p className="font-medium">Toppings:</p>
+                                <ul className="list-disc list-inside ml-0 text-xs">
+                                  {item.toppings.map((topping, tIdx) => (
+                                    <li key={tIdx}>
+                                      {getToppingName(topping)}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {item.specialInstructions && (
+                              <p>
+                                <span className="font-medium">Note:</span>{" "}
+                                {item.specialInstructions}
+                              </p>
+                            )}
+                          </div>
+
+                          <p className="text-sm font-semibold text-gray-900 mt-2">
+                            ${item.priceAtOrder?.toFixed(2) || "0.00"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Order Notes */}
+                  {selectedOrder.notes && (
+                    <div>
+                      <p className="text-xs text-gray-600 uppercase font-bold">
+                        Notes
+                      </p>
+                      <p className="text-sm text-gray-700 mt-2 bg-blue-50 p-3 rounded border border-blue-200">
+                        {selectedOrder.notes}
+                      </p>
+                    </div>
                   )}
-                  {rejectedOrders.map((order: IOrder) => (
-                    <button
-                      key={order._id}
-                      onClick={() => setSelectedOrder(order)}
-                      className={`w-full text-left border border-red-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer ${
-                        selectedOrder?._id === order._id
-                          ? "bg-red-100 border-red-500"
-                          : "bg-red-50 hover:bg-red-100"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-gray-900">
-                          {order.orderNumber}
+
+                  {/* Rejection Reason */}
+                  {selectedOrder.rejectionReason && (
+                    <div>
+                      <p className="text-xs text-gray-600 uppercase font-bold">
+                        Rejection Reason
+                      </p>
+                      <p className="text-sm text-gray-700 mt-2 bg-red-50 p-3 rounded border border-red-200">
+                        <span className="font-semibold">
+                          {selectedOrder.rejectionReason}
                         </span>
-                        <span className="text-xs bg-red-200 text-red-800 px-2 py-1 rounded">
-                          Rejected
+                        {selectedOrder.rejectionComment && (
+                          <>
+                            <br />
+                            {selectedOrder.rejectionComment}
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Order Summary */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="font-semibold">
+                        ${(selectedOrder.totalPrice || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-600">Payment:</span>
+                      <span className="text-sm">
+                        {selectedOrder.paymentMethod.charAt(0).toUpperCase() +
+                          selectedOrder.paymentMethod.slice(1)}
+                        {" • "}
+                        <span
+                          className={`font-semibold ${
+                            selectedOrder.paymentStatus === "completed"
+                              ? "text-green-600"
+                              : "text-yellow-600"
+                          }`}
+                        >
+                          {selectedOrder.paymentStatus.charAt(0).toUpperCase() +
+                            selectedOrder.paymentStatus.slice(1)}
                         </span>
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-600">Status:</span>
+                      <span
+                        className={`text-sm font-semibold px-2 py-1 rounded ${
+                          selectedOrder.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : selectedOrder.status === "accepted"
+                            ? "bg-blue-100 text-blue-800"
+                            : selectedOrder.status === "completed"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {selectedOrder.status.charAt(0).toUpperCase() +
+                          selectedOrder.status.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
+                    {selectedOrder.status === "pending" && (
+                      <>
+                        <div>
+                          <label className="text-xs text-gray-600 uppercase font-bold">
+                            Prep Time
+                          </label>
+                          <select
+                            defaultValue="15"
+                            id="prep-time"
+                            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            <option value="10">10 minutes</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                          </select>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const prepTime = parseInt(
+                              (
+                                document.getElementById(
+                                  "prep-time"
+                                ) as HTMLSelectElement
+                              )?.value || "15"
+                            );
+                            handleAcceptOrder(selectedOrder._id, prepTime);
+                          }}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition"
+                        >
+                          ✓ Accept Order
+                        </button>
+
+                        <div>
+                          <label className="text-xs text-gray-600 uppercase font-bold">
+                            Reject Reason
+                          </label>
+                          <select
+                            defaultValue="no_milk"
+                            id="reject-reason"
+                            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            <option value="no_milk">No Milk</option>
+                            <option value="no_coffee_beans">
+                              No Coffee Beans
+                            </option>
+                            <option value="size_unavailable">
+                              Size Unavailable
+                            </option>
+                            <option value="equipment_issue">
+                              Equipment Issue
+                            </option>
+                            <option value="custom">Custom Reason</option>
+                          </select>
+                        </div>
+
+                        <textarea
+                          id="reject-comment"
+                          placeholder="Additional comment (optional)"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          rows={2}
+                        />
+
+                        <button
+                          onClick={() => {
+                            const reason =
+                              (
+                                document.getElementById(
+                                  "reject-reason"
+                                ) as HTMLSelectElement
+                              )?.value || "";
+                            const comment =
+                              (
+                                document.getElementById(
+                                  "reject-comment"
+                                ) as HTMLTextAreaElement
+                              )?.value || "";
+                            handleRejectOrder(
+                              selectedOrder._id,
+                              reason,
+                              comment
+                            );
+                          }}
+                          className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition"
+                        >
+                          ✗ Reject Order
+                        </button>
+                      </>
+                    )}
+
+                    {selectedOrder.status === "accepted" && (
+                      <button
+                        onClick={() => handleCompleteOrder(selectedOrder._id)}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
+                      >
+                        ✓ Mark as Completed
+                      </button>
+                    )}
+
+                    {selectedOrder.status === "completed" && (
+                      <div className="bg-green-100 border border-green-300 rounded-lg p-3 text-center">
+                        <p className="text-green-800 font-semibold">
+                          ✓ Order Completed
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600 font-medium">
-                        {getCustomerName(order.customer)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {order.items?.length || 0} items
-                      </p>
-                      <p className="text-lg font-bold text-gray-900 mt-3">
-                        ${order.totalPrice.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {new Date(order.createdAt || "").toLocaleDateString()}
-                      </p>
-                    </button>
-                  ))}
+                    )}
+
+                    {selectedOrder.status === "rejected" && (
+                      <div className="bg-red-100 border border-red-300 rounded-lg p-3 text-center">
+                        <p className="text-red-800 font-semibold">
+                          ✗ Order Rejected
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           )}
         </div>
-
-        {/* Order Details Panel - Below Kanban */}
-        {selectedOrder && (
-          <div className="mt-8 bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Order Details
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-gray-600 uppercase">
-                    Order Number
-                  </p>
-                  <p className="font-semibold text-gray-900 text-lg">
-                    {selectedOrder.orderNumber}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-600 uppercase">Customer</p>
-                  <p className="font-semibold text-gray-900">
-                    {getCustomerName(selectedOrder.customer)}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {getCustomerEmail(selectedOrder.customer)}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {getCustomerPhone(selectedOrder.customer)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-600 uppercase">Location</p>
-                  <p className="font-semibold text-gray-900">
-                    {getLocationName(selectedOrder.location)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-600 uppercase mb-2">Items</p>
-                  <div className="space-y-1 text-sm text-gray-700">
-                    {selectedOrder.items?.map((item, idx) => (
-                      <p key={idx}>
-                        • {getMenuItemName(item.menuItem)} x{item.quantity} (
-                        {item.size})
-                      </p>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedOrder.notes && (
-                  <div>
-                    <p className="text-xs text-gray-600 uppercase">Notes</p>
-                    <p className="text-sm text-gray-700">
-                      {selectedOrder.notes}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">
-                  Actions
-                </h3>
-
-                {selectedOrder.status === "pending" && (
-                  <div className="space-y-3">
-                    <select
-                      defaultValue="15"
-                      id="prep-time"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    >
-                      <option value="10">10 minutes</option>
-                      <option value="15">15 minutes</option>
-                      <option value="30">30 minutes</option>
-                    </select>
-                    <button
-                      onClick={() => {
-                        const prepTime = parseInt(
-                          (
-                            document.getElementById(
-                              "prep-time"
-                            ) as HTMLSelectElement
-                          )?.value || "15"
-                        );
-                        handleAcceptOrder(selectedOrder._id, prepTime);
-                      }}
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition"
-                    >
-                      Accept Order
-                    </button>
-
-                    <select
-                      defaultValue="no_milk"
-                      id="reject-reason"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    >
-                      <option value="no_milk">No Milk</option>
-                      <option value="no_coffee_beans">No Coffee Beans</option>
-                      <option value="size_unavailable">Size Unavailable</option>
-                      <option value="equipment_issue">Equipment Issue</option>
-                      <option value="custom">Custom Reason</option>
-                    </select>
-
-                    <textarea
-                      id="reject-comment"
-                      placeholder="Additional comment (optional)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
-                      rows={2}
-                    />
-
-                    <button
-                      onClick={() => {
-                        const reason =
-                          (
-                            document.getElementById(
-                              "reject-reason"
-                            ) as HTMLSelectElement
-                          )?.value || "";
-                        const comment =
-                          (
-                            document.getElementById(
-                              "reject-comment"
-                            ) as HTMLTextAreaElement
-                          )?.value || "";
-                        handleRejectOrder(selectedOrder._id, reason, comment);
-                      }}
-                      className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition"
-                    >
-                      Reject Order
-                    </button>
-                  </div>
-                )}
-
-                {selectedOrder.status === "accepted" && (
-                  <button
-                    onClick={() => handleCompleteOrder(selectedOrder._id)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
-                  >
-                    Mark as Completed
-                  </button>
-                )}
-
-                {selectedOrder.status === "completed" && (
-                  <div className="bg-green-100 border border-green-300 rounded-lg p-4 text-center">
-                    <p className="text-green-800 font-semibold">
-                      Order Completed ✓
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

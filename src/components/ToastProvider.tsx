@@ -1,43 +1,42 @@
 "use client";
 
+import { TOAST_CONFIG, ToastType } from "@/lib/constants";
 import React, { createContext, useCallback, useContext } from "react";
 
-interface NotificationToast {
+export interface NotificationToast {
   id: string;
   message: string;
-  type: "success" | "error" | "info" | "warning";
+  type: ToastType;
   duration?: number;
 }
 
-interface ToastContextType {
-  showToast: (
-    message: string,
-    type?: "success" | "error" | "info" | "warning",
-    duration?: number
-  ) => void;
+export interface ToastContextType {
+  showToast: (message: string, type?: ToastType, duration?: number) => void;
   toasts: NotificationToast[];
   removeToast: (id: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+export const ToastContext = createContext<ToastContextType | undefined>(
+  undefined
+);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<NotificationToast[]>([]);
 
   const showToast = useCallback(
-    (
-      message: string,
-      type: "success" | "error" | "info" | "warning" = "info",
-      duration = 4000
-    ) => {
+    (message: string, type: ToastType = "info", duration?: number) => {
       const id = Date.now().toString();
+      const finalDuration = duration ?? TOAST_CONFIG.DEFAULT_DURATION;
 
-      setToasts((prev) => [...prev, { id, message, type, duration }]);
+      setToasts((prev) => [
+        ...prev,
+        { id, message, type, duration: finalDuration },
+      ]);
 
-      if (duration > 0) {
+      if (finalDuration > 0) {
         setTimeout(() => {
           setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, duration);
+        }, finalDuration);
       }
     },
     []
@@ -86,19 +85,8 @@ function ToastItem({
   toast: NotificationToast;
   onClose: () => void;
 }) {
-  const bgColor = {
-    success: "bg-green-500",
-    error: "bg-red-500",
-    warning: "bg-yellow-500",
-    info: "bg-blue-500",
-  }[toast.type];
-
-  const icon = {
-    success: "✓",
-    error: "✕",
-    warning: "⚠",
-    info: "ℹ",
-  }[toast.type];
+  const bgColor = TOAST_CONFIG.COLORS[toast.type];
+  const icon = TOAST_CONFIG.ICONS[toast.type];
 
   return (
     <div

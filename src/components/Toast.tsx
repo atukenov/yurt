@@ -1,21 +1,26 @@
 "use client";
 
+import { TOAST_CONFIG, ToastType } from "@/lib/constants";
 import { useState } from "react";
 
-interface Toast {
+export interface Toast {
   id: string;
   message: string;
-  type: "success" | "error" | "info" | "warning";
+  type: ToastType;
   duration?: number;
 }
 
+/**
+ * Legacy toast hook - use ToastProvider + useToastNotification for new code
+ * Kept for backward compatibility with existing components
+ */
 export const useToast = () => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = (
     message: string,
-    type: "success" | "error" | "info" | "warning" = "info",
-    duration = 4000
+    type: ToastType = "info",
+    duration = TOAST_CONFIG.DEFAULT_DURATION
   ) => {
     const id = Date.now().toString();
     const newToast: Toast = { id, message, type, duration };
@@ -55,19 +60,8 @@ export function ToastContainer() {
 }
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
-  const bgColor = {
-    success: "bg-green-500",
-    error: "bg-red-500",
-    warning: "bg-yellow-500",
-    info: "bg-blue-500",
-  }[toast.type];
-
-  const icon = {
-    success: "✓",
-    error: "✕",
-    warning: "⚠",
-    info: "ℹ",
-  }[toast.type];
+  const bgColor = TOAST_CONFIG.COLORS[toast.type];
+  const icon = TOAST_CONFIG.ICONS[toast.type];
 
   return (
     <div

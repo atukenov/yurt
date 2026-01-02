@@ -254,12 +254,23 @@
   - Priority: **LOW** - Enhancement
 
 - [ ] **Accessibility Improvements**
+
   - Add keyboard navigation
   - Improve screen reader support
   - Add ARIA labels to all interactive elements
   - Test with accessibility tools
   - Estimated effort: 1 day
   - Priority: **LOW** - Compliance
+
+- [ ] **Dark Mode / Theme Customization**
+
+  - Implement theme provider with Tailwind dark mode
+  - Add theme toggle component (light/dark/system)
+  - Persist theme preference (localStorage)
+  - Ensure WCAG contrast compliance for both themes
+  - Apply consistent color tokens across all components
+  - Estimated effort: 1 day
+  - Priority: **LOW** - UX Enhancement
 
 ### Features
 

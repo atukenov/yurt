@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { IconContext } from "react-icons";
 import { IoLogOut } from "react-icons/io5";
+import { MdExpandMore } from "react-icons/md";
 import { CartHeaderIcons } from "./CartHeaderIcons";
 import { LocationSelector } from "./LocationSelector";
 import { MobileBottomNav } from "./MobileBottomNav";
@@ -17,6 +18,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [managementOpen, setManagementOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -106,23 +108,46 @@ export function Header() {
                         Dashboard
                       </Link>
                       <Link
-                        href="/admin/menu"
+                        href="/admin/analytics"
                         className="text-gray-700 hover:text-amber-600 transition"
                       >
-                        Menu Management
+                        Analytics
                       </Link>
-                      <Link
-                        href="/admin/toppings"
-                        className="text-gray-700 hover:text-amber-600 transition"
-                      >
-                        Toppings Management
-                      </Link>
-                      <Link
-                        href="/admin/locations"
-                        className="text-gray-700 hover:text-amber-600 transition"
-                      >
-                        Locations
-                      </Link>
+                      {/* Management Dropdown */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setManagementOpen(!managementOpen)}
+                          className="text-gray-700 hover:text-amber-600 transition flex items-center gap-1"
+                        >
+                          Management
+                          <MdExpandMore size={18} />
+                        </button>
+                        {managementOpen && (
+                          <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-200">
+                            <Link
+                              href="/admin/menu"
+                              className="block px-4 py-2 text-gray-700 hover:bg-amber-50 rounded-t-lg"
+                              onClick={() => setManagementOpen(false)}
+                            >
+                              Menu
+                            </Link>
+                            <Link
+                              href="/admin/toppings"
+                              className="block px-4 py-2 text-gray-700 hover:bg-amber-50"
+                              onClick={() => setManagementOpen(false)}
+                            >
+                              Toppings
+                            </Link>
+                            <Link
+                              href="/admin/locations"
+                              className="block px-4 py-2 text-gray-700 hover:bg-amber-50 rounded-b-lg"
+                              onClick={() => setManagementOpen(false)}
+                            >
+                              Locations
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <>
@@ -209,23 +234,48 @@ export function Header() {
                         Dashboard
                       </Link>
                       <Link
-                        href="/admin/menu"
+                        href="/admin/analytics"
                         className="block py-2 text-gray-700 hover:text-amber-600"
                       >
-                        Menu
+                        Analytics
                       </Link>
-                      <Link
-                        href="/admin/toppings"
-                        className="block py-2 text-gray-700 hover:text-amber-600"
+                      <button
+                        onClick={() => setManagementOpen(!managementOpen)}
+                        className="w-full text-left py-2 text-gray-700 hover:text-amber-600 flex items-center justify-between"
                       >
-                        Toppings
-                      </Link>
-                      <Link
-                        href="/admin/locations"
-                        className="block py-2 text-gray-700 hover:text-amber-600"
-                      >
-                        Locations
-                      </Link>
+                        Management
+                        <MdExpandMore
+                          size={18}
+                          className={`transition-transform ${
+                            managementOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                      {managementOpen && (
+                        <div className="ml-4 border-l border-gray-300 pl-4">
+                          <Link
+                            href="/admin/menu"
+                            onClick={() => setManagementOpen(false)}
+                            className="block py-2 text-gray-700 hover:text-amber-600 text-sm"
+                          >
+                            Menu
+                          </Link>
+                          <Link
+                            href="/admin/toppings"
+                            onClick={() => setManagementOpen(false)}
+                            className="block py-2 text-gray-700 hover:text-amber-600 text-sm"
+                          >
+                            Toppings
+                          </Link>
+                          <Link
+                            href="/admin/locations"
+                            onClick={() => setManagementOpen(false)}
+                            className="block py-2 text-gray-700 hover:text-amber-600 text-sm"
+                          >
+                            Locations
+                          </Link>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <>
