@@ -2,7 +2,7 @@ import { authOptions } from "@/lib/auth";
 import { isLocationOpen } from "@/lib/locationAvailability";
 import { connectDB } from "@/lib/mongodb";
 import { emitOrderCreated } from "@/lib/socket";
-import { Location, Notification, Order, User } from "@/models";
+import { Location, Loyalty, Notification, Order, User } from "@/models";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
 
@@ -106,6 +106,46 @@ export async function POST(request: Request) {
       ...populatedOrder.toObject(),
       userId: session.user.id,
     });
+
+    // Award loyalty points after successful order creation
+    try {
+      const user = await User.findById(session.user.id);
+      if (user) {
+        let loyaltyRecord = await Loyalty.findOne({ user: session.user.id });
+
+        if (!loyaltyRecord) {
+          loyaltyRecord = new Loyalty({ user: session.user.id });
+        }
+
+        const pointsEarned = Math.floor(
+          totalPrice * (loyaltyRecord.getTierBenefits().multiplier || 1)
+        );
+
+        loyaltyRecord.pointsHistory.push({
+          type: "earned",
+          points: pointsEarned,
+          orderId: order._id.toString(),
+          description: `Order ${orderNumber}`,
+          createdAt: new Date(),
+        });
+
+        loyaltyRecord.availablePoints =
+          (loyaltyRecord.availablePoints || 0) + pointsEarned;
+        loyaltyRecord.totalPoints =
+          (loyaltyRecord.totalPoints || 0) + pointsEarned;
+        loyaltyRecord.totalSpent = (loyaltyRecord.totalSpent || 0) + totalPrice;
+        loyaltyRecord.orderCount = (loyaltyRecord.orderCount || 0) + 1;
+        loyaltyRecord.lastOrderDate = new Date();
+
+        // Recalculate tier based on total points
+        loyaltyRecord.calculateTier();
+
+        await loyaltyRecord.save();
+      }
+    } catch (loyaltyError) {
+      console.error("Error awarding loyalty points:", loyaltyError);
+      // Don't fail the order if loyalty points error - log and continue
+    }
 
     return Response.json(
       {
