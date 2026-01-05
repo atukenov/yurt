@@ -10,7 +10,7 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("+7");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
@@ -26,7 +26,7 @@ export default function LoginPage() {
 
     try {
       // Validate input
-      const validation = validateFormData(LoginSchema, { email, password });
+      const validation = validateFormData(LoginSchema, { phone, password });
       if (!validation.success || !validation.data) {
         setErrors(validation.errors || {});
         setLoading(false);
@@ -34,15 +34,15 @@ export default function LoginPage() {
       }
 
       const result = await signIn("credentials", {
-        email: validation.data.email,
+        phone: validation.data.phone,
         password: validation.data.password,
         redirect: false,
       });
 
       if (result?.error) {
-        errorLogger.warn("Login failed", { email });
+        errorLogger.warn("Login failed", { phone });
         if (result.error === "CredentialsSignin") {
-          setError("Invalid email or password");
+          setError("Invalid phone number or password");
         } else {
           setError(result.error || "Login failed");
         }
@@ -63,7 +63,7 @@ export default function LoginPage() {
       const message = err instanceof Error ? err.message : "An error occurred";
       errorLogger.error(
         "Login error",
-        { email },
+        { phone },
         err instanceof Error ? err : undefined
       );
       setError(message);
@@ -76,7 +76,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">☕</h1>
+          <h1 className="text-3xl font-bold text-gray-900">☕🇰🇿</h1>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Sign in to Your Account
           </h2>
@@ -95,13 +95,13 @@ export default function LoginPage() {
           {error && <FormError error={error} />}
 
           <FormField
-            id="email"
-            label="Email address"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={errors?.email}
-            placeholder="you@example.com"
+            id="phone"
+            label="Phone Number (Kazakhstan)"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            error={errors?.phone}
+            placeholder="+7 (700) 123-4567"
             required
           />
 

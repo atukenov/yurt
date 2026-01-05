@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FormField, SelectField } from "./FormFields";
+import { DayNavigator } from "./DayNavigator";
 
 export interface OrderFilters {
   status?: string;
@@ -21,167 +21,110 @@ export function OrderFilterPanel({
   onFiltersChange,
   locations,
 }: OrderFilterPanelProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [filters, setFilters] = useState<OrderFilters>({
-    status: "all",
-    paymentMethod: "",
-    locationId: "",
-    searchQuery: "",
-    startDate: "",
-    endDate: "",
-  });
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<string>("");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
 
-  const handleFilterChange = (field: keyof OrderFilters, value: string) => {
-    const newFilters = { ...filters, [field]: value || undefined };
-    setFilters(newFilters);
-    onFiltersChange(newFilters);
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
+    onFiltersChange({
+      startDate: date,
+      endDate: date,
+      paymentMethod: selectedPaymentMethod || undefined,
+      locationId: selectedLocationId || undefined,
+    });
   };
 
-  const handleReset = () => {
-    const resetFilters: OrderFilters = {
-      status: "all",
-      paymentMethod: "",
-      locationId: "",
-      searchQuery: "",
-      startDate: "",
-      endDate: "",
-    };
-    setFilters(resetFilters);
-    onFiltersChange(resetFilters);
+  const handlePaymentMethodChange = (method: string) => {
+    const newMethod = selectedPaymentMethod === method ? "" : method;
+    setSelectedPaymentMethod(newMethod);
+    onFiltersChange({
+      startDate: selectedDate,
+      endDate: selectedDate,
+      paymentMethod: newMethod || undefined,
+      locationId: selectedLocationId || undefined,
+    });
   };
 
-  const hasActiveFilters =
-    (filters.status && filters.status !== "all") ||
-    filters.paymentMethod ||
-    filters.locationId ||
-    filters.searchQuery ||
-    filters.startDate ||
-    filters.endDate;
+  const handleLocationChange = (locationId: string) => {
+    const newLocationId = selectedLocationId === locationId ? "" : locationId;
+    setSelectedLocationId(newLocationId);
+    onFiltersChange({
+      startDate: selectedDate,
+      endDate: selectedDate,
+      paymentMethod: selectedPaymentMethod || undefined,
+      locationId: newLocationId || undefined,
+    });
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow mb-6">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition"
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-lg font-semibold text-gray-900">
-            🔍 Advanced Filters
-          </span>
-          {hasActiveFilters && (
-            <span className="px-2 py-1 text-xs font-bold bg-blue-100 text-blue-700 rounded-full">
-              Active
-            </span>
-          )}
-        </div>
-        <svg
-          className={`w-5 h-5 transition-transform ${
-            isExpanded ? "rotate-180" : ""
+    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+      <div className="flex items-center gap-3 flex-wrap justify-start">
+        {/* Day Navigator */}
+        <DayNavigator
+          onDateChange={handleDateChange}
+          defaultDate={selectedDate}
+        />
+
+        {/* Payment Method Dropdown */}
+        <select
+          value={selectedPaymentMethod}
+          onChange={(e) => handlePaymentMethodChange(e.target.value)}
+          title="Filter by payment method"
+          className={`px-4 py-2 rounded-lg border-2 font-medium transition appearance-none cursor-pointer text-sm ${
+            selectedPaymentMethod
+              ? "border-amber-600 bg-amber-50 text-gray-900"
+              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
           }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
-        </svg>
-      </button>
+          <option value="">💳 All Methods</option>
+          <option value="cash">💰 Cash</option>
+          <option value="card">🏧 Card</option>
+          <option value="stripe">💎 Stripe</option>
+        </select>
 
-      {isExpanded && (
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            {/* Search */}
-            <FormField
-              id="search"
-              label="Search"
-              type="text"
-              value={filters.searchQuery || ""}
-              onChange={(e) =>
-                handleFilterChange("searchQuery", e.target.value)
-              }
-              placeholder="Order #, customer name..."
-            />
+        {/* Location Dropdown */}
+        <select
+          value={selectedLocationId}
+          onChange={(e) => handleLocationChange(e.target.value)}
+          title="Filter by location"
+          className={`px-4 py-2 rounded-lg border-2 font-medium transition appearance-none cursor-pointer text-sm ${
+            selectedLocationId
+              ? "border-amber-600 bg-amber-50 text-gray-900"
+              : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+          }`}
+        >
+          <option value="">📍 All Locations</option>
+          {locations.map((location) => (
+            <option key={location._id} value={location._id}>
+              {location.name}
+            </option>
+          ))}
+        </select>
 
-            {/* Status Filter */}
-            <SelectField
-              id="status"
-              label="Status"
-              value={filters.status || "all"}
-              onChange={(e) => handleFilterChange("status", e.target.value)}
-              options={[
-                { value: "all", label: "All Statuses" },
-                { value: "pending", label: "Pending" },
-                { value: "accepted", label: "Accepted" },
-                { value: "rejected", label: "Rejected" },
-                { value: "completed", label: "Completed" },
-              ]}
-            />
-
-            {/* Payment Method Filter */}
-            <SelectField
-              id="paymentMethod"
-              label="Payment Method"
-              value={filters.paymentMethod || ""}
-              onChange={(e) =>
-                handleFilterChange("paymentMethod", e.target.value)
-              }
-              options={[
-                { value: "", label: "All Methods" },
-                { value: "cash", label: "Cash" },
-                { value: "card", label: "Card" },
-                { value: "stripe", label: "Stripe" },
-              ]}
-            />
-
-            {/* Location Filter */}
-            <SelectField
-              id="locationId"
-              label="Location"
-              value={filters.locationId || ""}
-              onChange={(e) => handleFilterChange("locationId", e.target.value)}
-              options={[
-                { value: "", label: "All Locations" },
-                ...locations.map((loc) => ({
-                  value: loc._id,
-                  label: loc.name,
-                })),
-              ]}
-            />
-
-            {/* Start Date */}
-            <FormField
-              id="startDate"
-              label="Start Date"
-              type="date"
-              value={filters.startDate || ""}
-              onChange={(e) => handleFilterChange("startDate", e.target.value)}
-            />
-
-            {/* End Date */}
-            <FormField
-              id="endDate"
-              label="End Date"
-              type="date"
-              value={filters.endDate || ""}
-              onChange={(e) => handleFilterChange("endDate", e.target.value)}
-            />
-          </div>
-
-          {/* Reset Button */}
-          {hasActiveFilters && (
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-            >
-              Reset Filters
-            </button>
-          )}
-        </div>
-      )}
+        {/* Reset Button - Only show if filters are active */}
+        {(selectedPaymentMethod || selectedLocationId) && (
+          <button
+            onClick={() => {
+              setSelectedPaymentMethod("");
+              setSelectedLocationId("");
+              onFiltersChange({
+                startDate: selectedDate,
+                endDate: selectedDate,
+                paymentMethod: undefined,
+                locationId: undefined,
+              });
+            }}
+            className="px-3 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+            title="Reset filters"
+          >
+            ✕
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -13,7 +13,10 @@ export async function GET() {
     }
 
     await connectDB();
-    const locations = await Location.find({ isActive: true });
+    // Find locations that are either isActive: true or don't have isActive field (treat as active by default)
+    const locations = await Location.find({
+      $or: [{ isActive: true }, { isActive: { $exists: false } }],
+    });
 
     // Cache results (10 minute TTL)
     cache.set(cacheKey, locations, 600);

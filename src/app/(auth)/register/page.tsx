@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+7");
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState("");
@@ -30,7 +30,7 @@ export default function RegisterPage() {
       email,
       password,
       name,
-      phone: phone || undefined,
+      phone,
     });
     if (!validation.success) {
       setErrors(validation.errors || {});
@@ -81,7 +81,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">☕</h1>
+          <h1 className="text-3xl font-bold text-gray-900">☕🇰🇿</h1>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Create Your Account
           </h2>
@@ -124,12 +124,13 @@ export default function RegisterPage() {
 
           <FormField
             id="phone"
-            label="Phone (Optional)"
+            label="Phone Number (Kazakhstan)"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             error={errors?.phone}
-            placeholder="+1 (555) 123-4567"
+            placeholder="+7 (700) 123-4567"
+            required
           />
 
           <FormField

@@ -5,7 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
+  phone: z.string().min(1),
   password: z.string().min(1),
 });
 
@@ -14,7 +14,7 @@ export const authOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        phone: { label: "Phone Number", type: "tel" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -25,7 +25,7 @@ export const authOptions = {
 
         await connectDB();
 
-        const user = await User.findOne({ email: credentials?.email });
+        const user = await User.findOne({ phone: credentials?.phone });
         if (!user) {
           throw new Error("User not found");
         }
