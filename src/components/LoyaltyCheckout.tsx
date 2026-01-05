@@ -129,7 +129,7 @@ export function LoyaltyCheckout({ onPointsRedeemed }: LoyaltyCheckoutProps) {
           <button
             onClick={handleRedeem}
             disabled={isRedeeming}
-            className="w-full py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium text-sm"
+            className="w-full py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium text-sm"
           >
             {isRedeeming ? "Applying..." : `Redeem ${pointsToRedeem} Points`}
           </button>

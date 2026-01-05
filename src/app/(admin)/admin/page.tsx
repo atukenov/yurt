@@ -486,7 +486,7 @@ function AdminDashboardContent() {
                   onClick={() => setActiveTab("active")}
                   className={`px-6 py-3 font-semibold transition-colors ${
                     activeTab === "active"
-                      ? "text-amber-600 border-b-2 border-amber-600"
+                      ? "text-black border-b-2 border-[#ffd119]"
                       : "text-gray-600 hover:text-gray-900"
                   }`}
                 >

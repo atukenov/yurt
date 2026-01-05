@@ -290,7 +290,7 @@ function CheckoutPageContent() {
           <button
             onClick={handleSubmitOrder}
             disabled={loading || !locationAvailable}
-            className="w-full px-4 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+            className="w-full px-4 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
           >
             {loading ? "Processing..." : "Place Order"}
           </button>

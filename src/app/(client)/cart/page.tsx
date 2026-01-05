@@ -44,7 +44,7 @@ export default function CartPage() {
           </p>
           <Link
             href="/menu"
-            className="inline-block px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold"
+            className="inline-block px-6 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
           >
             Continue Shopping
           </Link>
@@ -166,7 +166,7 @@ export default function CartPage() {
               href="/checkout"
               className={`block w-full px-4 py-3 rounded-lg transition font-semibold text-center ${
                 isLocationSelected()
-                  ? "bg-amber-600 text-white hover:bg-amber-700"
+                  ? "bg-[#ffd119] text-black hover:bg-amber-700"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
               onClick={(e) => {

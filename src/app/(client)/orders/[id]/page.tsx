@@ -134,7 +134,7 @@ export default function OrderDetailsPage() {
           </p>
           <Link
             href="/orders"
-            className="inline-block px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            className="inline-block px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700"
           >
             Back to Orders
           </Link>
@@ -377,7 +377,7 @@ export default function OrderDetailsPage() {
                         {reviewingItemId !== menuItemId ? (
                           <button
                             onClick={() => setReviewingItemId(menuItemId)}
-                            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+                            className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
                           >
                             Write Review
                           </button>

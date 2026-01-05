@@ -126,7 +126,7 @@ export default function LoyaltyAnalyticsPage() {
               onClick={() => setTimeRange(range)}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 timeRange === range
-                  ? "bg-amber-600 text-white"
+                  ? "bg-[#ffd119] text-black"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >

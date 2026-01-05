@@ -242,7 +242,7 @@ export default function AdminToppingsPage() {
               setShowForm(true);
             }
           }}
-          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+          className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
         >
           {showForm ? "Cancel" : "+ Add New Topping"}
         </button>
@@ -355,7 +355,7 @@ export default function AdminToppingsPage() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+                className="px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
               >
                 {editingId ? "Update Topping" : "Add Topping"}
               </button>
@@ -430,7 +430,7 @@ export default function AdminToppingsPage() {
           {toppings.length === 0 && (
             <button
               onClick={() => setShowForm(true)}
-              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold"
+              className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold"
             >
               Add First Topping
             </button>

@@ -171,7 +171,7 @@ export default function AdminMenuPage() {
               preparationTime: 5,
             });
           }}
-          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold"
+          className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold"
         >
           {showForm ? "Cancel" : "Add New Item"}
         </button>
@@ -305,7 +305,7 @@ export default function AdminMenuPage() {
 
             <button
               type="submit"
-              className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold"
+              className="px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold"
             >
               {editingId ? "Update Item" : "Add Item"}
             </button>
@@ -351,7 +351,7 @@ export default function AdminMenuPage() {
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <p className="text-xs text-gray-600">Price</p>
-                  <p className="text-xl font-bold text-amber-600">
+                  <p className="text-xl font-bold text-[#d4ad10]">
                     ${item.basePrice.toFixed(2)}
                   </p>
                 </div>

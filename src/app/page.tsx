@@ -21,13 +21,13 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/menu"
-                className="px-8 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold text-center"
+                className="px-8 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-[#ffd11994] transition font-semibold text-center"
               >
                 Browse Menu
               </Link>
               <Link
                 href="/login"
-                className="px-8 py-3 border-2 border-amber-600 text-amber-600 rounded-lg hover:bg-amber-50 transition font-semibold text-center"
+                className="px-8 py-3 border-2 border-[#ffd119] text-black rounded-lg hover:bg-[#ffd119] transition font-semibold text-center"
               >
                 Sign In
               </Link>
@@ -81,7 +81,7 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-amber-600 text-white py-12 md:py-16">
+      <div className="bg-[#ffd119] text-black py-12 md:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             Ready for Your Perfect Cup?
@@ -91,7 +91,7 @@ export default function Home() {
           </p>
           <Link
             href="/menu"
-            className="inline-block px-8 py-3 bg-white text-amber-600 rounded-lg hover:bg-gray-100 transition font-semibold"
+            className="inline-block px-8 py-3 bg-white text-black rounded-lg hover:bg-gray-100 transition font-semibold"
           >
             Start Ordering Now
           </Link>

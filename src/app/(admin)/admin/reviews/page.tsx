@@ -143,7 +143,7 @@ export default function AdminReviewsPage() {
               onClick={() => setFilter(tab as "all" | "pending" | "approved")}
               className={`px-4 py-2 rounded-lg font-semibold transition ${
                 filter === tab
-                  ? "bg-amber-600 text-white"
+                  ? "bg-[#ffd119] text-black"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >

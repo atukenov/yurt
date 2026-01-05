@@ -205,7 +205,7 @@ export default function AdminLocationsPage() {
             setEditingId(null);
             resetForm();
           }}
-          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+          className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
         >
           {showForm ? "Cancel" : "+ Add Location"}
         </button>
@@ -375,7 +375,7 @@ export default function AdminLocationsPage() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold"
+                className="px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
               >
                 {editingId ? "Update Location" : "Add Location"}
               </button>

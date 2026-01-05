@@ -90,7 +90,7 @@ export default function FavoritesPage() {
             </p>
             <Link
               href="/menu"
-              className="inline-block px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium"
+              className="inline-block px-6 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-medium"
             >
               Explore Menu
             </Link>
@@ -181,7 +181,7 @@ export default function FavoritesPage() {
                             className={`flex-1 py-2 px-3 rounded text-xs font-medium capitalize transition ${
                               (selectedSize[favorite.menuItemId] ||
                                 "medium") === size
-                                ? "bg-amber-600 text-white"
+                                ? "bg-[#ffd119] text-black"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
                           >
@@ -194,7 +194,7 @@ export default function FavoritesPage() {
                     {/* Add to Cart Button */}
                     <button
                       onClick={() => handleAddToCart(favorite)}
-                      className="w-full py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium text-sm"
+                      className="w-full py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-medium text-sm"
                     >
                       Add to Cart
                     </button>

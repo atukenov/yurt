@@ -263,7 +263,7 @@ export default function MenuContent() {
       <div className="mb-8 flex gap-2 items-center">
         <button
           onClick={() => setShowFilterPanel(!showFilterPanel)}
-          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition shrink-0 min-h-10 min-w-10 flex items-center justify-center"
+          className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition shrink-0 min-h-10 min-w-10 flex items-center justify-center"
           title="Toggle filters and sort"
         >
           <FaFilter size={18} />
@@ -275,7 +275,7 @@ export default function MenuContent() {
             onClick={() => setCategory("")}
             className={`px-4 py-2 rounded-full whitespace-nowrap transition ${
               category === ""
-                ? "bg-amber-600 text-white"
+                ? "bg-[#ffd119] text-black"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
@@ -287,7 +287,7 @@ export default function MenuContent() {
               onClick={() => setCategory(cat)}
               className={`px-4 py-2 rounded-full whitespace-nowrap transition capitalize ${
                 category === cat
-                  ? "bg-amber-600 text-white"
+                  ? "bg-[#ffd119] text-black"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
@@ -308,7 +308,7 @@ export default function MenuContent() {
                 onClick={() => setSortBy("name")}
                 className={`px-3 py-2 rounded-lg text-sm transition ${
                   sortBy === "name"
-                    ? "bg-amber-600 text-white"
+                    ? "bg-[#ffd119] text-black"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -318,7 +318,7 @@ export default function MenuContent() {
                 onClick={() => setSortBy("price-asc")}
                 className={`px-3 py-2 rounded-lg text-sm transition ${
                   sortBy === "price-asc"
-                    ? "bg-amber-600 text-white"
+                    ? "bg-[#ffd119] text-black"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -328,7 +328,7 @@ export default function MenuContent() {
                 onClick={() => setSortBy("price-desc")}
                 className={`px-3 py-2 rounded-lg text-sm transition ${
                   sortBy === "price-desc"
-                    ? "bg-amber-600 text-white"
+                    ? "bg-[#ffd119] text-black"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -338,7 +338,7 @@ export default function MenuContent() {
                 onClick={() => setSortBy("rating")}
                 className={`px-3 py-2 rounded-lg text-sm transition ${
                   sortBy === "rating"
-                    ? "bg-amber-600 text-white"
+                    ? "bg-[#ffd119] text-black"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -348,7 +348,7 @@ export default function MenuContent() {
                 onClick={() => setSortBy("prep-time")}
                 className={`px-3 py-2 rounded-lg text-sm transition ${
                   sortBy === "prep-time"
-                    ? "bg-amber-600 text-white"
+                    ? "bg-[#ffd119] text-black"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -618,7 +618,7 @@ export default function MenuContent() {
                 </div>
                 <button
                   onClick={handleAddToCart}
-                  className="w-full px-4 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold"
+                  className="w-full px-4 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
                 >
                   Add to Cart
                 </button>

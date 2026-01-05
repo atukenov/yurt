@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -14,7 +15,7 @@ import { MobileBottomNav } from "./MobileBottomNav";
 export function Header() {
   const { data: session } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,14 +87,12 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">☕</span>
-              </div>
-              <span className="hidden sm:inline font-bold text-lg text-gray-900">
-                Yurt Coffee
-              </span>
-            </Link>
+            <Image
+              src="/images/logo.png"
+              alt="altyncup logo"
+              width={150}
+              height={100}
+            />
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
@@ -103,13 +102,26 @@ export function Header() {
                     <>
                       <Link
                         href="/admin"
-                        className="text-gray-700 hover:text-amber-600 transition font-semibold"
+                        className={`transition font-semibold ${
+                          pathname === "/admin" ||
+                          (pathname.startsWith("/admin") &&
+                            !pathname.includes("/analytics") &&
+                            !pathname.includes("/menu") &&
+                            !pathname.includes("/toppings") &&
+                            !pathname.includes("/locations"))
+                            ? "text-amber-600 border-b-2 border-amber-600"
+                            : "text-gray-700 hover:text-amber-600"
+                        }`}
                       >
                         Dashboard
                       </Link>
                       <Link
                         href="/admin/analytics"
-                        className="text-gray-700 hover:text-amber-600 transition"
+                        className={`transition ${
+                          pathname === "/admin/analytics"
+                            ? "text-amber-600 border-b-2 border-amber-600"
+                            : "text-gray-700 hover:text-amber-600"
+                        }`}
                       >
                         Analytics
                       </Link>
@@ -117,7 +129,13 @@ export function Header() {
                       <div className="relative">
                         <button
                           onClick={() => setManagementOpen(!managementOpen)}
-                          className="text-gray-700 hover:text-amber-600 transition flex items-center gap-1"
+                          className={`transition flex items-center gap-1 ${
+                            pathname.includes("/admin/menu") ||
+                            pathname.includes("/admin/toppings") ||
+                            pathname.includes("/admin/locations")
+                              ? "text-amber-600 border-b-2 border-amber-600"
+                              : "text-gray-700 hover:text-amber-600"
+                          }`}
                         >
                           Management
                           <MdExpandMore size={18} />
@@ -126,21 +144,33 @@ export function Header() {
                           <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50 border border-gray-200">
                             <Link
                               href="/admin/menu"
-                              className="block px-4 py-2 text-gray-700 hover:bg-amber-50 rounded-t-lg"
+                              className={`block px-4 py-2 rounded-t-lg transition ${
+                                pathname === "/admin/menu"
+                                  ? "bg-amber-100 text-amber-700 font-semibold"
+                                  : "text-gray-700 hover:bg-amber-50"
+                              }`}
                               onClick={() => setManagementOpen(false)}
                             >
                               Menu
                             </Link>
                             <Link
                               href="/admin/toppings"
-                              className="block px-4 py-2 text-gray-700 hover:bg-amber-50"
+                              className={`block px-4 py-2 transition ${
+                                pathname === "/admin/toppings"
+                                  ? "bg-amber-100 text-amber-700 font-semibold"
+                                  : "text-gray-700 hover:bg-amber-50"
+                              }`}
                               onClick={() => setManagementOpen(false)}
                             >
                               Toppings
                             </Link>
                             <Link
                               href="/admin/locations"
-                              className="block px-4 py-2 text-gray-700 hover:bg-amber-50 rounded-b-lg"
+                              className={`block px-4 py-2 rounded-b-lg transition ${
+                                pathname === "/admin/locations"
+                                  ? "bg-amber-100 text-amber-700 font-semibold"
+                                  : "text-gray-700 hover:bg-amber-50"
+                              }`}
                               onClick={() => setManagementOpen(false)}
                             >
                               Locations
@@ -153,13 +183,21 @@ export function Header() {
                     <>
                       <Link
                         href="/menu"
-                        className="text-gray-700 hover:text-amber-600 transition"
+                        className={`transition ${
+                          pathname === "/menu"
+                            ? "text-amber-600 border-b-2 border-amber-600"
+                            : "text-gray-700 hover:text-amber-600"
+                        }`}
                       >
                         Menu
                       </Link>
                       <Link
                         href="/orders"
-                        className="text-gray-700 hover:text-amber-600 transition"
+                        className={`transition ${
+                          pathname === "/orders"
+                            ? "text-amber-600 border-b-2 border-amber-600"
+                            : "text-gray-700 hover:text-amber-600"
+                        }`}
                       >
                         My Orders
                       </Link>
@@ -190,7 +228,7 @@ export function Header() {
                   </Link>
                   <Link
                     href="/register"
-                    className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition"
+                    className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition"
                   >
                     Register
                   </Link>

@@ -191,13 +191,13 @@ export function PulseLoader({ text = "Loading..." }: { text?: string }) {
   return (
     <div className="flex items-center justify-center gap-2">
       <div className="flex gap-1">
-        <div className="w-2 h-2 bg-amber-600 rounded-full animate-pulse"></div>
+        <div className="w-2 h-2 bg-[#ffd119] rounded-full animate-pulse"></div>
         <div
-          className="w-2 h-2 bg-amber-600 rounded-full animate-pulse"
+          className="w-2 h-2 bg-[#ffd119] rounded-full animate-pulse"
           style={{ animationDelay: "0.1s" }}
         ></div>
         <div
-          className="w-2 h-2 bg-amber-600 rounded-full animate-pulse"
+          className="w-2 h-2 bg-[#ffd119] rounded-full animate-pulse"
           style={{ animationDelay: "0.2s" }}
         ></div>
       </div>

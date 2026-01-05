@@ -1,6 +1,7 @@
 import { AuthProvider } from "@/components/AuthProvider";
 import { Header } from "@/components/Header";
 import { SocketProvider } from "@/components/SocketProvider";
+import { SplashScreen } from "@/components/SplashScreen";
 import { ToastProvider } from "@/components/ToastProvider";
 import { LanguageProvider } from "@/context/LanguageContext";
 import type { Metadata } from "next";
@@ -46,6 +47,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >
+        <SplashScreen />
         <LanguageProvider>
           <ToastProvider>
             <AuthProvider>

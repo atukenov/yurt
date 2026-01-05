@@ -90,7 +90,7 @@ export function ProfilePageContent() {
           <p className="text-gray-600 mb-4">{t.pleaseLogin}</p>
           <Link
             href="/login"
-            className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition"
+            className="px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition"
           >
             {t.goToLogin}
           </Link>
@@ -208,7 +208,7 @@ export function ProfilePageContent() {
                 {editing && (
                   <button
                     onClick={handleSaveProfile}
-                    className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium mt-4"
+                    className="w-full px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-medium mt-4"
                   >
                     {t.save}
                   </button>

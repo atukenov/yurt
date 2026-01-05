@@ -91,7 +91,7 @@ export default function ArchivedOrdersPage() {
         <div className="flex gap-2">
           <Link
             href="/orders"
-            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold"
+            className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
           >
             ← Back to Active Orders
           </Link>
@@ -103,7 +103,7 @@ export default function ArchivedOrdersPage() {
           <p className="text-gray-600 mb-4">No completed or rejected orders</p>
           <Link
             href="/orders"
-            className="inline-block px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            className="inline-block px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700"
           >
             View Active Orders
           </Link>

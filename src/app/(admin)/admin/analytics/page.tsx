@@ -131,7 +131,7 @@ export default function AdminAnalyticsPage() {
             onClick={() => setTimeRange("7days")}
             className={`px-4 py-2 rounded-lg font-semibold transition ${
               timeRange === "7days"
-                ? "bg-amber-600 text-white"
+                ? "bg-[#ffd119] text-black"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
@@ -141,7 +141,7 @@ export default function AdminAnalyticsPage() {
             onClick={() => setTimeRange("30days")}
             className={`px-4 py-2 rounded-lg font-semibold transition ${
               timeRange === "30days"
-                ? "bg-amber-600 text-white"
+                ? "bg-[#ffd119] text-black"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
@@ -151,7 +151,7 @@ export default function AdminAnalyticsPage() {
             onClick={() => setTimeRange("90days")}
             className={`px-4 py-2 rounded-lg font-semibold transition ${
               timeRange === "90days"
-                ? "bg-amber-600 text-white"
+                ? "bg-[#ffd119] text-black"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
@@ -344,7 +344,7 @@ export default function AdminAnalyticsPage() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-amber-600 h-2 rounded-full"
+                      className="bg-[#ffd119] h-2 rounded-full"
                       style={{
                         width: `${
                           (item.count /

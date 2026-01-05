@@ -138,7 +138,7 @@ function OrdersPageContent() {
           </Link>
           <Link
             href="/menu"
-            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold"
+            className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
           >
             + New Order
           </Link>
@@ -154,7 +154,7 @@ function OrdersPageContent() {
           </p>
           <Link
             href="/menu"
-            className="inline-block px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            className="inline-block px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700"
           >
             Start Ordering
           </Link>
