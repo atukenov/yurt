@@ -249,8 +249,16 @@ function AdminDashboardContent() {
       }
     }, 10000);
 
+    // Also refresh silently every 5 minutes regardless of socket connection
+    const refreshInterval = setInterval(() => {
+      console.log("[Admin] Silent 5-minute refresh triggered");
+      fetchOrders();
+      fetchAllOrders();
+    }, 300000); // 5 minutes
+
     return () => {
       clearInterval(pollInterval);
+      clearInterval(refreshInterval);
     };
   }, [
     status,
