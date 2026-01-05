@@ -38,7 +38,7 @@ function AdminDashboardContent() {
     {}
   );
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const soundEnabledRef = useRef(false);
+  const soundIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize filters with today's date
   const getTodayDateString = () => {
@@ -154,7 +154,7 @@ function AdminDashboardContent() {
         }, 2000);
 
         // Play notification sound
-        if (soundEnabledRef.current && audioRef.current) {
+        if (audioRef.current) {
           audioRef.current.play().catch(() => {
             // Silent fail if audio can't play
           });
@@ -266,6 +266,50 @@ function AdminDashboardContent() {
     handleStatusChange,
   ]);
 
+  // Setup 1-minute sound interval for pending orders
+  useEffect(() => {
+    // Clear existing interval
+    if (soundIntervalRef.current) {
+      clearInterval(soundIntervalRef.current);
+      soundIntervalRef.current = null;
+    }
+
+    // Get pending orders count
+    const pendingCount = allOrders.filter(
+      (order) => order.status === "pending"
+    ).length;
+
+    // Only set interval if there are pending orders
+    if (pendingCount > 0) {
+      console.log(
+        `[Admin] ${pendingCount} pending orders - starting 1-minute sound interval`
+      );
+
+      // Play sound immediately
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {
+          // Silent fail if audio can't play
+        });
+      }
+
+      // Play sound every minute
+      soundIntervalRef.current = setInterval(() => {
+        if (audioRef.current) {
+          audioRef.current.play().catch(() => {
+            // Silent fail if audio can't play
+          });
+        }
+      }, 60000); // 1 minute interval
+    }
+
+    return () => {
+      if (soundIntervalRef.current) {
+        clearInterval(soundIntervalRef.current);
+        soundIntervalRef.current = null;
+      }
+    };
+  }, [allOrders]);
+
   const handleAcceptOrder = async (orderId: string, prepTime: number) => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
@@ -368,14 +412,11 @@ function AdminDashboardContent() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       {/* Hidden audio element for notifications */}
-      <audio
-        ref={audioRef}
-        src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj=="
-      />
+      <audio ref={audioRef} src="/audio/drop-coin.mp3" />
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">
               Admin Dashboard
@@ -384,17 +425,6 @@ function AdminDashboardContent() {
               Real-time order management with instant updates
             </p>
           </div>
-
-          {/* Sound Toggle */}
-          <button
-            onClick={() => {
-              soundEnabledRef.current = !soundEnabledRef.current;
-            }}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium text-gray-700 transition"
-            title="Toggle notification sound"
-          >
-            {soundEnabledRef.current ? "🔊 Sound ON" : "🔇 Sound OFF"}
-          </button>
         </div>
 
         {/* Filter Panel */}

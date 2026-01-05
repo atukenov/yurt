@@ -13,8 +13,6 @@ import { IoArrowBack, IoLogOut } from "react-icons/io5";
 interface UserProfile {
   email: string;
   name: string;
-  firstName: string;
-  lastName: string;
   phone: string;
   role: string;
   image: string;
@@ -29,8 +27,7 @@ export function ProfilePageContent() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     phone: "",
   });
 
@@ -45,8 +42,7 @@ export function ProfilePageContent() {
       const data = await res.json();
       setProfile(data);
       setFormData({
-        firstName: data.firstName || "",
-        lastName: data.lastName || "",
+        name: data.name || "",
         phone: data.phone || "",
       });
     } catch (error) {
@@ -141,8 +137,7 @@ export function ProfilePageContent() {
                     if (editing) {
                       setEditing(false);
                       setFormData({
-                        firstName: profile.firstName || "",
-                        lastName: profile.lastName || "",
+                        name: profile.name || "",
                         phone: profile.phone || "",
                       });
                     } else {
@@ -169,7 +164,7 @@ export function ProfilePageContent() {
                   />
                 </div>
 
-                {/* First Name */}
+                {/* Full Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t.firstName}
@@ -177,34 +172,14 @@ export function ProfilePageContent() {
                   {editing ? (
                     <input
                       type="text"
-                      name="firstName"
-                      value={formData.firstName}
+                      name="name"
+                      value={formData.name}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
                     />
                   ) : (
                     <p className="px-4 py-2 text-gray-700">
-                      {profile.firstName || "—"}
-                    </p>
-                  )}
-                </div>
-
-                {/* Last Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t.lastName}
-                  </label>
-                  {editing ? (
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
-                    />
-                  ) : (
-                    <p className="px-4 py-2 text-gray-700">
-                      {profile.lastName || "—"}
+                      {profile.name || "—"}
                     </p>
                   )}
                 </div>
