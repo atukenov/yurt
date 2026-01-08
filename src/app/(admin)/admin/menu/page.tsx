@@ -1,13 +1,29 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { IMenuItem } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+export const dynamic = "force-dynamic";
+
 export default function AdminMenuPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" | "ar" = "en";
+  let t = translations.en.admin;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.admin || translations.en.admin;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.admin;
+  }
 
   const [items, setItems] = useState<IMenuItem[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -120,7 +136,7 @@ export default function AdminMenuPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure?")) return;
+    if (!confirm(t.areYouSure)) return;
 
     try {
       const res = await fetch(`/api/admin/menu/${id}`, { method: "DELETE" });
@@ -157,7 +173,7 @@ export default function AdminMenuPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Menu Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.menuManagement}</h1>
         <button
           onClick={() => {
             setShowForm(!showForm);
@@ -173,20 +189,20 @@ export default function AdminMenuPage() {
           }}
           className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold"
         >
-          {showForm ? "Cancel" : "Add New Item"}
+          {showForm ? t.cancel : t.addNewItem}
         </button>
       </div>
 
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-6">
-            {editingId ? "Edit" : "Add New"} Menu Item
+            {editingId ? t.editMenuItemTitle : t.addNewMenuItemTitle}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Name *
+                  {t.name} *
                 </label>
                 <input
                   type="text"
@@ -201,7 +217,7 @@ export default function AdminMenuPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
+                  {t.category} *
                 </label>
                 <select
                   required
@@ -224,7 +240,7 @@ export default function AdminMenuPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Base Price *
+                  {t.basePrice} *
                 </label>
                 <input
                   type="number"
@@ -244,7 +260,7 @@ export default function AdminMenuPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preparation Time (minutes)
+                  {t.preparationTime}
                 </label>
                 <input
                   type="number"
@@ -263,7 +279,7 @@ export default function AdminMenuPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                {t.description}
               </label>
               <textarea
                 value={formData.description}
@@ -277,11 +293,11 @@ export default function AdminMenuPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image URL
+                {t.imageUrl}
               </label>
               <input
                 type="url"
-                placeholder="https://example.com/image.jpg"
+                placeholder={t.imagePlaceholder}
                 value={formData.image}
                 onChange={(e) =>
                   setFormData({ ...formData, image: e.target.value })
@@ -290,7 +306,7 @@ export default function AdminMenuPage() {
               />
               {formData.image && (
                 <div className="mt-3">
-                  <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                  <p className="text-xs text-gray-600 mb-2">{t.preview}</p>
                   <img
                     src={formData.image}
                     alt="Preview"
@@ -307,7 +323,7 @@ export default function AdminMenuPage() {
               type="submit"
               className="px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold"
             >
-              {editingId ? "Update Item" : "Add Item"}
+              {editingId ? t.updateItem : t.addItem}
             </button>
           </form>
         </div>
@@ -315,7 +331,7 @@ export default function AdminMenuPage() {
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading items...</p>
+          <p className="text-gray-600">{t.loadingItems}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -350,13 +366,14 @@ export default function AdminMenuPage() {
               <p className="text-sm text-gray-600 mb-3">{item.description}</p>
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <p className="text-xs text-gray-600">Price</p>
+                  <p className="text-xs text-gray-600">{t.price}</p>
                   <p className="text-xl font-bold text-[#d4ad10]">
-                    ${item.basePrice.toFixed(2)}
+                    {item.basePrice.toFixed(2)}{" "}
+                    <span className="text-black">₸</span>
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-600">Prep Time</p>
+                  <p className="text-xs text-gray-600">{t.prepTime}</p>
                   <p className="text-lg font-bold text-gray-900">
                     {item.preparationTime}m
                   </p>
@@ -370,13 +387,13 @@ export default function AdminMenuPage() {
                   onClick={() => handleEdit(item)}
                   className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold text-sm"
                 >
-                  Edit
+                  {t.edit}
                 </button>
                 <button
                   onClick={() => handleDelete(item._id)}
                   className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition font-semibold text-sm"
                 >
-                  Delete
+                  {t.delete}
                 </button>
               </div>
             </div>

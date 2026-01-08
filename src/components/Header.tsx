@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,6 +23,18 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [managementOpen, setManagementOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" | "ar" = "en";
+  let t = translations.en.common;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.common || translations.en.common;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.common;
+  }
 
   useEffect(() => {
     if (showSearch && searchInputRef.current) {
@@ -49,7 +63,7 @@ export function Header() {
                   <input
                     ref={searchInputRef}
                     type="text"
-                    placeholder="Search menu..."
+                    placeholder={t.searchMenu}
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
@@ -113,7 +127,7 @@ export function Header() {
                             : "text-gray-700 hover:text-amber-600"
                         }`}
                       >
-                        Dashboard
+                        {t.dashboard}
                       </Link>
                       <Link
                         href="/admin/analytics"
@@ -123,7 +137,7 @@ export function Header() {
                             : "text-gray-700 hover:text-amber-600"
                         }`}
                       >
-                        Analytics
+                        {t.analytics}
                       </Link>
                       {/* Management Dropdown */}
                       <div className="relative">
@@ -137,7 +151,7 @@ export function Header() {
                               : "text-gray-700 hover:text-amber-600"
                           }`}
                         >
-                          Management
+                          {t.management}
                           <MdExpandMore size={18} />
                         </button>
                         {managementOpen && (
@@ -151,7 +165,7 @@ export function Header() {
                               }`}
                               onClick={() => setManagementOpen(false)}
                             >
-                              Menu
+                              {t.menu}
                             </Link>
                             <Link
                               href="/admin/toppings"
@@ -162,7 +176,7 @@ export function Header() {
                               }`}
                               onClick={() => setManagementOpen(false)}
                             >
-                              Toppings
+                              {t.toppings}
                             </Link>
                             <Link
                               href="/admin/locations"
@@ -173,7 +187,7 @@ export function Header() {
                               }`}
                               onClick={() => setManagementOpen(false)}
                             >
-                              Locations
+                              {t.locations}
                             </Link>
                           </div>
                         )}
@@ -189,7 +203,7 @@ export function Header() {
                             : "text-gray-700 hover:text-amber-600"
                         }`}
                       >
-                        Menu
+                        {t.menu}
                       </Link>
                       <Link
                         href="/orders"
@@ -199,7 +213,7 @@ export function Header() {
                             : "text-gray-700 hover:text-amber-600"
                         }`}
                       >
-                        My Orders
+                        {t.myOrders}
                       </Link>
                     </>
                   )}
@@ -224,13 +238,13 @@ export function Header() {
                     href="/login"
                     className="text-gray-700 hover:text-amber-600 transition"
                   >
-                    Login
+                    {t.login}
                   </Link>
                   <Link
                     href="/register"
                     className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition"
                   >
-                    Register
+                    {t.register}
                   </Link>
                 </>
               )}
@@ -269,19 +283,19 @@ export function Header() {
                         href="/admin"
                         className="block py-2 text-gray-700 hover:text-amber-600 font-semibold"
                       >
-                        Dashboard
+                        {t.dashboard}
                       </Link>
                       <Link
                         href="/admin/analytics"
                         className="block py-2 text-gray-700 hover:text-amber-600"
                       >
-                        Analytics
+                        {t.analytics}
                       </Link>
                       <button
                         onClick={() => setManagementOpen(!managementOpen)}
                         className="w-full text-left py-2 text-gray-700 hover:text-amber-600 flex items-center justify-between"
                       >
-                        Management
+                        {t.management}
                         <MdExpandMore
                           size={18}
                           className={`transition-transform ${
@@ -296,21 +310,21 @@ export function Header() {
                             onClick={() => setManagementOpen(false)}
                             className="block py-2 text-gray-700 hover:text-amber-600 text-sm"
                           >
-                            Menu
+                            {t.menu}
                           </Link>
                           <Link
                             href="/admin/toppings"
                             onClick={() => setManagementOpen(false)}
                             className="block py-2 text-gray-700 hover:text-amber-600 text-sm"
                           >
-                            Toppings
+                            {t.toppings}
                           </Link>
                           <Link
                             href="/admin/locations"
                             onClick={() => setManagementOpen(false)}
                             className="block py-2 text-gray-700 hover:text-amber-600 text-sm"
                           >
-                            Locations
+                            {t.locations}
                           </Link>
                         </div>
                       )}
@@ -321,13 +335,13 @@ export function Header() {
                         href="/menu"
                         className="block py-2 text-gray-700 hover:text-amber-600"
                       >
-                        Menu
+                        {t.menu}
                       </Link>
                       <Link
                         href="/orders"
                         className="block py-2 text-gray-700 hover:text-amber-600"
                       >
-                        My Orders
+                        {t.myOrders}
                       </Link>
                     </>
                   )}
@@ -350,13 +364,13 @@ export function Header() {
                     href="/login"
                     className="block py-2 text-gray-700 hover:text-amber-600"
                   >
-                    Login
+                    {t.login}
                   </Link>
                   <Link
                     href="/register"
                     className="block py-2 text-gray-700 hover:text-amber-600"
                   >
-                    Register
+                    {t.register}
                   </Link>
                 </>
               )}

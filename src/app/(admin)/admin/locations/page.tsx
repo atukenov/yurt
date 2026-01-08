@@ -1,10 +1,14 @@
 "use client";
 
 import { ToastContainer, useToast } from "@/components/Toast";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { ILocation } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+export const dynamic = "force-dynamic";
 
 interface LocationFormData {
   name: string;
@@ -28,6 +32,29 @@ export default function AdminLocationsPage() {
       router.push("/login");
     },
   });
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.admin;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.admin || translations.en.admin;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.admin;
+  }
+
+  // Day name mapping for translations
+  const dayNameMap: { [key: string]: keyof typeof t } = {
+    monday: "dayMonday" as keyof typeof t,
+    tuesday: "dayTuesday" as keyof typeof t,
+    wednesday: "dayWednesday" as keyof typeof t,
+    thursday: "dayThursday" as keyof typeof t,
+    friday: "dayFriday" as keyof typeof t,
+    saturday: "daySaturday" as keyof typeof t,
+    sunday: "daySunday" as keyof typeof t,
+  };
 
   const [locations, setLocations] = useState<ILocation[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -104,22 +131,17 @@ export default function AdminLocationsPage() {
       });
 
       if (res.ok) {
-        showToast(
-          editingId
-            ? "Location updated successfully!"
-            : "Location added successfully!",
-          "success"
-        );
+        showToast(editingId ? t.locationUpdated : t.locationAdded, "success");
         fetchLocations();
         setShowForm(false);
         setEditingId(null);
         resetForm();
       } else {
-        showToast("Failed to save location", "error");
+        showToast(t.failedSaveLocation, "error");
       }
     } catch (error) {
       console.error("Error saving location:", error);
-      showToast("Error saving location", "error");
+      showToast(t.errorSaveLocation, "error");
     }
   };
 
@@ -129,15 +151,15 @@ export default function AdminLocationsPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        showToast("Location deleted successfully!", "success");
+        showToast(t.locationDeleted, "success");
         setDeleteConfirm(null);
         fetchLocations();
       } else {
-        showToast("Failed to delete location", "error");
+        showToast(t.failedDeleteLocation, "error");
       }
     } catch (error) {
       console.error("Error deleting location:", error);
-      showToast("Error deleting location", "error");
+      showToast(t.errorDeleteLocation, "error");
     }
   };
 
@@ -197,7 +219,7 @@ export default function AdminLocationsPage() {
 
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Location Management
+          {t.locationsManagement}
         </h1>
         <button
           onClick={() => {
@@ -207,25 +229,25 @@ export default function AdminLocationsPage() {
           }}
           className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
         >
-          {showForm ? "Cancel" : "+ Add Location"}
+          {showForm ? t.cancel : `+ ${t.addLocation}`}
         </button>
       </div>
 
       {showForm && (
         <div className="bg-white rounded-lg shadow p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">
-            {editingId ? "Edit" : "Add New"} Location
+            {editingId ? t.editLocation : t.addNewLocation}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Basic Information
+                {t.basicInformation}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location Name *
+                    {t.locationName} *
                   </label>
                   <input
                     type="text"
@@ -240,7 +262,7 @@ export default function AdminLocationsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City *
+                    {t.city} *
                   </label>
                   <input
                     type="text"
@@ -255,7 +277,7 @@ export default function AdminLocationsPage() {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address *
+                    {t.address} *
                   </label>
                   <input
                     type="text"
@@ -270,7 +292,7 @@ export default function AdminLocationsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Zip Code *
+                    {t.zipCode} *
                   </label>
                   <input
                     type="text"
@@ -285,7 +307,7 @@ export default function AdminLocationsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone
+                    {t.phone}
                   </label>
                   <input
                     type="tel"
@@ -302,7 +324,7 @@ export default function AdminLocationsPage() {
             {/* Working Hours */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Working Hours
+                {t.workingHours}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {days.map((day) => (
@@ -311,7 +333,7 @@ export default function AdminLocationsPage() {
                     className="flex items-end gap-3 p-3 bg-gray-50 rounded-lg"
                   >
                     <label className="capitalize font-medium text-gray-700 min-w-20">
-                      {day}
+                      {t[dayNameMap[day]] || day}
                     </label>
                     <input
                       type="time"
@@ -368,7 +390,7 @@ export default function AdminLocationsPage() {
                 htmlFor="isActive"
                 className="text-sm font-medium text-gray-700"
               >
-                This location is active and accepting orders
+                {t.activeLocation}
               </label>
             </div>
 
@@ -377,7 +399,7 @@ export default function AdminLocationsPage() {
                 type="submit"
                 className="px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
               >
-                {editingId ? "Update Location" : "Add Location"}
+                {editingId ? t.updateLocation : t.addLocation}
               </button>
               <button
                 type="button"
@@ -388,7 +410,7 @@ export default function AdminLocationsPage() {
                 }}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
               >
-                Cancel
+                {t.cancel}
               </button>
             </div>
           </form>
@@ -397,13 +419,11 @@ export default function AdminLocationsPage() {
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading locations...</p>
+          <p className="text-gray-600">{t.loadingLocations}</p>
         </div>
       ) : locations.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 text-lg">
-            No locations yet. Create your first location!
-          </p>
+          <p className="text-gray-600 text-lg">{t.noLocationsYet}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -430,12 +450,14 @@ export default function AdminLocationsPage() {
 
                 <div className="space-y-3 mb-6">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Address</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      {t.address}
+                    </p>
                     <p className="text-gray-900">{location.address}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">
-                      City & Zip
+                      {t.cityZip}
                     </p>
                     <p className="text-gray-900">
                       {location.city}, {location.zipCode}
@@ -443,20 +465,22 @@ export default function AdminLocationsPage() {
                   </div>
                   {location.phone && (
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Phone</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        {t.phone}
+                      </p>
                       <p className="text-gray-900">{location.phone}</p>
                     </div>
                   )}
                   {location.workingHours && (
                     <div>
                       <p className="text-sm font-medium text-gray-600 mb-2">
-                        Hours
+                        {t.hours}
                       </p>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         {days.map((day) => (
                           <div key={day} className="text-gray-700">
                             <span className="capitalize font-medium">
-                              {day}:{" "}
+                              {t[dayNameMap[day]] || day}:{" "}
                             </span>
                             {location.workingHours[day]?.open}-
                             {location.workingHours[day]?.close}
@@ -472,13 +496,13 @@ export default function AdminLocationsPage() {
                     onClick={() => handleEdit(location)}
                     className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold text-sm"
                   >
-                    Edit
+                    {t.edit}
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(location._id)}
                     className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition font-semibold text-sm"
                   >
-                    Delete
+                    {t.delete}
                   </button>
                 </div>
               </div>
@@ -492,18 +516,15 @@ export default function AdminLocationsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Delete Location
+              {t.deleteLocation}
             </h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this location? This action cannot
-              be undone.
-            </p>
+            <p className="text-gray-600 mb-6">{t.deleteConfirmText}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 onClick={() => {
@@ -512,7 +533,7 @@ export default function AdminLocationsPage() {
                 }}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold"
               >
-                Delete
+                {t.delete}
               </button>
             </div>
           </div>

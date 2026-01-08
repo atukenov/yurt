@@ -13,13 +13,14 @@ const LanguageSelector = () => {
   }, []);
 
   const handleLanguageChange = (lang: string) => {
-    setLanguage(lang as "en" | "ru" | "ar");
+    if (lang === "en" || lang === "ru") {
+      setLanguage(lang);
+    }
   };
 
   const languages = [
     { code: "en", name: "English", flag: "🇺🇸" },
     { code: "ru", name: "Русский", flag: "🇷🇺" },
-    { code: "ar", name: "العربية", flag: "🇸🇦" },
   ];
 
   return (

@@ -13,13 +13,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 );
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en");
+  const [language, setLanguageState] = useState<Language>("ru");
   const [mounted, setMounted] = useState(false);
 
   // Load language from localStorage on mount
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language") as Language | null;
-    if (savedLanguage && ["en", "ru", "ar"].includes(savedLanguage)) {
+    if (savedLanguage && ["en", "ru"].includes(savedLanguage)) {
       setLanguageState(savedLanguage);
     }
     setMounted(true);
@@ -29,14 +29,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(lang);
     localStorage.setItem("language", lang);
 
-    // Update document direction for RTL languages
-    if (lang === "ar") {
-      document.documentElement.dir = "rtl";
-      document.documentElement.lang = "ar";
-    } else {
-      document.documentElement.dir = "ltr";
-      document.documentElement.lang = lang;
-    }
+    // Update document direction for LTR languages
+    document.documentElement.dir = "ltr";
+    document.documentElement.lang = lang;
   };
 
   if (!mounted) {

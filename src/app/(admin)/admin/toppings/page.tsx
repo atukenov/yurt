@@ -1,13 +1,29 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { ITopping } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+export const dynamic = "force-dynamic";
+
 export default function AdminToppingsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.admin;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.admin || translations.en.admin;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.admin;
+  }
 
   const [toppings, setToppings] = useState<ITopping[]>([]);
   const [filteredToppings, setFilteredToppings] = useState<ITopping[]>([]);
@@ -87,7 +103,7 @@ export default function AdminToppingsPage() {
       }
     } catch (error) {
       console.error("Error fetching toppings:", error);
-      showMessage("Failed to load toppings", "error");
+      showMessage(t.failedLoadToppings, "error");
     } finally {
       setLoading(false);
     }
@@ -102,12 +118,12 @@ export default function AdminToppingsPage() {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      showMessage("Topping name is required", "error");
+      showMessage(t.toppingNameRequired, "error");
       return;
     }
 
     if (formData.price < 0) {
-      showMessage("Price must be greater than or equal to 0", "error");
+      showMessage(t.priceGreaterZero, "error");
       return;
     }
 
@@ -133,23 +149,18 @@ export default function AdminToppingsPage() {
           category: "topping",
           description: "",
         });
-        showMessage(
-          editingId
-            ? "Topping updated successfully"
-            : "Topping added successfully",
-          "success"
-        );
+        showMessage(editingId ? t.toppingUpdated : t.toppingAdded, "success");
       } else {
-        showMessage("Failed to save topping", "error");
+        showMessage(t.failedAddTopping, "error");
       }
     } catch (error) {
       console.error("Error saving topping:", error);
-      showMessage("An error occurred while saving", "error");
+      showMessage(t.errorOccurred, "error");
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+    if (!confirm(`${t.deleteConfirm} "${name}"?`)) return;
 
     try {
       const res = await fetch(`/api/admin/toppings/${id}`, {
@@ -157,13 +168,13 @@ export default function AdminToppingsPage() {
       });
       if (res.ok) {
         await fetchToppings();
-        showMessage("Topping deleted successfully", "success");
+        showMessage(t.toppingDeleted, "success");
       } else {
-        showMessage("Failed to delete topping", "error");
+        showMessage(t.failedDeleteTopping, "error");
       }
     } catch (error) {
       console.error("Error deleting topping:", error);
-      showMessage("An error occurred while deleting", "error");
+      showMessage(t.errorDeleteOccurred, "error");
     }
   };
 
@@ -228,10 +239,10 @@ export default function AdminToppingsPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Toppings Management
+            {t.toppingsManagement}
           </h1>
           <p className="text-gray-600 text-sm mt-1">
-            Total toppings: {toppings.length}
+            {t.totalToppings} {toppings.length}
           </p>
         </div>
         <button
@@ -244,7 +255,7 @@ export default function AdminToppingsPage() {
           }}
           className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
         >
-          {showForm ? "Cancel" : "+ Add New Topping"}
+          {showForm ? t.cancel : `+ ${t.addNewTopping}`}
         </button>
       </div>
 
@@ -270,13 +281,13 @@ export default function AdminToppingsPage() {
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-6">
-            {editingId ? "Edit Topping" : "Add New Topping"}
+            {editingId ? t.editTopping : t.addNewTopping}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Name <span className="text-red-600">*</span>
+                  {t.toppingName} <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="text"
@@ -285,14 +296,14 @@ export default function AdminToppingsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="e.g., Extra Shot, Vanilla Syrup"
+                  placeholder={t.toppingNamePlaceholder}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category <span className="text-red-600">*</span>
+                  {t.toppingCategory} <span className="text-red-600">*</span>
                 </label>
                 <select
                   required
@@ -315,14 +326,14 @@ export default function AdminToppingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price <span className="text-red-600">*</span>
+                  {t.toppingPrice} <span className="text-red-600">*</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-2 text-gray-500">₸</span>
                   <input
                     type="number"
                     required
-                    step="0.01"
+                    step="1"
                     min="0"
                     value={String(formData.price || 0)}
                     onChange={(e) =>
@@ -338,7 +349,7 @@ export default function AdminToppingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  {t.toppingDescription}
                 </label>
                 <input
                   type="text"
@@ -346,7 +357,7 @@ export default function AdminToppingsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Optional description"
+                  placeholder={t.optionalDescription}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
@@ -357,14 +368,14 @@ export default function AdminToppingsPage() {
                 type="submit"
                 className="px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
               >
-                {editingId ? "Update Topping" : "Add Topping"}
+                {editingId ? t.updateTopping : t.addTopping}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold transition"
               >
-                Cancel
+                {t.cancel}
               </button>
             </div>
           </form>
@@ -378,7 +389,7 @@ export default function AdminToppingsPage() {
             <div>
               <input
                 type="text"
-                placeholder="Search by name or description..."
+                placeholder={t.searchToppings}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -390,7 +401,7 @@ export default function AdminToppingsPage() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
-                <option value="all">All Categories</option>
+                <option value="all">{t.allCategories}</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -405,7 +416,7 @@ export default function AdminToppingsPage() {
       {/* Toppings List */}
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading toppings...</p>
+          <p className="text-gray-600">{t.loadingToppings}</p>
         </div>
       ) : filteredToppings.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
@@ -423,16 +434,14 @@ export default function AdminToppingsPage() {
             />
           </svg>
           <p className="text-gray-600 mb-4">
-            {toppings.length === 0
-              ? "No toppings yet. Create your first one!"
-              : "No toppings match your filters."}
+            {toppings.length === 0 ? t.noToppingsYet : t.noToppingMatch}
           </p>
           {toppings.length === 0 && (
             <button
               onClick={() => setShowForm(true)}
               className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold"
             >
-              Add First Topping
+              {t.addFirstTopping}
             </button>
           )}
         </div>
@@ -459,9 +468,11 @@ export default function AdminToppingsPage() {
 
                 <div className="flex justify-between items-center mb-4">
                   <div>
-                    <p className="text-xs text-gray-600 uppercase">Price</p>
+                    <p className="text-xs text-gray-600 uppercase">
+                      {t.toppingPrice}
+                    </p>
                     <p className="text-2xl font-bold text-amber-600">
-                      ${topping.price.toFixed(2)}
+                      ₸{topping.price.toFixed(0)}
                     </p>
                   </div>
                   <span className="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold capitalize">
@@ -474,13 +485,13 @@ export default function AdminToppingsPage() {
                     onClick={() => handleEdit(topping)}
                     className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold text-sm"
                   >
-                    Edit
+                    {t.edit}
                   </button>
                   <button
                     onClick={() => handleDelete(topping._id, topping.name)}
                     className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition font-semibold text-sm"
                   >
-                    Delete
+                    {t.delete}
                   </button>
                 </div>
               </div>

@@ -8,11 +8,16 @@ import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { OrderFilterPanel, OrderFilters } from "@/components/OrderFilterPanel";
 import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
+import { useLanguage } from "@/context/LanguageContext";
 import { errorLogger } from "@/lib/logger";
+import { translations } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+// Prevent static export for this dynamic page
+export const dynamic = "force-dynamic";
 
 interface Location {
   _id: string;
@@ -27,6 +32,18 @@ function AdminDashboardContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { isConnected, orderEvents } = useSocket();
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" | "ar" = "ru";
+  let t = translations.en.admin;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.admin || translations.en.admin;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.admin;
+  }
 
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [allOrders, setAllOrders] = useState<IOrder[]>([]);
@@ -426,12 +443,8 @@ function AdminDashboardContent() {
         {/* Header */}
         <div className="mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Real-time order management with instant updates
-            </p>
+            <h1 className="text-4xl font-bold text-gray-900">{t.dashboard}</h1>
+            <p className="text-gray-600 mt-2">{t.realTimeOrders}</p>
           </div>
         </div>
 
@@ -446,27 +459,27 @@ function AdminDashboardContent() {
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <StatCard
-            label="Total Orders"
+            label={t.totalOrders}
             value={allOrders.length}
             color="gray"
           />
           <StatCard
-            label="Pending"
+            label={t.pending}
             value={pendingOrders.length}
             color="yellow"
           />
           <StatCard
-            label="Accepted"
+            label={t.accepted}
             value={acceptedOrders.length}
             color="blue"
           />
           <StatCard
-            label="Completed"
+            label={t.completed}
             value={completedOrders.length}
             color="green"
           />
           <StatCard
-            label="Rejected"
+            label={t.rejected}
             value={rejectedOrders.length}
             color="red"
           />
@@ -480,7 +493,9 @@ function AdminDashboardContent() {
           {/* Left side - Kanban Board */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Order Board</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {t.orderBoard}
+              </h2>
               <div className="flex gap-2 border-b border-gray-200">
                 <button
                   onClick={() => setActiveTab("active")}
@@ -490,7 +505,7 @@ function AdminDashboardContent() {
                       : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
-                  Active Orders
+                  {t.activeOrders}
                 </button>
                 <button
                   onClick={() => setActiveTab("completed")}
@@ -500,7 +515,7 @@ function AdminDashboardContent() {
                       : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
-                  Completed & Rejected
+                  {t.completedRejected}
                 </button>
               </div>
             </div>
@@ -514,7 +529,7 @@ function AdminDashboardContent() {
             {!loading && activeTab === "active" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <OrderColumnSection
-                  title="Pending"
+                  title={t.pending}
                   orders={pendingOrders}
                   selectedOrderId={selectedOrder?._id}
                   highlightedOrders={highlightedOrders}
@@ -523,7 +538,7 @@ function AdminDashboardContent() {
                   headerColor="yellow"
                 />
                 <OrderColumnSection
-                  title="Accepted"
+                  title={t.accepted}
                   orders={acceptedOrders}
                   selectedOrderId={selectedOrder?._id}
                   highlightedOrders={highlightedOrders}
@@ -537,7 +552,7 @@ function AdminDashboardContent() {
             {!loading && activeTab === "completed" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <OrderColumnSection
-                  title="Completed"
+                  title={t.completed}
                   orders={completedOrders}
                   selectedOrderId={selectedOrder?._id}
                   highlightedOrders={highlightedOrders}
@@ -546,7 +561,7 @@ function AdminDashboardContent() {
                   headerColor="green"
                 />
                 <OrderColumnSection
-                  title="Rejected"
+                  title={t.rejected}
                   orders={rejectedOrders}
                   selectedOrderId={selectedOrder?._id}
                   highlightedOrders={highlightedOrders}
