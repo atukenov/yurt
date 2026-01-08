@@ -56,9 +56,9 @@ export function Header() {
       {session?.user?.role === "customer" && (
         <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16 gap-4">
+            <div className="flex justify-between items-center h-16">
               {/* Left: Location Selector or Search Input */}
-              <div className={showSearch ? "flex-1 min-w-0" : "flex-shrink-0"}>
+              <div className={showSearch ? "flex-1 min-w-0" : "flex-1"}>
                 {showSearch ? (
                   <input
                     ref={searchInputRef}

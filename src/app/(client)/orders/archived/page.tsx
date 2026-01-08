@@ -1,14 +1,30 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+export const dynamic = "force-dynamic";
+
 export default function ArchivedOrdersPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +83,7 @@ export default function ArchivedOrdersPage() {
   if (status === "loading") {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <p className="text-gray-600">Loading...</p>
+        <p className="text-gray-600">{t.processing}</p>
       </div>
     );
   }
@@ -75,7 +91,7 @@ export default function ArchivedOrdersPage() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <p className="text-gray-600">Loading orders...</p>
+        <p className="text-gray-600">{t.processing}</p>
       </div>
     );
   }
@@ -87,25 +103,25 @@ export default function ArchivedOrdersPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Order History</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.orderHistory}</h1>
         <div className="flex gap-2">
           <Link
             href="/orders"
             className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
           >
-            ← Back to Active Orders
+            {t.backToActiveOrders}
           </Link>
         </div>
       </div>
 
       {archivedOrders.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-600 mb-4">No completed or rejected orders</p>
+          <p className="text-gray-600 mb-4">{t.noArchivedOrders}</p>
           <Link
             href="/orders"
             className="inline-block px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700"
           >
-            View Active Orders
+            {t.viewActiveOrders}
           </Link>
         </div>
       ) : (
@@ -124,7 +140,7 @@ export default function ArchivedOrdersPage() {
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-gray-600 uppercase tracking-wide">
-                      Order
+                      {t.order}
                     </p>
                     <p className="font-bold text-gray-900 truncate">
                       {order.orderNumber}
@@ -146,20 +162,20 @@ export default function ArchivedOrdersPage() {
               {/* Order info */}
               <div className="space-y-2 mb-4 flex-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Price:</span>
+                  <span className="text-sm text-gray-600">{t.price}:</span>
                   <span className="font-bold text-amber-600">
-                    ${order.totalPrice.toFixed(2)}
+                    {order.totalPrice.toFixed(0)} ₸
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Items:</span>
+                  <span className="text-sm text-gray-600">{t.items}:</span>
                   <span className="font-semibold text-gray-900">
                     {order.items?.length || 0}
                   </span>
                 </div>
                 {order.createdAt && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Ordered:</span>
+                    <span className="text-sm text-gray-600">{t.ordered}:</span>
                     <span className="font-semibold text-gray-900 text-xs">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </span>
@@ -178,22 +194,14 @@ export default function ArchivedOrdersPage() {
                 </div>
               )}
 
-              {/* Details and Review button */}
+              {/* Details button */}
               <div className="flex gap-2 pt-3 border-t">
                 <Link
                   href={`/orders/${order._id}`}
                   className="flex-1 px-3 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:border-amber-500 hover:text-amber-600 transition font-semibold text-sm text-center"
                 >
-                  Details
+                  {t.orderDetails}
                 </Link>
-                {order.status === "completed" && (
-                  <Link
-                    href={`/orders/${order._id}/review`}
-                    className="flex-1 px-3 py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition font-semibold text-sm text-center"
-                  >
-                    Review
-                  </Link>
-                )}
               </div>
             </div>
           ))}

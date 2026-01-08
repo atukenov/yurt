@@ -1,11 +1,15 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { useCartStore } from "@/store/cart";
 import { ILocation, IMenuItem, ITopping } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { FaFilter } from "react-icons/fa";
+
+export const dynamic = "force-dynamic";
 
 type SortOption = "name" | "price-asc" | "price-desc" | "rating" | "prep-time";
 
@@ -18,6 +22,18 @@ export default function MenuContent() {
       router.push("/login");
     },
   });
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   const [items, setItems] = useState<IMenuItem[]>([]);
   const [toppings, setToppings] = useState<ITopping[]>([]);
@@ -279,7 +295,7 @@ export default function MenuContent() {
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            All
+            {t.allCategories}
           </button>
           {categories.map((cat) => (
             <button
@@ -302,7 +318,7 @@ export default function MenuContent() {
         <div className="mb-8 bg-white rounded-lg shadow p-4 space-y-4">
           {/* Sort Options */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Sort By</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">{t.sortBy}</p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               <button
                 onClick={() => setSortBy("name")}
@@ -312,7 +328,7 @@ export default function MenuContent() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Name
+                {t.nameSort}
               </button>
               <button
                 onClick={() => setSortBy("price-asc")}
@@ -322,7 +338,7 @@ export default function MenuContent() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Price ↓
+                {t.priceAsc}
               </button>
               <button
                 onClick={() => setSortBy("price-desc")}
@@ -332,7 +348,7 @@ export default function MenuContent() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Price ↑
+                {t.priceDesc}
               </button>
               <button
                 onClick={() => setSortBy("rating")}
@@ -342,7 +358,7 @@ export default function MenuContent() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Rating ★
+                {t.ratingSort} ★
               </button>
               <button
                 onClick={() => setSortBy("prep-time")}
@@ -352,7 +368,7 @@ export default function MenuContent() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Time ⏱
+                {t.prepTimeSort} ⏱
               </button>
             </div>
           </div>
@@ -462,7 +478,7 @@ export default function MenuContent() {
 
               <div className="flex justify-between items-center">
                 <span className="text-lg sm:text-2xl font-bold text-amber-600">
-                  ${item.basePrice.toFixed(2)}
+                  {item.basePrice.toFixed(2)} ₸
                 </span>
                 <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full">
                   {item.preparationTime} min
@@ -494,7 +510,9 @@ export default function MenuContent() {
 
               {/* Size Selection */}
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Size</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  {t.selectSize}
+                </h3>
                 <div className="space-y-2">
                   {selectedItem.sizes?.map((s) => (
                     <label key={s.size} className="flex items-center">
@@ -511,7 +529,7 @@ export default function MenuContent() {
                         className="w-4 h-4"
                       />
                       <span className="ml-3 capitalize text-gray-700">
-                        {s.size} (+${s.priceModifier.toFixed(2)})
+                        {s.size} (+{s.priceModifier.toFixed(2)} ₸)
                       </span>
                     </label>
                   ))}
@@ -522,7 +540,7 @@ export default function MenuContent() {
               {toppings.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-900 mb-3">
-                    Add Toppings
+                    {t.addToppings}
                   </h3>
                   <div className="space-y-4">
                     {Array.from(
@@ -562,8 +580,8 @@ export default function MenuContent() {
                                   className="w-4 h-4"
                                 />
                                 <span className="ml-3 text-gray-700 text-sm">
-                                  {topping.name} (+$
-                                  {topping.price.toFixed(2)})
+                                  {topping.name} (+
+                                  {topping.price.toFixed(2)} ₸)
                                 </span>
                               </label>
                             ))}
@@ -577,7 +595,7 @@ export default function MenuContent() {
               {/* Special Instructions */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Special Instructions
+                  {t.specialInstructions}
                 </label>
                 <textarea
                   value={specialInstructions}
@@ -590,7 +608,9 @@ export default function MenuContent() {
 
               {/* Quantity */}
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Quantity</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  {t.quantity}
+                </h3>
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -613,14 +633,14 @@ export default function MenuContent() {
                 <div className="mb-4 text-center">
                   <p className="text-gray-600">Total</p>
                   <p className="text-3xl font-bold text-amber-600">
-                    ${(calculatePrice() * quantity).toFixed(2)}
+                    {(calculatePrice() * quantity).toFixed(2)} ₸
                   </p>
                 </div>
                 <button
                   onClick={handleAddToCart}
                   className="w-full px-4 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
                 >
-                  Add to Cart
+                  {t.addToCart}
                 </button>
               </div>
             </div>

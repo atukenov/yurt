@@ -472,7 +472,7 @@ export default function AdminToppingsPage() {
                       {t.toppingPrice}
                     </p>
                     <p className="text-2xl font-bold text-amber-600">
-                      ₸{topping.price.toFixed(0)}
+                      {topping.price.toFixed(0)} ₸
                     </p>
                   </div>
                   <span className="inline-block px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold capitalize">

@@ -1,5 +1,8 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
+
 export interface DisplayReview {
   _id: string;
   menuItem: {
@@ -24,10 +27,22 @@ export function ReviewDisplay({
   reviews,
   showApprovalStatus = false,
 }: ReviewDisplayProps) {
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
+
   if (reviews.length === 0) {
     return (
       <div className="bg-gray-50 rounded-lg p-6 text-center">
-        <p className="text-gray-600">No reviews yet. Be the first to review!</p>
+        <p className="text-gray-600">{t.noReviewsYet}</p>
       </div>
     );
   }
@@ -71,11 +86,11 @@ export function ReviewDisplay({
             <div className="mt-2 pt-2 border-t border-gray-200">
               {review.isApproved ? (
                 <p className="text-xs text-green-600 flex items-center gap-1">
-                  ✓ Approved
+                  ✓ {t.approved}
                 </p>
               ) : (
                 <p className="text-xs text-yellow-600 flex items-center gap-1">
-                  ⏳ Pending Approval
+                  ⏳ {t.pendingApproval}
                 </p>
               )}
             </div>
@@ -92,10 +107,22 @@ interface RatingStatsProps {
 }
 
 export function RatingStats({ ratings, menuItemName }: RatingStatsProps) {
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
+
   if (ratings.length === 0) {
     return (
       <div className="text-center py-4">
-        <p className="text-gray-500">No ratings yet</p>
+        <p className="text-gray-500">{t.noRatingsYet}</p>
       </div>
     );
   }

@@ -4,12 +4,16 @@ import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { FormError } from "@/components/FormFields";
 import { LocationAvailabilityDisplay } from "@/components/LocationAvailabilityDisplay";
 import { CheckoutSkeleton } from "@/components/SkeletonLoaders";
+import { useLanguage } from "@/context/LanguageContext";
 import { errorLogger } from "@/lib/logger";
+import { translations } from "@/lib/translations";
 import { CheckoutSchema, validateFormData } from "@/lib/validation";
 import { useCartStore } from "@/store/cart";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+export const dynamic = "force-dynamic";
 
 function CheckoutPageContent() {
   const router = useRouter();
@@ -19,6 +23,18 @@ function CheckoutPageContent() {
       router.push("/login");
     },
   });
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   const [mounted, setMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<
@@ -47,20 +63,18 @@ function CheckoutPageContent() {
 
   const handleSubmitOrder = async () => {
     if (!session?.user?.id) {
-      setError("You must be logged in to place an order.");
+      setError(t.mustBeLoggedIn);
       return;
     }
 
     if (!locationId) {
-      setError("Please select a location");
+      setError(t.selectLocationCheckoutError);
       return;
     }
 
     // Check location availability first
     if (!locationAvailable) {
-      setError(
-        "This location is currently closed. Please try again during business hours."
-      );
+      setError(t.locationClosedError);
       return;
     }
 
@@ -71,9 +85,7 @@ function CheckoutPageContent() {
       notes: notes || undefined,
     });
     if (!validation.success) {
-      setError(
-        Object.values(validation.errors || {})[0] || "Invalid checkout data"
-      );
+      setError(Object.values(validation.errors || {})[0] || t.invalidCheckout);
       errorLogger.warn("Checkout validation failed", {
         locationId,
         paymentMethod,
@@ -85,7 +97,7 @@ function CheckoutPageContent() {
     setError("");
 
     try {
-      const total = getTotalPrice() + 2 + (getTotalPrice() + 2) * 0.1;
+      const total = getTotalPrice() + 200 + (getTotalPrice() + 200) * 0.1;
 
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -107,7 +119,7 @@ function CheckoutPageContent() {
 
       if (!res.ok) {
         const data = await res.json();
-        const message = data.error || "Failed to create order";
+        const message = data.error || t.failedCreateOrder;
         setError(message);
         errorLogger.warn(
           "Order creation failed",
@@ -125,10 +137,7 @@ function CheckoutPageContent() {
       clearCart();
       router.push(`/orders/${data.order.id}?status=confirmed`);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "An error occurred. Please try again.";
+      const message = err instanceof Error ? err.message : t.orderUpdatesEmail;
       setError(message);
       errorLogger.error(
         "Checkout error",
@@ -141,13 +150,13 @@ function CheckoutPageContent() {
   };
 
   const subtotal = getTotalPrice();
-  const deliveryFee = 2;
+  const deliveryFee = 200;
   const tax = (subtotal + deliveryFee) * 0.1;
   const total = subtotal + deliveryFee + tax;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t.checkout}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Order Details */}
@@ -164,7 +173,7 @@ function CheckoutPageContent() {
 
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Order Items
+              {t.orderItemsInCheckout}
             </h2>
             <div className="space-y-4">
               {items.map((item) => (
@@ -179,7 +188,7 @@ function CheckoutPageContent() {
                     <p className="text-sm text-gray-600">{item.size}</p>
                   </div>
                   <p className="font-semibold text-gray-900">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {(item.price * item.quantity).toFixed(0)} ₸
                   </p>
                 </div>
               ))}
@@ -189,7 +198,7 @@ function CheckoutPageContent() {
           {/* Payment Method */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Payment Method
+              {t.paymentMethodTitle}
             </h2>
             <div className="space-y-3">
               <label className="flex items-center">
@@ -205,7 +214,7 @@ function CheckoutPageContent() {
                   }
                   className="w-4 h-4"
                 />
-                <span className="ml-3 text-gray-700">Cash on Pickup</span>
+                <span className="ml-3 text-gray-700">{t.cashOnPickup}</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -220,7 +229,7 @@ function CheckoutPageContent() {
                   }
                   className="w-4 h-4"
                 />
-                <span className="ml-3 text-gray-700">Debit/Credit Card</span>
+                <span className="ml-3 text-gray-700">{t.debitCreditCard}</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -235,7 +244,7 @@ function CheckoutPageContent() {
                   }
                   className="w-4 h-4"
                 />
-                <span className="ml-3 text-gray-700">Pay with Stripe</span>
+                <span className="ml-3 text-gray-700">{t.payWithStripe}</span>
               </label>
             </div>
           </div>
@@ -243,12 +252,12 @@ function CheckoutPageContent() {
           {/* Special Notes */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Special Notes
+              {t.specialNotes}
             </h2>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any special requests or notes for the barista?"
+              placeholder={t.notesPlaceholder}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
               rows={4}
             />
@@ -258,29 +267,29 @@ function CheckoutPageContent() {
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow p-6 h-fit">
           <h2 className="text-xl font-bold text-gray-900 mb-6">
-            Order Summary
+            {t.orderSummary}
           </h2>
 
           <div className="space-y-3 mb-6">
             <div className="flex justify-between">
-              <span className="text-gray-700">Subtotal</span>
-              <span className="font-semibold">${subtotal.toFixed(2)}</span>
+              <span className="text-gray-700">{t.subtotal}</span>
+              <span className="font-semibold">{subtotal.toFixed(0)} ₸</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700">Delivery Fee</span>
-              <span className="font-semibold">${deliveryFee.toFixed(2)}</span>
+              <span className="text-gray-700">{t.deliveryFee}</span>
+              <span className="font-semibold">{deliveryFee.toFixed(0)} ₸</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700">Tax (10%)</span>
-              <span className="font-semibold">${tax.toFixed(2)}</span>
+              <span className="text-gray-700">{t.tax} (10%)</span>
+              <span className="font-semibold">{tax.toFixed(0)} ₸</span>
             </div>
           </div>
 
           <div className="border-t pt-4 mb-6">
             <div className="flex justify-between">
-              <span className="text-lg font-bold text-gray-900">Total</span>
+              <span className="text-lg font-bold text-gray-900">{t.total}</span>
               <span className="text-lg font-bold text-amber-600">
-                ${total.toFixed(2)}
+                {total.toFixed(0)} ₸
               </span>
             </div>
           </div>
@@ -292,11 +301,11 @@ function CheckoutPageContent() {
             disabled={loading || !locationAvailable}
             className="w-full px-4 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
           >
-            {loading ? "Processing..." : "Place Order"}
+            {loading ? t.processing : t.placeOrder}
           </button>
 
           <p className="text-xs text-gray-600 mt-4 text-center">
-            You'll receive order updates via email and SMS
+            {t.orderUpdatesEmail}
           </p>
         </div>
       </div>

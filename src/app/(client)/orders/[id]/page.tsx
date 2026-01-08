@@ -4,11 +4,15 @@ import { DisplayReview, ReviewDisplay } from "@/components/ReviewDisplay";
 import { ReviewForm } from "@/components/ReviewForm";
 import { OrderDetailsSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+export const dynamic = "force-dynamic";
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -16,6 +20,18 @@ export default function OrderDetailsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { isConnected, isAvailable, orderEvents } = useSocket();
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   const [order, setOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,13 +146,13 @@ export default function OrderDetailsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl font-bold text-gray-900 mb-4">
-            {error || "Order not found"}
+            {error || t.orderNotFound}
           </p>
           <Link
             href="/orders"
             className="inline-block px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700"
           >
-            Back to Orders
+            {t.backToOrders}
           </Link>
         </div>
       </div>
@@ -152,7 +168,7 @@ export default function OrderDetailsPage() {
             href="/orders"
             className="text-amber-600 hover:text-amber-700 font-semibold mb-4 inline-block"
           >
-            ← Back to Orders
+            ← {t.backToOrders}
           </Link>
         </div>
 
@@ -163,7 +179,7 @@ export default function OrderDetailsPage() {
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <p className="text-sm text-gray-600 uppercase tracking-wide mb-2">
-                  Order Number
+                  {t.orderNumber}
                 </p>
                 <p className="text-3xl font-bold text-gray-900">
                   {order.orderNumber}
@@ -183,15 +199,15 @@ export default function OrderDetailsPage() {
           {/* Order Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-xs text-gray-600 uppercase mb-1">
-                Total Price
-              </p>
+              <p className="text-xs text-gray-600 uppercase mb-1">{t.total}</p>
               <p className="text-2xl font-bold text-amber-600">
-                ${order.totalPrice?.toFixed(2) || "0.00"}
+                {order.totalPrice?.toFixed(0) || "0"} ₸
               </p>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-xs text-gray-600 uppercase mb-1">Items</p>
+              <p className="text-xs text-gray-600 uppercase mb-1">
+                {t.itemsOrdered}
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 {order.items?.length || 0}
               </p>
@@ -199,16 +215,19 @@ export default function OrderDetailsPage() {
             {order.estimatedPrepTime && (
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-600 uppercase mb-1">
-                  Est. Time
+                  {t.estimatedTime}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {order.estimatedPrepTime}min
+                  {order.estimatedPrepTime}
+                  {t.min}
                 </p>
               </div>
             )}
             {order.location && typeof order.location !== "string" && (
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-xs text-gray-600 uppercase mb-1">Location</p>
+                <p className="text-xs text-gray-600 uppercase mb-1">
+                  {t.location}
+                </p>
                 <p className="text-sm font-bold text-gray-900">
                   {order.location.name || "Unknown"}
                 </p>
@@ -218,7 +237,9 @@ export default function OrderDetailsPage() {
 
           {/* Order Items */}
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Items</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
+              {t.itemsOrdered}
+            </h2>
             <div className="space-y-3">
               {order.items && order.items.length > 0 ? (
                 order.items.map((item: any, index: number) => {
@@ -238,23 +259,23 @@ export default function OrderDetailsPage() {
                         </p>
                         {item.size && (
                           <p className="text-sm text-gray-600">
-                            Size: {item.size}
+                            {t.selectSize}: {item.size}
                           </p>
                         )}
                         {item.toppings && item.toppings.length > 0 && (
                           <p className="text-sm text-gray-600">
-                            Toppings: {item.toppings.join(", ")}
+                            {t.addToppings}: {item.toppings.join(", ")}
                           </p>
                         )}
                         {item.specialInstructions && (
                           <p className="text-sm text-gray-600 italic">
-                            Notes: {item.specialInstructions}
+                            {t.notes}: {item.specialInstructions}
                           </p>
                         )}
                       </div>
                       <div className="text-right ml-4 shrink-0">
                         <p className="font-semibold text-gray-900">
-                          ${item.priceAtOrder?.toFixed(2) || "0.00"}
+                          {item.priceAtOrder?.toFixed(0) || "0"} ₸
                         </p>
                         <p className="text-sm text-gray-600">
                           x{item.quantity || 1}
@@ -264,7 +285,7 @@ export default function OrderDetailsPage() {
                   );
                 })
               ) : (
-                <p className="text-gray-600">No items in this order</p>
+                <p className="text-gray-600">{t.noItemsMessage}</p>
               )}
             </div>
           </div>
@@ -272,11 +293,11 @@ export default function OrderDetailsPage() {
           {/* Order Details */}
           <div className="border-t pt-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">
-              Order Details
+              {t.orderDetails}
             </h2>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Order Date:</span>
+                <span className="text-gray-600">{t.orderDate}:</span>
                 <span className="font-semibold text-gray-900">
                   {order.createdAt
                     ? new Date(order.createdAt).toLocaleString()
@@ -285,7 +306,7 @@ export default function OrderDetailsPage() {
               </div>
               {order.paymentMethod && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Payment Method:</span>
+                  <span className="text-gray-600">{t.paymentMethodLabel}:</span>
                   <span className="font-semibold text-gray-900 capitalize">
                     {order.paymentMethod}
                   </span>
@@ -293,7 +314,7 @@ export default function OrderDetailsPage() {
               )}
               {order.status === "rejected" && order.rejectionReason && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Rejection Reason:</span>
+                  <span className="text-gray-600">{t.rejectionReason}:</span>
                   <span className="font-semibold text-red-600">
                     {order.rejectionReason}
                   </span>
@@ -317,7 +338,7 @@ export default function OrderDetailsPage() {
         {order && order.status === "completed" && (
           <div className="mt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Reviews & Ratings
+              {t.reviews}
             </h2>
 
             {/* Review Forms for Each Item */}
@@ -379,7 +400,7 @@ export default function OrderDetailsPage() {
                             onClick={() => setReviewingItemId(menuItemId)}
                             className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 font-semibold transition"
                           >
-                            Write Review
+                            {t.leaveReview}
                           </button>
                         ) : (
                           <ReviewForm
@@ -401,7 +422,7 @@ export default function OrderDetailsPage() {
                     ) : (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <p className="text-green-700 text-sm">
-                          ✓ You've already reviewed this item
+                          ✓ {t.reviewAlreadyLeft}
                         </p>
                         {itemReview.comment && (
                           <p className="mt-2 text-gray-700">
@@ -419,7 +440,7 @@ export default function OrderDetailsPage() {
             {reviews.length > 0 && (
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="font-bold text-lg text-gray-900 mb-4">
-                  Your Reviews
+                  {t.reviews}
                 </h3>
                 <ReviewDisplay reviews={reviews} />
               </div>

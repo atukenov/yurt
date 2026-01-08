@@ -1,12 +1,16 @@
 "use client";
 
 import { useToastNotification } from "@/components/ToastProvider";
+import { useLanguage } from "@/context/LanguageContext";
 import { useFavorites } from "@/hooks/useFavorites";
+import { translations } from "@/lib/translations";
 import type { CartItem } from "@/store/cart";
 import { useCartStore } from "@/store/cart";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+export const dynamic = "force-dynamic";
 
 export default function FavoritesPage() {
   const router = useRouter();
@@ -14,6 +18,19 @@ export default function FavoritesPage() {
     useFavorites();
   const { addItem } = useCartStore();
   const { showToast } = useToastNotification();
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
+
   const [selectedSize, setSelectedSize] = useState<
     Record<string, "small" | "medium" | "large">
   >({});
@@ -36,7 +53,7 @@ export default function FavoritesPage() {
     };
 
     addItem(cartItem);
-    showToast(`${favoriteItem.name} added to cart`, "success");
+    showToast(`${favoriteItem.name} ${t.addedToCart}`, "success");
   };
 
   if (isLoading) {
@@ -57,16 +74,18 @@ export default function FavoritesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Favorites</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t.myFavorites}
+            </h1>
             <p className="text-gray-600 mt-1">
-              {favorites.length} item{favorites.length !== 1 ? "s" : ""}
+              {favorites.length} {favorites.length !== 1 ? t.items : t.item}
             </p>
           </div>
           <button
             onClick={() => router.push("/menu")}
             className="px-4 py-2 text-amber-600 hover:text-amber-700 font-medium"
           >
-            ← Back to Menu
+            {t.backToMenu}
           </button>
         </div>
 
@@ -85,14 +104,12 @@ export default function FavoritesPage() {
                 d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
               />
             </svg>
-            <p className="text-gray-600 text-lg mb-6">
-              You haven't added any favorites yet
-            </p>
+            <p className="text-gray-600 text-lg mb-6">{t.noFavoritesYet}</p>
             <Link
               href="/menu"
               className="inline-block px-6 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-medium"
             >
-              Explore Menu
+              {t.exploreMenu}
             </Link>
           </div>
         ) : (
@@ -153,17 +170,17 @@ export default function FavoritesPage() {
                     {/* Price */}
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-2xl font-bold text-amber-600">
-                        ${favorite.price.toFixed(2)}
+                        {favorite.price.toFixed(0)} ₸
                       </span>
                       <span className="text-xs text-gray-500">
-                        Added {formatDate(favorite.addedAt)}
+                        {t.added} {formatDate(favorite.addedAt, t)}
                       </span>
                     </div>
 
                     {/* Size Selection */}
                     <div className="mb-4">
                       <label className="text-xs font-medium text-gray-700 block mb-2">
-                        Size
+                        {t.size}
                       </label>
                       <div className="flex gap-2">
                         {["small", "medium", "large"].map((size) => (
@@ -185,7 +202,9 @@ export default function FavoritesPage() {
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
                           >
-                            {size}
+                            {size === "small" && t.small}
+                            {size === "medium" && t.medium}
+                            {size === "large" && t.large}
                           </button>
                         ))}
                       </div>
@@ -196,7 +215,7 @@ export default function FavoritesPage() {
                       onClick={() => handleAddToCart(favorite)}
                       className="w-full py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-medium text-sm"
                     >
-                      Add to Cart
+                      {t.addToCart}
                     </button>
                   </div>
                 </div>
@@ -207,18 +226,14 @@ export default function FavoritesPage() {
             <div className="flex justify-end">
               <button
                 onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to clear all favorites?"
-                    )
-                  ) {
+                  if (window.confirm(t.confirmClearFavorites)) {
                     clearFavorites();
-                    showToast("All favorites cleared", "success");
+                    showToast(t.allFavoritesCleared, "success");
                   }
                 }}
                 className="px-4 py-2 text-red-600 hover:text-red-700 border border-red-200 rounded-lg hover:bg-red-50 transition font-medium"
               >
-                Clear All
+                {t.clearAll}
               </button>
             </div>
           </>
@@ -229,7 +244,7 @@ export default function FavoritesPage() {
 }
 
 // Helper function to format date
-function formatDate(timestamp: number): string {
+function formatDate(timestamp: number, t: any): string {
   const now = Date.now();
   const diff = now - timestamp;
   const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -238,9 +253,9 @@ function formatDate(timestamp: number): string {
   if (hours < 1) {
     return "just now";
   } else if (hours < 24) {
-    return `${hours}h ago`;
+    return `${hours}h ${t.ago}`;
   } else if (days < 7) {
-    return `${days}d ago`;
+    return `${days}d ${t.ago}`;
   } else {
     return new Date(timestamp).toLocaleDateString();
   }

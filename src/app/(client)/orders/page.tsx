@@ -3,16 +3,32 @@
 import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+export const dynamic = "force-dynamic";
+
 function OrdersPageContent() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { isConnected, isAvailable, orderEvents } = useSocket();
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,19 +144,19 @@ function OrdersPageContent() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Active Orders</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.activeOrders}</h1>
         <div className="flex gap-2">
           <Link
             href="/orders/archived"
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-semibold"
           >
-            📋 History
+            {t.history}
           </Link>
           <Link
             href="/menu"
             className="px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
           >
-            + New Order
+            {t.newOrder}
           </Link>
         </div>
       </div>
@@ -149,14 +165,12 @@ function OrdersPageContent() {
       {orders.filter((o) => ["pending", "accepted"].includes(o.status))
         .length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-600 mb-4">
-            No active orders. Place a new one!
-          </p>
+          <p className="text-gray-600 mb-4">{t.noActiveOrders}</p>
           <Link
             href="/menu"
             className="inline-block px-6 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700"
           >
-            Start Ordering
+            {t.startOrdering}
           </Link>
         </div>
       ) : (
@@ -179,7 +193,7 @@ function OrdersPageContent() {
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-gray-600 uppercase tracking-wide">
-                        Order
+                        {t.order}
                       </p>
                       <p className="font-bold text-gray-900 truncate">
                         {order.orderNumber}
@@ -201,22 +215,24 @@ function OrdersPageContent() {
                 {/* Order info */}
                 <div className="space-y-2 mb-4 flex-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Price:</span>
+                    <span className="text-sm text-gray-600">{t.price}:</span>
                     <span className="font-bold text-amber-600">
-                      ${order.totalPrice.toFixed(2)}
+                      {order.totalPrice.toFixed(0)} ₸
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Items:</span>
+                    <span className="text-sm text-gray-600">{t.items}:</span>
                     <span className="font-semibold text-gray-900">
                       {order.items?.length || 0}
                     </span>
                   </div>
                   {order.estimatedPrepTime && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Est. Time:</span>
+                      <span className="text-sm text-gray-600">
+                        {t.estimatedTime}:
+                      </span>
                       <span className="font-semibold text-gray-900">
-                        {order.estimatedPrepTime} min
+                        {order.estimatedPrepTime} {t.min}
                       </span>
                     </div>
                   )}
@@ -228,7 +244,7 @@ function OrdersPageContent() {
                     href={`/orders/${order._id}`}
                     className="flex-1 px-3 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:border-amber-500 hover:text-amber-600 transition font-semibold text-sm text-center"
                   >
-                    Details
+                    {t.orderDetails}
                   </Link>
                 </div>
               </div>

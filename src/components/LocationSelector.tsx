@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { useCartStore } from "@/store/cart";
 import { ILocation } from "@/types";
 import { useEffect, useState } from "react";
@@ -11,6 +13,18 @@ export function LocationSelector() {
 
   const selectedLocation = useCartStore((state) => state.locationId);
   const setLocation = useCartStore((state) => state.setLocation);
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -26,7 +40,7 @@ export function LocationSelector() {
           setLocation(data.locations[0]._id);
         }
       } catch (err) {
-        setError("Failed to load locations");
+        setError(t.failedLoadLocations);
         console.error("Error fetching locations:", err);
       } finally {
         setLoading(false);
@@ -39,7 +53,7 @@ export function LocationSelector() {
   if (loading) {
     return (
       <div className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 text-sm">
-        Loading locations...
+        {t.loadingLocations}
       </div>
     );
   }
@@ -55,7 +69,7 @@ export function LocationSelector() {
   if (locations.length === 0) {
     return (
       <div className="px-4 py-2 bg-yellow-100 rounded-lg text-yellow-600 text-sm">
-        No locations available
+        {t.noLocationsAvailable}
       </div>
     );
   }
@@ -63,7 +77,7 @@ export function LocationSelector() {
   const currentLocation = locations.find((loc) => loc._id === selectedLocation);
 
   return (
-    <div className="flex items-center gap-2 whitespace-nowrap">
+    <div className="flex items-center whitespace-nowrap gap-2">
       <svg
         className="w-5 h-5 text-gray-600 flex-shrink-0"
         fill="none"
@@ -87,10 +101,10 @@ export function LocationSelector() {
         value={selectedLocation || ""}
         onChange={(e) => setLocation(e.target.value)}
         className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:border-amber-600 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition bg-white text-sm"
-        title="Select a location for your order"
+        title={t.location}
       >
         <option value="" disabled>
-          Select Location *
+          {t.selectLocation}
         </option>
         {locations.map((location) => (
           <option key={location._id} value={location._id}>

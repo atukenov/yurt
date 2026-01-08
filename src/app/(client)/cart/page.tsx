@@ -1,10 +1,14 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { useCartStore } from "@/store/cart";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+export const dynamic = "force-dynamic";
 
 export default function CartPage() {
   const router = useRouter();
@@ -14,6 +18,18 @@ export default function CartPage() {
       router.push("/login");
     },
   });
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   const [mounted, setMounted] = useState(false);
   const {
@@ -37,16 +53,14 @@ export default function CartPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Your Cart is Empty
+            {t.yourCartIsEmpty}
           </h1>
-          <p className="text-gray-600 mb-8">
-            Add some delicious coffee to get started!
-          </p>
+          <p className="text-gray-600 mb-8">{t.addCoffeeToGetStarted}</p>
           <Link
             href="/menu"
             className="inline-block px-6 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
           >
-            Continue Shopping
+            {t.continueShopping}
           </Link>
         </div>
       </div>
@@ -55,7 +69,7 @@ export default function CartPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Cart</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t.yourCart}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
@@ -68,16 +82,17 @@ export default function CartPage() {
                     {item.name}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Size: {item.size.toUpperCase()}
+                    {t.size}: {item.size.toUpperCase()}
                   </p>
                   {item.toppings.length > 0 && (
                     <p className="text-sm text-gray-600">
-                      Toppings: {item.toppings.map((t) => t.name).join(", ")}
+                      {t.toppings}:{" "}
+                      {item.toppings.map((t) => t.name).join(", ")}
                     </p>
                   )}
                   {item.specialInstructions && (
                     <p className="text-sm text-gray-600">
-                      Notes: {item.specialInstructions}
+                      {t.notes}: {item.specialInstructions}
                     </p>
                   )}
                 </div>
@@ -85,7 +100,7 @@ export default function CartPage() {
                   onClick={() => removeItem(item.id)}
                   className="text-red-600 hover:text-red-700 font-semibold"
                 >
-                  Remove
+                  {t.remove}
                 </button>
               </div>
 
@@ -112,7 +127,7 @@ export default function CartPage() {
                   </button>
                 </div>
                 <span className="text-xl font-bold text-amber-600">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  {(item.price * item.quantity).toFixed(0)} ₸
                 </span>
               </div>
             </div>
@@ -122,34 +137,38 @@ export default function CartPage() {
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow p-6 h-fit">
           <h2 className="text-lg font-bold text-gray-900 mb-6">
-            Order Summary
+            {t.orderSummary}
           </h2>
 
           <div className="space-y-4 mb-6">
             <div className="flex justify-between">
-              <span className="text-gray-700">Subtotal</span>
+              <span className="text-gray-700">{t.subtotal}</span>
               <span className="font-semibold">
-                ${getTotalPrice().toFixed(2)}
+                {getTotalPrice().toFixed(0)} ₸
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700">Delivery Fee</span>
-              <span className="font-semibold">$2.00</span>
+              <span className="text-gray-700">{t.deliveryFee}</span>
+              <span className="font-semibold">200 ₸</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700">Tax</span>
+              <span className="text-gray-700">{t.tax}</span>
               <span className="font-semibold">
-                ${((getTotalPrice() + 2) * 0.1).toFixed(2)}
+                {((getTotalPrice() + 200) * 0.1).toFixed(0)} ₸
               </span>
             </div>
           </div>
 
           <div className="border-t pt-4 mb-6">
             <div className="flex justify-between mb-4">
-              <span className="text-lg font-bold text-gray-900">Total</span>
+              <span className="text-lg font-bold text-gray-900">{t.total}</span>
               <span className="text-lg font-bold text-amber-600">
-                $
-                {(getTotalPrice() + 2 + (getTotalPrice() + 2) * 0.1).toFixed(2)}
+                {(
+                  getTotalPrice() +
+                  200 +
+                  (getTotalPrice() + 200) * 0.1
+                ).toFixed(0)}{" "}
+                ₸
               </span>
             </div>
           </div>
@@ -158,7 +177,7 @@ export default function CartPage() {
             {!isLocationSelected() && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                 <p className="text-red-700 text-sm font-semibold">
-                  ⚠️ Please select a location before checkout
+                  {t.selectLocationCheckout}
                 </p>
               </div>
             )}
@@ -175,19 +194,19 @@ export default function CartPage() {
                 }
               }}
             >
-              Proceed to Checkout
+              {t.proceedCheckout}
             </Link>
             <Link
               href="/menu"
               className="block w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold text-center"
             >
-              Continue Shopping
+              {t.continueShopping}
             </Link>
             <button
               onClick={() => clearCart()}
               className="w-full px-4 py-3 text-red-600 hover:text-red-700 font-semibold"
             >
-              Clear Cart
+              {t.clearCart}
             </button>
           </div>
         </div>

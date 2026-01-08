@@ -1,6 +1,8 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useFavorites } from "@/hooks/useFavorites";
+import { translations } from "@/lib/translations";
 
 interface FavoriteButtonProps {
   menuItemId: string;
@@ -24,6 +26,18 @@ export function FavoriteButton({
   const { isFavorite, toggleFavorite } = useFavorites();
   const isCurrentlyFavorite = isFavorite(menuItemId);
 
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -41,7 +55,7 @@ export function FavoriteButton({
     <button
       onClick={handleClick}
       className={`flex items-center gap-2 transition ${className}`}
-      title={isCurrentlyFavorite ? "Remove from favorites" : "Add to favorites"}
+      title={isCurrentlyFavorite ? t.removeFromFavorites : t.addToFavorites}
     >
       <svg
         className={`w-5 h-5 ${
@@ -62,7 +76,7 @@ export function FavoriteButton({
       </svg>
       {showLabel && (
         <span className="text-xs font-medium">
-          {isCurrentlyFavorite ? "Favorited" : "Add to favorites"}
+          {isCurrentlyFavorite ? t.removeFromFavorites : t.addToFavorites}
         </span>
       )}
     </button>

@@ -1,6 +1,8 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useLoyalty } from "@/hooks/useLoyalty";
+import { translations } from "@/lib/translations";
 
 const TIER_COLORS = {
   bronze: "from-amber-700 to-amber-600",
@@ -19,6 +21,18 @@ const TIER_ICONS = {
 export function LoyaltyProfileCard() {
   const { status, isLoading, error } = useLoyalty();
 
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
+
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
@@ -34,7 +48,7 @@ export function LoyaltyProfileCard() {
   if (error || !status) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-700">Failed to load loyalty information</p>
+        <p className="text-red-700">{t.failedLoadLoyalty}</p>
       </div>
     );
   }

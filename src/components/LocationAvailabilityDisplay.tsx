@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/lib/translations";
 import { useEffect, useState } from "react";
 import { IconContext } from "react-icons";
 import { MdCheckCircle, MdError } from "react-icons/md";
@@ -32,6 +34,18 @@ export function LocationAvailabilityDisplay({
   const [availability, setAvailability] =
     useState<LocationAvailabilityStatus | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "en";
+  let t = translations.en.client;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.client || translations.en.client;
+  } catch (e) {
+    // If language context not available, use English as default
+    t = translations.en.client;
+  }
 
   useEffect(() => {
     const fetchAvailability = async () => {
@@ -84,19 +98,19 @@ export function LocationAvailabilityDisplay({
           <p className={`text-sm ${textColor}`}>
             {availability.isOpen ? (
               <>
-                🟢 Open Now
+                🟢 {t.openNow}
                 {availability.openTime && availability.closeTime && (
                   <span className="block">
-                    Hours: {availability.openTime} - {availability.closeTime}
+                    {t.hours} {availability.openTime} - {availability.closeTime}
                   </span>
                 )}
               </>
             ) : (
               <>
-                🔴 {availability.reason || "Currently Closed"}
+                🔴 {availability.reason || t.currentlyClosed}
                 {availability.nextAvailable && (
                   <span className="block mt-2">
-                    Next available: {availability.nextAvailable.day} at{" "}
+                    {t.nextAvailable} {availability.nextAvailable.day} {t.at}{" "}
                     {availability.nextAvailable.time}
                   </span>
                 )}
