@@ -85,7 +85,7 @@ export function OrderCard({
       </p>
       <p className="text-sm text-gray-500">{order.items?.length || 0} items</p>
       <p className="text-lg font-bold text-gray-900 mt-3">
-        ${order.totalPrice.toFixed(2)}
+        {order.totalPrice.toFixed(2)} ₸
       </p>
       <p className="text-xs text-gray-500 mt-2">
         {new Date(order.createdAt || "").toLocaleDateString()}

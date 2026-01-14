@@ -29,6 +29,14 @@ export const coffeeShopData = {
       role: "customer",
       image: "https://i.pravatar.cc/150?img=3",
     },
+    {
+      email: "admin@altyncup.com",
+      password: adminPassword,
+      name: "Admin User",
+      phone: "+77711777777",
+      role: "admin",
+      image: "https://i.pravatar.cc/150?img=1",
+    },
   ],
   menuItems: [
     // Hot Drinks

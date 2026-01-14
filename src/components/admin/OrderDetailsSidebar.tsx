@@ -138,7 +138,7 @@ export function OrderDetailsSidebar({
                   </div>
 
                   <p className="text-sm font-semibold text-gray-900 mt-2">
-                    ${item.priceAtOrder?.toFixed(2) || "0.00"}
+                    {item.priceAtOrder?.toFixed(2) || "0.00"} ₸
                   </p>
                 </div>
               ))}
@@ -178,7 +178,7 @@ export function OrderDetailsSidebar({
             <div className="flex justify-between items-center mb-3">
               <span className="text-gray-600">Subtotal:</span>
               <span className="font-semibold">
-                ${(order.totalPrice || 0).toFixed(2)}
+                {(order.totalPrice || 0).toFixed(2)} ₸
               </span>
             </div>
             <div className="flex justify-between items-center mb-3">

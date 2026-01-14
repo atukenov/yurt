@@ -185,7 +185,7 @@ export default function AdminAnalyticsPage() {
                 Total Revenue
               </p>
               <p className="text-3xl font-bold text-green-600">
-                ${analytics.totalRevenue.toFixed(2)}
+                {analytics.totalRevenue.toFixed(2)} ₸
               </p>
             </div>
             <div className="text-4xl text-green-500">💰</div>
@@ -200,7 +200,7 @@ export default function AdminAnalyticsPage() {
                 Avg Order Value
               </p>
               <p className="text-3xl font-bold text-gray-900">
-                ${analytics.averageOrderValue.toFixed(2)}
+                {analytics.averageOrderValue.toFixed(2)} ₸
               </p>
             </div>
             <div className="text-4xl text-amber-500">💵</div>
@@ -357,7 +357,7 @@ export default function AdminAnalyticsPage() {
                     ></div>
                   </div>
                   <p className="text-xs text-gray-600 mt-1">
-                    Revenue: ${item.revenue.toFixed(2)}
+                    Revenue: {item.revenue.toFixed(2)} ₸
                   </p>
                 </div>
               ))}
@@ -422,7 +422,7 @@ export default function AdminAnalyticsPage() {
                   <span className="font-medium text-gray-900">{day.date}</span>
                   <div className="text-right">
                     <p className="font-bold text-green-600">
-                      ${day.revenue.toFixed(2)}
+                      {day.revenue.toFixed(2)} ₸
                     </p>
                     <p className="text-xs text-gray-600">{day.orders} orders</p>
                   </div>
@@ -494,13 +494,13 @@ export default function AdminAnalyticsPage() {
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-semibold text-green-600">
-                        ${customer.totalSpent.toFixed(2)}
+                        {customer.totalSpent.toFixed(2)} ₸
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <span className="text-gray-600">
-                        $
-                        {(customer.totalSpent / customer.orderCount).toFixed(2)}
+                        {(customer.totalSpent / customer.orderCount).toFixed(2)}{" "}
+                        ₸
                       </span>
                     </td>
                   </tr>

@@ -19,9 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yurt Coffee - Order Your Perfect Coffee",
-  description:
-    "Modern coffee ordering system with real-time order tracking and admin dashboard",
+  title: "Altyncup",
+  description: "",
   keywords: "coffee, ordering, cafe, mobile-first",
 };
 
@@ -57,7 +56,7 @@ export default function RootLayout({
                 <footer className="bg-gray-900 text-white py-4">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <p className="text-center text-gray-400">
-                      © 2025 Yurt Coffee. All rights reserved.
+                      © 2026 💎. All rights reserved.
                     </p>
                   </div>
                 </footer>

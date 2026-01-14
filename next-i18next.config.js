@@ -1,12 +1,14 @@
-const path = require("path");
+import path from "path";
 
-module.exports = {
+const config = {
   i18n: {
-    defaultLocale: "en",
-    locales: ["en", "ru", "ar"],
+    defaultLocale: "ru",
+    locales: ["en", "ru"],
     localeDetection: true,
   },
   localePath: path.resolve("./public/locales"),
   ns: ["common", "menu", "checkout", "admin"],
   defaultNS: "common",
 };
+
+export default config;
