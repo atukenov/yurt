@@ -1,11 +1,13 @@
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
-import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z
+    .string()
+    .length(4, "PIN must be exactly 4 digits")
+    .regex(/^\d+$/, "PIN must contain only digits"),
   name: z.string().min(1),
   phone: z.string().optional(),
 });
@@ -28,13 +30,10 @@ export async function POST(request: Request) {
       return Response.json({ error: "User already exists" }, { status: 409 });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
+    // Create user with PIN (no hashing needed for 4-digit PIN)
     const user = await User.create({
       email,
-      password: hashedPassword,
+      pinCode: password,
       name,
       phone,
       role: "customer",

@@ -1,6 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
-import bcrypt from "bcryptjs";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
@@ -15,7 +14,7 @@ export const authOptions = {
       name: "Credentials",
       credentials: {
         phone: { label: "Phone Number", type: "tel" },
-        password: { label: "Password", type: "password" },
+        password: { label: "PIN", type: "text" },
       },
       async authorize(credentials) {
         const parseResult = credentialsSchema.safeParse(credentials);
@@ -30,13 +29,9 @@ export const authOptions = {
           throw new Error("User not found");
         }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials?.password || "",
-          user.password
-        );
-
-        if (!isPasswordValid) {
-          throw new Error("Invalid password");
+        // Compare PIN directly (no hashing needed for 4-digit PIN)
+        if (credentials?.password !== user.pinCode) {
+          throw new Error("Invalid PIN");
         }
 
         return {

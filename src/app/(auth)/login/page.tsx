@@ -12,11 +12,16 @@ import { useState } from "react";
 export default function LoginPage() {
   const router = useRouter();
   const [phone, setPhone] = useState("+7");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+    setPin(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +32,7 @@ export default function LoginPage() {
 
     try {
       // Validate input
-      const validation = validateFormData(LoginSchema, { phone, password });
+      const validation = validateFormData(LoginSchema, { phone, password: pin });
       if (!validation.success || !validation.data) {
         setErrors(validation.errors || {});
         setLoading(false);
@@ -43,7 +48,7 @@ export default function LoginPage() {
       if (result?.error) {
         errorLogger.warn("Login failed", { phone });
         if (result.error === "CredentialsSignin") {
-          setError("Invalid phone number or password");
+          setError("Invalid phone number or PIN");
         } else {
           setError(result.error || "Login failed");
         }
@@ -74,69 +79,88 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
             <Image src="/images/logo.png" alt="logo" width={250} height={50} />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Sign in to Your Account
+            Welcome Back
           </h2>
           <p className="mt-2 text-gray-600">
-            Or{" "}
-            <Link
-              href="/register"
-              className="text-amber-600 hover:text-amber-700 font-semibold"
-            >
-              create a new account
-            </Link>
+            Sign in to your Yurt Coffee account
           </p>
         </div>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           {error && <FormError error={error} />}
 
-          <FormField
-            id="phone"
-            label="Phone Number (Kazakhstan)"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            error={errors?.phone}
-            placeholder="+7 (700) 123-4567"
-            required
-          />
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <FormField
+              id="phone"
+              label="Phone Number (Kazakhstan)"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              error={errors?.phone}
+              placeholder="+7 (700) 123-4567"
+              required
+            />
+          </div>
 
-          <FormField
-            id="password"
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={errors?.password}
-            placeholder="••••••••"
-            required
-          />
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Enter 4-Digit PIN
+            </label>
+            <input
+              type="text"
+              id="pin"
+              value={pin}
+              onChange={handlePinChange}
+              placeholder="••••"
+              maxLength={4}
+              disabled={loading}
+              className={`w-full text-center text-4xl font-bold tracking-[0.5em] border-2 rounded-lg py-4 transition-all ${
+                pin.length === 4
+                  ? "border-green-400 bg-green-50"
+                  : "border-gray-300 bg-gray-50"
+              } focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50`}
+            />
+            <p className="mt-3 text-xs text-gray-500 text-center">
+              {pin.length}/4 digits entered
+            </p>
+            {errors?.password && (
+              <p className="mt-2 text-sm text-red-600">{errors.password}</p>
+            )}
+          </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+            disabled={loading || pin.length !== 4}
+            className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-black rounded-lg hover:from-amber-500 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-bold text-lg shadow-md hover:shadow-lg"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600">
-          New to Yurt Coffee?{" "}
-          <Link
-            href="/register"
-            className="text-amber-600 hover:text-amber-700 font-semibold"
-          >
-            Register here
-          </Link>
-        </p>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-gradient-to-br from-amber-50 via-white to-orange-50 text-gray-600">
+              New to Yurt Coffee?
+            </span>
+          </div>
+        </div>
+
+        <Link
+          href="/register"
+          className="w-full px-4 py-3 border-2 border-amber-400 text-amber-600 rounded-lg hover:bg-amber-50 transition font-semibold text-center block"
+        >
+          Create Account
+        </Link>
       </div>
     </div>
   );

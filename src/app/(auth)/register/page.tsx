@@ -11,12 +11,17 @@ export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [phone, setPhone] = useState("+7");
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+    setPin(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +33,7 @@ export default function RegisterPage() {
     // Validate input with Zod
     const validation = validateFormData(RegisterSchema, {
       email,
-      password,
+      password: pin,
       name,
       phone,
     });
@@ -43,7 +48,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, phone }),
+        body: JSON.stringify({ email, password: pin, name, phone }),
       });
 
       if (!res.ok) {
@@ -78,81 +83,116 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">☕🇰🇿</h1>
+          <h1 className="text-4xl font-bold text-gray-900">☕🇰🇿</h1>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Create Your Account
+            Join Yurt Coffee
           </h2>
           <p className="mt-2 text-gray-600">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-amber-600 hover:text-amber-700 font-semibold"
-            >
-              Sign in
-            </Link>
+            Create your account and start ordering
           </p>
         </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           {error && <FormError error={error} />}
           {success && <FormSuccess message={success} />}
 
-          <FormField
-            id="name"
-            label="Full Name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={errors?.name}
-            placeholder="John Doe"
-            required
-          />
+          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+            <FormField
+              id="name"
+              label="Full Name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              error={errors?.name}
+              placeholder="John Doe"
+              required
+            />
+          </div>
 
-          <FormField
-            id="email"
-            label="Email address"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={errors?.email}
-            placeholder="you@example.com"
-            required
-          />
+          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+            <FormField
+              id="email"
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={errors?.email}
+              placeholder="you@example.com"
+              required
+            />
+          </div>
 
-          <FormField
-            id="phone"
-            label="Phone Number (Kazakhstan)"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            error={errors?.phone}
-            placeholder="+7 (700) 123-4567"
-            required
-          />
+          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+            <FormField
+              id="phone"
+              label="Phone Number (Kazakhstan)"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              error={errors?.phone}
+              placeholder="+7 (700) 123-4567"
+              required
+            />
+          </div>
 
-          <FormField
-            id="password"
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={errors?.password}
-            placeholder="••••••••"
-            hint="At least 6 characters"
-            required
-          />
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Create 4-Digit PIN
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              You'll use this PIN to sign in quickly
+            </p>
+            <input
+              type="text"
+              id="pin"
+              value={pin}
+              onChange={handlePinChange}
+              placeholder="••••"
+              maxLength={4}
+              disabled={loading}
+              className={`w-full text-center text-4xl font-bold tracking-[0.5em] border-2 rounded-lg py-4 transition-all ${
+                pin.length === 4
+                  ? "border-green-400 bg-green-50"
+                  : "border-gray-300 bg-gray-50"
+              } focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50`}
+            />
+            <p className="mt-3 text-xs text-gray-500 text-center">
+              {pin.length}/4 digits entered
+            </p>
+            {errors?.password && (
+              <p className="mt-2 text-sm text-red-600">{errors.password}</p>
+            )}
+          </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full px-4 py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+            disabled={loading || pin.length !== 4}
+            className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-black rounded-lg hover:from-amber-500 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition font-bold text-lg shadow-md hover:shadow-lg"
           >
-            {loading ? "Creating account..." : "Create Account"}
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-gradient-to-br from-amber-50 via-white to-orange-50 text-gray-600">
+              Already have an account?
+            </span>
+          </div>
+        </div>
+
+        <Link
+          href="/login"
+          className="w-full px-4 py-3 border-2 border-amber-400 text-amber-600 rounded-lg hover:bg-amber-50 transition font-semibold text-center block"
+        >
+          Sign In
+        </Link>
 
         <p className="text-center text-xs text-gray-600">
           By registering, you agree to our Terms of Service and Privacy Policy

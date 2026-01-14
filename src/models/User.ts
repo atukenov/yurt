@@ -9,9 +9,11 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       index: true,
     },
-    password: {
+    pinCode: {
       type: String,
       required: true,
+      minlength: 4,
+      maxlength: 4,
     },
     name: {
       type: String,
