@@ -32,7 +32,10 @@ export default function LoginPage() {
 
     try {
       // Validate input
-      const validation = validateFormData(LoginSchema, { phone, password: pin });
+      const validation = validateFormData(LoginSchema, {
+        phone,
+        password: pin,
+      });
       if (!validation.success || !validation.data) {
         setErrors(validation.errors || {});
         setLoading(false);
