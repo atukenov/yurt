@@ -30,22 +30,32 @@ export function OrderDetailsSidebar({
     pending: {
       color: "yellow-100",
       textColor: "yellow-800",
+      bgGradient: "from-yellow-50 to-yellow-100",
       label: "Pending",
     },
     accepted: {
       color: "blue-100",
       textColor: "blue-800",
+      bgGradient: "from-blue-50 to-blue-100",
       label: "Accepted",
     },
     completed: {
       color: "green-100",
       textColor: "green-800",
+      bgGradient: "from-green-50 to-green-100",
       label: "Completed",
     },
     rejected: {
       color: "red-100",
       textColor: "red-800",
+      bgGradient: "from-red-50 to-red-100",
       label: "Rejected",
+    },
+    cancelled: {
+      color: "gray-100",
+      textColor: "gray-800",
+      bgGradient: "from-gray-50 to-gray-100",
+      label: "Cancelled",
     },
   };
 
@@ -56,7 +66,9 @@ export function OrderDetailsSidebar({
   return (
     <div className="lg:col-span-1">
       <div className="bg-white rounded-lg shadow sticky top-8 max-h-[calc(100vh-10rem)] overflow-y-auto">
-        <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-amber-50 to-amber-100">
+        <div
+          className={`border-b border-gray-200 px-6 py-4 bg-gradient-to-r ${status.bgGradient}`}
+        >
           <h3 className="text-lg font-bold text-gray-900">
             Order {order.orderNumber}
           </h3>
