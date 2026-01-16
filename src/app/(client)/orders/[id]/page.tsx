@@ -27,10 +27,11 @@ export default function OrderDetailsPage() {
   try {
     const langContext = useLanguage();
     language = langContext.language;
-    t = translations[language]?.client || translations.ru.client;
+    t = (translations[language]?.client ||
+      translations.en.client) as typeof translations.en.client;
   } catch (e) {
     // If language context not available, use English as default
-    t = translations.ru.client;
+    t = translations.en.client;
   }
 
   const [order, setOrder] = useState<IOrder | null>(null);
@@ -65,10 +66,10 @@ export default function OrderDetailsPage() {
           if (data.orderId === orderId) {
             console.log("[Order Details] Status changed:", data.status);
             setOrder((prev) =>
-              prev ? { ...prev, status: data.status as any } : null
+              prev ? { ...prev, status: data.status as any } : null,
             );
           }
-        }
+        },
       );
     }
 
@@ -200,7 +201,7 @@ export default function OrderDetailsPage() {
             </div>
             <span
               className={`inline-block px-3 py-1 rounded-full text-sm font-semibold capitalize border ${getStatusColor(
-                order.status
+                order.status,
               )}`}
             >
               {getStatusLabel(order.status)}
@@ -368,7 +369,7 @@ export default function OrderDetailsPage() {
                     : "Unknown Item");
 
                 const itemReview = reviews.find(
-                  (r) => r.menuItem._id === menuItemId
+                  (r) => r.menuItem._id === menuItemId,
                 );
                 const hasReviewedItem = itemReview !== undefined;
 

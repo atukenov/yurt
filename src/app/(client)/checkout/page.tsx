@@ -3,6 +3,7 @@
 import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { FormError } from "@/components/FormFields";
 import { LocationAvailabilityDisplay } from "@/components/LocationAvailabilityDisplay";
+import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { CheckoutSkeleton } from "@/components/SkeletonLoaders";
 import { useLanguage } from "@/context/LanguageContext";
 import { errorLogger } from "@/lib/logger";
@@ -37,9 +38,9 @@ function CheckoutPageContent() {
   }
 
   const [mounted, setMounted] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<
-    "cash" | "card" | "stripe"
-  >("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"kaspi" | "applepay">(
+    "kaspi",
+  );
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -124,7 +125,7 @@ function CheckoutPageContent() {
         errorLogger.warn(
           "Order creation failed",
           { locationId, paymentMethod },
-          new Error(message)
+          new Error(message),
         );
         return;
       }
@@ -142,7 +143,7 @@ function CheckoutPageContent() {
       errorLogger.error(
         "Checkout error",
         { locationId },
-        err instanceof Error ? err : new Error(message)
+        err instanceof Error ? err : new Error(message),
       );
     } finally {
       setLoading(false);
@@ -150,12 +151,11 @@ function CheckoutPageContent() {
   };
 
   const subtotal = getTotalPrice();
-  const deliveryFee = 200;
-  const tax = (subtotal + deliveryFee) * 0.1;
-  const total = subtotal + deliveryFee + tax;
+  const tax = subtotal * 0.1;
+  const total = subtotal + tax;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">{t.checkout}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -197,56 +197,11 @@ function CheckoutPageContent() {
 
           {/* Payment Method */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              {t.paymentMethodTitle}
-            </h2>
-            <div className="space-y-3">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="cash"
-                  checked={paymentMethod === "cash"}
-                  onChange={(e) =>
-                    setPaymentMethod(
-                      e.target.value as "cash" | "card" | "stripe"
-                    )
-                  }
-                  className="w-4 h-4"
-                />
-                <span className="ml-3 text-gray-700">{t.cashOnPickup}</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="card"
-                  checked={paymentMethod === "card"}
-                  onChange={(e) =>
-                    setPaymentMethod(
-                      e.target.value as "cash" | "card" | "stripe"
-                    )
-                  }
-                  className="w-4 h-4"
-                />
-                <span className="ml-3 text-gray-700">{t.debitCreditCard}</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="stripe"
-                  checked={paymentMethod === "stripe"}
-                  onChange={(e) =>
-                    setPaymentMethod(
-                      e.target.value as "cash" | "card" | "stripe"
-                    )
-                  }
-                  className="w-4 h-4"
-                />
-                <span className="ml-3 text-gray-700">{t.payWithStripe}</span>
-              </label>
-            </div>
+            <PaymentMethodSelector
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              t={t}
+            />
           </div>
 
           {/* Special Notes */}
@@ -274,10 +229,6 @@ function CheckoutPageContent() {
             <div className="flex justify-between">
               <span className="text-gray-700">{t.subtotal}</span>
               <span className="font-semibold">{subtotal.toFixed(0)} ₸</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-700">{t.deliveryFee}</span>
-              <span className="font-semibold">{deliveryFee.toFixed(0)} ₸</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-700">{t.tax} (10%)</span>

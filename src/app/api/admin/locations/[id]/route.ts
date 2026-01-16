@@ -14,11 +14,20 @@ const updateLocationSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   isActive: z.boolean().optional(),
+  workingHours: z
+    .record(
+      z.string(),
+      z.object({
+        open: z.string(),
+        close: z.string(),
+      }),
+    )
+    .optional(),
 });
 
 export async function PUT(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
@@ -53,14 +62,14 @@ export async function PUT(
     console.error("Error updating location:", error);
     return Response.json(
       { error: "Failed to update location" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await context.params;
@@ -82,7 +91,7 @@ export async function DELETE(
     console.error("Error deleting location:", error);
     return Response.json(
       { error: "Failed to delete location" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

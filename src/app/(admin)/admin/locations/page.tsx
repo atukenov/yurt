@@ -34,15 +34,15 @@ export default function AdminLocationsPage() {
   });
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
-  let t = translations.en.admin;
+  let language: "en" | "ru" = "ru";
+  let t = translations.ru.admin;
   try {
     const langContext = useLanguage();
     language = langContext.language;
-    t = translations[language]?.admin || translations.en.admin;
+    t = translations[language]?.admin || translations.ru.admin;
   } catch (e) {
     // If language context not available, use English as default
-    t = translations.en.admin;
+    t = translations.ru.admin;
   }
 
   // Day name mapping for translations
@@ -333,7 +333,7 @@ export default function AdminLocationsPage() {
                     className="flex items-end gap-3 p-3 bg-gray-50 rounded-lg"
                   >
                     <label className="capitalize font-medium text-gray-700 min-w-20">
-                      {t[dayNameMap[day]] || day}
+                      {(t[dayNameMap[day]] as string) || day}
                     </label>
                     <input
                       type="time"
@@ -480,7 +480,7 @@ export default function AdminLocationsPage() {
                         {days.map((day) => (
                           <div key={day} className="text-gray-700">
                             <span className="capitalize font-medium">
-                              {t[dayNameMap[day]] || day}:{" "}
+                              {(t[dayNameMap[day]] as string) || day}:{" "}
                             </span>
                             {location.workingHours[day]?.open}-
                             {location.workingHours[day]?.close}

@@ -5,7 +5,7 @@ import { useToastNotification } from "@/components/ToastProvider";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/lib/translations";
 import { useCartStore } from "@/store/cart";
-import type { IMenuItem } from "@/types";
+import type { IMenuItem, ITopping } from "@/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,7 +20,13 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<IMenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<IMenuItem | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toppings, setToppings] = useState<ITopping[]>([]);
+  const [selectedSize, setSelectedSize] = useState<
+    "small" | "medium" | "large"
+  >("medium");
+  const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+  const [specialInstructions, setSpecialInstructions] = useState("");
+  const [quantity, setQuantity] = useState(1);
 
   // Safely access language context with fallback
   let language: "en" | "ru" = "en";
@@ -50,10 +56,17 @@ export default function FavoritesPage() {
 
               // Filter to only show favorites
               const favoriteItems = itemsData.items.filter((item: IMenuItem) =>
-                favoriteIds.includes(item._id)
+                favoriteIds.includes(item._id),
               );
 
               setFavorites(favoriteItems);
+            }
+
+            // Fetch toppings
+            const toppingsRes = await fetch("/api/menu/toppings");
+            if (toppingsRes.ok) {
+              const toppingsData = await toppingsRes.json();
+              setToppings(toppingsData.toppings || []);
             }
           }
         }
@@ -86,13 +99,57 @@ export default function FavoritesPage() {
   // Handle opening modal
   const handleOpenModal = (item: IMenuItem) => {
     setSelectedItem(item);
-    setIsModalOpen(true);
+    setSelectedSize("medium");
+    setSelectedToppings([]);
+    setSpecialInstructions("");
+    setQuantity(1);
   };
 
   // Handle closing modal
   const handleCloseModal = () => {
-    setIsModalOpen(false);
     setSelectedItem(null);
+    setSelectedSize("medium");
+    setSelectedToppings([]);
+    setSpecialInstructions("");
+    setQuantity(1);
+  };
+
+  const calculatePrice = (): number => {
+    if (!selectedItem) return 0;
+    let price = selectedItem.basePrice;
+
+    // Add size modifier
+    const size = selectedItem.sizes?.find((s) => s.size === selectedSize);
+    if (size) {
+      price += size.priceModifier;
+    }
+
+    // Add toppings
+    const selectedToppingObjects = toppings.filter((t) =>
+      selectedToppings.includes(t._id),
+    );
+    price += selectedToppingObjects.reduce((sum, t) => sum + t.price, 0);
+
+    return price;
+  };
+
+  const handleAddToCart = () => {
+    if (selectedItem) {
+      addItem({
+        id: `${selectedItem._id}-${Date.now()}`,
+        menuItemId: selectedItem._id,
+        name: selectedItem.name,
+        price: calculatePrice(),
+        size: selectedSize,
+        toppings: toppings
+          .filter((t) => selectedToppings.includes(t._id))
+          .map((t) => ({ id: t._id, name: t.name, price: t.price })),
+        quantity,
+        specialInstructions,
+      });
+      showToast(t.addedToCart, "success");
+      handleCloseModal();
+    }
   };
 
   // Handle clearing all favorites
@@ -235,9 +292,20 @@ export default function FavoritesPage() {
       {/* Item Detail Modal */}
       {selectedItem && (
         <ItemDetailModal
-          item={selectedItem}
-          isOpen={isModalOpen}
+          selectedItem={selectedItem}
           onClose={handleCloseModal}
+          selectedSize={selectedSize}
+          setSelectedSize={setSelectedSize}
+          selectedToppings={selectedToppings}
+          setSelectedToppings={setSelectedToppings}
+          specialInstructions={specialInstructions}
+          setSpecialInstructions={setSpecialInstructions}
+          quantity={quantity}
+          setQuantity={setQuantity}
+          toppings={toppings}
+          calculatePrice={calculatePrice}
+          handleAddToCart={handleAddToCart}
+          t={t}
         />
       )}
     </div>
