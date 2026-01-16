@@ -1,23 +1,26 @@
 "use client";
 
+import { ItemDetailModal } from "@/components/ItemDetailModal";
 import { useToastNotification } from "@/components/ToastProvider";
 import { useLanguage } from "@/context/LanguageContext";
-import { useFavorites } from "@/hooks/useFavorites";
 import { translations } from "@/lib/translations";
-import type { CartItem } from "@/store/cart";
 import { useCartStore } from "@/store/cart";
+import type { IMenuItem } from "@/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { MdFavorite } from "react-icons/md";
 
 export const dynamic = "force-dynamic";
 
 export default function FavoritesPage() {
   const router = useRouter();
-  const { favorites, isLoading, removeFavorite, clearFavorites } =
-    useFavorites();
   const { addItem } = useCartStore();
   const { showToast } = useToastNotification();
+  const [favorites, setFavorites] = useState<IMenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<IMenuItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Safely access language context with fallback
   let language: "en" | "ru" = "en";
@@ -31,29 +34,74 @@ export default function FavoritesPage() {
     t = translations.en.client;
   }
 
-  const [selectedSize, setSelectedSize] = useState<
-    Record<string, "small" | "medium" | "large">
-  >({});
+  // Load favorites from localStorage
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const savedFavorites = localStorage.getItem("menu-favorites");
+        if (savedFavorites && savedFavorites !== "[]") {
+          const favoriteIds = JSON.parse(savedFavorites);
 
-  // Handle adding item to cart
-  const handleAddToCart = (favoriteItem: any) => {
-    const size = (selectedSize[favoriteItem.menuItemId] || "medium") as
-      | "small"
-      | "medium"
-      | "large";
+          if (favoriteIds.length > 0) {
+            // Fetch all menu items
+            const itemsRes = await fetch("/api/menu/items");
+            if (itemsRes.ok) {
+              const itemsData = await itemsRes.json();
 
-    const cartItem: CartItem = {
-      id: `${favoriteItem.menuItemId}-${Date.now()}`,
-      menuItemId: favoriteItem.menuItemId,
-      name: favoriteItem.name,
-      price: favoriteItem.price,
-      quantity: 1,
-      size,
-      toppings: [],
+              // Filter to only show favorites
+              const favoriteItems = itemsData.items.filter((item: IMenuItem) =>
+                favoriteIds.includes(item._id)
+              );
+
+              setFavorites(favoriteItems);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading favorites:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    addItem(cartItem);
-    showToast(`${favoriteItem.name} ${t.addedToCart}`, "success");
+    loadFavorites();
+  }, []);
+
+  // Handle removing favorite
+  const handleRemoveFavorite = (itemId: string) => {
+    const updatedFavorites = favorites.filter((fav) => fav._id !== itemId);
+    setFavorites(updatedFavorites);
+
+    // Update localStorage
+    const savedFavorites = localStorage.getItem("menu-favorites");
+    if (savedFavorites) {
+      const favoriteIds = JSON.parse(savedFavorites);
+      const newFavoriteIds = favoriteIds.filter((id: string) => id !== itemId);
+      localStorage.setItem("menu-favorites", JSON.stringify(newFavoriteIds));
+    }
+
+    showToast(t.removeFromFavorites, "success");
+  };
+
+  // Handle opening modal
+  const handleOpenModal = (item: IMenuItem) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
+
+  // Handle clearing all favorites
+  const handleClearFavorites = () => {
+    if (window.confirm(t.confirmClearFavorites)) {
+      setFavorites([]);
+      localStorage.setItem("menu-favorites", JSON.stringify([]));
+      showToast(t.allFavoritesCleared, "success");
+    }
   };
 
   if (isLoading) {
@@ -115,49 +163,44 @@ export default function FavoritesPage() {
         ) : (
           <>
             {/* Favorites Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
               {favorites.map((favorite) => (
                 <div
-                  key={favorite.menuItemId}
+                  key={favorite._id}
                   className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
                 >
-                  {/* Item Image Placeholder */}
-                  {favorite.image && (
-                    <div className="w-full h-48 bg-gray-200 overflow-hidden">
+                  {/* Item Image */}
+                  <div className="w-full h-48 bg-gray-200 overflow-hidden relative group">
+                    {favorite.image ? (
                       <img
                         src={favorite.image}
                         alt={favorite.name}
                         className="w-full h-full object-cover"
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                        <span className="text-4xl">☕</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleRemoveFavorite(favorite._id)}
+                      className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md hover:bg-red-50 transition"
+                    >
+                      <MdFavorite className="text-red-500 text-xl" />
+                    </button>
+                  </div>
 
                   <div className="p-4">
                     {/* Item Header */}
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          {favorite.name}
-                        </h3>
-                        {favorite.category && (
-                          <p className="text-xs text-gray-500 capitalize">
-                            {favorite.category}
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => removeFavorite(favorite.menuItemId)}
-                        className="text-red-500 hover:text-red-700 transition"
-                        title="Remove from favorites"
-                      >
-                        <svg
-                          className="w-6 h-6"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
+                    <div className="mb-2">
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {favorite.name}
+                      </h3>
+                      {favorite.category && (
+                        <p className="text-xs text-gray-500 capitalize">
+                          {favorite.category}
+                        </p>
+                      )}
                     </div>
 
                     {/* Description */}
@@ -168,51 +211,15 @@ export default function FavoritesPage() {
                     )}
 
                     {/* Price */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-amber-600">
-                        {favorite.price.toFixed(0)} ₸
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {t.added} {formatDate(favorite.addedAt, t)}
-                      </span>
-                    </div>
-
-                    {/* Size Selection */}
                     <div className="mb-4">
-                      <label className="text-xs font-medium text-gray-700 block mb-2">
-                        {t.size}
-                      </label>
-                      <div className="flex gap-2">
-                        {["small", "medium", "large"].map((size) => (
-                          <button
-                            key={size}
-                            onClick={() =>
-                              setSelectedSize((prev) => ({
-                                ...prev,
-                                [favorite.menuItemId]: size as
-                                  | "small"
-                                  | "medium"
-                                  | "large",
-                              }))
-                            }
-                            className={`flex-1 py-2 px-3 rounded text-xs font-medium capitalize transition ${
-                              (selectedSize[favorite.menuItemId] ||
-                                "medium") === size
-                                ? "bg-[#ffd119] text-black"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
-                          >
-                            {size === "small" && t.small}
-                            {size === "medium" && t.medium}
-                            {size === "large" && t.large}
-                          </button>
-                        ))}
-                      </div>
+                      <span className="text-2xl font-bold text-amber-600">
+                        {favorite.basePrice.toFixed(0)} ₸
+                      </span>
                     </div>
 
-                    {/* Add to Cart Button */}
+                    {/* Add Button */}
                     <button
-                      onClick={() => handleAddToCart(favorite)}
+                      onClick={() => handleOpenModal(favorite)}
                       className="w-full py-2 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-medium text-sm"
                     >
                       {t.addToCart}
@@ -221,42 +228,18 @@ export default function FavoritesPage() {
                 </div>
               ))}
             </div>
-
-            {/* Clear All Button */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => {
-                  if (window.confirm(t.confirmClearFavorites)) {
-                    clearFavorites();
-                    showToast(t.allFavoritesCleared, "success");
-                  }
-                }}
-                className="px-4 py-2 text-red-600 hover:text-red-700 border border-red-200 rounded-lg hover:bg-red-50 transition font-medium"
-              >
-                {t.clearAll}
-              </button>
-            </div>
           </>
         )}
       </div>
+
+      {/* Item Detail Modal */}
+      {selectedItem && (
+        <ItemDetailModal
+          item={selectedItem}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
-}
-
-// Helper function to format date
-function formatDate(timestamp: number, t: any): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  if (hours < 1) {
-    return "just now";
-  } else if (hours < 24) {
-    return `${hours}h ${t.ago}`;
-  } else if (days < 7) {
-    return `${days}d ${t.ago}`;
-  } else {
-    return new Date(timestamp).toLocaleDateString();
-  }
 }
