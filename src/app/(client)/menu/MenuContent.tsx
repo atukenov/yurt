@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemDetailModal } from "@/components/ItemDetailModal";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/lib/translations";
 import { useCartStore } from "@/store/cart";
@@ -492,163 +493,22 @@ export default function MenuContent() {
       </div>
 
       {/* Item Detail Modal */}
-      {selectedItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-screen overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {selectedItem.name}
-                </h2>
-                <button
-                  onClick={() => setSelectedItem(null)}
-                  className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl"
-                >
-                  ×
-                </button>
-              </div>
-
-              <p className="text-gray-600 mb-6">{selectedItem.description}</p>
-
-              {/* Size Selection */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  {t.selectSize}
-                </h3>
-                <div className="space-y-2">
-                  {selectedItem.sizes?.map((s) => (
-                    <label key={s.size} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="size"
-                        value={s.size}
-                        checked={selectedSize === s.size}
-                        onChange={(e) =>
-                          setSelectedSize(
-                            e.target.value as "small" | "medium" | "large"
-                          )
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span className="ml-3 capitalize text-gray-700">
-                        {s.size} (+{s.priceModifier.toFixed(2)} ₸)
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Toppings Selection */}
-              {toppings.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    {t.addToppings}
-                  </h3>
-                  <div className="space-y-4">
-                    {Array.from(
-                      new Set(toppings.map((t) => t.category || "Other"))
-                    ).map((category) => (
-                      <div key={category}>
-                        <h4 className="text-sm font-medium text-gray-700 mb-2 capitalize">
-                          {category}
-                        </h4>
-                        <div className="space-y-2 pl-2">
-                          {toppings
-                            .filter((t) => (t.category || "Other") === category)
-                            .map((topping) => (
-                              <label
-                                key={topping._id}
-                                className="flex items-center"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={selectedToppings.includes(
-                                    topping._id
-                                  )}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedToppings([
-                                        ...selectedToppings,
-                                        topping._id,
-                                      ]);
-                                    } else {
-                                      setSelectedToppings(
-                                        selectedToppings.filter(
-                                          (id) => id !== topping._id
-                                        )
-                                      );
-                                    }
-                                  }}
-                                  className="w-4 h-4"
-                                />
-                                <span className="ml-3 text-gray-700 text-sm">
-                                  {topping.name} (+
-                                  {topping.price.toFixed(2)} ₸)
-                                </span>
-                              </label>
-                            ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Special Instructions */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.specialInstructions}
-                </label>
-                <textarea
-                  value={specialInstructions}
-                  onChange={(e) => setSpecialInstructions(e.target.value)}
-                  placeholder="e.g., Extra hot, light foam..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-amber-500 focus:outline-none"
-                  rows={3}
-                />
-              </div>
-
-              {/* Quantity */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  {t.quantity}
-                </h3>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-                  >
-                    −
-                  </button>
-                  <span className="text-xl font-semibold">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Price and Add to Cart */}
-              <div className="border-t pt-6">
-                <div className="mb-4 text-center">
-                  <p className="text-gray-600">Total</p>
-                  <p className="text-3xl font-bold text-amber-600">
-                    {(calculatePrice() * quantity).toFixed(2)} ₸
-                  </p>
-                </div>
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full px-4 py-3 bg-[#ffd119] text-black rounded-lg hover:bg-amber-700 transition font-semibold"
-                >
-                  {t.addToCart}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ItemDetailModal
+        selectedItem={selectedItem}
+        onClose={() => setSelectedItem(null)}
+        selectedSize={selectedSize}
+        setSelectedSize={setSelectedSize}
+        selectedToppings={selectedToppings}
+        setSelectedToppings={setSelectedToppings}
+        specialInstructions={specialInstructions}
+        setSpecialInstructions={setSpecialInstructions}
+        quantity={quantity}
+        setQuantity={setQuantity}
+        toppings={toppings}
+        calculatePrice={calculatePrice}
+        handleAddToCart={handleAddToCart}
+        t={t}
+      />
     </div>
   );
 }
