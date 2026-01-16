@@ -77,12 +77,12 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["cash", "card", "stripe"],
-      default: "cash",
+      enum: ["kaspi", "applepay"],
+      default: "kaspi",
     },
     notes: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Indexes for faster queries

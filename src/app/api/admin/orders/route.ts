@@ -3,8 +3,9 @@ import { errorLogger } from "@/lib/logger";
 import { connectDB } from "@/lib/mongodb";
 import { Order } from "@/models/Order";
 import { getServerSession } from "next-auth/next";
+import { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
     const session = await getServerSession(authOptions);
@@ -13,56 +14,34 @@ export async function GET(request: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const { searchParams } = new URL(request.url);
+    // Use request.nextUrl for proper query parameter extraction in Next.js App Router
+    const searchParams = request.nextUrl.searchParams;
 
-    // Build filter query
+    // Build filter query - only by date range
     const filter: any = {};
-
-    // Filter by status
-    const status = searchParams.get("status");
-    if (status && status !== "all") {
-      filter.status = status;
-    }
-
-    // Filter by location
-    const locationId = searchParams.get("locationId");
-    if (locationId) {
-      filter.location = locationId;
-    }
-
-    // Filter by payment method
-    const paymentMethod = searchParams.get("paymentMethod");
-    if (paymentMethod) {
-      filter.paymentMethod = paymentMethod;
-    }
-
-    // Search by order ID or customer name/email
-    const searchQuery = searchParams.get("searchQuery");
-    if (searchQuery) {
-      const searchRegex = { $regex: searchQuery, $options: "i" };
-      filter.$or = [
-        { orderNumber: searchRegex },
-        { "customer.name": searchRegex },
-        { "customer.email": searchRegex },
-      ];
-    }
 
     // Filter by date range
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
+
+    console.log("[DEBUG] Fetching orders for date range:", {
+      startDate,
+      endDate,
+    });
+
     if (startDate || endDate) {
       filter.createdAt = {};
       if (startDate) {
-        // Set to start of day
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
+        // Parse date and set to start of day in UTC
+        const start = new Date(startDate + "T00:00:00Z");
         filter.createdAt.$gte = start;
+        console.log("[DEBUG] Start date filter:", start);
       }
       if (endDate) {
-        // Set to end of day
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+        // Parse date and set to end of day in UTC
+        const end = new Date(endDate + "T23:59:59Z");
         filter.createdAt.$lte = end;
+        console.log("[DEBUG] End date filter:", end);
       }
     }
 
@@ -72,6 +51,8 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
+
+    console.log("[DEBUG] Filter:", filter);
 
     // Fetch orders with filters
     const orders = await Order.find(filter)
@@ -87,9 +68,11 @@ export async function GET(request: Request) {
     // Get total count for pagination
     const total = await Order.countDocuments(filter);
 
-    errorLogger.info("Admin fetched filtered orders", {
+    console.log("[DEBUG] Found orders:", orders.length, "Total:", total);
+
+    errorLogger.info("Admin fetched orders for date range", {
       userId: session.user.id,
-      filters: { status, locationId, paymentMethod, searchQuery },
+      dateRange: { startDate, endDate },
       resultCount: orders.length,
       total,
     });
@@ -106,10 +89,11 @@ export async function GET(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to fetch orders";
+    console.error("[DEBUG] Error:", error);
     errorLogger.error(
       "Error fetching admin orders",
       {},
-      error instanceof Error ? error : new Error(message)
+      error instanceof Error ? error : new Error(message),
     );
     return Response.json({ error: message }, { status: 500 });
   }

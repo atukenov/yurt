@@ -2,7 +2,7 @@
 
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/lib/translations";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DayNavigator } from "./DayNavigator";
 
 export interface OrderFilters {
@@ -23,12 +23,17 @@ export function OrderFilterPanel({
   onFiltersChange,
   locations,
 }: OrderFilterPanelProps) {
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+  const getTodayDateString = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
+  const [selectedDate, setSelectedDate] =
+    useState<string>(getTodayDateString());
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<string>("");
   const [selectedLocationId, setSelectedLocationId] = useState<string>("");
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Safely access language context with fallback
   let language: "en" | "ru" = "en";
@@ -41,6 +46,19 @@ export function OrderFilterPanel({
     // If language context not available, use English as default
     t = translations.en.client;
   }
+
+  // Initialize filters on mount with today's date
+  useEffect(() => {
+    if (!isInitialized) {
+      onFiltersChange({
+        startDate: selectedDate,
+        endDate: selectedDate,
+        paymentMethod: undefined,
+        locationId: undefined,
+      });
+      setIsInitialized(true);
+    }
+  }, []);
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date);

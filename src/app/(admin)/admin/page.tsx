@@ -1,17 +1,16 @@
 "use client";
 
-import { ExportSection } from "@/components/admin/ExportSection";
 import { OrderColumnSection } from "@/components/admin/OrderColumnSection";
 import { OrderDetailsSidebar } from "@/components/admin/OrderDetailsSidebar";
 import { StatCard } from "@/components/admin/StatCard";
 import { withErrorBoundary } from "@/components/ErrorBoundary";
-import { OrderFilterPanel, OrderFilters } from "@/components/OrderFilterPanel";
 import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
 import { useLanguage } from "@/context/LanguageContext";
 import { errorLogger } from "@/lib/logger";
 import { translations } from "@/lib/translations";
 import { IOrder } from "@/types";
+import { format, subDays } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -34,92 +33,85 @@ function AdminDashboardContent() {
   const { isConnected, orderEvents } = useSocket();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" | "ar" = "ru";
-  let t = translations.en.admin;
+  let language: "en" | "ru" = "ru";
+  let t = translations.ru.admin;
   try {
     const langContext = useLanguage();
     language = langContext.language;
-    t = translations[language]?.admin || translations.en.admin;
+    t = translations[language]?.admin || translations.ru.admin;
   } catch (e) {
     // If language context not available, use English as default
-    t = translations.en.admin;
+    t = translations.ru.admin;
   }
 
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [allOrders, setAllOrders] = useState<IOrder[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
   const [highlightedOrders, setHighlightedOrders] = useState<HighlightedOrder>(
-    {}
+    {},
   );
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const soundIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize filters with today's date
+  // Initialize filters with previous day as start, today as end
   const getTodayDateString = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
 
-  const [filters, setFilters] = useState<OrderFilters>({
-    startDate: getTodayDateString(),
-    endDate: getTodayDateString(),
+  const getYesterdayDateString = () => {
+    const yesterday = subDays(new Date(), 1);
+    return yesterday.toISOString().split("T")[0];
+  };
+
+  const todayDateString = getTodayDateString();
+  const yesterdayDateString = getYesterdayDateString();
+  const [filters] = useState({
+    startDate: yesterdayDateString,
+    endDate: todayDateString,
   });
 
-  // Fetch locations for filter dropdown
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const res = await fetch("/api/locations");
-        if (res.ok) {
-          const data = await res.json();
-          setLocations(data.locations || []);
-        }
-      } catch (error) {
-        errorLogger.error(
-          "Error fetching locations",
-          {},
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-    };
-    fetchLocations();
-  }, []);
+  console.log("[Admin] Date filter range:", {
+    yesterdayDateString,
+    todayDateString,
+  });
 
-  // Fetch all orders for status overview cards (initial load only)
+  // Fetch all orders for previous day through today
   const fetchAllOrders = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/orders");
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", yesterdayDateString);
+      queryParams.append("endDate", todayDateString);
+
+      const url = `/api/admin/orders?${queryParams.toString()}`;
+      console.log("[Admin] Fetching orders from:", url);
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
+        console.log("[Admin] Fetched orders count:", data.orders?.length);
         setAllOrders(data.orders);
+      } else {
+        console.error("[Admin] Fetch failed with status:", res.status);
       }
     } catch (error) {
+      console.error("[Admin] Error fetching orders:", error);
       errorLogger.error(
-        "Error fetching all orders for overview",
+        "Error fetching all orders for current day range",
         {},
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
     }
-  }, []);
+  }, [todayDateString, yesterdayDateString]);
 
-  // Fetch filtered orders
+  // Fetch filtered orders for previous day through today
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
-
-      if (filters.status) queryParams.append("status", filters.status);
-      if (filters.paymentMethod)
-        queryParams.append("paymentMethod", filters.paymentMethod);
-      if (filters.locationId)
-        queryParams.append("locationId", filters.locationId);
-      if (filters.searchQuery)
-        queryParams.append("searchQuery", filters.searchQuery);
-      if (filters.startDate) queryParams.append("startDate", filters.startDate);
-      if (filters.endDate) queryParams.append("endDate", filters.endDate);
+      queryParams.append("startDate", yesterdayDateString);
+      queryParams.append("endDate", todayDateString);
 
       const url = `/api/admin/orders?${queryParams.toString()}`;
       const res = await fetch(url);
@@ -127,39 +119,64 @@ function AdminDashboardContent() {
         const data = await res.json();
         setOrders(data.orders);
       } else {
-        errorLogger.warn("Failed to fetch admin orders", { filters });
+        errorLogger.warn("Failed to fetch admin orders for date range");
       }
     } catch (error) {
       errorLogger.error(
-        "Error fetching admin orders",
-        { filters },
-        error instanceof Error ? error : new Error(String(error))
+        "Error fetching admin orders for date range",
+        {},
+        error instanceof Error ? error : new Error(String(error)),
       );
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [todayDateString, yesterdayDateString]);
+
+  // Trigger fetch when component mounts
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   // Smart append new order without refetch
   const handleNewOrder = useCallback(
     (newOrder: IOrder) => {
-      console.log("[Admin] New order received:", newOrder);
+      console.log("[Admin] New order received via Socket.io:", newOrder);
 
-      // Add to allOrders
-      setAllOrders((prev) => [newOrder, ...prev]);
+      // Check if order is within our date range (yesterday through today)
+      const orderDate = new Date(newOrder.createdAt || new Date());
+      const orderDateString = orderDate.toISOString().split("T")[0];
 
-      // Only add to orders list if it matches current filters
-      const matchesFilters =
-        (!filters.locationId ||
-          (newOrder.location &&
-            (typeof newOrder.location === "string"
-              ? newOrder.location === filters.locationId
-              : (newOrder.location as any)._id === filters.locationId))) &&
-        (!filters.paymentMethod ||
-          newOrder.paymentMethod === filters.paymentMethod);
+      console.log(
+        "[Admin] Order date:",
+        orderDateString,
+        "Filter range:",
+        yesterdayDateString,
+        "-",
+        todayDateString,
+      );
 
-      if (matchesFilters) {
-        setOrders((prev) => [newOrder, ...prev]);
+      // Only add if within date range
+      if (
+        orderDateString >= yesterdayDateString &&
+        orderDateString <= todayDateString
+      ) {
+        // Add to allOrders
+        setAllOrders((prev) => {
+          const newList = [newOrder, ...prev];
+          console.log(
+            "[Admin] Updated allOrders, total count:",
+            newList.length,
+          );
+          return newList;
+        });
+
+        // Add to orders list since we're always showing today's orders
+        setOrders((prev) => {
+          const newList = [newOrder, ...prev];
+          console.log("[Admin] Updated orders, total count:", newList.length);
+          return newList;
+        });
+
         // Highlight new order for 2 seconds
         setHighlightedOrders((prev) => ({ ...prev, [newOrder._id]: true }));
         setTimeout(() => {
@@ -168,7 +185,7 @@ function AdminDashboardContent() {
             delete updated[newOrder._id];
             return updated;
           });
-        }, 2000);
+        }, 5000);
 
         // Play notification sound
         if (audioRef.current) {
@@ -176,9 +193,11 @@ function AdminDashboardContent() {
             // Silent fail if audio can't play
           });
         }
+      } else {
+        console.log("[Admin] Order outside date range, skipping");
       }
     },
-    [filters]
+    [yesterdayDateString, todayDateString],
   );
 
   // Smart update order without refetch
@@ -187,14 +206,14 @@ function AdminDashboardContent() {
 
     setOrders((prev) =>
       prev.map((order) =>
-        order._id === updatedOrder._id ? updatedOrder : order
-      )
+        order._id === updatedOrder._id ? updatedOrder : order,
+      ),
     );
 
     setAllOrders((prev) =>
       prev.map((order) =>
-        order._id === updatedOrder._id ? updatedOrder : order
-      )
+        order._id === updatedOrder._id ? updatedOrder : order,
+      ),
     );
   }, []);
 
@@ -207,19 +226,19 @@ function AdminDashboardContent() {
         prev.map((order) =>
           order._id === data.orderId
             ? { ...order, status: data.status as any }
-            : order
-        )
+            : order,
+        ),
       );
 
       setAllOrders((prev) =>
         prev.map((order) =>
           order._id === data.orderId
             ? { ...order, status: data.status as any }
-            : order
-        )
+            : order,
+        ),
       );
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -241,48 +260,41 @@ function AdminDashboardContent() {
     }
 
     // Initial fetch
-    fetchOrders();
     fetchAllOrders();
 
     // Setup Socket.io listeners for real-time updates
     if (orderEvents.orderCreated) {
-      orderEvents.orderCreated(handleNewOrder);
+      console.log("[Admin] Setting up orderCreated Socket.io listener");
+      orderEvents.orderCreated((data) => {
+        console.log("[Admin] Socket.io orderCreated event received:", data);
+        handleNewOrder(data);
+      });
     }
 
     if (orderEvents.orderUpdated) {
+      console.log("[Admin] Setting up orderUpdated Socket.io listener");
       orderEvents.orderUpdated(handleOrderUpdate);
     }
 
     if (orderEvents.orderStatusChanged) {
+      console.log("[Admin] Setting up orderStatusChanged Socket.io listener");
       orderEvents.orderStatusChanged(handleStatusChange);
     }
 
-    // Fallback to silent polling every 10 seconds if Socket.io is not connected
-    const pollInterval = setInterval(() => {
-      if (!isConnected) {
-        console.log("[Admin] WebSocket not connected, using silent polling...");
-        fetchOrders();
-        fetchAllOrders();
-      }
+    // Aggressive polling: fetch every 2 seconds regardless of connection status
+    // This ensures we catch all orders
+    const aggressivePollInterval = setInterval(() => {
+      console.log("[Admin] Aggressive poll triggered (every 2s)");
+      fetchAllOrders();
     }, 10000);
 
-    // Also refresh silently every 5 minutes regardless of socket connection
-    const refreshInterval = setInterval(() => {
-      console.log("[Admin] Silent 5-minute refresh triggered");
-      fetchOrders();
-      fetchAllOrders();
-    }, 300000); // 5 minutes
-
     return () => {
-      clearInterval(pollInterval);
-      clearInterval(refreshInterval);
+      clearInterval(aggressivePollInterval);
     };
   }, [
     status,
     session,
-    filters,
     router,
-    fetchOrders,
     fetchAllOrders,
     isConnected,
     orderEvents,
@@ -301,13 +313,13 @@ function AdminDashboardContent() {
 
     // Get pending orders count
     const pendingCount = allOrders.filter(
-      (order) => order.status === "pending"
+      (order) => order.status === "pending",
     ).length;
 
     // Only set interval if there are pending orders
     if (pendingCount > 0) {
       console.log(
-        `[Admin] ${pendingCount} pending orders - starting 1-minute sound interval`
+        `[Admin] ${pendingCount} pending orders - starting 1-minute sound interval`,
       );
 
       // Play sound immediately
@@ -360,7 +372,7 @@ function AdminDashboardContent() {
   const handleRejectOrder = async (
     orderId: string,
     reason: string,
-    comment?: string
+    comment?: string,
   ) => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
@@ -440,20 +452,27 @@ function AdminDashboardContent() {
       <audio ref={audioRef} src="/audio/drop-coin.mp3" />
 
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with Date */}
         <div className="mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">{t.dashboard}</h1>
-            <p className="text-gray-600 mt-2">{t.realTimeOrders}</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900">
+                {t.dashboard}
+              </h1>
+              <p className="text-gray-600 mt-2">
+                {t.realTimeOrders} - {format(new Date(), "EEEE, MMMM d, yyyy")}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                console.log("[Admin] Manual refresh clicked");
+                fetchAllOrders();
+              }}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition"
+            >
+              🔄 Refresh
+            </button>
           </div>
-        </div>
-
-        {/* Filter Panel */}
-        <div className="mt-6 mb-8">
-          <OrderFilterPanel
-            onFiltersChange={setFilters}
-            locations={locations}
-          />
         </div>
 
         {/* Stats Section */}
@@ -484,9 +503,6 @@ function AdminDashboardContent() {
             color="red"
           />
         </div>
-
-        {/* Export Section */}
-        <ExportSection orders={allOrders} />
 
         {/* Kanban Board with Right Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -588,7 +604,7 @@ function AdminDashboardContent() {
                         status: "accepted",
                         estimatedPrepTime: prepTime,
                       }),
-                    }
+                    },
                   );
 
                   if (res.ok) {
@@ -612,7 +628,7 @@ function AdminDashboardContent() {
                         rejectionReason: reason,
                         rejectionComment: comment,
                       }),
-                    }
+                    },
                   );
 
                   if (res.ok) {
@@ -632,7 +648,7 @@ function AdminDashboardContent() {
                       method: "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ status: "completed" }),
-                    }
+                    },
                   );
 
                   if (res.ok) {
@@ -654,6 +670,6 @@ function AdminDashboardContent() {
 
 const AdminDashboard = withErrorBoundary(
   AdminDashboardContent,
-  "Admin Dashboard"
+  "Admin Dashboard",
 );
 export default AdminDashboard;

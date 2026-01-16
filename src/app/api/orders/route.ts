@@ -15,10 +15,10 @@ const createOrderSchema = z.object({
       size: z.enum(["small", "medium", "large"]),
       toppings: z.array(z.string()).optional(),
       specialInstructions: z.string().optional(),
-    })
+    }),
   ),
   totalPrice: z.number().min(0),
-  paymentMethod: z.enum(["cash", "card", "stripe"]).default("cash"),
+  paymentMethod: z.enum(["kaspi", "applepay"]).default("kaspi"),
   notes: z.string().optional(),
 });
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
           error: availability.reason || "Location is currently closed",
           isLocationClosed: true,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       totalPrice,
       paymentMethod,
       notes,
-      paymentStatus: paymentMethod === "cash" ? "pending" : "pending",
+      paymentStatus: "pending",
       status: "pending",
     });
 
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
         }
 
         const pointsEarned = Math.floor(
-          totalPrice * (loyaltyRecord.getTierBenefits().multiplier || 1)
+          totalPrice * (loyaltyRecord.getTierBenefits().multiplier || 1),
         );
 
         loyaltyRecord.pointsHistory.push({
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
           status: order.status,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Order creation error:", error);

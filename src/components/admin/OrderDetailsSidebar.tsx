@@ -1,3 +1,4 @@
+import { useLanguage } from "@/context/LanguageContext";
 import {
   getCustomerEmail,
   getCustomerName,
@@ -5,6 +6,7 @@ import {
   getLocationName,
   getMenuItemName,
 } from "@/lib/helpers";
+import { translations } from "@/lib/translations";
 import { IOrder } from "@/types";
 
 interface OrderDetailsProps {
@@ -26,30 +28,40 @@ export function OrderDetailsSidebar({
   onReject,
   onComplete,
 }: OrderDetailsProps) {
+  // Safely access language context with fallback
+  let language: "en" | "ru" = "ru";
+  let t = translations.ru.admin;
+  try {
+    const langContext = useLanguage();
+    language = langContext.language;
+    t = translations[language]?.admin || translations.ru.admin;
+  } catch (e) {
+    t = translations.ru.admin;
+  }
   const statusConfig = {
     pending: {
       color: "yellow-100",
       textColor: "yellow-800",
       bgGradient: "from-yellow-50 to-yellow-100",
-      label: "Pending",
+      label: t.pending,
     },
     accepted: {
       color: "blue-100",
       textColor: "blue-800",
       bgGradient: "from-blue-50 to-blue-100",
-      label: "Accepted",
+      label: t.accepted,
     },
     completed: {
       color: "green-100",
       textColor: "green-800",
       bgGradient: "from-green-50 to-green-100",
-      label: "Completed",
+      label: t.completed,
     },
     rejected: {
       color: "red-100",
       textColor: "red-800",
       bgGradient: "from-red-50 to-red-100",
-      label: "Rejected",
+      label: t.rejected,
     },
     cancelled: {
       color: "gray-100",
@@ -70,7 +82,7 @@ export function OrderDetailsSidebar({
           className={`border-b border-gray-200 px-6 py-4 bg-gradient-to-r ${status.bgGradient}`}
         >
           <h3 className="text-lg font-bold text-gray-900">
-            Order {order.orderNumber}
+            {t.orderNumber} {order.orderNumber}
           </h3>
           <p className="text-sm text-gray-600 mt-1">
             {new Date(order.createdAt || "").toLocaleString()}
@@ -81,7 +93,7 @@ export function OrderDetailsSidebar({
           {/* Customer Info */}
           <div>
             <p className="text-xs text-gray-600 uppercase font-bold">
-              Customer
+              {t.customer}
             </p>
             <p className="font-semibold text-gray-900 mt-2">
               {getCustomerName(order.customer)}
@@ -97,7 +109,7 @@ export function OrderDetailsSidebar({
           {/* Location Info */}
           <div>
             <p className="text-xs text-gray-600 uppercase font-bold">
-              Location
+              {t.location}
             </p>
             <p className="font-semibold text-gray-900 mt-2">
               {getLocationName(order.location)}
@@ -107,7 +119,7 @@ export function OrderDetailsSidebar({
           {/* Order Items */}
           <div>
             <p className="text-xs text-gray-600 uppercase font-bold mb-3">
-              Items ({order.items?.length || 0})
+              {t.items} ({order.items?.length || 0})
             </p>
             <div className="space-y-3">
               {order.items?.map((item, idx) => (
@@ -126,13 +138,13 @@ export function OrderDetailsSidebar({
 
                   <div className="text-sm text-gray-600 space-y-1">
                     <p>
-                      <span className="font-medium">Size:</span>{" "}
+                      <span className="font-medium">{t.size}:</span>{" "}
                       {item.size.charAt(0).toUpperCase() + item.size.slice(1)}
                     </p>
 
                     {item.toppings && item.toppings.length > 0 && (
                       <div>
-                        <p className="font-medium">Toppings:</p>
+                        <p className="font-medium">{t.toppings}:</p>
                         <ul className="list-disc list-inside ml-0 text-xs">
                           {item.toppings.map((topping, tIdx) => (
                             <li key={tIdx}>{getToppingName(topping)}</li>
@@ -143,7 +155,7 @@ export function OrderDetailsSidebar({
 
                     {item.specialInstructions && (
                       <p>
-                        <span className="font-medium">Note:</span>{" "}
+                        <span className="font-medium">{t.note}:</span>{" "}
                         {item.specialInstructions}
                       </p>
                     )}
@@ -160,7 +172,9 @@ export function OrderDetailsSidebar({
           {/* Order Notes */}
           {order.notes && (
             <div>
-              <p className="text-xs text-gray-600 uppercase font-bold">Notes</p>
+              <p className="text-xs text-gray-600 uppercase font-bold">
+                {t.note}
+              </p>
               <p className="text-sm text-gray-700 mt-2 bg-blue-50 p-3 rounded border border-blue-200">
                 {order.notes}
               </p>
@@ -171,7 +185,7 @@ export function OrderDetailsSidebar({
           {order.rejectionReason && (
             <div>
               <p className="text-xs text-gray-600 uppercase font-bold">
-                Rejection Reason
+                {t.rejectReasonLabel}
               </p>
               <p className="text-sm text-gray-700 mt-2 bg-red-50 p-3 rounded border border-red-200">
                 <span className="font-semibold">{order.rejectionReason}</span>
@@ -188,13 +202,13 @@ export function OrderDetailsSidebar({
           {/* Order Summary */}
           <div className="border-t border-gray-200 pt-4">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-gray-600">Subtotal:</span>
+              <span className="text-gray-600">{t.subtotal}:</span>
               <span className="font-semibold">
                 {(order.totalPrice || 0).toFixed(2)} ₸
               </span>
             </div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-gray-600">Payment:</span>
+              <span className="text-gray-600">{t.paymentMethod}:</span>
               <span className="text-sm">
                 {order.paymentMethod.charAt(0).toUpperCase() +
                   order.paymentMethod.slice(1)}
@@ -206,16 +220,16 @@ export function OrderDetailsSidebar({
               </span>
             </div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-gray-600">Status:</span>
+              <span className="text-gray-600">{t.status}:</span>
               <span
                 className={`text-sm font-semibold px-2 py-1 rounded ${
                   order.status === "pending"
                     ? "bg-yellow-100 text-yellow-800"
                     : order.status === "accepted"
-                    ? "bg-blue-100 text-blue-800"
-                    : order.status === "completed"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
+                      ? "bg-blue-100 text-blue-800"
+                      : order.status === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                 }`}
               >
                 {status.label}
@@ -229,16 +243,16 @@ export function OrderDetailsSidebar({
               <>
                 <div>
                   <label className="text-xs text-gray-600 uppercase font-bold">
-                    Prep Time
+                    {t.prepTime}
                   </label>
                   <select
                     defaultValue="15"
                     id="prep-time"
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                   >
-                    <option value="10">10 minutes</option>
-                    <option value="15">15 minutes</option>
-                    <option value="30">30 minutes</option>
+                    <option value="10">{t.prepTimeOptions.ten}</option>
+                    <option value="15">{t.prepTimeOptions.fifteen}</option>
+                    <option value="30">{t.prepTimeOptions.thirty}</option>
                   </select>
                 </div>
                 <button
@@ -246,37 +260,45 @@ export function OrderDetailsSidebar({
                     const prepTime = parseInt(
                       (
                         document.getElementById(
-                          "prep-time"
+                          "prep-time",
                         ) as HTMLSelectElement
-                      )?.value || "15"
+                      )?.value || "15",
                     );
                     onAccept(prepTime);
                   }}
                   className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition"
                 >
-                  ✓ Accept Order
+                  {t.acceptOrderBtn}
                 </button>
 
                 <div>
                   <label className="text-xs text-gray-600 uppercase font-bold">
-                    Reject Reason
+                    {t.rejectReasonLabel}
                   </label>
                   <select
                     defaultValue="no_milk"
                     id="reject-reason"
                     className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                   >
-                    <option value="no_milk">No Milk</option>
-                    <option value="no_coffee_beans">No Coffee Beans</option>
-                    <option value="size_unavailable">Size Unavailable</option>
-                    <option value="equipment_issue">Equipment Issue</option>
-                    <option value="custom">Custom Reason</option>
+                    <option value="no_milk">
+                      {t.rejectionReasons.no_milk}
+                    </option>
+                    <option value="no_coffee_beans">
+                      {t.rejectionReasons.no_coffee_beans}
+                    </option>
+                    <option value="size_unavailable">
+                      {t.rejectionReasons.size_unavailable}
+                    </option>
+                    <option value="equipment_issue">
+                      {t.rejectionReasons.equipment_issue}
+                    </option>
+                    <option value="custom">{t.rejectionReasons.custom}</option>
                   </select>
                 </div>
 
                 <textarea
                   id="reject-comment"
-                  placeholder="Additional comment (optional)"
+                  placeholder={t.additionalComment}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
                   rows={2}
                 />
@@ -286,20 +308,20 @@ export function OrderDetailsSidebar({
                     const reason =
                       (
                         document.getElementById(
-                          "reject-reason"
+                          "reject-reason",
                         ) as HTMLSelectElement
                       )?.value || "";
                     const comment =
                       (
                         document.getElementById(
-                          "reject-comment"
+                          "reject-comment",
                         ) as HTMLTextAreaElement
                       )?.value || "";
                     onReject(reason, comment);
                   }}
                   className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition"
                 >
-                  ✗ Reject Order
+                  {t.rejectButton}
                 </button>
               </>
             )}
@@ -309,21 +331,21 @@ export function OrderDetailsSidebar({
                 onClick={onComplete}
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"
               >
-                ✓ Mark as Completed
+                {t.markCompleted}
               </button>
             )}
 
             {order.status === "completed" && (
               <div className="bg-green-100 border border-green-300 rounded-lg p-3 text-center">
                 <p className="text-green-800 font-semibold">
-                  ✓ Order Completed
+                  {t.orderCompleted}
                 </p>
               </div>
             )}
 
             {order.status === "rejected" && (
               <div className="bg-red-100 border border-red-300 rounded-lg p-3 text-center">
-                <p className="text-red-800 font-semibold">✗ Order Rejected</p>
+                <p className="text-red-800 font-semibold">{t.orderRejected}</p>
               </div>
             )}
           </div>

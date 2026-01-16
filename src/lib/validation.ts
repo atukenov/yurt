@@ -23,10 +23,10 @@ export const RegisterSchema = z.object({
 export const CheckoutSchema = z.object({
   locationId: z.string().min(1, "Please select a location"),
   paymentMethod: z
-    .enum(["cash", "card", "stripe"])
+    .enum(["kaspi", "applepay"])
     .refine(
-      (method) => ["cash", "card", "stripe"].includes(method),
-      "Invalid payment method"
+      (method) => ["kaspi", "applepay"].includes(method),
+      "Invalid payment method",
     ),
   notes: z
     .string()
@@ -149,7 +149,7 @@ export type OrderFilterInput = z.infer<typeof OrderFilterSchema>;
 // Validation utility function
 export function validateFormData<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { success: boolean; data?: T; errors?: Record<string, string> } {
   try {
     const validated = schema.parse(data);
