@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { FaFilter } from "react-icons/fa";
+import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,7 @@ export default function MenuContent() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const { addItem: addToCart, setLocation } = useCartStore();
 
@@ -80,12 +82,16 @@ export default function MenuContent() {
     if (savedRecent) {
       setRecentlyOrdered(JSON.parse(savedRecent));
     }
+
+    setIsHydrated(true);
   }, []);
 
-  // Save favorites to localStorage
+  // Save favorites to localStorage (only after hydration)
   useEffect(() => {
-    localStorage.setItem("menu-favorites", JSON.stringify(favorites));
-  }, [favorites]);
+    if (isHydrated) {
+      localStorage.setItem("menu-favorites", JSON.stringify(favorites));
+    }
+  }, [favorites, isHydrated]);
 
   const handleToggleFavorite = (itemId: string) => {
     setFavorites((prev) =>
@@ -422,17 +428,13 @@ export default function MenuContent() {
           >
             <button
               onClick={() => handleToggleFavorite(item._id)}
-              className="absolute top-2 right-2 z-10 bg-white rounded-full p-2 shadow-md hover:bg-amber-50 transition w-11.25 h-11.25"
+              className="absolute top-2 right-2 z-10 bg-white rounded-full p-2 shadow-md hover:bg-amber-50 transition w-11.25 h-11.25 flex items-center justify-center"
             >
-              <span
-                className={
-                  favorites.includes(item._id)
-                    ? "text-red-500 text-lg"
-                    : "text-gray-300 text-lg"
-                }
-              >
-                ♥
-              </span>
+              {favorites.includes(item._id) ? (
+                <MdFavorite className="text-red-500 text-xl" />
+              ) : (
+                <MdFavoriteBorder className="text-gray-300 text-xl" />
+              )}
             </button>
             <div
               className="bg-linear-to-br from-amber-100 to-orange-100 h-48 flex items-center justify-center overflow-hidden"
