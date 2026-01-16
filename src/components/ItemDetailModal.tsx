@@ -1,5 +1,5 @@
 import { IMenuItem, ITopping } from "@/types";
-import { MdDelete } from "react-icons/md";
+import { QuantitySelector } from "./QuantitySelector";
 
 interface ItemDetailModalProps {
   selectedItem: IMenuItem | null;
@@ -76,7 +76,7 @@ export function ItemDetailModal({
                     checked={selectedSize === s.size}
                     onChange={(e) =>
                       setSelectedSize(
-                        e.target.value as "small" | "medium" | "large"
+                        e.target.value as "small" | "medium" | "large",
                       )
                     }
                     className="w-4 h-4"
@@ -101,7 +101,7 @@ export function ItemDetailModal({
               </h3>
               <div className="space-y-4">
                 {Array.from(
-                  new Set(toppings.map((t) => t.category || "other"))
+                  new Set(toppings.map((t) => t.category || "other")),
                 ).map((category) => (
                   <div key={category}>
                     <h4 className="text-sm font-bold! text-gray-700 mb-2 capitalize">
@@ -129,8 +129,8 @@ export function ItemDetailModal({
                                 } else {
                                   setSelectedToppings(
                                     selectedToppings.filter(
-                                      (id) => id !== topping._id
-                                    )
+                                      (id) => id !== topping._id,
+                                    ),
                                   );
                                 }
                               }}
@@ -170,30 +170,11 @@ export function ItemDetailModal({
           <div className="border-t pt-6">
             <div className="flex items-center gap-4">
               {/* Quantity Selector */}
-              <div className="flex items-center gap-2 border border-gray-300 rounded-lg">
-                <button
-                  onClick={() =>
-                    quantity === 1 ? handleClose() : setQuantity(quantity - 1)
-                  }
-                  className="px-3 py-2 hover:bg-gray-100 transition text-gray-700"
-                  title={quantity === 1 ? "Remove item" : "Decrease quantity"}
-                >
-                  {quantity === 1 ? (
-                    <MdDelete className="text-red-500 text-lg" />
-                  ) : (
-                    "−"
-                  )}
-                </button>
-                <span className="text-lg font-semibold w-8 text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-2 hover:bg-gray-100 transition"
-                >
-                  +
-                </button>
-              </div>
+              <QuantitySelector
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+                onDelete={handleClose}
+              />
 
               {/* Add to Cart Button with Price */}
               <button

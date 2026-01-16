@@ -1,5 +1,6 @@
 "use client";
 
+import { QuantitySelector } from "@/components/QuantitySelector";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/lib/translations";
 import { useCartStore } from "@/store/cart";
@@ -96,36 +97,16 @@ export default function CartPage() {
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="text-red-600 hover:text-red-700 font-semibold"
-                >
-                  {t.remove}
-                </button>
               </div>
 
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() =>
-                      updateItem(item.id, {
-                        quantity: Math.max(1, item.quantity - 1),
-                      })
-                    }
-                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
-                  >
-                    −
-                  </button>
-                  <span className="text-lg font-semibold">{item.quantity}</span>
-                  <button
-                    onClick={() =>
-                      updateItem(item.id, { quantity: item.quantity + 1 })
-                    }
-                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
-                  >
-                    +
-                  </button>
-                </div>
+                <QuantitySelector
+                  quantity={item.quantity}
+                  onQuantityChange={(newQuantity) =>
+                    updateItem(item.id, { quantity: newQuantity })
+                  }
+                  onDelete={() => removeItem(item.id)}
+                />
                 <span className="text-xl font-bold text-amber-600">
                   {(item.price * item.quantity).toFixed(0)} ₸
                 </span>
@@ -148,13 +129,9 @@ export default function CartPage() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700">{t.deliveryFee}</span>
-              <span className="font-semibold">200 ₸</span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-gray-700">{t.tax}</span>
               <span className="font-semibold">
-                {((getTotalPrice() + 200) * 0.1).toFixed(0)} ₸
+                {(getTotalPrice() * 0.1).toFixed(0)} ₸
               </span>
             </div>
           </div>
@@ -163,12 +140,7 @@ export default function CartPage() {
             <div className="flex justify-between mb-4">
               <span className="text-lg font-bold text-gray-900">{t.total}</span>
               <span className="text-lg font-bold text-amber-600">
-                {(
-                  getTotalPrice() +
-                  200 +
-                  (getTotalPrice() + 200) * 0.1
-                ).toFixed(0)}{" "}
-                ₸
+                {(getTotalPrice() + getTotalPrice() * 0.1).toFixed(0)} ₸
               </span>
             </div>
           </div>
