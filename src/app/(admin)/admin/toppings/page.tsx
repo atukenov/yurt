@@ -80,14 +80,16 @@ export default function AdminToppingsPage() {
       filtered = filtered.filter(
         (topping) =>
           topping.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          topping.description?.toLowerCase().includes(searchQuery.toLowerCase())
+          topping.description
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()),
       );
     }
 
     // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (topping) => (topping.category || "topping") === selectedCategory
+        (topping) => (topping.category || "topping") === selectedCategory,
       );
     }
 
@@ -265,7 +267,11 @@ export default function AdminToppingsPage() {
           {stats.map((stat) => (
             <div
               key={stat.category}
-              className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition"
+              className={`bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition ${
+                selectedCategory === stat.category
+                  ? "border-2 border-[#ffd119]"
+                  : "border-2 border-transparent"
+              }`}
               onClick={() => setSelectedCategory(stat.category)}
             >
               <p className="text-xs text-gray-600 uppercase mb-1 capitalize">
