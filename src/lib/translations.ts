@@ -219,6 +219,14 @@ export const translations = {
       // Menu page
       searchByNameOrDescription: "Search by name or description...",
       allCategories: "All Categories",
+      categories: {
+        hot: "Hot",
+        cold: "Cold",
+        latte: "Latte",
+        cappuccino: "Cappuccino",
+        espresso: "Espresso",
+        specialty: "Specialty",
+      },
       sortBy: "Sort by",
       nameSort: "Name",
       priceAsc: "Price: Low to High",
@@ -558,6 +566,14 @@ export const translations = {
       // Меню
       searchByNameOrDescription: "Поиск по названию или описанию...",
       allCategories: "Все категории",
+      categories: {
+        hot: "Горячие напитки",
+        cold: "Холодные напитки",
+        latte: "Латте",
+        cappuccino: "Капучино",
+        espresso: "Эспрессо",
+        specialty: "Специальные напитки",
+      },
       sortBy: "Сортировать по",
       nameSort: "Имя",
       priceAsc: "Цена: от низкой к высокой",

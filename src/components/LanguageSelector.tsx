@@ -8,7 +8,7 @@ const LanguageSelector = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") || "en";
+    const savedLanguage = localStorage.getItem("language") || "ru";
     setMounted(true);
   }, []);
 

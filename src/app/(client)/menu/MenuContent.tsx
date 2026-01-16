@@ -301,13 +301,13 @@ export default function MenuContent() {
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition capitalize ${
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition ${
                 category === cat
                   ? "bg-[#ffd119] text-black"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              {cat}
+              {t.categories?.[cat as keyof typeof t.categories] || cat}
             </button>
           ))}
         </div>
