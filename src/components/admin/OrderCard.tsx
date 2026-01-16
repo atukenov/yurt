@@ -1,4 +1,5 @@
 import { getCustomerName } from "@/lib/helpers";
+import { translations } from "@/lib/translations";
 import { IOrder } from "@/types";
 
 interface OrderCardProps {
@@ -7,6 +8,7 @@ interface OrderCardProps {
   isHighlighted: boolean;
   onClick: () => void;
   statusColor: "yellow" | "blue" | "green" | "red";
+  language?: "en" | "ru";
 }
 
 export function OrderCard({
@@ -15,7 +17,15 @@ export function OrderCard({
   isHighlighted,
   onClick,
   statusColor,
+  language = "ru",
 }: OrderCardProps) {
+  const t = translations[language]?.admin || translations.ru.admin;
+  const statusLabels = t.statusLabels || {
+    pending: "Pending",
+    accepted: "Accepted",
+    completed: "Completed",
+    rejected: "Rejected",
+  };
   const colorMap = {
     yellow: {
       border: "border-yellow-200",
@@ -61,13 +71,6 @@ export function OrderCard({
   } else {
     backgroundColor = `${colors.background} ${colors.hover}`;
   }
-
-  const statusLabels = {
-    pending: "Pending",
-    accepted: "Accepted",
-    completed: "Completed",
-    rejected: "Rejected",
-  };
 
   return (
     <button

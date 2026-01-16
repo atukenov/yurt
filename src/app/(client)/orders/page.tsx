@@ -19,15 +19,15 @@ function OrdersPageContent() {
   const { isConnected, isAvailable, orderEvents } = useSocket();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
-  let t = translations.en.client;
+  let language: "en" | "ru" = "ru";
+  let t = translations.ru.client;
   try {
     const langContext = useLanguage();
     language = langContext.language;
-    t = translations[language]?.client || translations.en.client;
+    t = translations[language]?.client || translations.ru.client;
   } catch (e) {
     // If language context not available, use English as default
-    t = translations.en.client;
+    t = translations.ru.client;
   }
 
   const [orders, setOrders] = useState<IOrder[]>([]);
@@ -108,6 +108,17 @@ function OrdersPageContent() {
       default:
         return "📋";
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusLabels = t.statusLabels || {
+      pending: "Pending",
+      accepted: "Accepted",
+      completed: "Completed",
+      rejected: "Rejected",
+      cancelled: "Cancelled",
+    };
+    return statusLabels[status as keyof typeof statusLabels] || status;
   };
 
   const getStatusColor = (status: string) => {
@@ -208,7 +219,7 @@ function OrdersPageContent() {
                       order.status
                     )}`}
                   >
-                    {order.status}
+                    {getStatusLabel(order.status)}
                   </span>
                 </div>
 
