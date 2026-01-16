@@ -242,20 +242,23 @@ export default function AdminMenuPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t.basePrice} *
                 </label>
-                <input
-                  type="number"
-                  required
-                  step="0.01"
-                  min="0"
-                  value={formData.basePrice}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      basePrice: parseFloat(e.target.value),
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-gray-500">₸</span>
+                  <input
+                    type="number"
+                    required
+                    step="1"
+                    min="0"
+                    value={String(formData.basePrice || 0)}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        basePrice: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full pl-6 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
               </div>
 
               <div>
