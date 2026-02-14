@@ -63,4 +63,20 @@ export const authOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // Allow JavaScript to read the session token cookie so the apiClient
+  // can attach it as a Bearer token for cross-domain NestJS requests.
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: false,
+        sameSite: "lax" as const,
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
 };
