@@ -8,7 +8,7 @@ import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
 import { useLanguage } from "@/context/LanguageContext";
 import { errorLogger } from "@/lib/logger";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { format, subDays } from "date-fns";
 import { useSession } from "next-auth/react";
@@ -33,7 +33,7 @@ function AdminDashboardContent() {
   const { isConnected, orderEvents } = useSocket();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "ru";
+  let language: Language = "ru";
   let t = translations.ru.admin;
   try {
     const langContext = useLanguage();
@@ -50,7 +50,7 @@ function AdminDashboardContent() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
   const [highlightedOrders, setHighlightedOrders] = useState<HighlightedOrder>(
-    {},
+    {}
   );
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const soundIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,7 +100,7 @@ function AdminDashboardContent() {
       errorLogger.error(
         "Error fetching all orders for current day range",
         {},
-        error instanceof Error ? error : new Error(String(error)),
+        error instanceof Error ? error : new Error(String(error))
       );
     }
   }, [todayDateString, yesterdayDateString]);
@@ -125,7 +125,7 @@ function AdminDashboardContent() {
       errorLogger.error(
         "Error fetching admin orders for date range",
         {},
-        error instanceof Error ? error : new Error(String(error)),
+        error instanceof Error ? error : new Error(String(error))
       );
     } finally {
       setLoading(false);
@@ -152,7 +152,7 @@ function AdminDashboardContent() {
         "Filter range:",
         yesterdayDateString,
         "-",
-        todayDateString,
+        todayDateString
       );
 
       // Only add if within date range
@@ -165,7 +165,7 @@ function AdminDashboardContent() {
           const newList = [newOrder, ...prev];
           console.log(
             "[Admin] Updated allOrders, total count:",
-            newList.length,
+            newList.length
           );
           return newList;
         });
@@ -197,7 +197,7 @@ function AdminDashboardContent() {
         console.log("[Admin] Order outside date range, skipping");
       }
     },
-    [yesterdayDateString, todayDateString],
+    [yesterdayDateString, todayDateString]
   );
 
   // Smart update order without refetch
@@ -206,14 +206,14 @@ function AdminDashboardContent() {
 
     setOrders((prev) =>
       prev.map((order) =>
-        order._id === updatedOrder._id ? updatedOrder : order,
-      ),
+        order._id === updatedOrder._id ? updatedOrder : order
+      )
     );
 
     setAllOrders((prev) =>
       prev.map((order) =>
-        order._id === updatedOrder._id ? updatedOrder : order,
-      ),
+        order._id === updatedOrder._id ? updatedOrder : order
+      )
     );
   }, []);
 
@@ -226,19 +226,19 @@ function AdminDashboardContent() {
         prev.map((order) =>
           order._id === data.orderId
             ? { ...order, status: data.status as any }
-            : order,
-        ),
+            : order
+        )
       );
 
       setAllOrders((prev) =>
         prev.map((order) =>
           order._id === data.orderId
             ? { ...order, status: data.status as any }
-            : order,
-        ),
+            : order
+        )
       );
     },
-    [],
+    []
   );
 
   useEffect(() => {
@@ -313,13 +313,13 @@ function AdminDashboardContent() {
 
     // Get pending orders count
     const pendingCount = allOrders.filter(
-      (order) => order.status === "pending",
+      (order) => order.status === "pending"
     ).length;
 
     // Only set interval if there are pending orders
     if (pendingCount > 0) {
       console.log(
-        `[Admin] ${pendingCount} pending orders - starting 1-minute sound interval`,
+        `[Admin] ${pendingCount} pending orders - starting 1-minute sound interval`
       );
 
       // Play sound immediately
@@ -372,7 +372,7 @@ function AdminDashboardContent() {
   const handleRejectOrder = async (
     orderId: string,
     reason: string,
-    comment?: string,
+    comment?: string
   ) => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
@@ -604,7 +604,7 @@ function AdminDashboardContent() {
                         status: "accepted",
                         estimatedPrepTime: prepTime,
                       }),
-                    },
+                    }
                   );
 
                   if (res.ok) {
@@ -628,7 +628,7 @@ function AdminDashboardContent() {
                         rejectionReason: reason,
                         rejectionComment: comment,
                       }),
-                    },
+                    }
                   );
 
                   if (res.ok) {
@@ -648,7 +648,7 @@ function AdminDashboardContent() {
                       method: "PUT",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ status: "completed" }),
-                    },
+                    }
                   );
 
                   if (res.ok) {
@@ -670,6 +670,6 @@ function AdminDashboardContent() {
 
 const AdminDashboard = withErrorBoundary(
   AdminDashboardContent,
-  "Admin Dashboard",
+  "Admin Dashboard"
 );
 export default AdminDashboard;

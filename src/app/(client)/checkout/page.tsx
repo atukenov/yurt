@@ -7,7 +7,7 @@ import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { CheckoutSkeleton } from "@/components/SkeletonLoaders";
 import { useLanguage } from "@/context/LanguageContext";
 import { errorLogger } from "@/lib/logger";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { CheckoutSchema, validateFormData } from "@/lib/validation";
 import { useCartStore } from "@/store/cart";
 import { useSession } from "next-auth/react";
@@ -26,7 +26,7 @@ function CheckoutPageContent() {
   });
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
+  let language: Language = "en";
   let t = translations.en.client;
   try {
     const langContext = useLanguage();
@@ -39,7 +39,7 @@ function CheckoutPageContent() {
 
   const [mounted, setMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"kaspi" | "applepay">(
-    "kaspi",
+    "kaspi"
   );
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -125,7 +125,7 @@ function CheckoutPageContent() {
         errorLogger.warn(
           "Order creation failed",
           { locationId, paymentMethod },
-          new Error(message),
+          new Error(message)
         );
         return;
       }
@@ -143,7 +143,7 @@ function CheckoutPageContent() {
       errorLogger.error(
         "Checkout error",
         { locationId },
-        err instanceof Error ? err : new Error(message),
+        err instanceof Error ? err : new Error(message)
       );
     } finally {
       setLoading(false);

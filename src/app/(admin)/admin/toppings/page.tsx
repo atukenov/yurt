@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { ITopping } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ export default function AdminToppingsPage() {
   const { data: session, status } = useSession();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
+  let language: Language = "en";
   let t = translations.en.admin;
   try {
     const langContext = useLanguage();
@@ -80,16 +80,14 @@ export default function AdminToppingsPage() {
       filtered = filtered.filter(
         (topping) =>
           topping.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          topping.description
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()),
+          topping.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (topping) => (topping.category || "topping") === selectedCategory,
+        (topping) => (topping.category || "topping") === selectedCategory
       );
     }
 

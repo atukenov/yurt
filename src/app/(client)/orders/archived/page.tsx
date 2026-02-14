@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -15,7 +15,7 @@ export default function ArchivedOrdersPage() {
   const { data: session, status } = useSession();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
+  let language: Language = "en";
   let t = translations.en.client;
   try {
     const langContext = useLanguage();

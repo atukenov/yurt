@@ -13,7 +13,7 @@ const LanguageSelector = () => {
   }, []);
 
   const handleLanguageChange = (lang: string) => {
-    if (lang === "en" || lang === "ru") {
+    if (lang === "en" || lang === "ru" || lang === "kk") {
       setLanguage(lang);
     }
   };
@@ -21,6 +21,7 @@ const LanguageSelector = () => {
   const languages = [
     { code: "en", name: "English", flag: "🇺🇸" },
     { code: "ru", name: "Русский", flag: "🇷🇺" },
+    { code: "kk", name: "Қазақша", flag: "🇰🇿" },
   ];
 
   return (

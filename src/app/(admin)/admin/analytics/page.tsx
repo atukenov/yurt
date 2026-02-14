@@ -25,9 +25,8 @@ interface AnalyticsData {
     count: number;
   }>;
   paymentMethodBreakdown: {
-    cash: number;
-    card: number;
-    stripe: number;
+    kaspi: number;
+    applepay: number;
   };
   topCustomers: Array<{
     name: string;
@@ -263,16 +262,18 @@ export default function AdminAnalyticsPage() {
           </h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">Cash</span>
+              <span className="text-sm font-medium text-gray-700">
+                Kaspi.kz
+              </span>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-gray-900">
-                  {analytics.paymentMethodBreakdown.cash}
+                  {analytics.paymentMethodBreakdown.kaspi}
                 </span>
                 <span className="text-xs text-gray-600">
                   (
                   {analytics.totalOrders > 0
                     ? (
-                        (analytics.paymentMethodBreakdown.cash /
+                        (analytics.paymentMethodBreakdown.kaspi /
                           analytics.totalOrders) *
                         100
                       ).toFixed(0)
@@ -282,35 +283,18 @@ export default function AdminAnalyticsPage() {
               </div>
             </div>
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">Card</span>
+              <span className="text-sm font-medium text-gray-700">
+                Apple Pay
+              </span>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-blue-900">
-                  {analytics.paymentMethodBreakdown.card}
+                  {analytics.paymentMethodBreakdown.applepay}
                 </span>
                 <span className="text-xs text-gray-600">
                   (
                   {analytics.totalOrders > 0
                     ? (
-                        (analytics.paymentMethodBreakdown.card /
-                          analytics.totalOrders) *
-                        100
-                      ).toFixed(0)
-                    : 0}
-                  %)
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">Stripe</span>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-purple-900">
-                  {analytics.paymentMethodBreakdown.stripe}
-                </span>
-                <span className="text-xs text-gray-600">
-                  (
-                  {analytics.totalOrders > 0
-                    ? (
-                        (analytics.paymentMethodBreakdown.stripe /
+                        (analytics.paymentMethodBreakdown.applepay /
                           analytics.totalOrders) *
                         100
                       ).toFixed(0)

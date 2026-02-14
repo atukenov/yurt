@@ -4,7 +4,7 @@ import { withErrorBoundary } from "@/components/ErrorBoundary";
 import { OrderGridSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -19,7 +19,7 @@ function OrdersPageContent() {
   const { isConnected, isAvailable, orderEvents } = useSocket();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "ru";
+  let language: Language = "ru";
   let t = translations.ru.client;
   try {
     const langContext = useLanguage();
@@ -195,8 +195,8 @@ function OrdersPageContent() {
                   order.status === "pending"
                     ? "border-l-yellow-500 bg-yellow-50"
                     : order.status === "accepted"
-                    ? "border-l-blue-500 bg-blue-50"
-                    : "border-l-red-500 bg-red-50"
+                      ? "border-l-blue-500 bg-blue-50"
+                      : "border-l-red-500 bg-red-50"
                 }`}
               >
                 {/* Header with order number and status */}

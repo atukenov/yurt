@@ -5,7 +5,7 @@ import { ReviewForm } from "@/components/ReviewForm";
 import { OrderDetailsSkeleton } from "@/components/SkeletonLoaders";
 import { useSocket } from "@/components/SocketProvider";
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { IOrder } from "@/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -22,7 +22,7 @@ export default function OrderDetailsPage() {
   const { isConnected, isAvailable, orderEvents } = useSocket();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "ru";
+  let language: Language = "ru";
   let t = translations.ru.client;
   try {
     const langContext = useLanguage();
@@ -66,10 +66,10 @@ export default function OrderDetailsPage() {
           if (data.orderId === orderId) {
             console.log("[Order Details] Status changed:", data.status);
             setOrder((prev) =>
-              prev ? { ...prev, status: data.status as any } : null,
+              prev ? { ...prev, status: data.status as any } : null
             );
           }
-        },
+        }
       );
     }
 
@@ -201,7 +201,7 @@ export default function OrderDetailsPage() {
             </div>
             <span
               className={`inline-block px-3 py-1 rounded-full text-sm font-semibold capitalize border ${getStatusColor(
-                order.status,
+                order.status
               )}`}
             >
               {getStatusLabel(order.status)}
@@ -369,7 +369,7 @@ export default function OrderDetailsPage() {
                     : "Unknown Item");
 
                 const itemReview = reviews.find(
-                  (r) => r.menuItem._id === menuItemId,
+                  (r) => r.menuItem._id === menuItemId
                 );
                 const hasReviewedItem = itemReview !== undefined;
 

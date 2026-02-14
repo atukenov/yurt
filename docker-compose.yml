@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: yurt-mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: yurt-redis
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: yurt-backend
+    ports:
+      - '4000:4000'
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/yurt
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - FRONTEND_URL=http://localhost:3000
+      - PORT=4000
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:

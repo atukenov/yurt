@@ -6,7 +6,7 @@ import {
   getLocationName,
   getMenuItemName,
 } from "@/lib/helpers";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { IOrder } from "@/types";
 
 interface OrderDetailsProps {
@@ -29,7 +29,7 @@ export function OrderDetailsSidebar({
   onComplete,
 }: OrderDetailsProps) {
   // Safely access language context with fallback
-  let language: "en" | "ru" = "ru";
+  let language: Language = "ru";
   let t = translations.ru.admin;
   try {
     const langContext = useLanguage();
@@ -260,9 +260,9 @@ export function OrderDetailsSidebar({
                     const prepTime = parseInt(
                       (
                         document.getElementById(
-                          "prep-time",
+                          "prep-time"
                         ) as HTMLSelectElement
-                      )?.value || "15",
+                      )?.value || "15"
                     );
                     onAccept(prepTime);
                   }}
@@ -308,13 +308,13 @@ export function OrderDetailsSidebar({
                     const reason =
                       (
                         document.getElementById(
-                          "reject-reason",
+                          "reject-reason"
                         ) as HTMLSelectElement
                       )?.value || "";
                     const comment =
                       (
                         document.getElementById(
-                          "reject-comment",
+                          "reject-comment"
                         ) as HTMLTextAreaElement
                       )?.value || "";
                     onReject(reason, comment);
