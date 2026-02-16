@@ -19,8 +19,11 @@ RUN pnpm install --frozen-lockfile
 COPY packages/ ./packages/
 COPY apps/backend/ ./apps/backend/
 
-# Build
-RUN pnpm --filter @yurt/backend build
+# Build shared packages first, then the backend
+RUN pnpm --filter @yurt/shared-config build && \
+	pnpm --filter @yurt/shared-types build && \
+	pnpm --filter @yurt/shared-validation build && \
+	pnpm --filter @yurt/backend build
 
 # Production image
 FROM node:20-alpine AS production
