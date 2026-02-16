@@ -17,7 +17,10 @@ async function bootstrap() {
     .map((o) => o.trim().replace(/\/$/, ""));
 
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, origin?: string | boolean) => void,
+    ) => {
       // Allow requests with no origin (mobile apps, curl, server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, origin || true);
