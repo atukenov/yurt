@@ -1,0 +1,47 @@
+{
+  "name": "@yurt/backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "nest start",
+    "start:prod": "node dist/main/main.js",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/mongoose": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/platform-socket.io": "^11.0.0",
+    "@nestjs/throttler": "^6.0.0",
+    "@nestjs/websockets": "^11.0.0",
+    "@yurt/shared-config": "workspace:*",
+    "@yurt/shared-types": "workspace:*",
+    "@yurt/shared-validation": "workspace:*",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "helmet": "^8.0.0",
+    "jose": "^6.0.0",
+    "mongoose": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0",
+    "socket.io": "^4.8.3",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.19.27",
+    "@types/passport-jwt": "^4.0.1",
+    "typescript": "^5"
+  }
+}

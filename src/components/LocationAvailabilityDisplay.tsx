@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { useEffect, useState } from "react";
 import { IconContext } from "react-icons";
 import { MdCheckCircle, MdError } from "react-icons/md";
@@ -36,7 +36,7 @@ export function LocationAvailabilityDisplay({
   const [loading, setLoading] = useState(true);
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
+  let language: Language = "en";
   let t = translations.en.client;
   try {
     const langContext = useLanguage();

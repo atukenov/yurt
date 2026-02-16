@@ -2,7 +2,7 @@
 
 import { ToastContainer, useToast } from "@/components/Toast";
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { ILocation } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -34,7 +34,7 @@ export default function AdminLocationsPage() {
   });
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "ru";
+  let language: Language = "ru";
   let t = translations.ru.admin;
   try {
     const langContext = useLanguage();

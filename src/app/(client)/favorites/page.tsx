@@ -3,7 +3,7 @@
 import { ItemDetailModal } from "@/components/ItemDetailModal";
 import { useToastNotification } from "@/components/ToastProvider";
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { useCartStore } from "@/store/cart";
 import type { IMenuItem, ITopping } from "@/types";
 import Link from "next/link";
@@ -29,7 +29,7 @@ export default function FavoritesPage() {
   const [quantity, setQuantity] = useState(1);
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
+  let language: Language = "en";
   let t = translations.en.client;
   try {
     const langContext = useLanguage();
@@ -56,7 +56,7 @@ export default function FavoritesPage() {
 
               // Filter to only show favorites
               const favoriteItems = itemsData.items.filter((item: IMenuItem) =>
-                favoriteIds.includes(item._id),
+                favoriteIds.includes(item._id)
               );
 
               setFavorites(favoriteItems);
@@ -126,7 +126,7 @@ export default function FavoritesPage() {
 
     // Add toppings
     const selectedToppingObjects = toppings.filter((t) =>
-      selectedToppings.includes(t._id),
+      selectedToppings.includes(t._id)
     );
     price += selectedToppingObjects.reduce((sum, t) => sum + t.price, 0);
 

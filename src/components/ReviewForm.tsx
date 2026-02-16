@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { IMenuItem } from "@/types";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -27,7 +27,7 @@ export function ReviewForm({
   const [success, setSuccess] = useState(false);
 
   // Safely access language context with fallback
-  let language: "en" | "ru" = "en";
+  let language: Language = "en";
   let t = translations.en.client;
   try {
     const langContext = useLanguage();

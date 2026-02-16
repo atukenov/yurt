@@ -118,9 +118,8 @@ export async function GET(request: Request) {
 
     // Payment method breakdown
     const paymentMethodBreakdown = {
-      cash: orders.filter((o) => o.paymentMethod === "cash").length,
-      card: orders.filter((o) => o.paymentMethod === "card").length,
-      stripe: orders.filter((o) => o.paymentMethod === "stripe").length,
+      kaspi: orders.filter((o) => o.paymentMethod === "kaspi").length,
+      applepay: orders.filter((o) => o.paymentMethod === "applepay").length,
     };
 
     // Top customers

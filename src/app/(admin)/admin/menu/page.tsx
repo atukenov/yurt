@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/context/LanguageContext";
-import { translations } from "@/lib/translations";
+import { translations, type Language } from "@/lib/translations";
 import { IMenuItem } from "@/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ export default function AdminMenuPage() {
   const { data: session, status } = useSession();
 
   // Safely access language context with fallback
-  let language: "en" | "ru" | "ar" = "en";
+  let language: Language = "en";
   let t = translations.en.admin;
   try {
     const langContext = useLanguage();
