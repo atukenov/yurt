@@ -27,6 +27,7 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/packages ./packages
 COPY --from=base /app/apps/backend/dist ./dist
 COPY --from=base /app/apps/backend/package.json ./
 
