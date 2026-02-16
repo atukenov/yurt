@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline — Yurt Coffee</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100dvh;
+        font-family: system-ui, sans-serif;
+        background: #f9fafb;
+        color: #1f2937;
+        text-align: center;
+        padding: 2rem;
+      }
+      img {
+        width: 96px;
+        margin-bottom: 1.5rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        color: #6b7280;
+        margin-bottom: 2rem;
+        max-width: 340px;
+      }
+      button {
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 9999px;
+        background: #8b4513;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      button:active {
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="/images/logo.png" alt="Yurt Coffee" />
+    <h1>You're offline</h1>
+    <p>Check your internet connection and try again.</p>
+    <button onclick="location.reload()">Retry</button>
+  </body>
+</html>
