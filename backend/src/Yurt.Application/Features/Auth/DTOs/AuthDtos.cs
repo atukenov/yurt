@@ -13,7 +13,17 @@ public record RefreshRequestDto(string RefreshToken);
 
 public record CustomerRegisterDto(string MobileNumber, string Pin4, string FirstName = "", string LastName = "");
 public record RegisterVerifyDto(string MobileNumber, string Code);
-public record RegistrationStartResponseDto(string MobileNumber, DateTime ExpiresAt, string? DevCode = null);
+/// <summary>
+/// Result of starting registration / a phone change. When <see cref="VerificationRequired"/> is
+/// false (OTP switched off) there is no second step: for registration <see cref="Auth"/> already
+/// holds the issued tokens, and for a phone change the number has already been updated.
+/// </summary>
+public record RegistrationStartResponseDto(
+    string MobileNumber,
+    DateTime ExpiresAt,
+    string? DevCode = null,
+    bool VerificationRequired = true,
+    AuthResponseDto? Auth = null);
 public record CustomerLoginDto(string MobileNumber, string Pin4);
 public record AdminLoginDto(string Username, string Password);
 public record UpdateProfileDto(string FirstName, string LastName, DateOnly? DateOfBirth = null);

@@ -120,6 +120,19 @@ export class RegisterComponent implements OnDestroy {
       .registerStart(phone, this.pin4, this.firstName.trim(), this.lastName.trim())
       .subscribe({
         next: (res) => {
+          // Phone verification switched off on the server: the account already exists.
+          if (res.verificationRequired === false && res.auth) {
+            this.auth.setUser({
+              accessToken: res.auth.accessToken,
+              refreshToken: res.auth.refreshToken,
+              userId: res.auth.userId,
+              displayName: res.auth.displayName,
+              userType: res.auth.userType,
+            });
+            this.toast.success('Account created! Welcome to Altyncup ☕');
+            this.router.navigate(['/locations']);
+            return;
+          }
           this.loading.set(false);
           this.pendingPhone = res.mobileNumber || phone;
           this.otp = '';

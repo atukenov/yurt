@@ -7,7 +7,15 @@ namespace Yurt.Application.Features.Auth;
 public class OtpOptions
 {
     /// <summary>
-    /// When false no WhatsApp message is sent — the generated code is logged and returned
+    /// Master switch for phone verification. When false (<c>Otp__Required=false</c>) no code is
+    /// sent or asked for: registration creates the account immediately and a phone-number change
+    /// is applied immediately. Use it when the OTP provider is unavailable.
+    /// Anyone can then register with any phone number — see the loyalty caveat in the docs.
+    /// </summary>
+    public bool Required { get; set; } = true;
+
+    /// <summary>
+    /// Only used while <see cref="Required"/> is true. When false no WhatsApp message is sent — the generated code is logged and returned
     /// in the start response as <c>devCode</c> so local/dev registration still works.
     /// </summary>
     public bool Enabled { get; set; } = false;

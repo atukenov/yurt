@@ -42,7 +42,7 @@ public class AuthService
     /// The CustomerUser is not created until the code is confirmed.
     /// </summary>
     public async Task<Result<RegistrationStartResponseDto>> StartRegistrationAsync(
-        CustomerRegisterDto dto, CancellationToken ct = default)
+        CustomerRegisterDto dto, string? ip = null, CancellationToken ct = default)
     {
         var normalizedMobile = NormalizeMobile(dto.MobileNumber);
 
@@ -50,6 +50,34 @@ public class AuthService
             .AnyAsync(u => u.MobileNumber == normalizedMobile, ct);
         if (alreadyRegistered)
             return Result<RegistrationStartResponseDto>.Failure("Mobile number already registered.", 409);
+
+        // OTP switched off: no code, no second step — create the account right away.
+        if (!_otpOptions.Required)
+        {
+            var user = new CustomerUser
+            {
+                MobileNumber = normalizedMobile,
+                PinHash = _passwordHasher.Hash(dto.Pin4),
+                FirstName = dto.FirstName.Trim(),
+                LastName = dto.LastName.Trim()
+            };
+            _db.CustomerUsers.Add(user);
+
+            var stale = await _db.PhoneVerifications
+                .Where(v => v.MobileNumber == normalizedMobile && v.Purpose == VerificationPurpose.Registration)
+                .ToListAsync(ct);
+            _db.PhoneVerifications.RemoveRange(stale);
+            await _db.SaveChangesAsync(ct);
+
+            var displayName = string.IsNullOrWhiteSpace(user.FirstName)
+                ? user.MobileNumber
+                : $"{user.FirstName} {user.LastName}".Trim();
+            var auth = await IssueTokenPairAsync(user.Id, user.MobileNumber, RefreshTokenUserType.Customer,
+                "customer", displayName, role: null, ip, ct);
+
+            return Result<RegistrationStartResponseDto>.Success(
+                new RegistrationStartResponseDto(normalizedMobile, DateTime.UtcNow, null, false, auth), 201);
+        }
 
         var now = DateTime.UtcNow;
         var pending = await _db.PhoneVerifications
@@ -375,6 +403,16 @@ public class AuthService
             .AnyAsync(u => u.MobileNumber == normalizedMobile && u.Id != userId, ct);
         if (alreadyTaken)
             return Result<RegistrationStartResponseDto>.Failure("Mobile number already in use.", 409);
+
+        // OTP switched off: apply the new number immediately.
+        if (!_otpOptions.Required)
+        {
+            user.MobileNumber = normalizedMobile;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            return Result<RegistrationStartResponseDto>.Success(
+                new RegistrationStartResponseDto(normalizedMobile, DateTime.UtcNow, null, false));
+        }
 
         var now = DateTime.UtcNow;
         var pending = await _db.PhoneVerifications

@@ -69,6 +69,10 @@ export interface RegistrationStartResponse {
   mobileNumber: string;
   expiresAt: string;
   devCode?: string | null;
+  /** false when the server has phone verification switched off: no code step follows. */
+  verificationRequired?: boolean;
+  /** Tokens, present when registration completed without a code. */
+  auth?: AuthResponse | null;
 }
 
 export interface CustomerProfile {

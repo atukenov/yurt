@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Yurt.Application.Common.Interfaces;
+using Yurt.Application.Features.Auth;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 using Yurt.IntegrationTests.Helpers;
@@ -286,6 +287,71 @@ public class AuthTests(YurtWebAppFactory factory)
     }
 
     // ── Local shape ──────────────────────────────────────────────────────────
+
+    // ── OTP switched off (Otp:Required=false) ───────────────────────────────
+
+    private record NoOtpStartResult(string MobileNumber, bool VerificationRequired, NoOtpAuth? Auth);
+    private record NoOtpAuth(string AccessToken, string RefreshToken, Guid UserId);
+
+    private HttpClient NoOtpClient()
+        => factory.WithWebHostBuilder(b => b.ConfigureServices(services =>
+            services.AddSingleton(new OtpOptions { Required = false }))).CreateClient();
+
+    [Fact]
+    public async Task Register_OtpNotRequired_CreatesAccountImmediatelyAndReturnsTokens()
+    {
+        var client = NoOtpClient();
+
+        var resp = await client.PostAsJsonAsync("/api/v1/auth/register/start", new
+        {
+            mobileNumber = "+77006100001", pin4 = "1234", firstName = "No", lastName = "Otp"
+        });
+
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        var body = await resp.Content.ReadFromJsonAsync<NoOtpStartResult>(ApiHelpers.JsonOpts);
+        Assert.NotNull(body);
+        Assert.False(body.VerificationRequired);
+        Assert.NotNull(body.Auth);
+
+        ApiHelpers.Authorize(client, body.Auth.AccessToken);
+        var me = await client.GetAsync("/api/v1/auth/me");
+        me.EnsureSuccessStatusCode();
+
+        // Same number again is rejected
+        ApiHelpers.ClearAuth(client);
+        var again = await client.PostAsJsonAsync("/api/v1/auth/register/start", new
+        {
+            mobileNumber = "+77006100001", pin4 = "1234", firstName = "No", lastName = "Otp"
+        });
+        Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+
+        // And the PIN works for a normal login
+        var login = await client.PostAsJsonAsync("/api/v1/auth/login",
+            new { mobileNumber = "+77006100001", pin4 = "1234" });
+        login.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task PhoneChange_OtpNotRequired_AppliesNewNumberImmediately()
+    {
+        var client = NoOtpClient();
+        var start = await client.PostAsJsonAsync("/api/v1/auth/register/start", new
+        {
+            mobileNumber = "+77006100002", pin4 = "1234", firstName = "No", lastName = "Otp"
+        });
+        var auth = (await start.Content.ReadFromJsonAsync<NoOtpStartResult>(ApiHelpers.JsonOpts))!.Auth!;
+        ApiHelpers.Authorize(client, auth.AccessToken);
+
+        var change = await client.PostAsJsonAsync("/api/v1/auth/me/phone/start",
+            new { mobileNumber = "+77006100003" });
+        change.EnsureSuccessStatusCode();
+        var changeBody = await change.Content.ReadFromJsonAsync<NoOtpStartResult>(ApiHelpers.JsonOpts);
+        Assert.False(changeBody!.VerificationRequired);
+
+        var me = await client.GetFromJsonAsync<System.Text.Json.JsonElement>("/api/v1/auth/me");
+        Assert.Equal("+77006100003", me.GetProperty("mobileNumber").GetString());
+    }
+
 
     private record ProblemBody(int Status, string Title, int MinutesRemaining);
     private record MeResult(Guid Id, string MobileNumber, string FirstName, string LastName);

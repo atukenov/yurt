@@ -178,6 +178,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.api.changeMobileNumberStart(newNumber).subscribe({
       next: (res) => {
         this.phoneLoading.set(false);
+        // Phone verification switched off on the server: the number was changed right away.
+        if (res.verificationRequired === false) {
+          this.profile.update((p) => (p ? { ...p, mobileNumber: res.mobileNumber } : p));
+          this.showPhoneForm.set(false);
+          this.phoneStep.set('form');
+          this.phoneFormatted = '';
+          this.toast.success(this.langService.t('profile.phoneChanged'));
+          return;
+        }
         this.pendingPhoneNumber = res.mobileNumber || newNumber;
         this.phoneOtp = '';
         this.phoneStep.set('otp');
