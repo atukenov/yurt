@@ -64,6 +64,20 @@ jobs:
         working-directory: backend
         run: dotnet list package --vulnerable --include-transitive 2>&1 || true
 
+  # ── Migration guard ──────────────────────────────────────────────────────
+  migrations:
+    name: Migrations — additive only
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail on dropped or renamed schema objects
+        run: ./scripts/check-migrations.sh "origin/${{ github.base_ref }}"
+
   # ── Frontend ─────────────────────────────────────────────────────────────
   frontend:
     name: Frontend — Build

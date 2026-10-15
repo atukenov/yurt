@@ -1,6 +1,6 @@
 # Deploy Android App to Google Play Market
 
-**App:** Altyncup (`com.yurt.app`)  
+**App:** Yurt (`com.yurt.app`)  
 **Min SDK:** 24 (Android 7.0) · **Target SDK:** 36 (Android 16)
 
 ---

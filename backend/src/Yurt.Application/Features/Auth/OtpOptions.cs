@@ -39,5 +39,5 @@ public class OtpOptions
     public int MaxAttempts { get; set; } = 5;
 
     /// <summary><c>{code}</c> is replaced with the generated code.</summary>
-    public string MessageTemplate { get; set; } = "Your Altyncup verification code: {code}";
+    public string MessageTemplate { get; set; } = "Your Yurt verification code: {code}";
 }

@@ -23,12 +23,12 @@ Decisions and background: https://github.com/atukenov/altyncup/issues/52 (and it
 ---
 
 ## Phase 0 — Repository and environments
-- [ ] Decide the platform name and replace "Altyncup" in code and docs (about 120 mentions in ~40 files, e.g. `capacitor.config.ts`, Android `strings.xml`, iOS `Info.plist`, admin login/shell, OTP message template, docs).
-- [ ] Replace the `com.yurt.app` bundle id / merchant id defaults with a placeholder that each cafe overrides.
-- [ ] Remove tracked files that should not be in git: iOS `GoogleService-Info.plist` (per-cafe secret-ish config), anything else cafe-specific; extend `.gitignore`.
-- [ ] Create a **staging** environment (own backend service + own database + own Firebase/iiko/payment sandbox settings).
-- [ ] CI: keep backend unit + integration tests and frontend builds green on the new repo; add a check that fails if a new migration drops or renames anything.
-- [ ] Write a short runbook: backup, deploy order, rollback.
+- [x] Decide the platform name and replace "Altyncup" in code and docs (about 120 mentions in ~40 files, e.g. `capacitor.config.ts`, Android `strings.xml`, iOS `Info.plist`, admin login/shell, OTP message template, docs). _(Done: the platform is **Yurt**. Remaining mentions are the persisted loyalty comment prefix `Altyncup order ` in `LoyaltyService`, kept so existing iiko transactions still match.)_
+- [ ] Replace the `com.yurt.app` bundle id / merchant id defaults with a placeholder that each cafe overrides. _(Partly: `capacitor.config.ts` reads `YURT_APP_ID` / `YURT_APP_NAME`. Android package and iOS bundle id are generated per cafe in Phase 4. `com.yurt.app` stays as the platform default.)_
+- [x] Remove tracked files that should not be in git: iOS `GoogleService-Info.plist` (per-cafe secret-ish config), anything else cafe-specific; extend `.gitignore`.
+- [ ] Create a **staging** environment (own backend service + own database + own Firebase/iiko/payment sandbox settings). _(Checklist in `docs/runbook.md`; the hosted service itself still has to be created in the hosting dashboard.)_
+- [x] CI: keep backend unit + integration tests and frontend builds green on the new repo; add a check that fails if a new migration drops or renames anything.
+- [x] Write a short runbook: backup, deploy order, rollback. _(`docs/runbook.md`)_
 
 ## Phase 1 — Module foundation (no behavior change)
 - [ ] `ModuleLicense` table: module key, enabled, valid-until (nullable), source (manual/trial/paid), notes, timestamps.

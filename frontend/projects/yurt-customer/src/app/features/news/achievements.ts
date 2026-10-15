@@ -78,7 +78,7 @@ export const ACHIEVEMENTS: Achievement[] = [
     // until that data is tracked.
     icon: '🌟',
     badge: '/badges/star-of-altyncup.png',
-    nameEn: 'Altyncup Star',
+    nameEn: 'Yurt Star',
     nameRu: 'Звезда Алтынкап',
     nameKk: 'Алтынкап Жұлдызы',
     descEn: '50 orders — a shining star',
