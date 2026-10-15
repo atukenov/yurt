@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import {
   AuthStateService,
+  ModuleService,
   NotificationService,
   OrderNotificationService,
   PushNotificationService,
@@ -26,6 +27,7 @@ import { AppUpdateService } from './core/app-update.service';
 })
 export class App implements OnInit, OnDestroy {
   private api = inject(YurtApiService);
+  private modules = inject(ModuleService);
   private auth = inject(AuthStateService);
   private signalr = inject(SignalrService);
   private orderNotifications = inject(OrderNotificationService);
@@ -45,6 +47,7 @@ export class App implements OnInit, OnDestroy {
 
     this.api.configure(environment.apiUrl);
     this.signalr.configure(environment.apiUrl);
+    this.modules.load();
     this.appUpdate.check();
 
     if (this.auth.isLoggedIn) {

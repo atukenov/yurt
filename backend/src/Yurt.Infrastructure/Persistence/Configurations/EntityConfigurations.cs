@@ -322,3 +322,15 @@ public class AppReleaseConfiguration : IEntityTypeConfiguration<AppRelease>
         builder.Property(e => e.NotesKk).HasColumnType("text").IsRequired();
     }
 }
+
+public class ModuleLicenseConfiguration : IEntityTypeConfiguration<ModuleLicense>
+{
+    public void Configure(EntityTypeBuilder<ModuleLicense> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.ModuleKey).HasMaxLength(50).IsRequired();
+        builder.HasIndex(e => e.ModuleKey).IsUnique();
+        builder.Property(e => e.Source).HasConversion<string>().HasMaxLength(20);
+        builder.Property(e => e.Notes).HasMaxLength(1000);
+    }
+}

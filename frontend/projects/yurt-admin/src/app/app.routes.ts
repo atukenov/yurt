@@ -77,6 +77,11 @@ export const routes: Routes = [
           import('./features/app-releases/app-releases.component').then((m) => m.AppReleasesComponent),
       },
       {
+        path: 'subscription',
+        loadComponent: () =>
+          import('./features/subscription/subscription.component').then((m) => m.SubscriptionComponent),
+      },
+      {
         path: 'discount-codes',
         loadComponent: () =>
           import('./features/discount-codes/discount-codes.component').then((m) => m.DiscountCodesComponent),

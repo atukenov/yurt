@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Yurt.Application.Common.Interfaces;
+using Yurt.Domain;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty;
 
@@ -36,6 +38,14 @@ public class IikoOrderSyncRetryService : BackgroundService
         {
             try
             {
+                // Module switched off (or license lapsed past its grace period): do no work, never delete data.
+                var gate = _services.GetRequiredService<IModuleGate>();
+                if (!await gate.IsEnabledAsync(ModuleKeys.IikoSync, stoppingToken))
+                {
+                    await Task.Delay(RetryInterval, stoppingToken);
+                    continue;
+                }
+
                 await using var scope = _services.CreateAsyncScope();
                 var sync = scope.ServiceProvider.GetRequiredService<IikoOrderSyncService>();
                 await sync.RetryPendingAsync(stoppingToken);

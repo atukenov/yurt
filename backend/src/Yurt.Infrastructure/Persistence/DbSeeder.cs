@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 using BCrypt.Net;
@@ -22,6 +23,7 @@ public static class DbSeeder
         await SeedMenuAsync(db, logger);
         await SeedToppingsAsync(db, logger);
         await SeedAdminsAsync(db, logger);
+        await SeedModuleLicensesAsync(db, logger);
     }
 
     private static async Task SeedLocationsAsync(ApplicationDbContext db, ILogger logger)
@@ -220,5 +222,26 @@ public static class DbSeeder
         });
         await db.SaveChangesAsync();
         logger.LogInformation("Admin user '{Username}' seeded (MustChangePassword=true).", username);
+    }
+
+    /// <summary>
+    /// Makes sure every known module has a row. New rows are enabled and never expire, so a deploy
+    /// that introduces a module key cannot switch anything off. Existing rows are left alone.
+    /// </summary>
+    private static async Task SeedModuleLicensesAsync(ApplicationDbContext db, ILogger logger)
+    {
+        var existing = await db.ModuleLicenses.Select(m => m.ModuleKey).ToListAsync();
+        var missing = ModuleKeys.All.Except(existing).ToList();
+        if (missing.Count == 0) return;
+
+        db.ModuleLicenses.AddRange(missing.Select(key => new ModuleLicense
+        {
+            ModuleKey = key,
+            Enabled = true,
+            Source = ModuleLicenseSource.Manual,
+            Notes = "Seeded as enabled"
+        }));
+        await db.SaveChangesAsync();
+        logger.LogInformation("Seeded {Count} module licenses (all enabled).", missing.Count);
     }
 }

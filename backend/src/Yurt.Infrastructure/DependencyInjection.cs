@@ -25,6 +25,7 @@ using Yurt.Application.Features.DiscountCodes.Services;
 using Yurt.Application.Features.AuditLog.Services;
 using Yurt.Application.Features.Reports;
 using Yurt.Application.Features.AppUpdate;
+using Yurt.Application.Features.Modules;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty;
 using Yurt.Application.Features.Loyalty.Services;
@@ -114,6 +115,10 @@ public static class DependencyInjection
         services.AddScoped<AuthService>();
         services.AddScoped<LocationService>();
         services.AddScoped<AppReleaseService>();
+
+        // Paid-module licensing (fail-open; see docs/MODULARIZATION_TODO.md Phase 1)
+        services.AddSingleton(configuration.GetSection("Modules").Get<ModuleOptions>() ?? new ModuleOptions());
+        services.AddSingleton<IModuleGate, ModuleGate>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

@@ -34,15 +34,15 @@ Decisions and background: https://github.com/atukenov/altyncup/issues/52 (and it
 - [x] Write a short runbook: backup, deploy order, rollback. _(`docs/runbook.md`)_
 
 ## Phase 1 — Module foundation (no behavior change)
-- [ ] `ModuleLicense` table: module key, enabled, valid-until (nullable), source (manual/trial/paid), notes, timestamps.
-- [ ] Migration seeds **every module enabled** for the existing cafe.
-- [ ] `IModuleGate` service with a small in-memory cache and fail-open behavior; unit tests for the fail-open case.
-- [ ] `[RequireModule("key")]` attribute/filter returning `403` with `{ code: "module_disabled", module: "..." }`.
-- [ ] Background jobs (loyalty retry, iiko order push, order timers, archival) check the gate before working.
-- [ ] Public `GET /api/v1/app/config`: enabled module keys + branding values (cached on the client with the existing stale-while-revalidate cache).
-- [ ] Customer app and admin: `ModuleService` (`isEnabled('key')`), route guard that redirects away from disabled modules.
-- [ ] Admin **Subscription** page (read-only): enabled modules, expiry dates, how to upgrade.
-- [ ] Grace period logic: an expired license keeps working for N days with a warning, then behaves as disabled. Never delete data.
+- [x] `ModuleLicense` table: module key, enabled, valid-until (nullable), source (manual/trial/paid), notes, timestamps.
+- [x] Migration seeds **every module enabled** for the existing cafe. _(Done by `DbSeeder` at start-up: it adds a row for every known key that is missing, enabled and without expiry; the migration itself only creates the table.)_
+- [x] `IModuleGate` service with a small in-memory cache and fail-open behavior; unit tests for the fail-open case.
+- [x] `[RequireModule("key")]` attribute/filter returning `403` with `{ code: "module_disabled", module: "..." }`.
+- [x] Background jobs (loyalty retry, iiko order push, order timers, archival) check the gate before working. _(Loyalty retry checks `loyalty`, iiko push retry checks `iiko_sync`. Order timers and archival belong to `core`, which can never be off.)_
+- [x] Public `GET /api/v1/app/config`: enabled module keys + branding values (branding arrives in Phase 4; cached on the client with the existing stale-while-revalidate cache).
+- [x] Customer app and admin: `ModuleService` (`isEnabled('key')`), route guard that redirects away from disabled modules. _(`ModuleService` and `moduleGuard('key')` in `shared-api`; no route uses the guard yet, that happens per module in Phase 3.)_
+- [x] Admin **Subscription** page (read-only): enabled modules, expiry dates, how to upgrade.
+- [x] Grace period logic: an expired license keeps working for N days with a warning, then behaves as disabled. Never delete data.
 
 ## Phase 2 — Super admin
 - [ ] Add `AdminRole.SuperAdmin` and a `SuperAdminOnly` policy.
