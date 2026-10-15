@@ -12,6 +12,9 @@ Decisions and background: https://github.com/atukenov/altyncup/issues/52 (and it
 - White-label: shared app with per-cafe colors/logo by default; **own store app only for premium**.
 - Cancellation: keep all data, switch paid modules off after a grace period.
 - Super-admin tools live **inside the admin panel** (`/platform`), `SuperAdmin` role only.
+- **Own POS instead of iiko:** the platform should not depend on a third-party POS. iiko stays only as an optional
+  adapter (`iiko_sync`) for cafes that already use it; everything iiko gives us today is rebuilt as a self-developed
+  module (`own_pos`, Phase 6). Business logic talks to our own interfaces, never to iiko directly.
 
 ## Ground rules (so a live cafe never breaks)
 - Everything **defaults to on**; if the module lookup fails or the table is empty, treat all modules as enabled (fail-open).
@@ -59,7 +62,8 @@ Module keys and what they cover:
 | `multi_location` | Multi-location | More than one branch, per-branch menu availability and hours |
 | `marketing` | Marketing | Promotions/banners, discount codes |
 | `loyalty` | Loyalty | Bonus points earn/spend/hold, balance, history |
-| `iiko_sync` | iiko POS sync | Order push, terminal-group routing, product/size mapping |
+| `iiko_sync` | iiko POS sync (optional adapter) | Order push, terminal-group routing, product/size mapping. Only for cafes that already run iiko |
+| `own_pos` | Own POS (self-developed) | Replaces iiko: kitchen/cashier flow, stock and stop-list, native loyalty wallet, payment types, shifts and reports (see Phase 6) |
 | `push` | Push notifications | Remote order-status pushes (FCM/APNs) |
 | `analytics` | Analytics and reports | Dashboard KPIs, trends, reports |
 | `group_orders` | Group orders | Shared carts and join links |
@@ -84,7 +88,8 @@ Gating order (lowest risk first):
 - [ ] `multi_location` (enforce the 1-location limit in core)
 - [ ] `push`
 - [ ] `loyalty` (+ its background jobs)
-- [ ] `iiko_sync`
+- [ ] `iiko_sync` (adapter only; keep it working, no new features)
+- [ ] `own_pos` (gated as it ships, see Phase 6)
 - [ ] `online_payments`
 - [ ] `verification` (builds on the `Otp:Required` switch)
 For each: backend `RequireModule`, hide UI, deep-link redirect, test that a disabled module returns `403`, document dependencies.
@@ -123,9 +128,37 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [ ] Tenant provisioning flow in `/platform` (create cafe, seed menu, first admin).
 - [ ] Until then: one deployment per cafe is acceptable for the first customers.
 
+## Phase 6 — Own POS module (`own_pos`), replaces iiko
+What iiko gives the platform today (found in `IIikoApiClient`, `AdminIikoController`, `IikoOrderSyncService`, the `Iiko*` columns
+and the webhook controller), and the self-developed counterpart. Every row is its own release behind `own_pos`.
+
+| iiko capability today | Own replacement |
+|---|---|
+| Nomenclature (products, sizes) mapped to `MenuItem.IikoProductId` / `IikoProductSizeId` | Menu is the source of truth in our database (already is); drop the mapping need, keep categories, sizes, toppings, tags |
+| Terminal groups per branch (`Location.IikoTerminalGroupId`) | Branch with its own stations/terminals (cashier, kitchen, bar) and order routing rules |
+| Order push to the POS (`CreateDeliveryOrderAsync`, sync status/pending action on `Order`) | Orders land directly in our kitchen/cashier flow: kitchen display (KDS) screen, ticket printing, accept/prepare/ready/handed-over statuses |
+| Order status webhooks back from iiko | Not needed, statuses are changed by our own staff screens and emit the same SignalR events |
+| Stop-list (out-of-stock) | Stock per item and ingredient with automatic stop-list and low-stock alerts |
+| Customer wallet and loyalty (`GetCustomerByPhone`, `Topup`, `Chargeoff`, `Hold`, `CancelHold`, `IikoCustomerId/WalletId`) | Native loyalty ledger in our DB: balance, earn/spend/hold/release, expiry, referral bonuses, wallet top-up |
+| Payment types | Own payment methods list per branch: cash, card, Kaspi, Apple Pay, split payments |
+| Coupon series for promo codes | Native promo/coupon engine (extends existing discount codes) |
+| Cashier terminal, shifts, cash drawer, X/Z reports | Cashier screen in the admin app: open/close shift, cash in/out, receipts, daily Z report |
+| Reports from the POS | Sales, product mix, staff and shift reports from our own data (extends the analytics module) |
+
+Steps:
+- [ ] Introduce neutral interfaces (`IPosOrderSink`, `ILoyaltyLedger`, `IStockService`, `IPaymentMethodCatalog`) and make iiko one adapter behind them; no behavior change.
+- [ ] Native loyalty ledger and migration of existing iiko balances (read-only import, then switch per cafe).
+- [ ] Kitchen display and order-routing per branch.
+- [ ] Stock, ingredients and automatic stop-list.
+- [ ] Cashier screen, shifts, receipts and Z report.
+- [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
+- [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter.
+
 ## Open items
 - [ ] Final prices and bundle contents.
 - [ ] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked).
 - [ ] How SuperAdmin accounts are created (environment variable vs CLI).
 - [ ] Data export format for departing cafes.
+- [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).
+- [ ] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan.
 - [ ] Terms of service / data ownership wording.
