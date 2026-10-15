@@ -49,7 +49,8 @@ internal static class ApiHelpers
     internal static async Task<string> CreateAdminTokenAsync(
         IServiceProvider services, HttpClient client,
         string username = "testadmin", string password = "TestAdmin@123",
-        bool mustChangePassword = false)
+        bool mustChangePassword = false,
+        AdminRole role = AdminRole.Admin)
     {
         await using var scope = services.CreateAsyncScope();
         var db     = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
@@ -61,7 +62,7 @@ internal static class ApiHelpers
             {
                 Username           = username,
                 PasswordHash       = hasher.Hash(password),
-                Role               = AdminRole.Admin,
+                Role               = role,
                 IsActive           = true,
                 MustChangePassword = mustChangePassword
             });

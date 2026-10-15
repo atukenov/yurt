@@ -86,6 +86,21 @@ database: `pg_restore --no-owner -d "<scratch-url>" yurt-....dump`.
   `// migration-guard: allow` on that line and say so in the pull request).
 - New columns need a default or must be nullable so the previous backend can still insert rows.
 
+## Platform operator (SuperAdmin)
+
+The `SuperAdmin` role opens the **Platform** page in the admin panel: module licenses (on/off, expiry, trial/paid, notes),
+maintenance mode, integration status (configured yes/no, never the values) and app releases. SuperAdmins have every
+admin permission, are hidden from the cafe's staff page, and can only be created out-of-band.
+
+- Create the first one by setting `SEED_SUPERADMIN_USERNAME` and `SEED_SUPERADMIN_PASSWORD` (12+ characters) on the
+  backend and restarting. It is only created while no SuperAdmin exists; the password must be changed at first login.
+  Remove the variables afterwards.
+- A lost SuperAdmin password: delete that row in `AdminUsers` (or reset it with SQL), then seed again.
+- **Maintenance mode** answers customer API calls with `503 { code: "maintenance", message }`; the apps show the message.
+  Staff (`/admin`), `/platform`, `/app` (config, update check) and payment/POS webhooks keep working, so orders in
+  progress can still be finished. Switch it on before risky deploys.
+- Every change made on the Platform page is written to the audit log with the operator's name.
+
 ## Secrets and per-cafe files
 
 Never commit: `google-services.json`, `GoogleService-Info.plist`, signing keys, `.env*`, production appsettings

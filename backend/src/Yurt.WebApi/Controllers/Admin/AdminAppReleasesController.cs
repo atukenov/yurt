@@ -8,8 +8,9 @@ namespace Yurt.WebApi.Controllers.Admin;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/admin/app-releases")]
-[Authorize(Policy = "AdminOnly")]
+// Forced-update minimums and release notes are a platform-operator concern (moved from /admin in Phase 2).
+[Route("api/v{version:apiVersion}/platform/app-releases")]
+[Authorize(Policy = "SuperAdminOnly")]
 public class AdminAppReleasesController : ApiControllerBase
 {
     private readonly AppReleaseService _releases;

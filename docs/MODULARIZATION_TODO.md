@@ -45,13 +45,13 @@ Decisions and background: https://github.com/atukenov/altyncup/issues/52 (and it
 - [x] Grace period logic: an expired license keeps working for N days with a warning, then behaves as disabled. Never delete data.
 
 ## Phase 2 — Super admin
-- [ ] Add `AdminRole.SuperAdmin` and a `SuperAdminOnly` policy.
-- [ ] Create super-admin accounts out-of-band (environment variable seed or CLI), not through the workers page.
-- [ ] `/platform` section in the admin app (lazy-loaded; every endpoint enforced server-side): toggle modules, set trial/expiry/notes, see dependency warnings.
-- [ ] Move **App releases** (forced-update minimums, release notes) under `/platform`.
-- [ ] Maintenance-mode switch.
-- [ ] Show whether integration secrets are configured (never their values).
-- [ ] Every change is written to the audit log with the actor.
+- [x] Add `AdminRole.SuperAdmin` and a `SuperAdminOnly` policy.
+- [x] Create super-admin accounts out-of-band (environment variable seed or CLI), not through the workers page. _(Decision: environment variable seed, `SEED_SUPERADMIN_USERNAME` / `SEED_SUPERADMIN_PASSWORD`, see `docs/runbook.md`.)_
+- [x] `/platform` section in the admin app (lazy-loaded; every endpoint enforced server-side): toggle modules, set trial/expiry/notes, see dependency warnings.
+- [x] Move **App releases** (forced-update minimums, release notes) under `/platform`. _(API now at `/api/v1/platform/app-releases`, page at `/platform/app-releases`; the old `/app-releases` URL redirects.)_
+- [x] Maintenance-mode switch.
+- [x] Show whether integration secrets are configured (never their values).
+- [x] Every change is written to the audit log with the actor.
 
 ## Phase 3 — Gate the modules (one per release, each with tests)
 Module keys and what they cover:
@@ -157,7 +157,7 @@ Steps:
 ## Open items
 - [ ] Final prices and bundle contents.
 - [ ] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked).
-- [ ] How SuperAdmin accounts are created (environment variable vs CLI).
+- [x] How SuperAdmin accounts are created: environment variable seed (done in Phase 2).
 - [ ] Data export format for departing cafes.
 - [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).
 - [ ] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan.

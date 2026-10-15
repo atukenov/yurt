@@ -23,6 +23,7 @@ public static class DbSeeder
         await SeedMenuAsync(db, logger);
         await SeedToppingsAsync(db, logger);
         await SeedAdminsAsync(db, logger);
+        await SeedSuperAdminAsync(db, logger);
         await SeedModuleLicensesAsync(db, logger);
     }
 
@@ -243,5 +244,41 @@ public static class DbSeeder
         }));
         await db.SaveChangesAsync();
         logger.LogInformation("Seeded {Count} module licenses (all enabled).", missing.Count);
+    }
+
+    /// <summary>
+    /// Creates the first platform operator from SEED_SUPERADMIN_USERNAME / SEED_SUPERADMIN_PASSWORD, only while no
+    /// SuperAdmin exists. Super admins are never created through the staff page or any API.
+    /// </summary>
+    private static async Task SeedSuperAdminAsync(ApplicationDbContext db, ILogger logger)
+    {
+        if (await db.AdminUsers.AnyAsync(u => u.Role == AdminRole.SuperAdmin)) return;
+
+        var username = Environment.GetEnvironmentVariable("SEED_SUPERADMIN_USERNAME");
+        var password = Environment.GetEnvironmentVariable("SEED_SUPERADMIN_PASSWORD");
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password)) return;
+
+        if (password.Length < 12)
+        {
+            logger.LogWarning("SEED_SUPERADMIN_PASSWORD must be at least 12 characters. Skipping super admin seed.");
+            return;
+        }
+        username = username.Trim();
+        if (await db.AdminUsers.AnyAsync(u => u.Username == username))
+        {
+            logger.LogWarning("SEED_SUPERADMIN_USERNAME '{Username}' is already used by another admin account. Skipping super admin seed.", username);
+            return;
+        }
+
+        db.AdminUsers.Add(new AdminUser
+        {
+            Username = username,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = AdminRole.SuperAdmin,
+            IsActive = true,
+            MustChangePassword = true
+        });
+        await db.SaveChangesAsync();
+        logger.LogInformation("Super admin '{Username}' seeded (MustChangePassword=true).", username);
     }
 }

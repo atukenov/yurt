@@ -8,6 +8,10 @@ import {
   ApplePayConfigResponse,
   AppRelease,
   AppConfig,
+  IntegrationStatus,
+  MaintenanceInfo,
+  PlatformModule,
+  UpdateModuleLicenseRequest,
   AppUpdateInfo,
   AuditLogEntry,
   AuthResponse,
@@ -71,18 +75,35 @@ export class YurtApiService {
     return this.http.get<SubscriptionInfo>(`${this.api}/admin/subscription`);
   }
 
-  // Admin app releases (what's-new popup / forced update)
+  // ── Platform operator tools (SuperAdmin only) ─────────────────────────────
+  getPlatformModules(): Observable<PlatformModule[]> {
+    return this.http.get<PlatformModule[]>(`${this.api}/platform/modules`);
+  }
+  updatePlatformModule(key: string, req: UpdateModuleLicenseRequest): Observable<PlatformModule> {
+    return this.http.put<PlatformModule>(`${this.api}/platform/modules/${key}`, req);
+  }
+  getMaintenance(): Observable<MaintenanceInfo> {
+    return this.http.get<MaintenanceInfo>(`${this.api}/platform/maintenance`);
+  }
+  setMaintenance(req: MaintenanceInfo): Observable<MaintenanceInfo> {
+    return this.http.put<MaintenanceInfo>(`${this.api}/platform/maintenance`, req);
+  }
+  getIntegrationStatus(): Observable<IntegrationStatus[]> {
+    return this.http.get<IntegrationStatus[]>(`${this.api}/platform/integrations`);
+  }
+
+  // App releases (what's-new popup / forced update) - operator tool under /platform
   getAdminAppReleases(): Observable<AppRelease[]> {
-    return this.http.get<AppRelease[]>(`${this.api}/admin/app-releases`);
+    return this.http.get<AppRelease[]>(`${this.api}/platform/app-releases`);
   }
   createAppRelease(req: Partial<AppRelease>): Observable<AppRelease> {
-    return this.http.post<AppRelease>(`${this.api}/admin/app-releases`, req);
+    return this.http.post<AppRelease>(`${this.api}/platform/app-releases`, req);
   }
   updateAppRelease(id: string, req: Partial<AppRelease>): Observable<AppRelease> {
-    return this.http.put<AppRelease>(`${this.api}/admin/app-releases/${id}`, req);
+    return this.http.put<AppRelease>(`${this.api}/platform/app-releases/${id}`, req);
   }
   deleteAppRelease(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.api}/admin/app-releases/${id}`);
+    return this.http.delete<void>(`${this.api}/platform/app-releases/${id}`);
   }
 
   // ── Auth ───────────────────────────────────────────────────────────────────
