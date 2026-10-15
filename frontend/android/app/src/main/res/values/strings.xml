@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Altyncup</string>
+    <string name="title_activity_main">Altyncup</string>
+    <string name="package_name">com.yurt.app</string>
+    <string name="custom_url_scheme">com.yurt.app</string>
+</resources>

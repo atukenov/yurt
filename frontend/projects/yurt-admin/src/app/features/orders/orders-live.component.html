@@ -1,0 +1,389 @@
+<div class="flex h-screen overflow-hidden">
+  <!-- Orders sidebar -->
+  <div class="w-96 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <div class="px-4 py-4 border-b border-slate-100 flex-shrink-0">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-bold text-slate-800">{{ 'orders.title' | t }}</h2>
+        <div class="flex items-center gap-1.5">
+          <span
+            [class]="signalr.connected() ? 'bg-green-400' : 'bg-red-400'"
+            class="w-2 h-2 rounded-full animate-pulse"
+          ></span>
+          <span class="text-xs text-slate-500">{{
+            signalr.connected() ? 'Live' : 'Disconnected'
+          }}</span>
+        </div>
+      </div>
+      <!-- Location filter -->
+      <select
+        [(ngModel)]="selectedLocationId"
+        (ngModelChange)="loadOrders()"
+        aria-label="{{ 'orders.allLocations' | t }}"
+        class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none"
+      >
+        <option value="">{{ 'orders.allLocations' | t }}</option>
+        @for (loc of locations(); track loc.id) {
+          <option [value]="loc.id">{{ loc.name }}{{ loc.address ? ' — ' + loc.address : '' }}</option>
+        }
+      </select>
+      <!-- Search -->
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()"
+        placeholder="{{ 'orders.search' | t }}"
+        aria-label="{{ 'orders.search' | t }}"
+        class="mt-2 w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none"
+      />
+    </div>
+    <!-- Status tabs -->
+    <div class="flex gap-1 px-3 py-2 border-b border-slate-50 flex-shrink-0" role="group" aria-label="Status">
+      @for (tab of statusTabs; track tab.value) {
+        <button
+          (click)="activeTab.set(tab.value)"
+          [attr.aria-pressed]="activeTab() === tab.value"
+          [class]="
+            activeTab() === tab.value
+              ? 'bg-amber-100 text-amber-700 font-semibold'
+              : 'text-slate-500 hover:text-slate-700'
+          "
+          class="flex-1 text-xs rounded-lg py-1.5 transition-colors"
+        >
+          {{ tab.labelKey | t }}
+          @if (countForStatus(tab.value)) {
+            <span class="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">{{
+              countForStatus(tab.value)
+            }}</span>
+          }
+        </button>
+      }
+    </div>
+    <!-- Order list -->
+    <div class="flex-1 overflow-y-auto">
+      @if (loading()) {
+        <div class="p-4 text-center text-slate-400 text-sm animate-pulse">{{ 'label.loading' | t }}</div>
+      } @else if (!filteredOrders().length) {
+        <div class="p-8 text-center text-slate-400">
+          <div class="text-4xl mb-2">📋</div>
+          <p class="text-sm">{{ 'orders.noOrders' | t }}</p>
+        </div>
+      } @else {
+        @for (order of filteredOrders(); track order.id) {
+          <button
+            (click)="selectedOrder.set(order)"
+            [class]="
+              selectedOrder()?.id === order.id
+                ? 'bg-amber-50 border-l-4 border-l-amber-500'
+                : 'border-l-4 border-l-transparent hover:bg-slate-50'
+            "
+            class="w-full text-left px-4 py-3 border-b border-slate-50 transition-colors"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-slate-800 truncate">
+                  Order #{{ order.id.slice(-6).toUpperCase() }}
+                </p>
+                <p class="text-xs font-medium text-slate-700 truncate mt-0.5">{{ order.customerName }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">
+                  {{ order.createdAt | date: 'HH:mm' }} · {{ totalQty(order) }} item(s)
+                </p>
+              </div>
+              <div class="flex-shrink-0">
+                <yurt-badge [variant]="order.status | orderStatusColor" class="text-xs">
+                  {{ 'order.status.' + order.status | t }}
+                </yurt-badge>
+              </div>
+            </div>
+            <p class="text-amber-600 font-bold text-sm mt-1">{{ order.total | currency2 }}</p>
+          </button>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Detail pane -->
+  <div class="flex-1 overflow-y-auto bg-slate-50 p-6">
+    @if (!selectedOrder()) {
+      <div class="h-full flex items-center justify-center">
+        <div class="text-center text-slate-400">
+          <div class="text-6xl mb-4">☕</div>
+          <p class="text-lg font-medium">{{ 'orders.selectOrder' | t }}</p>
+          <p class="text-sm mt-1">{{ 'orders.clickToView' | t }}</p>
+        </div>
+      </div>
+    } @else {
+      @let o = selectedOrder()!;
+      <div class="max-w-2xl mx-auto space-y-4">
+        <!-- Title -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">
+              Order #{{ o.id.slice(-6).toUpperCase() }}
+            </h2>
+            <p class="text-slate-800 text-sm font-semibold">{{ o.customerName }}</p>
+            @if (o.customerPhone) {
+              <div class="mt-1">
+                <span class="text-xs text-slate-400">{{ 'label.phone' | t }}</span>
+                <p class="text-base font-semibold text-slate-800 tracking-wide">{{ formatPhone(o.customerPhone) }}</p>
+              </div>
+            }
+            <p class="text-slate-500 text-sm">{{ o.createdAt | date: 'MMM d, yyyy HH:mm' }}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1.5">
+            <yurt-badge [variant]="o.status | orderStatusColor" class="text-sm">
+              {{ 'order.status.' + o.status | t }}
+            </yurt-badge>
+            @if (iikoSyncBadge(o.iikoOrderSyncStatus); as sync) {
+              <yurt-badge [variant]="sync.variant" class="text-xs">{{ sync.label }}</yurt-badge>
+            }
+          </div>
+        </div>
+
+        <!-- Decline reason -->
+        @if (o.declineReason) {
+          <div class="bg-red-50 border border-red-100 rounded-2xl p-4">
+            <p class="text-xs font-semibold text-red-500 mb-1">{{ 'orders.declineReasonLabel' | t }}</p>
+            <p class="text-sm text-red-700">{{ o.declineReason }}</p>
+          </div>
+        }
+
+        <!-- Action buttons -->
+        @if (o.status === OrderStatus.Created) {
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'orders.eta' | t }}</label>
+              <select
+                [(ngModel)]="etaPresetValue"
+                (ngModelChange)="onEtaPresetChange($event)"
+                aria-label="{{ 'orders.eta' | t }}"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+              >
+                <option value="10">10 min</option>
+                <option value="15">15 min</option>
+                <option value="20">20 min</option>
+                <option value="30">30 min</option>
+                <option value="custom">Custom…</option>
+              </select>
+              @if (useCustomEta) {
+                <input
+                  type="number"
+                  [(ngModel)]="etaInput"
+                  min="1"
+                  max="120"
+                  [placeholder]="'orders.etaPlaceholder' | t"
+                  [attr.aria-label]="'orders.etaPlaceholder' | t"
+                  class="w-full mt-2 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                />
+              }
+            </div>
+            <div class="flex gap-2">
+              <button
+                [disabled]="actionLoading() || !canAccept(o)"
+                (click)="acceptOrder(o)"
+                class="flex-1 inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-stone-900 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
+              >
+                @if (actionLoading()) {
+                  <span
+                    class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                  ></span>
+                }
+                {{ 'orders.accept' | t }}
+              </button>
+              <button
+                (click)="showDecline.set(true)"
+                class="flex-1 inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
+              >
+                {{ 'orders.decline' | t }}
+              </button>
+            </div>
+            @if (!canAccept(o)) {
+              <p class="text-xs text-amber-600 font-medium mt-1">{{ 'orders.acceptRequiresPayment' | t }}</p>
+            }
+          </div>
+        }
+
+        @if (o.status === OrderStatus.Accepted) {
+          <div class="flex gap-2">
+            <yurt-button
+              variant="primary"
+              size="md"
+              [loading]="actionLoading()"
+              (clicked)="updateStatus(o, OrderStatus.Preparing)"
+            >
+              {{ 'orders.markPreparing' | t }}
+            </yurt-button>
+          </div>
+        }
+
+        @if (o.status === OrderStatus.Preparing) {
+          <div class="flex gap-2">
+            <yurt-button
+              variant="primary"
+              size="md"
+              [loading]="actionLoading()"
+              (clicked)="updateStatus(o, OrderStatus.Ready)"
+            >
+              {{ 'orders.markReady' | t }}
+            </yurt-button>
+          </div>
+        }
+
+        @if (o.status === OrderStatus.Ready) {
+          <div class="flex gap-2">
+            <yurt-button
+              variant="primary"
+              size="md"
+              [loading]="actionLoading()"
+              (clicked)="updateStatus(o, OrderStatus.Completed)"
+            >
+              {{ 'orders.markCompleted' | t }}
+            </yurt-button>
+          </div>
+        }
+
+        <!-- Payment controls -->
+        @if (o.status !== OrderStatus.Declined) {
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+            <h3 class="text-sm font-semibold text-slate-700 mb-3">{{ 'orders.payment' | t }}</h3>
+            @if (o.paymentMethod) {
+              <div class="flex justify-between items-center text-sm mb-3">
+                <span class="text-slate-500">{{ 'orders.method' | t }}</span>
+                <div class="flex items-center">
+                  @if (o.paymentMethod === 'KaspiBank') {
+                    <img src="kaspi.png" alt="Kaspi Bank" class="h-5 w-auto object-contain" />
+                  } @else if (o.paymentMethod === 'HalykBank') {
+                    <img src="halyk.png" alt="Halyk Bank" class="h-5 w-auto object-contain" />
+                  } @else if (o.paymentMethod === 'FreedomBank') {
+                    <img src="freedom.png" alt="Freedom Bank" class="h-5 w-auto object-contain" />
+                  } @else {
+                    <span class="font-semibold text-slate-800">{{ o.paymentMethod }}</span>
+                  }
+                </div>
+              </div>
+            }
+            <div class="flex gap-2" role="group" [attr.aria-label]="'orders.method' | t">
+              @for (s of ['Unpaid', 'Paid', 'Refunded']; track s) {
+                <button
+                  (click)="paymentStatus = s; savePayment(o)"
+                  [attr.aria-pressed]="paymentStatus === s"
+                  [disabled]="paymentLoading()"
+                  class="flex-1 text-xs font-semibold py-2 rounded-xl border-2 transition-all disabled:opacity-50"
+                  [class]="paymentStatus === s
+                    ? (s === 'Paid' ? 'border-teal-400 bg-teal-50 text-teal-700' : s === 'Refunded' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-amber-400 bg-amber-50 text-amber-700')
+                    : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'"
+                >
+                  {{ 'orders.' + s.toLowerCase() | t }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Customer rating -->
+        @if (o.rating) {
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+            <h3 class="text-sm font-semibold text-slate-700 mb-2">{{ 'orders.rating' | t }}</h3>
+            <div class="text-base" aria-hidden="true">
+              @for (s of [1, 2, 3, 4, 5]; track s) {
+                <span [class]="s <= o.rating! ? 'text-amber-500' : 'text-slate-200'">★</span>
+              }
+            </div>
+            <span class="sr-only">{{ o.rating }} / 5</span>
+            @if (o.ratingComment) {
+              <p class="text-slate-500 text-sm mt-2 italic">"{{ o.ratingComment }}"</p>
+            }
+          </div>
+        }
+
+        <!-- Items -->
+        <div class="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+          <h3 class="text-sm font-semibold text-slate-700 mb-3">{{ 'orders.items' | t }}</h3>
+          @for (item of o.items; track item.id) {
+            <div class="flex justify-between py-2 border-b border-slate-50 last:border-0">
+              <div class="min-w-0 flex-1 pr-3">
+                <p class="text-slate-800 text-sm font-medium">
+                  {{ item.quantity }} × {{ item.menuItemName }}
+                  @if (item.variantLabel) {
+                    <span class="text-xs text-slate-500 font-normal"> · {{ item.variantLabel }}</span>
+                  }
+                </p>
+                @if (item.toppings.length) {
+                  <p class="text-slate-400 text-xs mt-0.5">
+                    + {{ item.toppings.map(t => t.toppingName).join(', ') }}
+                  </p>
+                }
+                @if (item.notes) {
+                  <p class="text-slate-500 text-xs mt-0.5 italic">📝 {{ item.notes }}</p>
+                }
+                <p class="text-slate-400 text-xs mt-0.5">{{ item.unitPrice | currency2 }} each</p>
+              </div>
+              <span class="font-semibold text-slate-800 text-sm shrink-0">{{
+                item.lineTotal | currency2
+              }}</span>
+            </div>
+          }
+          <div class="pt-3 mt-1 border-t border-slate-100 space-y-1.5">
+            @if (o.discountCode) {
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-500">{{ 'orders.subtotal' | t }}</span>
+                <span class="text-slate-700">{{ o.subtotal | currency2 }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-teal-600 flex items-center gap-1">
+                  🏷️ <span class="font-mono bg-teal-50 rounded px-1 text-xs">{{ o.discountCode }}</span>
+                </span>
+                <span class="text-teal-600 font-semibold">-{{ o.discountAmount | currency2 }}</span>
+              </div>
+            }
+            <div class="flex justify-between">
+              <span class="font-bold text-slate-800">{{ 'orders.total' | t }}</span>
+              <span class="font-bold text-amber-600">{{ o.total | currency2 }}</span>
+            </div>
+            @if (o.loyaltyPointsSpent) {
+              <div class="flex justify-between text-sm">
+                <span class="text-amber-600">✨ {{ 'orders.bonusPaid' | t }}</span>
+                <span class="text-amber-600 font-semibold">-{{ o.loyaltyPointsSpent | currency2 }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="font-semibold text-slate-600">{{ 'orders.dueAtCounter' | t }}</span>
+                <span class="font-semibold text-slate-700">{{ o.total - o.loyaltyPointsSpent | currency2 }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Decline dialog -->
+@if (showDecline()) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showDecline.set(false)">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" role="dialog" aria-modal="true" aria-labelledby="decline-dialog-title">
+      <h3 id="decline-dialog-title" class="text-lg font-bold text-slate-800 mb-4">{{ 'orders.declineTitle' | t }}</h3>
+      <textarea
+        [(ngModel)]="declineReason"
+        rows="3"
+        [placeholder]="'orders.declineReason' | t"
+        [attr.aria-label]="'orders.declineReason' | t"
+        class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-red-400 outline-none resize-none"
+      >
+      </textarea>
+      <div class="flex gap-3 mt-4">
+        <yurt-button variant="ghost" size="md" [fullWidth]="true" (clicked)="showDecline.set(false)">
+          {{ 'action.cancel' | t }}
+        </yurt-button>
+        <yurt-button
+          variant="destructive"
+          size="md"
+          [fullWidth]="true"
+          [loading]="actionLoading()"
+          (clicked)="declineOrder(selectedOrder()!)"
+        >
+          {{ 'orders.decline' | t }}
+        </yurt-button>
+      </div>
+    </div>
+  </div>
+}

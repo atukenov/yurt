@@ -1,0 +1,52 @@
+<div class="min-h-screen bg-stone-50 pb-8">
+  <div class="bg-white border-b border-stone-100 px-4 py-4">
+    <h1 class="text-xl font-bold text-stone-800">Start Group Order</h1>
+    <p class="text-xs text-stone-500 mt-0.5">Choose a location and share the code with friends</p>
+  </div>
+
+  <div class="p-4 max-w-lg mx-auto space-y-3 pb-28">
+    @if (locLoading()) {
+      @for (i of [1, 2]; track i) {
+        <div class="h-20 bg-stone-100 rounded-2xl animate-pulse"></div>
+      }
+    } @else {
+      @for (loc of locations(); track loc.id) {
+        <button
+          (click)="selectedId.set(loc.id)"
+          [class]="selectedId() === loc.id
+            ? 'ring-2 ring-amber-400 border-amber-200 bg-amber-50'
+            : 'border-stone-100 bg-white hover:border-amber-200'"
+          class="w-full text-left rounded-2xl border-2 p-4 shadow-sm transition-all focus:outline-none"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-xl shrink-0">📍</div>
+            <div class="flex-1">
+              <p class="font-bold text-stone-800 text-sm">{{ loc.name }}</p>
+              <p class="text-stone-500 text-xs mt-0.5">{{ loc.address }}</p>
+            </div>
+            @if (selectedId() === loc.id) {
+              <div class="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center shrink-0">
+                <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+                </svg>
+              </div>
+            }
+          </div>
+        </button>
+      }
+    }
+  </div>
+
+  @if (selectedId()) {
+    <div class="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-stone-100 max-w-lg mx-auto"
+      style="box-shadow: 0 -1px 12px rgba(0,0,0,0.06)">
+      <button
+        (click)="create()"
+        [disabled]="loading()"
+        class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.98] disabled:opacity-60 text-stone-900 font-bold rounded-2xl py-4 text-base shadow-lg transition-all"
+      >
+        {{ loading() ? 'Creating…' : 'Create Group Cart' }}
+      </button>
+    </div>
+  }
+</div>

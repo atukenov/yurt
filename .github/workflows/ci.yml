@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '20.x'
+
+jobs:
+  # ── Backend ──────────────────────────────────────────────────────────────
+  backend:
+    name: Backend — Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
+          restore-keys: nuget-
+
+      - name: Restore
+        working-directory: backend
+        run: dotnet restore
+
+      - name: Build
+        working-directory: backend
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit tests
+        working-directory: backend
+        run: >
+          dotnet test tests/Yurt.UnitTests/Yurt.UnitTests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=unit-results.trx"
+
+      - name: Run integration tests
+        working-directory: backend
+        run: >
+          dotnet test tests/Yurt.IntegrationTests/Yurt.IntegrationTests.csproj
+          --no-build --configuration Release
+          --logger "trx;LogFileName=integration-results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: backend/**/*.trx
+
+      - name: Check for vulnerable packages (non-blocking)
+        working-directory: backend
+        run: dotnet list package --vulnerable --include-transitive 2>&1 || true
+
+  # ── Frontend ─────────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend — Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build customer app
+        working-directory: frontend
+        run: npx ng build yurt-customer --configuration production
+
+      - name: Build admin app
+        working-directory: frontend
+        run: npx ng build yurt-admin --configuration production
+
+      - name: Audit dependencies (non-blocking)
+        working-directory: frontend
+        run: npm audit --audit-level=high 2>&1 || true

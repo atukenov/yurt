@@ -1,0 +1,92 @@
+@if (visible() && current) {
+  <div
+    class="fixed inset-0 z-9998 bg-black select-none"
+    [style.transform]="'translateY(' + swipeTranslateY() + 'px)'"
+    [style.transition]="swipeTranslateY() === 0 ? 'transform 0.25s ease' : 'none'"
+    (click)="onTap($event)"
+    (touchstart)="onSwipeStart($event)"
+    (touchmove)="onSwipeMove($event)"
+    (touchend)="onSwipeEnd($event)"
+  >
+    <!-- Background image or gradient -->
+    @if (current.imageUrl) {
+      <img
+        [src]="current.imageUrl"
+        [alt]="current.title"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+    } @else {
+      <div
+        class="absolute inset-0 bg-linear-to-br from-amber-400 to-orange-500"
+      ></div>
+    }
+
+    <!-- Gradient overlays for readability -->
+    <div
+      class="absolute inset-0 bg-linear-to-b from-black/50 via-transparent to-black/70"
+    ></div>
+
+    <!-- Progress segments -->
+    <div
+      class="absolute left-0 right-0 flex gap-1 px-3"
+      style="top: calc(env(safe-area-inset-top) + 10px)"
+    >
+      @for (p of promotions(); track p.id; let i = $index) {
+        <div class="h-0.75 flex-1 bg-white/30 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-white rounded-full"
+            [style.width.%]="segmentWidth(i)"
+          ></div>
+        </div>
+      }
+    </div>
+
+    <!-- X close button -->
+    <button
+      (click)="$event.stopPropagation(); closeAll()"
+      class="absolute right-4 text-white active:opacity-70 transition-opacity"
+      style="top: calc(env(safe-area-inset-top) + 24px)"
+      aria-label="Close"
+    >
+      <svg
+        class="w-7 h-7"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+
+    <!-- Bottom content -->
+    <div
+      class="absolute bottom-0 left-0 right-0 px-5"
+      style="padding-bottom: calc(env(safe-area-inset-bottom) + 36px)"
+    >
+      <h2 class="text-white text-xl font-bold leading-snug mb-2 drop-shadow">
+        {{ current.title }}
+      </h2>
+      @if (current.description) {
+        <p class="text-white/80 text-sm leading-relaxed drop-shadow">
+          {{ current.description }}
+        </p>
+      }
+      @if (current.buttonLabel && current.buttonUrl) {
+        <a
+          [href]="current.buttonUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="$event.stopPropagation()"
+          class="mt-4 inline-block bg-white text-stone-900 font-semibold text-sm px-5 py-2.5 rounded-full shadow-lg active:scale-95 transition-transform"
+        >
+          {{ current.buttonLabel }}
+        </a>
+      }
+    </div>
+  </div>
+}

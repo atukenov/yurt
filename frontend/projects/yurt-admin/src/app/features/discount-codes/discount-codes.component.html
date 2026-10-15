@@ -1,0 +1,223 @@
+<div class="flex-1 overflow-y-auto">
+  <div class="px-6 py-6 max-w-5xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">{{ 'discountCodes.title' | t }}</h1>
+        <p class="text-sm text-slate-500 mt-1">{{ 'discountCodes.subtitle' | t }}</p>
+      </div>
+      <button
+        (click)="openCreate()"
+        class="px-4 py-2 rounded-xl bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 active:scale-95 transition-all shadow-sm"
+      >
+        {{ 'discountCodes.new' | t }}
+      </button>
+    </div>
+
+    <!-- Table -->
+    @if (loading()) {
+      <p class="text-slate-400 text-sm">{{ 'label.loading' | t }}</p>
+    } @else if (!codes().length) {
+      <div class="text-center py-16 text-slate-400">
+        <div class="text-4xl mb-3">🏷️</div>
+        <p class="font-medium">{{ 'discountCodes.noCodes' | t }}</p>
+        <p class="text-sm mt-1">{{ 'discountCodes.noCodesHint' | t }}</p>
+      </div>
+    } @else {
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200">
+              <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'discountCodes.code' | t }}</th>
+              <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'discountCodes.titleCol' | t }}</th>
+              <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'discountCodes.discount' | t }}</th>
+              <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'discountCodes.usage' | t }}</th>
+              <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'discountCodes.expires' | t }}</th>
+              <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'label.status' | t }}</th>
+              <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'label.actions' | t }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (code of codes(); track code.id) {
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-4 py-3">
+                  <span class="font-mono font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-lg">{{ code.code }}</span>
+                </td>
+                <td class="px-4 py-3 text-slate-700">{{ code.title }}</td>
+                <td class="px-4 py-3 text-slate-700">
+                  @if (code.discountType === 'Percentage') {
+                    <span class="text-amber-600 font-semibold">{{ code.discountValue }}%</span>
+                  } @else {
+                    <span class="text-amber-600 font-semibold">{{ code.discountValue | number:'1.0-0' }} ₸</span>
+                  }
+                  @if (code.minOrderAmount) {
+                    <span class="text-xs text-slate-400 ml-1">(min {{ code.minOrderAmount | number:'1.0-0' }} ₸)</span>
+                  }
+                </td>
+                <td class="px-4 py-3 text-slate-600">
+                  {{ code.usedCount }}{{ code.maxUses ? ' / ' + code.maxUses : '' }}
+                </td>
+                <td class="px-4 py-3 text-slate-500 text-xs">
+                  {{ code.expiresAt ? (code.expiresAt | date:'dd MMM yyyy') : '—' }}
+                </td>
+                <td class="px-4 py-3">
+                  @if (!code.isActive) {
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{{ 'label.inactive' | t }}</span>
+                  } @else if (isExpired(code)) {
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">{{ 'discountCodes.expired' | t }}</span>
+                  } @else if (code.maxUses && code.usedCount >= code.maxUses) {
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">{{ 'discountCodes.limitReached' | t }}</span>
+                  } @else {
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">{{ 'label.active' | t }}</span>
+                  }
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <button (click)="openEdit(code)" class="text-xs text-slate-500 hover:text-amber-600 transition-colors font-medium">{{ 'action.edit' | t }}</button>
+                    <button (click)="delete(code)" class="text-xs text-slate-500 hover:text-red-500 transition-colors font-medium">{{ 'action.delete' | t }}</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- Create / Edit dialog -->
+@if (showForm()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="cancel()" (keydown.escape)="cancel()">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="discount-dialog-title" (click)="$event.stopPropagation()">
+      <h2 id="discount-dialog-title" class="text-lg font-bold text-slate-800 mb-5">
+        {{ isEditing() ? ('discountCodes.editTitle' | t) : ('discountCodes.addTitle' | t) }}
+      </h2>
+
+      <div class="space-y-4">
+        <!-- Code -->
+        <div>
+          <label for="discount-code" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.code' | t }} *</label>
+          <input
+            id="discount-code"
+            [(ngModel)]="formCode"
+            [disabled]="isEditing()"
+            placeholder="e.g. SUMMER20"
+            class="w-full text-sm font-mono uppercase tracking-wider rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60"
+          />
+        </div>
+
+        <!-- Title -->
+        <div>
+          <label for="discount-title" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.titleField' | t }} *</label>
+          <input
+            id="discount-title"
+            [(ngModel)]="formTitle"
+            placeholder="{{ 'discountCodes.titlePlaceholder' | t }}"
+            class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+          />
+        </div>
+
+        <!-- Type + Value -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="discount-type" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.type' | t }}</label>
+            <select
+              id="discount-type"
+              [(ngModel)]="formType"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            >
+              <option value="Percentage">{{ 'discountCodes.percentage' | t }}</option>
+              <option value="FixedAmount">{{ 'discountCodes.fixedAmount' | t }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="discount-value" class="block text-xs font-semibold text-slate-600 mb-1">
+              {{ formType === 'Percentage' ? ('discountCodes.percent' | t) : ('discountCodes.amountTenge' | t) }} *
+            </label>
+            <input
+              id="discount-value"
+              [(ngModel)]="formValue"
+              type="number"
+              min="1"
+              [max]="formType === 'Percentage' ? 100 : null"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            />
+          </div>
+        </div>
+
+        <!-- Max uses + Min order -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="discount-max-uses" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.maxUses' | t }}</label>
+            <input
+              id="discount-max-uses"
+              [(ngModel)]="formMaxUses"
+              type="number"
+              min="1"
+              placeholder="{{ 'discountCodes.unlimited' | t }}"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            />
+          </div>
+          <div>
+            <label for="discount-min-order" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.minOrder' | t }}</label>
+            <input
+              id="discount-min-order"
+              [(ngModel)]="formMinOrder"
+              type="number"
+              min="0"
+              placeholder="0"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            />
+          </div>
+        </div>
+
+        <!-- Starts at / Expires at -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="discount-starts-at" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.startsAt' | t }}</label>
+            <input
+              id="discount-starts-at"
+              [(ngModel)]="formStartsAt"
+              type="datetime-local"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            />
+          </div>
+          <div>
+            <label for="discount-expires-at" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.expiresAt' | t }}</label>
+            <input
+              id="discount-expires-at"
+              [(ngModel)]="formExpiresAt"
+              type="datetime-local"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            />
+          </div>
+        </div>
+
+        <!-- Active toggle -->
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" [(ngModel)]="formActive" class="w-4 h-4 accent-amber-500 rounded" />
+          <span class="text-sm font-medium text-slate-700">{{ 'discountCodes.activeLabel' | t }}</span>
+        </label>
+      </div>
+
+      <div class="flex gap-3 mt-6">
+        <button
+          (click)="save()"
+          [disabled]="saving()"
+          class="flex-1 py-2.5 rounded-xl bg-amber-500 text-stone-900 font-semibold text-sm hover:bg-amber-600 active:scale-95 transition-all disabled:opacity-60"
+        >
+          {{ saving() ? ('label.saving' | t) : ('action.save' | t) }}
+        </button>
+        <button
+          (click)="cancel()"
+          class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+        >
+          {{ 'action.cancel' | t }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

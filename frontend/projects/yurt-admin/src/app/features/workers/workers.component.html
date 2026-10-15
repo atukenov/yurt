@@ -1,0 +1,189 @@
+<div class="p-4 md:p-6 max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">{{ 'workers.title' | t }}</h1>
+      <p class="text-slate-400 text-sm mt-0.5">{{ 'workers.manageStaff' | t }}</p>
+    </div>
+    <button
+      (click)="openCreate()"
+      class="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold rounded-xl px-4 py-2 text-sm transition-colors whitespace-nowrap"
+    >
+      {{ 'workers.newWorker' | t }}
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [1,2,3]; track i) {
+        <div class="h-16 bg-slate-100 rounded-2xl animate-pulse"></div>
+      }
+    </div>
+  } @else if (!workers().length) {
+    <div class="text-center py-20 text-slate-400">{{ 'workers.noFound' | t }}</div>
+  } @else {
+    <!-- Desktop table -->
+    <div class="hidden md:block bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wide">
+            <th class="text-left px-5 py-3">{{ 'workers.username' | t }}</th>
+            <th class="text-left px-5 py-3">{{ 'workers.role' | t }}</th>
+            <th class="text-left px-5 py-3">{{ 'workers.statusCol' | t }}</th>
+            <th class="text-left px-5 py-3">{{ 'workers.created' | t }}</th>
+            <th class="text-right px-5 py-3">{{ 'workers.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (w of workers(); track w.id) {
+            <tr class="border-b border-slate-50 last:border-0">
+              <td class="px-5 py-3 font-medium text-slate-800">{{ w.username }}</td>
+              <td class="px-5 py-3">
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  [class]="w.role === 'Admin' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'">
+                  {{ w.role }}
+                </span>
+              </td>
+              <td class="px-5 py-3">
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  [class]="w.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'">
+                  {{ w.isActive ? ('workers.active' | t) : ('workers.inactive' | t) }}
+                </span>
+              </td>
+              <td class="px-5 py-3 text-slate-400">{{ w.createdAt | date: 'MMM d, y' }}</td>
+              <td class="px-5 py-3 text-right">
+                <div class="flex justify-end gap-2">
+                  <button
+                    (click)="toggleActive(w)"
+                    class="text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors"
+                    [class]="w.isActive
+                      ? 'text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100'
+                      : 'text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100'"
+                  >
+                    {{ w.isActive ? ('workers.deactivate' | t) : ('workers.activate' | t) }}
+                  </button>
+                  <button
+                    (click)="openEdit(w)"
+                    class="text-xs text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-1.5 transition-colors"
+                  >
+                    {{ 'action.edit' | t }}
+                  </button>
+                  <button
+                    (click)="openReset(w)"
+                    class="text-xs text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg px-3 py-1.5 transition-colors"
+                  >
+                    {{ 'workers.resetPw' | t }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3">
+      @for (w of workers(); track w.id) {
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="font-semibold text-slate-800">{{ w.username }}</p>
+              <p class="text-xs text-slate-400 mt-0.5">{{ w.createdAt | date: 'MMM d, y' }}</p>
+            </div>
+            <div class="flex gap-1.5">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                [class]="w.role === 'Admin' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'">
+                {{ w.role }}
+              </span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                [class]="w.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'">
+                {{ w.isActive ? ('workers.active' | t) : ('workers.inactive' | t) }}
+              </span>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="toggleActive(w)"
+              class="flex-1 text-xs font-semibold rounded-lg px-3 py-2 transition-colors"
+              [class]="w.isActive
+                ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                : 'text-green-600 bg-green-50 hover:bg-green-100'"
+            >
+              {{ w.isActive ? ('workers.deactivate' | t) : ('workers.activate' | t) }}
+            </button>
+            <button
+              (click)="openEdit(w)"
+              class="flex-1 text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-2 transition-colors"
+            >
+              {{ 'action.edit' | t }}
+            </button>
+            <button
+              (click)="openReset(w)"
+              class="flex-1 text-xs text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-lg px-3 py-2 transition-colors"
+            >
+              {{ 'workers.resetPw' | t }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Create modal -->
+@if (showCreate()) {
+  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" (click)="showCreate.set(false)" (keydown.escape)="showCreate.set(false)">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" role="dialog" aria-modal="true" aria-labelledby="worker-create-title" (click)="$event.stopPropagation()">
+      <h2 id="worker-create-title" class="text-lg font-bold text-slate-800 mb-4">{{ 'workers.newAccount' | t }}</h2>
+      <div class="space-y-3">
+        <input [(ngModel)]="createUsername" [placeholder]="'workers.username' | t" [attr.aria-label]="'workers.username' | t" class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300" />
+        <input [(ngModel)]="createPassword" type="password" [placeholder]="'workers.pwMinChars' | t" [attr.aria-label]="'workers.pwMinChars' | t" class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300" />
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button (click)="showCreate.set(false)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{{ 'action.cancel' | t }}</button>
+        <button (click)="submitCreate()" [disabled]="createLoading()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
+          {{ createLoading() ? ('workers.creating' | t) : ('action.add' | t) }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit modal -->
+@if (editWorker()) {
+  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" (click)="editWorker.set(null)" (keydown.escape)="editWorker.set(null)">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" role="dialog" aria-modal="true" aria-labelledby="worker-edit-title" (click)="$event.stopPropagation()">
+      <h2 id="worker-edit-title" class="text-lg font-bold text-slate-800 mb-4">{{ 'workers.editWorker' | t }}</h2>
+      <div class="space-y-3">
+        <input [(ngModel)]="editUsername" [placeholder]="'workers.username' | t" [attr.aria-label]="'workers.username' | t" class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300" />
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" [(ngModel)]="editActive" class="w-4 h-4 rounded text-amber-500" />
+          <span class="text-sm text-slate-700">{{ 'workers.active' | t }}</span>
+        </label>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button (click)="editWorker.set(null)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{{ 'action.cancel' | t }}</button>
+        <button (click)="submitEdit()" [disabled]="editLoading()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
+          {{ editLoading() ? ('workers.saving' | t) : ('action.save' | t) }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Reset password modal -->
+@if (resetWorker()) {
+  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" (click)="resetWorker.set(null)" (keydown.escape)="resetWorker.set(null)">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" role="dialog" aria-modal="true" aria-labelledby="worker-reset-title" (click)="$event.stopPropagation()">
+      <h2 id="worker-reset-title" class="text-lg font-bold text-slate-800 mb-1">{{ 'workers.resetTitle' | t }}</h2>
+      <p class="text-sm text-slate-400 mb-4">{{ resetWorker()!.username }}</p>
+      <input [(ngModel)]="resetPassword" type="password" [placeholder]="'workers.newPw' | t" [attr.aria-label]="'workers.newPw' | t" class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300" />
+      <div class="flex gap-3 mt-5">
+        <button (click)="resetWorker.set(null)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{{ 'action.cancel' | t }}</button>
+        <button (click)="submitReset()" [disabled]="resetLoading()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
+          {{ resetLoading() ? ('workers.resetting' | t) : ('action.confirm' | t) }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

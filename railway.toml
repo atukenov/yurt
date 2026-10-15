@@ -1,0 +1,6 @@
+[build]
+dockerfile = "dockerfile"
+context = "."
+
+[deploy]
+startCommand = "dotnet Yurt.WebApi.dll"

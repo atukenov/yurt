@@ -1,0 +1,150 @@
+<div class="p-6 max-w-4xl mx-auto">
+  <!-- Back -->
+  <a routerLink="/customers" class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-6 transition-colors">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+    </svg>
+    {{ 'customers.backTo' | t }}
+  </a>
+
+  @if (loading()) {
+    <div class="space-y-4 animate-pulse">
+      <div class="bg-white rounded-2xl border border-slate-100 p-6 h-40"></div>
+      <div class="bg-white rounded-2xl border border-slate-100 p-6 h-60"></div>
+    </div>
+  } @else if (error() || !customer()) {
+    <div class="text-center py-20 text-slate-400">{{ 'customers.notFound' | t }}</div>
+  } @else {
+    @let c = customer()!;
+
+    <!-- Profile card -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-4">
+      <div class="flex items-start gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-2xl shrink-0">👤</div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl font-bold text-slate-800">{{ c.displayName || c.phone }}</h1>
+            @if (!c.isActive) {
+              <span class="text-xs font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">{{ 'customers.deactivated' | t }}</span>
+            } @else {
+              <span class="text-xs font-semibold bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{{ 'customers.active' | t }}</span>
+            }
+          </div>
+          <p class="text-slate-500 font-mono text-sm mt-0.5">{{ c.phone }}</p>
+          <p class="text-slate-400 text-xs mt-1">{{ 'customers.memberSince' | t }} {{ c.registeredAt | date: 'MMM d, y' }}</p>
+        </div>
+      </div>
+      <div class="grid gap-3 mt-5"
+        [class]="loyalty()?.enabled ? 'grid-cols-3' : 'grid-cols-2'">
+        <div class="bg-amber-50 rounded-xl p-4 text-center">
+          <p class="text-2xl font-bold text-amber-600">{{ c.totalOrders }}</p>
+          <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.totalOrders' | t }}</p>
+        </div>
+        <div class="bg-amber-50 rounded-xl p-4 text-center">
+          <p class="text-2xl font-bold text-amber-600">{{ c.totalSpent | currency2 }}</p>
+          <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.totalSpent' | t }}</p>
+        </div>
+        @if (loyalty(); as l) {
+          @if (l.enabled) {
+            <div class="bg-yellow-50 rounded-xl p-4 text-center relative">
+              <button
+                (click)="refreshLoyalty()"
+                [disabled]="loyaltyLoading()"
+                class="absolute top-2 right-2 text-slate-400 hover:text-slate-600 disabled:opacity-50 transition-colors"
+                [attr.aria-label]="'customers.loyaltyRefresh' | t"
+                title="{{ 'customers.loyaltyRefresh' | t }}">
+                <svg class="w-3.5 h-3.5" [class.animate-spin]="loyaltyLoading()" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              @if (l.available && l.linked && l.balance !== null) {
+                <p class="text-2xl font-bold text-yellow-600">{{ l.balance | currencyDecimal }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.loyaltyBalance' | t }}</p>
+              } @else if (l.available && !l.linked) {
+                <p class="text-2xl font-bold text-slate-300">—</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.loyaltyNotLinked' | t }}</p>
+              } @else {
+                <p class="text-2xl font-bold text-slate-300">?</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.loyaltyUnavailable' | t }}</p>
+              }
+            </div>
+          }
+        }
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button
+          (click)="toggleActive()"
+          [disabled]="toggleLoading()"
+          class="text-sm font-semibold rounded-xl px-4 py-2 transition-colors disabled:opacity-60"
+          [class]="c.isActive
+            ? 'bg-red-50 text-red-600 hover:bg-red-100'
+            : 'bg-green-50 text-green-600 hover:bg-green-100'"
+        >
+          {{ toggleLoading()
+            ? ('customers.updating' | t)
+            : c.isActive ? ('customers.deactivate' | t) : ('customers.activate' | t) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Order history -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-50">
+        <h2 class="text-sm font-bold text-slate-700">{{ 'customers.recentOrders' | t }}</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Last {{ c.recentOrders.length }} orders</p>
+      </div>
+      @if (!c.recentOrders.length) {
+        <div class="text-center py-12 text-slate-400 text-sm">{{ 'customers.noOrders' | t }}</div>
+      } @else {
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wide">
+              <th class="text-left px-5 py-3">{{ 'customers.date' | t }}</th>
+              <th class="text-left px-5 py-3">{{ 'customers.location' | t }}</th>
+              <th class="text-left px-5 py-3">{{ 'label.status' | t }}</th>
+              <th class="text-right px-5 py-3">{{ 'customers.items' | t }}</th>
+              <th class="text-right px-5 py-3">{{ 'customers.total' | t }}</th>
+              @if (loyalty()?.enabled) {
+                <th class="text-right px-5 py-3">{{ 'customers.bonuses' | t }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (o of c.recentOrders; track o.id) {
+              <tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+                <td class="px-5 py-3 text-slate-500 whitespace-nowrap">{{ o.createdAt | date: 'MMM d, y' }}</td>
+                <td class="px-5 py-3 text-slate-700">{{ o.locationName }}</td>
+                <td class="px-5 py-3">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                    [ngClass]="{
+                      'bg-amber-100 text-amber-700': o.status === 'Created',
+                      'bg-blue-100 text-blue-700': o.status === 'Accepted',
+                      'bg-teal-100 text-teal-700': o.status === 'Preparing',
+                      'bg-green-100 text-green-700': o.status === 'Ready',
+                      'bg-emerald-100 text-emerald-700': o.status === 'Completed',
+                      'bg-red-100 text-red-700': o.status === 'Declined'
+                    }">{{ 'order.status.' + o.status | t }}</span>
+                </td>
+                <td class="px-5 py-3 text-right text-slate-600">{{ o.itemCount }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-amber-600">{{ o.total | currency2 }}</td>
+                @if (loyalty()?.enabled) {
+                  <td class="px-5 py-3 text-right whitespace-nowrap">
+                    @if (o.loyaltyPointsEarned) {
+                      <span class="text-teal-600 font-semibold">+{{ o.loyaltyPointsEarned | currency2 }}</span>
+                    }
+                    @if (o.loyaltyPointsSpent) {
+                      <span class="text-amber-600 font-semibold" [class.ml-2]="o.loyaltyPointsEarned">−{{ o.loyaltyPointsSpent | currency2 }}</span>
+                    }
+                    @if (!o.loyaltyPointsEarned && !o.loyaltyPointsSpent) {
+                      <span class="text-slate-300">—</span>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+</div>

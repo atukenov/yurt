@@ -1,0 +1,88 @@
+<div class="flex-1 overflow-y-auto">
+  <div class="px-6 py-6 max-w-3xl mx-auto">
+
+    <div class="flex items-start justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">{{ 'rel.title' | t }}</h1>
+        <p class="text-sm text-slate-500 mt-1">{{ 'rel.subtitle' | t }}</p>
+      </div>
+      <button (click)="openCreate()"
+        class="shrink-0 px-4 py-2 rounded-xl bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 active:scale-95 transition-all shadow-sm">
+        {{ 'rel.new' | t }}
+      </button>
+    </div>
+
+    @if (loading()) {
+      <p class="text-slate-400 text-sm">{{ 'label.loading' | t }}</p>
+    } @else if (!releases().length) {
+      <div class="text-center py-16 text-slate-400">
+        <div class="text-4xl mb-3">🚀</div>
+        <p class="font-medium">{{ 'rel.empty' | t }}</p>
+      </div>
+    } @else {
+      <div class="space-y-3">
+        @for (r of releases(); track r.id; let first = $first) {
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-mono font-bold text-slate-800 text-lg">v{{ r.version }}</span>
+              @if (first) { <span class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">latest</span> }
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                [class]="r.isMandatory ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'">
+                {{ r.isMandatory ? ('rel.mandatoryShort' | t) : ('rel.optional' | t) }}
+              </span>
+              <span class="text-xs text-slate-400 ml-auto">{{ 'rel.published' | t }} {{ r.createdAt | date: 'MMM d, y' }}</span>
+            </div>
+            <ul class="mt-3 space-y-1 text-sm text-slate-600 list-disc pl-5">
+              @for (n of notes(r); track $index) { <li>{{ n }}</li> }
+            </ul>
+            <div class="flex gap-2 mt-3">
+              <button (click)="openEdit(r)" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">{{ 'action.edit' | t }}</button>
+              <button (click)="remove(r)" class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50">{{ 'action.delete' | t }}</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+@if (showForm()) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showForm.set(false)">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" role="dialog" aria-modal="true">
+      <div class="px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
+        <h3 class="text-lg font-bold text-slate-800">{{ editId() ? ('rel.edit' | t) : ('rel.add' | t) }}</h3>
+      </div>
+      <div class="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+        <div>
+          <label for="rel-version" class="block text-xs font-medium text-slate-600 mb-1">{{ 'rel.version' | t }}</label>
+          <input id="rel-version" type="text" placeholder="5.3.0" [(ngModel)]="form.version"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-amber-400 outline-none" />
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label for="rel-notes" class="text-xs font-medium text-slate-600">{{ 'rel.notes' | t }}</label>
+            <div class="flex gap-1">
+              @for (t of tabs; track t) {
+                <button type="button" (click)="tab.set(t)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
+                  [class]="tab() === t ? 'bg-amber-500 text-stone-900' : 'bg-slate-100 text-slate-500'">{{ t.toUpperCase() }}</button>
+              }
+            </div>
+          </div>
+          <textarea id="rel-notes" rows="6" [(ngModel)]="currentNotes" [name]="'notes'"
+            placeholder="Cancel your order before it's accepted&#10;2GIS directions for accepted orders"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"></textarea>
+          <p class="text-xs text-slate-400 mt-1">{{ 'rel.notesHint' | t }}</p>
+        </div>
+        <label class="flex items-start gap-2 text-sm text-slate-700 select-none cursor-pointer">
+          <input type="checkbox" [(ngModel)]="form.isMandatory" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400" />
+          <span>{{ 'rel.mandatory' | t }}</span>
+        </label>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-100 flex gap-3 shrink-0">
+        <button (click)="showForm.set(false)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">{{ 'action.cancel' | t }}</button>
+        <button (click)="save()" [disabled]="saving()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-stone-900 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">{{ 'action.save' | t }}</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,122 @@
+<div class="min-h-screen bg-stone-50">
+  <!-- Header -->
+  <div class="bg-linear-to-br from-amber-500 to-amber-600 shadow-md px-4 pb-4" style="padding-top: env(safe-area-inset-top)">
+    <h1 class="text-xl font-bold text-white">{{ 'loc.title' | t }}</h1>
+    <p class="text-sm text-amber-100 mt-0.5">{{ 'loc.subtitle' | t }}</p>
+  </div>
+
+  <div class="p-4 space-y-3 max-w-lg mx-auto pb-28">
+    @if (loading()) {
+      @for (i of [1, 2, 3]; track i) {
+        <yurt-skeleton-card />
+      }
+    } @else {
+      @for (loc of locations(); track loc.id) {
+        @let sched = scheduleOf(loc);
+
+        <button
+          (click)="select(loc)"
+          [class]="
+            selectedId() === loc.id
+              ? 'ring-2 ring-amber-400 border-amber-200 bg-amber-50'
+              : 'border-stone-100 bg-white hover:border-amber-200 hover:bg-amber-50/40'
+          "
+          class="w-full text-left rounded-2xl border-2 p-4 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-400"
+        >
+          <div class="flex items-start gap-3">
+
+            <!-- Pin icon -->
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-xl shrink-0">
+              📍
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+
+              <!-- Name + open/closed badge row -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-bold text-stone-800 text-base leading-tight">{{ loc.name }}</h3>
+
+                @if (sched.isOpen) {
+                  <!-- Open badge -->
+                  <span class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    {{ 'loc.openNow' | t }}
+                  </span>
+                } @else {
+                  <!-- Closed badge -->
+                  <span class="inline-flex items-center gap-1 bg-red-50 border border-red-200 text-red-600 text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    {{ 'loc.closedNow' | t }}
+                  </span>
+                }
+              </div>
+
+              <!-- Address -->
+              <p class="text-stone-500 text-sm mt-0.5">{{ loc.address }}</p>
+
+              <!-- Today's hours + phone -->
+              <div class="flex items-center gap-3 mt-2 flex-wrap">
+                <span class="text-xs font-semibold"
+                      [class]="sched.isOpen ? 'text-emerald-600' : 'text-stone-400'">
+                  🕐 {{ sched.todayLabel }}
+                </span>
+                <span class="text-stone-400 text-xs">📞 {{ loc.contactPhone }}</span>
+              </div>
+
+              <!-- Weekly schedule grid -->
+              <div class="mt-2 space-y-0.5">
+                @for (line of sched.weekSummary; track line) {
+                  <p class="text-[11px] text-stone-400 font-mono leading-snug">{{ line }}</p>
+                }
+              </div>
+
+              <!-- "Will open at" pill — only when closed -->
+              @if (!sched.isOpen && sched.nextOpenAt) {
+                <div class="mt-2.5">
+                  <span class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                    ⏰ {{ 'loc.opensAt' | t }} {{ sched.nextOpenAt }}
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- Selected checkmark -->
+            <div
+              [class]="selectedId() === loc.id ? 'bg-amber-400 scale-110' : 'bg-stone-100'"
+              class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all mt-1"
+            >
+              @if (selectedId() === loc.id) {
+                <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                </svg>
+              }
+            </div>
+          </div>
+        </button>
+      }
+
+      @if (!locations().length) {
+        <div class="text-center py-20">
+          <div class="text-5xl mb-4">📍</div>
+          <p class="text-stone-600 font-medium">{{ 'loc.noLocations' | t }}</p>
+          <p class="text-stone-400 text-sm mt-1">{{ 'loc.checkLater' | t }}</p>
+        </div>
+      }
+    }
+  </div>
+
+  @if (selectedId()) {
+    <div
+      class="fixed left-0 right-0 p-4 bg-white border-t border-stone-100 max-w-lg mx-auto"
+      style="bottom: calc(4rem + env(safe-area-inset-bottom)); box-shadow: 0 -1px 12px rgba(0, 0, 0, 0.06)"
+    >
+      <button
+        (click)="confirm()"
+        class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-stone-900 font-bold rounded-2xl py-4 text-base shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
+      >
+        {{ 'loc.continue' | t }}
+      </button>
+    </div>
+  }
+</div>

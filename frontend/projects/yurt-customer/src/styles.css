@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-amber-50:  #fffde5;
+  --color-amber-100: #fffab8;
+  --color-amber-200: #fff388;
+  --color-amber-300: #ffe94f;
+  --color-amber-400: #ffdc30;
+  --color-amber-500: #ffd119;
+  --color-amber-600: #d9af00;
+  --color-amber-700: #a68700;
+  --color-amber-800: #745e00;
+  --color-amber-900: #423500;
+  --color-amber-950: #251e00;
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  body {
+    touch-action: manipulation;
+    @apply bg-stone-50 text-stone-900;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  * {
+    @apply box-border;
+  }
+}
+
+@layer components {
+  .pin-box {
+    @apply w-14 h-14 text-center text-2xl font-bold border-2 border-stone-200 rounded-2xl bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-200 transition-all outline-none;
+  }
+  .h-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    scrollbar-width: none;
+  }
+  .h-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}

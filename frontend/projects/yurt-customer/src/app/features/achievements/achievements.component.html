@@ -1,0 +1,183 @@
+<div class="min-h-screen bg-stone-50 pb-28">
+
+  <!-- Unlock celebration toast -->
+  @if (newlyUnlocked().length) {
+    <div class="fixed top-4 inset-x-4 z-50 flex flex-col gap-2 celebration-stack">
+      @for (a of newlyUnlocked(); track a.id) {
+        <button type="button" (click)="dismissCelebration()"
+                class="celebration-toast flex items-center gap-3 rounded-2xl p-3 pr-4 shadow-lg shadow-amber-300/40 text-left"
+                style="background: linear-gradient(135deg, #ffd119 0%, #ea580c 100%);">
+          @if (a.badge) {
+            <img [src]="a.badge" [alt]="name(a)" width="40" height="40" class="w-10 h-10 object-contain shrink-0">
+          } @else {
+            <span class="text-3xl shrink-0">{{ a.icon }}</span>
+          }
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-white/80">{{ 'achievements.unlocked' | t }}</p>
+            <p class="text-sm font-extrabold text-white truncate">{{ name(a) }}</p>
+          </div>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-stone-100 px-4 py-3.5 flex items-center gap-3">
+    <a routerLink="/news" class="text-amber-600 font-semibold text-sm active:opacity-60 transition-opacity shrink-0">
+      {{ 'achievements.back' | t }}
+    </a>
+    <h1 class="text-xl font-bold text-stone-800">{{ 'achievements.title' | t }}</h1>
+  </div>
+
+  <!-- Hero progress card -->
+  <div class="mx-4 mt-4 rounded-3xl overflow-hidden shadow-lg shadow-amber-200/50"
+       style="background: linear-gradient(135deg, #ffd119 0%, #ea580c 100%);">
+    <div class="relative p-6 flex items-center gap-5"
+         style="background: radial-gradient(circle at 85% 30%, rgba(255,255,255,0.15) 0%, transparent 55%)">
+
+      <!-- SVG progress ring -->
+      <div class="shrink-0 relative">
+        <svg width="96" height="96" viewBox="0 0 96 96" class="drop-shadow-sm">
+          <!-- Background track -->
+          <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="8" />
+          <!-- Progress arc -->
+          <circle
+            cx="48" cy="48" r="40"
+            fill="none"
+            stroke="white"
+            stroke-width="8"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="circumference"
+            [attr.stroke-dashoffset]="ringOffset()"
+            transform="rotate(-90 48 48)"
+            class="ring-arc"
+          />
+        </svg>
+        <!-- Count in center -->
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-2xl font-extrabold text-white leading-none tabular-nums">{{ animatedCount() }}</span>
+          <span class="text-[10px] font-semibold text-white/70 mt-0.5">{{ 'achievements.of' | t }} {{ total }}</span>
+        </div>
+      </div>
+
+      <!-- Text -->
+      <div class="flex-1 min-w-0">
+        <p class="text-white font-extrabold text-xl leading-tight">
+          {{ animatedCount() }} {{ 'achievements.of' | t }} {{ total }}
+        </p>
+        <p class="text-white/80 text-sm mt-0.5 font-medium">
+          {{ 'achievements.earned' | t }}
+        </p>
+        <p class="text-white/60 text-xs mt-2 font-semibold uppercase tracking-wider">
+          @if (animatedCount() === total) {
+            {{ 'achievements.allDone' | t }}
+          } @else {
+            {{ 'achievements.keepGoing' | t }}
+          }
+        </p>
+
+        <!-- Dot indicators -->
+        <div class="flex gap-1.5 mt-3 flex-wrap">
+          @for (a of sortedAchievements(); track a.id; let i = $index) {
+            <div class="w-2 h-2 rounded-full transition-colors"
+                 [class]="isUnlocked(a) ? 'bg-white' : 'bg-white/25'"></div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skeleton while loading -->
+  @if (loading()) {
+    <div class="grid grid-cols-2 gap-3 px-4 mt-5">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="h-44 rounded-2xl bg-stone-200 animate-pulse"></div>
+      }
+    </div>
+  } @else {
+
+    <!-- Achievement grid -->
+    <div class="grid grid-cols-2 gap-3 px-4 mt-5">
+      @for (a of sortedAchievements(); track a.id; let i = $index) {
+        @let unlocked = isUnlocked(a);
+        @let prog = progressInfo(a);
+
+        <div class="achievement-card flex flex-col rounded-2xl overflow-hidden border transition-all"
+             [style.animation-delay]="(i * 0.06) + 's'"
+             [class]="unlocked
+               ? 'bg-white border-amber-200 shadow-md shadow-amber-100/60'
+               : 'bg-stone-100 border-stone-200'">
+
+          <!-- Top: emoji area -->
+          <div class="relative flex items-center justify-center pt-5 pb-2">
+
+            <!-- Glow ring for unlocked -->
+            @if (unlocked) {
+              <div class="absolute w-14 h-14 rounded-full"
+                   style="background: radial-gradient(circle, rgba(255,209,25,0.35) 0%, transparent 70%)"></div>
+            }
+
+            <!-- Badge art, falling back to the emoji when no image is assigned -->
+            @if (a.badge) {
+              <img [src]="a.badge" [alt]="name(a)" width="64" height="64" loading="lazy"
+                   class="relative w-16 h-16 object-contain transition-all duration-300"
+                   [class]="unlocked ? 'unlocked-emoji' : 'grayscale opacity-40'">
+            } @else {
+              <span class="relative text-4xl leading-none select-none"
+                    [class]="unlocked ? 'unlocked-emoji' : 'grayscale opacity-40'">
+                {{ a.icon }}
+              </span>
+            }
+
+            <!-- Unlock checkmark badge -->
+            @if (unlocked) {
+              <div class="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm check-badge">
+                <svg viewBox="0 0 10 8" class="w-3 h-3 fill-none stroke-white stroke-[1.5]">
+                  <path d="M1 4l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            } @else {
+              <!-- Lock icon -->
+              <div class="absolute top-3 right-3 text-xs text-stone-400">🔒</div>
+            }
+          </div>
+
+          <!-- Name + desc -->
+          <div class="px-3 pb-3 flex flex-col flex-1 gap-1">
+            <p class="text-[13px] font-bold leading-tight"
+               [class]="unlocked ? 'text-stone-800' : 'text-stone-500'">
+              {{ name(a) }}
+            </p>
+            <p class="text-[11px] leading-snug"
+               [class]="unlocked ? 'text-stone-500' : 'text-stone-400'">
+              {{ desc(a) }}
+            </p>
+
+            <!-- Progress bar (locked only, with known threshold) -->
+            @if (!unlocked && prog) {
+              <div class="mt-auto pt-2">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[10px] text-stone-400 font-medium tabular-nums">{{ prog.label }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-stone-200 overflow-hidden">
+                  <div class="h-full rounded-full bg-amber-400 transition-all duration-700"
+                       [style.width]="(prog.pct * 100) + '%'"></div>
+                </div>
+              </div>
+            }
+
+            <!-- Unlocked label -->
+            @if (unlocked) {
+              <div class="mt-auto pt-1">
+                <span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  ✓ {{ 'achievements.unlocked' | t }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>

@@ -1,0 +1,72 @@
+/* ── Section label ─────────────────────────────────────────────────────────── */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a8a29e;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+/* ── Chip scroll row ───────────────────────────────────────────────────────── */
+.chip-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
+  padding: 2px 4px 8px 0;
+}
+
+.chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Chip button ───────────────────────────────────────────────────────────── */
+.chip {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 2px solid;
+  cursor: pointer;
+  background: white;
+}
+
+/* ── Color swatch ──────────────────────────────────────────────────────────── */
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ── Steam animation ───────────────────────────────────────────────────────── */
+@keyframes steam {
+  0%   { opacity: 0;    transform: translateY(6px);  }
+  40%  { opacity: .65;                               }
+  100% { opacity: 0;    transform: translateY(-12px); }
+}
+
+.steam {
+  animation: steam 2.6s ease-in-out infinite;
+}
+
+.steam-2 {
+  animation-delay: 1s;
+}
+
+/* ── Footer price pop animation ────────────────────────────────────────────── */
+@keyframes pop {
+  0%   { transform: scale(1.28); }
+  100% { transform: scale(1);    }
+}
+
+.price-pop {
+  display: inline-block;
+  animation: pop .35s ease;
+}

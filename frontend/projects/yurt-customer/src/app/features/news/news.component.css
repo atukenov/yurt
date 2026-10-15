@@ -1,0 +1,41 @@
+.news-section {
+  animation: slideUp 0.45s ease-out both;
+}
+.news-section:nth-child(1) { animation-delay: 0.05s; }
+.news-section:nth-child(2) { animation-delay: 0.12s; }
+.news-section:nth-child(3) { animation-delay: 0.19s; }
+.news-section:nth-child(4) { animation-delay: 0.26s; }
+.news-section:nth-child(5) { animation-delay: 0.33s; }
+.news-section:nth-child(6) { animation-delay: 0.40s; }
+.news-section:nth-child(7) { animation-delay: 0.47s; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.badge-card {
+  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.badge-card:nth-child(1) { animation-delay: 0.18s; }
+.badge-card:nth-child(2) { animation-delay: 0.23s; }
+.badge-card:nth-child(3) { animation-delay: 0.28s; }
+.badge-card:nth-child(4) { animation-delay: 0.33s; }
+.badge-card:nth-child(5) { animation-delay: 0.38s; }
+.badge-card:nth-child(6) { animation-delay: 0.43s; }
+.badge-card:nth-child(7) { animation-delay: 0.48s; }
+.badge-card:nth-child(8) { animation-delay: 0.53s; }
+.badge-card:nth-child(9) { animation-delay: 0.58s; }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.stat-val {
+  animation: countFade 0.4s ease-out both;
+}
+@keyframes countFade {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}

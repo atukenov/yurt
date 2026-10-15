@@ -1,0 +1,29 @@
+@keyframes steam {
+  0%   { opacity: 0; transform: translateY(6px); }
+  40%  { opacity: .65; }
+  100% { opacity: 0; transform: translateY(-12px); }
+}
+
+.steam        { animation: steam 2.6s ease-in-out infinite; }
+.steam-d1     { animation-delay: .8s; }
+.steam-d2     { animation-delay: 1.6s; }
+
+@keyframes totalPop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.total-pop { animation: totalPop .35s ease; display: inline-block; }
+
+/* Apple's required Apple Pay mark — WebKit renders this natively inside the
+   Capacitor WKWebView, same as it would in Safari; no ApplePaySession JS
+   needed since the actual payment runs through the native plugin instead. */
+.apple-pay-button {
+  -webkit-appearance: -apple-pay-button;
+  -apple-pay-button-type: plain;
+  -apple-pay-button-style: black;
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+}

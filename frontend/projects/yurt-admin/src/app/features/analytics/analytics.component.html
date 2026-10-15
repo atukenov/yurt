@@ -1,0 +1,357 @@
+<div class="h-full overflow-y-auto bg-slate-50">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-stone-800">{{ 'analytics.title' | t }}</h1>
+        <p class="text-sm text-slate-400 mt-1">{{ 'analytics.overview' | t }}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        @if (locations().length > 1) {
+          <select
+            [ngModel]="selectedLocationId()"
+            (ngModelChange)="setLocation($event)"
+            aria-label="Location"
+            class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white shadow-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-300"
+          >
+            <option [value]="null">All locations</option>
+            @for (loc of locations(); track loc.id) {
+              <option [value]="loc.id">{{ loc.name }}</option>
+            }
+          </select>
+        }
+        <div class="flex bg-white rounded-xl border border-slate-200 p-1 shadow-sm" role="group" aria-label="Period">
+          @for (p of periods; track p.value) {
+            <button
+              (click)="setPeriod(p.value)"
+              [attr.aria-pressed]="activePeriod() === p.value"
+              [class]="
+                activePeriod() === p.value
+                  ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-amber-500 text-stone-900 shadow-sm transition-all'
+                  : 'px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all'
+              "
+            >
+              {{ p.label }}
+            </button>
+          }
+        </div>
+        <button
+          (click)="exportCsv()"
+          [disabled]="!data()"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          {{ 'analytics.exportCsv' | t }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Loading skeleton ────────────────────────────────────────────────── -->
+    @if (loading()) {
+      <div class="space-y-6 animate-pulse">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          @for (_ of [1, 2, 3, 4]; track $index) {
+            <div class="bg-white rounded-2xl border border-slate-100 p-6 h-32">
+              <div class="h-4 bg-slate-200 rounded w-24 mb-4"></div>
+              <div class="h-8 bg-slate-200 rounded w-32"></div>
+            </div>
+          }
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 p-6 h-72">
+          <div class="h-4 bg-slate-200 rounded w-32 mb-4"></div>
+          <div class="h-48 bg-slate-100 rounded"></div>
+        </div>
+      </div>
+    }
+
+    @if (!loading() && data()) {
+      <!-- ── KPI Cards ───────────────────────────────────────────────────── -->
+      @if (trendCaptionKey()) {
+        <p class="text-xs text-slate-400 mb-2">{{ trendCaptionKey() | t }}</p>
+      }
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Total Revenue -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-slate-500">{{ 'analytics.totalRevenue' | t }}</span>
+            @if (trendInfo(data()!.trends.revenueChangePercent); as trend) {
+              <span [class]="'ml-auto text-xs font-semibold ' + trend.colorClass">{{ trend.arrow }} {{ trend.text }}</span>
+            }
+          </div>
+          <p class="text-2xl font-bold text-stone-800">{{ formatTenge(data()!.kpis.totalRevenue) }}</p>
+          <p class="text-xs text-slate-400 mt-1">{{ data()!.kpis.completedOrders }} {{ 'analytics.completedOrders' | t }}</p>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-slate-500">{{ 'analytics.totalOrders' | t }}</span>
+            @if (trendInfo(data()!.trends.ordersChangePercent); as trend) {
+              <span [class]="'ml-auto text-xs font-semibold ' + trend.colorClass">{{ trend.arrow }} {{ trend.text }}</span>
+            }
+          </div>
+          <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.totalOrders }}</p>
+          <p class="text-xs text-slate-400 mt-1">{{ data()!.kpis.uniqueCustomers }} {{ 'analytics.uniqueCustomers' | t }}</p>
+        </div>
+
+        <!-- Avg Order Value -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-slate-500">{{ 'analytics.avgOrderValue' | t }}</span>
+            @if (trendInfo(data()!.trends.avgOrderValueChangePercent); as trend) {
+              <span [class]="'ml-auto text-xs font-semibold ' + trend.colorClass">{{ trend.arrow }} {{ trend.text }}</span>
+            }
+          </div>
+          <p class="text-2xl font-bold text-stone-800">{{ formatTenge(data()!.kpis.avgOrderValue) }}</p>
+          <p class="text-xs text-slate-400 mt-1">{{ 'analytics.perCompleted' | t }}</p>
+        </div>
+
+        <!-- Avg Prep Time -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-slate-500">{{ 'analytics.avgPrepTime' | t }}</span>
+            @if (trendInfo(data()!.trends.avgPrepTimeChangePercent, true); as trend) {
+              <span [class]="'ml-auto text-xs font-semibold ' + trend.colorClass">{{ trend.arrow }} {{ trend.text }}</span>
+            }
+          </div>
+          <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.avgPrepTimeMinutes }} min</p>
+          <p class="text-xs text-slate-400 mt-1">{{ 'analytics.fromAccept' | t }}</p>
+        </div>
+
+        <!-- Decline Rate -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-8.18 14.18A1 1 0 003 19.5h18a1 1 0 00.89-1.46L13.71 3.86a1 1 0 00-1.72 0z" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-slate-500">{{ 'analytics.declineRate' | t }}</span>
+          </div>
+          <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.declineRatePercent }}%</p>
+          <p class="text-xs text-slate-400 mt-1">
+            {{ data()!.kpis.declinedOrders }} {{ 'analytics.declinedOrdersLabel' | t }} · {{ formatTenge(data()!.kpis.declinedRevenue) }} {{ 'analytics.lostRevenue' | t }}
+          </p>
+        </div>
+
+        <!-- New vs Returning Customers -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m5-5a4 4 0 100-8 4 4 0 000 8zm6 3a4 4 0 10-8 0" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-slate-500">{{ 'analytics.customerMix' | t }}</span>
+          </div>
+          <div class="flex items-end gap-4">
+            <div>
+              <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.newCustomers }}</p>
+              <p class="text-xs text-slate-400">{{ 'analytics.newCustomers' | t }}</p>
+            </div>
+            <div class="h-8 w-px bg-slate-100"></div>
+            <div>
+              <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.returningCustomers }}</p>
+              <p class="text-xs text-slate-400">{{ 'analytics.returningCustomers' | t }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Revenue Over Time ─────────────────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+        <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.revenueOverTime' | t }}</h2>
+        <p class="text-xs text-slate-400 mb-6">{{ 'analytics.completedRev' | t }}</p>
+
+        @if (data()!.revenueOverTime.length > 0) {
+          <div class="revenue-chart-container">
+            <div class="revenue-chart">
+              @for (point of data()!.revenueOverTime; track point.label; let i = $index) {
+                <div
+                  class="revenue-bar-group"
+                  [class.active]="activeRevenuePoint() === i"
+                  (click)="toggleRevenuePoint(i)"
+                >
+                  <div class="revenue-tooltip">
+                    {{ formatTenge(point.revenue) }} · {{ point.orders }} orders
+                  </div>
+                  <div class="revenue-bar-track">
+                    <div
+                      class="revenue-bar"
+                      [style.height]="barHeight(point.revenue, revenueMax())"
+                    ></div>
+                  </div>
+                  <span class="revenue-label">{{ point.label }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="text-center py-12 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+        }
+      </div>
+
+      <!-- ── Two column: Top Items + Locations ─────────────────────────────── -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Top Selling Items -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.topSelling' | t }}</h2>
+          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.byQuantity' | t }}</p>
+
+          @if (data()!.topItems.length > 0) {
+            <div class="space-y-3">
+              @for (item of data()!.topItems; track item.name; let i = $index) {
+                <div class="flex items-center gap-3">
+                  <span class="text-xs font-bold text-slate-400 w-5 text-right">{{ i + 1 }}</span>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-sm font-medium text-stone-700 truncate">{{ item.name }}</span>
+                      <span class="text-xs text-slate-500 ml-2 whitespace-nowrap">{{ item.quantitySold }} sold · {{ formatTenge(item.revenue) }}</span>
+                    </div>
+                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-amber-400 rounded-full transition-all duration-500" [style.width]="barWidth(item.quantitySold, topItemMax())"></div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+          }
+        </div>
+
+        <!-- Revenue by Location -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.revenueByLocation' | t }}</h2>
+          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.perLocation' | t }}</p>
+
+          @if (data()!.locationPerformance.length > 0) {
+            <div class="space-y-4">
+              @for (loc of data()!.locationPerformance; track loc.locationName) {
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-sm font-medium text-stone-700 truncate">{{ loc.locationName }}</span>
+                    <span class="text-xs text-slate-500 ml-2 whitespace-nowrap">{{ formatTenge(loc.revenue) }} · {{ loc.orders }} orders</span>
+                  </div>
+                  <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-400 rounded-full transition-all duration-500" [style.width]="barWidth(loc.revenue, locationMax())"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- ── Two column: Peak Hours + Payment Methods ──────────────────────── -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Peak Hours -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.peakHours' | t }}</h2>
+          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.hourlyDist' | t }}</p>
+
+          <div class="hourly-chart">
+            @for (h of data()!.hourlyDistribution; track h.hour) {
+              <div
+                class="hourly-bar-group"
+                [class.active]="activeHour() === h.hour"
+                (click)="toggleHour(h.hour)"
+              >
+                <div class="hourly-tooltip">{{ h.orders }} {{ 'analytics.ordersLabel' | t }}</div>
+                <div class="hourly-bar-track">
+                  <div
+                    class="hourly-bar"
+                    [class]="h.orders === hourlyMax() ? 'hourly-bar hourly-bar-peak' : 'hourly-bar'"
+                    [style.height]="barHeight(h.orders, hourlyMax())"
+                  ></div>
+                </div>
+                @if (h.hour % 3 === 0) {
+                  <span class="hourly-label">{{ formatHour(h.hour) }}</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.paymentMethods' | t }}</h2>
+          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.howPay' | t }}</p>
+
+          @if (data()!.paymentBreakdown.length > 0) {
+            <!-- Stacked bar -->
+            <div class="h-6 rounded-full overflow-hidden flex mb-6">
+              @for (p of data()!.paymentBreakdown; track p.method; let i = $index) {
+                <div
+                  [class]="paymentColor(i)"
+                  [style.width]="barWidth(p.count, paymentTotal())"
+                  class="h-full transition-all duration-500"
+                ></div>
+              }
+            </div>
+
+            <div class="space-y-3">
+              @for (p of data()!.paymentBreakdown; track p.method; let i = $index) {
+                <div class="flex items-center gap-3">
+                  <div [class]="paymentColor(i)" class="w-3 h-3 rounded-full shrink-0"></div>
+                  <div class="flex-1 flex items-center justify-between">
+                    <span class="text-sm font-medium text-stone-700">{{ p.method }}</span>
+                    <span class="text-xs text-slate-500">{{ p.count }} orders · {{ formatTenge(p.total) }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- ── Order Status Breakdown ────────────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.statusBreakdown' | t }}</h2>
+        <p class="text-xs text-slate-400 mb-5">{{ 'analytics.allOrders' | t }}</p>
+
+        <div class="flex flex-wrap gap-3">
+          @for (s of data()!.statusBreakdown; track s.status) {
+            <div
+              [class]="statusColor(s.status)"
+              class="px-4 py-3 rounded-xl flex items-center gap-3"
+            >
+              <span class="text-2xl font-bold">{{ s.count }}</span>
+              <div>
+                <p class="text-sm font-semibold">{{ 'order.status.' + s.status | t }}</p>
+                <p class="text-xs opacity-70">{{ ((s.count / totalStatusCount()) * 100).toFixed(1) }}%</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    <!-- end if data -->
+  </div>
+</div>

@@ -1,0 +1,50 @@
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { filter: drop-shadow(0 0 0px rgba(255, 209, 25, 0)); }
+  50%  { filter: drop-shadow(0 0 8px rgba(255, 209, 25, 0.9)); }
+  100% { filter: drop-shadow(0 0 0px rgba(255, 209, 25, 0)); }
+}
+
+@keyframes checkPop {
+  0%   { transform: scale(0) rotate(-45deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.achievement-card {
+  animation: slideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-fill-mode: both;
+}
+
+.unlocked-emoji {
+  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+             shimmer 2.4s ease-in-out 0.6s infinite;
+}
+
+.check-badge {
+  animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+
+.ring-arc {
+  transition: stroke-dashoffset 0.05s linear;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-16px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.celebration-toast {
+  animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+             popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}

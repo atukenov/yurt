@@ -1,0 +1,98 @@
+<div class="min-h-screen bg-stone-50 flex flex-col">
+  <!-- Hero -->
+  <div
+    class="bg-gradient-to-br from-amber-500 via-amber-400 to-orange-400 pb-12 px-6 text-white text-center"
+    style="padding-top: calc(4rem + env(safe-area-inset-top))"
+  >
+    <div
+      class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-4xl mx-auto mb-4 shadow-lg"
+    >
+      ☕
+    </div>
+    <h1 class="text-3xl font-bold tracking-tight">Altyncup</h1>
+    <p class="text-amber-100 mt-1.5 text-sm font-medium">{{ 'auth.tagline' | t }}</p>
+  </div>
+
+  <div class="flex-1 px-6 pt-8 pb-10 max-w-sm mx-auto w-full">
+    <h2 class="text-2xl font-bold text-stone-800 mb-1">{{ 'auth.welcomeBack' | t }}</h2>
+    <p class="text-stone-500 text-sm mb-7">{{ 'auth.signInSubtitle' | t }}</p>
+
+    <!-- Mobile Number -->
+    <div class="mb-5">
+      <label class="block text-sm font-semibold text-stone-600 mb-2" for="mobile">{{ 'auth.mobileNumber' | t }}</label>
+      <input
+        id="mobile"
+        type="tel"
+        inputmode="tel"
+        maxlength="18"
+        [value]="phoneFormatted"
+        (input)="onPhoneInput($event)"
+        placeholder="+7 (777) 123-4567"
+        autocomplete="tel"
+        class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white text-stone-900 placeholder-stone-400 text-base outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 transition-all"
+        aria-label="Mobile number"
+      />
+    </div>
+
+    <!-- PIN Input -->
+    <div class="mb-7">
+      <label class="block text-sm font-semibold text-stone-600 mb-2">{{ 'auth.pin' | t }}</label>
+      <div class="flex gap-3 justify-center" role="group" aria-label="PIN entry">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <input
+            #pinInput
+            type="password"
+            inputmode="numeric"
+            maxlength="1"
+            [(ngModel)]="pins[i]"
+            (input)="onPinInput(i, $event)"
+            (keydown)="onPinKeydown(i, $event)"
+            (paste)="onPaste($event)"
+            class="pin-box"
+            [attr.aria-label]="'PIN digit ' + (i + 1)"
+            autocomplete="one-time-code"
+          />
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+      <div
+        class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm flex items-center gap-2"
+      >
+        <span class="text-base">⚠</span>{{ error() }}
+      </div>
+    }
+
+    <yurt-button
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="loading()"
+      type="submit"
+      (clicked)="onLogin()"
+    >
+      {{ 'auth.signIn' | t }}
+    </yurt-button>
+
+    <div class="flex items-center gap-3 my-6">
+      <div class="flex-1 h-px bg-stone-200"></div>
+      <span class="text-stone-400 text-xs font-medium">{{ 'auth.newHere' | t }}</span>
+      <div class="flex-1 h-px bg-stone-200"></div>
+    </div>
+
+    <a
+      routerLink="/auth/register"
+      class="block w-full text-center py-3.5 rounded-2xl border-2 border-amber-400 text-amber-600 font-semibold text-base hover:bg-amber-50 transition-colors"
+    >
+      {{ 'auth.createAccount' | t }}
+    </a>
+
+    <a
+      routerLink="/menu"
+      class="block w-full text-center py-3 mt-4 text-stone-400 text-sm font-medium hover:text-stone-600 transition-colors"
+    >
+      ← {{ 'nav.menu' | t }}
+    </a>
+  </div>
+</div>

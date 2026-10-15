@@ -1,0 +1,32 @@
+/.vscode
+
+appsettings.Local.json
+appsettings.Development.json
+
+# Build output
+**/bin/
+**/obj/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Secrets & credentials — never commit
+.env
+.env.*
+appsettings.Production.json
+
+# Android signing
+*.keystore
+*.jks
+
+# iOS signing
+*.p12
+*.cer
+*.mobileprovision
+*.certSigningRequest
+
+# Firebase / Google services
+google-services.json
+GoogleService-Info.plist.DS_Store

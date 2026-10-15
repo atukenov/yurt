@@ -1,0 +1,146 @@
+/* ── Revenue chart ──────────────────────────────────────────────────────────── */
+.revenue-chart-container {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.revenue-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 200px;
+  min-width: max-content;
+  padding: 0 4px;
+}
+
+.revenue-bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 32px;
+  max-width: 60px;
+  position: relative;
+  cursor: pointer;
+}
+
+.revenue-bar-group:hover .revenue-tooltip,
+.revenue-bar-group.active .revenue-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.revenue-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #1e293b;
+  color: white;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.15s ease;
+  z-index: 10;
+  margin-bottom: 4px;
+}
+
+.revenue-bar-track {
+  width: 100%;
+  height: 170px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.revenue-bar {
+  width: 70%;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(to top, #ffd119, #ffdc30);
+  transition: height 0.5s ease;
+  min-height: 2px;
+}
+
+.revenue-bar-group:hover .revenue-bar,
+.revenue-bar-group.active .revenue-bar {
+  background: linear-gradient(to top, #d9af00, #ffd119);
+}
+
+.revenue-label {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Hourly chart ──────────────────────────────────────────────────────────── */
+.hourly-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+}
+
+.hourly-bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.hourly-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #1e293b;
+  color: white;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.15s ease;
+  z-index: 10;
+  margin-bottom: 4px;
+}
+
+.hourly-bar-group:hover .hourly-tooltip,
+.hourly-bar-group.active .hourly-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.hourly-bar-track {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.hourly-bar {
+  width: 70%;
+  border-radius: 4px 4px 1px 1px;
+  background: #cbd5e1;
+  transition: height 0.5s ease;
+  min-height: 2px;
+}
+
+.hourly-bar-peak {
+  background: linear-gradient(to top, #ffd119, #ffdc30) !important;
+}
+
+.hourly-label {
+  font-size: 9px;
+  color: #94a3b8;
+  margin-top: 4px;
+}

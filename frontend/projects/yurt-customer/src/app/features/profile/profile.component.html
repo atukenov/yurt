@@ -1,0 +1,424 @@
+<div style="min-height:100%;background:#fafaf9;padding-bottom:40px" pullToRefresh (refreshed)="loadProfile()">
+
+  <!-- ── Yellow header ────────────────────────────────────────────────────────── -->
+  <div style="background:#ffd119;padding-bottom:64px">
+    <div style="display:flex;align-items:center;gap:16px;padding:22px 24px 0">
+      <!-- Avatar circle -->
+      <button type="button" (click)="showAvatarPicker.set(true)"
+        class="active:scale-95 transition-transform"
+        style="width:56px;height:56px;border-radius:50%;background:#1c1917;flex-shrink:0;
+        display:flex;align-items:center;justify-content:center;border:none;padding:0;cursor:pointer;overflow:hidden">
+        @if (selectedAvatar(); as avatar) {
+          <img [src]="avatar" alt="" width="56" height="56" style="width:100%;height:100%;object-fit:cover">
+        } @else {
+          <span style="font-size:20px;font-weight:800;color:#ffd119;letter-spacing:-.02em">
+            {{ initials || '?' }}
+          </span>
+        }
+      </button>
+      <!-- Name + meta -->
+      <div style="flex:1;min-width:0">
+        @if (profile(); as p) {
+          <h1 style="font-size:19px;font-weight:800;color:#1c1917;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ p.firstName ? (p.firstName + ' ' + p.lastName) : p.mobileNumber }}
+          </h1>
+          <p style="font-size:12.5px;font-weight:600;color:rgba(28,25,23,.6);margin-top:3px">
+            {{ p.mobileNumber }}{{ p.firstName ? ' · ' : '' }}{{ p.firstName ? (('profile.memberSince' | t) + ' ' + (p.createdAt | date:'MMMM yyyy')) : '' }}
+          </p>
+          @if (p.dateOfBirth) {
+            <p style="font-size:12.5px;font-weight:600;color:rgba(28,25,23,.6);margin-top:2px">
+              🎂 {{ p.dateOfBirth | date:'d MMMM y' }}
+            </p>
+          }
+        } @else {
+          <div style="height:22px;background:rgba(28,25,23,.12);border-radius:6px;width:150px;margin-bottom:5px"></div>
+          <div style="height:14px;background:rgba(28,25,23,.12);border-radius:6px;width:190px"></div>
+        }
+      </div>
+      <!-- Edit button -->
+      <button (click)="startEdit()"
+        class="active:scale-95 transition-transform"
+        style="width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.08);
+          border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">
+        <svg width="16" height="16" fill="none" stroke="#1c1917" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Edit form (replaces bonus card when active) ───────────────────────── -->
+  @if (editMode()) {
+    <div style="margin:-46px 16px 14px;background:white;border-radius:22px;padding:18px 20px;
+      box-shadow:0 8px 24px rgba(28,25,23,.12);position:relative;z-index:2">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div>
+          <label class="field-label">{{ 'profile.firstName' | t }}</label>
+          <input type="text" [(ngModel)]="editFirstName" style="font-size:16px"
+            class="profile-input"/>
+        </div>
+        <div>
+          <label class="field-label">{{ 'profile.lastName' | t }}</label>
+          <input type="text" [(ngModel)]="editLastName" style="font-size:16px"
+            class="profile-input"/>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="field-label">{{ 'profile.birthday' | t }}</label>
+        <input type="date" [(ngModel)]="editDateOfBirth" [max]="maxDateOfBirth" style="font-size:16px"
+          class="profile-input"/>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button (click)="saveProfile()" [disabled]="saving()"
+          class="active:scale-[0.98] transition-transform"
+          style="flex:1;padding:13px;background:#ffd119;border:none;border-radius:12px;
+            font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
+          {{ saving() ? '…' : ('profile.save' | t) }}
+        </button>
+        <button (click)="editMode.set(false)"
+          class="active:scale-[0.98] transition-transform"
+          style="flex:1;padding:13px;background:#f5f5f4;border:none;border-radius:12px;
+            font-size:14px;font-weight:700;color:#57534e;cursor:pointer">
+          {{ 'profile.cancel' | t }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Dark bonus card (overlaps header, hidden in edit mode) ───────────── -->
+  @if (!editMode()) {
+    <div style="margin:-46px 16px 0;background:#1c1917;border-radius:22px;padding:18px 20px;
+      box-shadow:0 8px 24px rgba(28,25,23,.25);position:relative;z-index:1;
+      display:flex;align-items:center;gap:12px">
+      <div style="flex:1;min-width:0">
+        <p style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);
+          text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px">{{ 'profile.bonuses' | t }}</p>
+        @if (loyalty(); as l) {
+          @if (l.enabled && l.available && l.balance !== null) {
+            <p style="font-size:26px;font-weight:800;color:#ffd119;font-variant-numeric:tabular-nums;line-height:1">
+              ₸{{ l.balance | number: '1.0-2' }}
+            </p>
+            <p style="font-size:11px;font-weight:600;color:rgba(255,255,255,.45);margin-top:4px">
+              {{ 'profile.bonusEarn' | t }} {{ l.earnPercent }}%
+            </p>
+          } @else if (l.enabled && !l.available) {
+            <p style="font-size:13px;font-weight:600;color:rgba(255,255,255,.55);line-height:1.3">
+              {{ 'profile.bonusUnavailable' | t }}
+            </p>
+          } @else {
+            <p style="font-size:26px;font-weight:800;color:#ffd119;font-variant-numeric:tabular-nums;line-height:1">
+              ₸0
+            </p>
+          }
+        } @else {
+          <p style="font-size:26px;font-weight:800;color:#ffd119;font-variant-numeric:tabular-nums;line-height:1">
+            ₸0
+          </p>
+        }
+      </div>
+      @if (stats(); as s) {
+        <div style="text-align:right">
+          <p style="font-size:12px;font-weight:600;color:rgba(255,255,255,.65);line-height:1.7">
+            {{ s.totalOrders }} {{ 'profile.orders' | t | lowercase }}
+          </p>
+          <p style="font-size:12px;font-weight:600;color:rgba(255,255,255,.65)">
+            {{ s.totalSpent | currency2 }} всего
+          </p>
+        </div>
+      }
+      <!-- KZT (tenge) icon -->
+      <div style="width:30px;height:30px;border-radius:50%;border:1.8px solid #ffd119;
+        display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <span style="color:#ffd119;font-size:15px;font-weight:800;line-height:1">₸</span>
+      </div>
+    </div>
+  }
+
+  <!-- ── Action tiles grid ────────────────────────────────────────────────────── -->
+  <div style="margin:14px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <a routerLink="/achievements"
+      class="active:scale-[0.97] transition-transform"
+      style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
+        display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
+      <svg width="20" height="20" fill="none" stroke="#d9af00" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+      </svg>
+      <div>
+        <p style="font-size:13.5px;font-weight:800;color:#1c1917">{{ 'news.achievements' | t }}</p>
+        <p style="font-size:11px;font-weight:600;color:#a8a29e;margin-top:2px">открывайте награды</p>
+      </div>
+    </a>
+    <a routerLink="/orders"
+      class="active:scale-[0.97] transition-transform"
+      style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
+        display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
+      <svg width="20" height="20" fill="none" stroke="#d9af00" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+      </svg>
+      <div>
+        <p style="font-size:13.5px;font-weight:800;color:#1c1917">{{ 'profile.myOrders' | t }}</p>
+        <p style="font-size:11px;font-weight:600;color:#a8a29e;margin-top:2px">история и повтор</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- ── Language switcher ───────────────────────────────────────────────────── -->
+  <p class="section-label" style="margin:18px 20px 8px">{{ 'profile.language' | t }}</p>
+  <div style="margin:0 16px;display:flex;gap:8px">
+    @for (l of langs; track l.code) {
+      <button (click)="langService.setLang(l.code)"
+        class="active:scale-[0.97] transition-all"
+        style="flex:1;padding:11px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s"
+        [style.background]="langService.lang() === l.code ? '#ffd119' : '#f5f5f4'"
+        [style.color]="langService.lang() === l.code ? '#1c1917' : '#78716c'"
+        [style.box-shadow]="langService.lang() === l.code ? '0 2px 8px rgba(217,175,0,.3)' : 'none'">
+        {{ l.code === 'ru' ? 'Русский' : l.code === 'kk' ? 'Қазақша' : 'English' }}
+      </button>
+    }
+  </div>
+
+  <!-- ── Settings card ───────────────────────────────────────────────────────── -->
+  <div style="margin:14px 16px 0;background:white;border:1px solid #ece9e4;border-radius:20px;overflow:hidden">
+
+    <!-- Change PIN -->
+    <div style="border-bottom:1px solid #f5f5f4">
+      <button (click)="showPinForm.set(!showPinForm())"
+        class="active:bg-stone-50 transition-colors"
+        style="display:flex;align-items:center;gap:12px;padding:16px;text-align:left;
+          background:transparent;border:none;cursor:pointer;width:100%">
+        <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        <span style="font-size:14px;font-weight:700;color:#1c1917;flex:1;text-align:left">
+          {{ 'profile.changePin' | t }}
+        </span>
+        <svg width="16" height="16" fill="none" stroke="#d6d3d1" stroke-width="2" viewBox="0 0 24 24"
+          class="transition-transform" [class]="showPinForm() ? 'rotate-90' : ''">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+      @if (showPinForm()) {
+        <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px">
+          <input type="password" inputmode="numeric" maxlength="4" [(ngModel)]="currentPin"
+            [placeholder]="'profile.currentPin' | t"
+            class="profile-input" style="font-size:16px"/>
+          <input type="password" inputmode="numeric" maxlength="4" [(ngModel)]="newPin"
+            [placeholder]="'profile.newPin' | t"
+            class="profile-input" style="font-size:16px"/>
+          <button (click)="submitPinChange()" [disabled]="pinLoading()"
+            class="active:scale-[0.98] transition-transform"
+            style="width:100%;padding:13px;background:#ffd119;border:none;border-radius:12px;
+              font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
+            {{ 'profile.updatePin' | t }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Change Phone Number -->
+    <div style="border-bottom:1px solid #f5f5f4">
+      <button (click)="toggleShowPhoneForm()"
+        class="active:bg-stone-50 transition-colors"
+        style="display:flex;align-items:center;gap:12px;padding:16px;text-align:left;
+          background:transparent;border:none;cursor:pointer;width:100%">
+        <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+        </svg>
+        <span style="font-size:14px;font-weight:700;color:#1c1917;flex:1;text-align:left">
+          {{ 'profile.changePhone' | t }}
+        </span>
+        <svg width="16" height="16" fill="none" stroke="#d6d3d1" stroke-width="2" viewBox="0 0 24 24"
+          class="transition-transform" [class]="showPhoneForm() ? 'rotate-90' : ''">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+      @if (showPhoneForm() && phoneStep() === 'form') {
+        <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px">
+          <input type="tel" inputmode="tel" [value]="phoneFormatted" (input)="onPhoneInput($event)"
+            [placeholder]="'profile.newPhone' | t"
+            class="profile-input" style="font-size:16px"/>
+          @if (phoneError()) {
+            <p style="font-size:12.5px;font-weight:600;color:#ef4444;margin:-2px 2px 0">
+              {{ phoneError() }}
+            </p>
+          }
+          <button (click)="submitPhoneChange()" [disabled]="phoneLoading()"
+            class="active:scale-[0.98] transition-transform"
+            style="width:100%;padding:13px;background:#ffd119;border:none;border-radius:12px;
+              font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
+            {{ 'profile.sendCode' | t }}
+          </button>
+        </div>
+      }
+      @if (showPhoneForm() && phoneStep() === 'otp') {
+        <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px">
+          <p style="font-size:12.5px;font-weight:600;color:#78716c;margin:0">
+            {{ 'profile.enterCodeSentTo' | t }} {{ phoneFormatted }}
+          </p>
+          <yurt-otp-boxes #phoneOtpBoxes (codeChange)="phoneOtp = $event"></yurt-otp-boxes>
+          @if (phoneError()) {
+            <p style="font-size:12.5px;font-weight:600;color:#ef4444;margin:-2px 2px 0">
+              {{ phoneError() }}
+            </p>
+          }
+          <button (click)="verifyPhoneChange()" [disabled]="phoneLoading()"
+            class="active:scale-[0.98] transition-transform"
+            style="width:100%;padding:13px;background:#ffd119;border:none;border-radius:12px;
+              font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
+            {{ 'profile.updatePhone' | t }}
+          </button>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <button type="button" (click)="backToPhoneForm()"
+              style="background:transparent;border:none;font-size:12.5px;font-weight:700;color:#78716c;cursor:pointer;padding:4px">
+              {{ 'auth.changeNumber' | t }}
+            </button>
+            <button type="button" [disabled]="phoneResendIn() > 0" (click)="resendPhoneChangeCode()"
+              style="background:transparent;border:none;font-size:12.5px;font-weight:700;color:#b45309;cursor:pointer;padding:4px"
+              [style.color]="phoneResendIn() > 0 ? '#d6d3d1' : '#b45309'">
+              {{ phoneResendIn() > 0 ? ('auth.resendIn' | t).replace('{seconds}', phoneResendIn().toString()) : ('auth.resendCode' | t) }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Push Notifications -->
+    <div style="border-bottom:1px solid #f5f5f4;display:flex;align-items:center;gap:12px;padding:16px">
+      <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+      </svg>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:14px;font-weight:700;color:#1c1917">{{ 'profile.notifications' | t }}</p>
+        <p style="font-size:11.5px;font-weight:600;color:#a8a29e;margin-top:2px">{{ 'profile.notifSubtitle' | t }}</p>
+      </div>
+      <button type="button" (click)="toggleNotifications()" role="switch" [attr.aria-checked]="notificationsEnabled()"
+        class="active:scale-95 transition-transform"
+        style="width:46px;height:26px;border-radius:13px;border:none;padding:2px;cursor:pointer;flex-shrink:0;transition:background-color .2s"
+        [style.background]="notificationsEnabled() ? '#ffd119' : '#e7e5e4'">
+        <span style="display:block;width:22px;height:22px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s"
+          [style.transform]="notificationsEnabled() ? 'translateX(20px)' : 'translateX(0)'"></span>
+      </button>
+    </div>
+
+    <!-- Report a Problem -->
+    <div style="border-bottom:1px solid #f5f5f4">
+      <button (click)="showReportModal.set(true)"
+        class="active:bg-stone-50 transition-colors"
+        style="display:flex;align-items:center;gap:12px;padding:16px;
+          background:transparent;border:none;cursor:pointer;width:100%">
+        <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span style="font-size:14px;font-weight:700;color:#1c1917;flex:1;text-align:left">
+          {{ 'profile.report' | t }}
+        </span>
+        <svg width="16" height="16" fill="none" stroke="#d6d3d1" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Sign Out -->
+    <button (click)="logout()"
+      class="active:bg-red-50 transition-colors"
+      style="display:flex;align-items:center;gap:12px;padding:16px;
+        background:transparent;border:none;cursor:pointer;width:100%">
+      <svg width="17" height="17" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+      </svg>
+      <span style="font-size:14px;font-weight:700;color:#ef4444">{{ 'profile.signOut' | t }}</span>
+    </button>
+  </div>
+
+  <!-- ── Instagram link ──────────────────────────────────────────────────────── -->
+  <div style="display:flex;justify-content:center;margin-top:22px">
+    <a href="https://www.instagram.com/altyncup/" target="_blank" rel="noopener noreferrer"
+      style="display:flex;align-items:center;gap:6px;color:#a8a29e;text-decoration:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+      </svg>
+      <span style="font-size:12.5px;font-weight:700">@altyncup</span>
+    </a>
+  </div>
+
+  <!-- ── Danger zone (edit mode only) ───────────────────────────────────────── -->
+  @if (editMode()) {
+    <div style="margin:14px 16px 0;background:white;border:1px solid #fecaca;border-radius:20px;padding:16px">
+      <p class="section-label" style="color:#f87171;margin-bottom:12px">{{ 'profile.dangerZone' | t }}</p>
+      @if (!showDeleteConfirm()) {
+        <button (click)="showDeleteConfirm.set(true)"
+          class="active:scale-[0.98] transition-transform"
+          style="width:100%;padding:12px;border:1px solid #fecaca;border-radius:12px;
+            background:transparent;font-size:14px;font-weight:600;color:#ef4444;cursor:pointer">
+          {{ 'profile.deleteAccount' | t }}
+        </button>
+      } @else {
+        <p style="font-size:13px;color:#57534e;margin-bottom:12px">{{ 'profile.deleteConfirm' | t }}</p>
+        <div style="display:flex;gap:8px">
+          <button (click)="showDeleteConfirm.set(false)"
+            style="flex:1;padding:11px;border:1px solid #e7e5e4;border-radius:12px;
+              background:white;font-size:14px;font-weight:600;color:#57534e;cursor:pointer">
+            {{ 'profile.cancel' | t }}
+          </button>
+          <button (click)="confirmDelete()" [disabled]="deleteLoading()"
+            style="flex:1;padding:11px;background:#ef4444;border:none;border-radius:12px;
+              font-size:14px;font-weight:600;color:white;cursor:pointer">
+            {{ deleteLoading() ? ('profile.deleting' | t) : ('profile.delete' | t) }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- ── Report modal (unchanged) ─────────────────────────────────────────────── -->
+@if (showReportModal()) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
+    (click)="showReportModal.set(false)">
+    <div class="w-full max-w-lg bg-white rounded-t-3xl p-6 pb-safe"
+      (click)="$event.stopPropagation()">
+      <div class="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold text-stone-800 mb-4">{{ 'profile.reportTitle' | t }}</h2>
+      <textarea [(ngModel)]="reportText" [placeholder]="'profile.reportPlaceholder' | t"
+        rows="5" style="font-size:16px"
+        class="w-full border border-stone-200 rounded-2xl p-3 text-stone-800 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300">
+      </textarea>
+      <button (click)="submitReport()"
+        [disabled]="!reportText.trim() || reportLoading()"
+        class="mt-4 w-full bg-amber-500 active:bg-amber-600 text-stone-900 font-bold rounded-2xl py-3.5 text-base transition-colors disabled:opacity-40 disabled:pointer-events-none">
+        {{ 'profile.reportSubmit' | t }}
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ── Avatar picker ─────────────────────────────────────────────────────────── -->
+@if (showAvatarPicker()) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
+    (click)="showAvatarPicker.set(false)">
+    <div class="w-full max-w-lg bg-white rounded-t-3xl p-6 pb-safe"
+      (click)="$event.stopPropagation()">
+      <div class="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-5"></div>
+      <h2 class="text-lg font-bold text-stone-800 mb-4">{{ 'profile.chooseAvatar' | t }}</h2>
+      <div class="grid grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto">
+        @for (avatar of avatars; track avatar) {
+          <button type="button" (click)="chooseAvatar(avatar)"
+            class="active:scale-95 transition-transform rounded-full overflow-hidden aspect-square"
+            [style.outline]="selectedAvatar() === avatar ? '3px solid #ffd119' : 'none'"
+            style="outline-offset:2px;border:none;padding:0;cursor:pointer;background:#f5f5f4">
+            <img [src]="avatar" alt="" width="64" height="64" class="w-full h-full object-cover">
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

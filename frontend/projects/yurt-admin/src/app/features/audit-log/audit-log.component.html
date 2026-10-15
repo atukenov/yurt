@@ -1,0 +1,85 @@
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">{{ 'auditLog.title' | t }}</h1>
+      <p class="text-slate-500 text-sm mt-0.5">{{ total() }} total records</p>
+    </div>
+    <!-- Entity type filter -->
+    <select
+      [(ngModel)]="entityTypeFilter"
+      (change)="applyFilter()"
+      aria-label="{{ 'auditLog.entity' | t }}"
+      class="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+    >
+      <option value="">{{ 'auditLog.all' | t }}</option>
+      @for (et of entityTypes; track et) {
+        @if (et) {
+          <option [value]="et">{{ et }}</option>
+        }
+      }
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 border-b border-slate-100">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'auditLog.timestamp' | t }}</th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'auditLog.admin' | t }}</th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'auditLog.action' | t }}</th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'auditLog.entity' | t }}</th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">{{ 'auditLog.details' | t }}</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-50">
+        @if (loading() && entries().length === 0) {
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <tr>
+              @for (j of [1,2,3,4,5]; track j) {
+                <td class="px-4 py-3"><div class="h-4 bg-slate-100 rounded animate-pulse w-24"></div></td>
+              }
+            </tr>
+          }
+        } @else if (entries().length === 0) {
+          <tr>
+            <td colspan="5" class="px-4 py-10 text-center text-slate-400">{{ 'auditLog.noRecords' | t }}</td>
+          </tr>
+        } @else {
+          @for (entry of entries(); track entry.id) {
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">{{ formatDate(entry.createdAt) }}</td>
+              <td class="px-4 py-3 font-medium text-slate-700">{{ entry.performedByUsername }}</td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                  {{ entry.action }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-slate-600">
+                <span class="font-medium">{{ entry.entityType }}</span>
+                @if (entry.entityId) {
+                  <span class="text-slate-400 text-xs ml-1">#{{ entry.entityId.slice(0, 8) }}</span>
+                }
+              </td>
+              <td class="px-4 py-3 text-slate-500 text-xs max-w-xs truncate">{{ entry.details ?? '—' }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Load more -->
+  @if (hasMore) {
+    <div class="mt-4 text-center">
+      <button
+        (click)="loadMore()"
+        [disabled]="loading()"
+        class="px-6 py-2 bg-amber-500 text-stone-900 rounded-xl font-medium text-sm hover:bg-amber-600 disabled:opacity-50 transition-colors"
+      >
+        {{ loading() ? '…' : ('auditLog.loadMore' | t) }}
+      </button>
+    </div>
+  }
+</div>
