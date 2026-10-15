@@ -105,7 +105,7 @@ public class IikoOrderSyncService
             $"{customer?.FirstName} {customer?.LastName}".Trim(),
             items,
             order.Total,
-            $"Altyncup order #{order.Id}");
+            $"Yurt order #{order.Id}");
 
         try
         {

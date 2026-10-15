@@ -78,7 +78,7 @@ public class ApplePayPlugin: CAPPlugin, CAPBridgedPlugin {
         request.countryCode = "KZ"
         request.currencyCode = "KZT"
         request.paymentSummaryItems = [
-            PKPaymentSummaryItem(label: "Altyncup", amount: NSDecimalNumber(value: amount)),
+            PKPaymentSummaryItem(label: "Yurt", amount: NSDecimalNumber(value: amount)),
         ]
 
         guard let controller = PKPaymentAuthorizationViewController(paymentRequest: request) else {

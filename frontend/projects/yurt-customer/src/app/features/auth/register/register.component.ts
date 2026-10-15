@@ -129,7 +129,7 @@ export class RegisterComponent implements OnDestroy {
               displayName: res.auth.displayName,
               userType: res.auth.userType,
             });
-            this.toast.success('Account created! Welcome to Altyncup ☕');
+            this.toast.success('Account created! Welcome to Yurt ☕');
             this.router.navigate(['/locations']);
             return;
           }
@@ -166,7 +166,7 @@ export class RegisterComponent implements OnDestroy {
           displayName: res.displayName,
           userType: res.userType,
         });
-        this.toast.success('Account created! Welcome to Altyncup ☕');
+        this.toast.success('Account created! Welcome to Yurt ☕');
         this.router.navigate(['/locations']);
       },
       error: (err) => {

@@ -29,4 +29,9 @@ appsettings.Production.json
 
 # Firebase / Google services
 google-services.json
-GoogleService-Info.plist.DS_Store
+GoogleService-Info.plist
+
+
+# Per-cafe build config (injected at build time, see docs/runbook.md)
+cafes/*/secrets/
+.local/

@@ -1,6 +1,6 @@
 # Deploy iOS App to App Store
 
-**App:** Altyncup (`com.yurt.app`)  
+**App:** Yurt (`com.yurt.app`)  
 **Min iOS:** 15.6 · **Current version:** 1.0 (build 1)
 
 ---
@@ -108,7 +108,7 @@ Xcode uploads the build. It takes a few minutes to process on Apple's servers.
 
 ## Step 9 — Submit for Review in App Store Connect
 
-1. Go to [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → **My Apps → Altyncup**
+1. Go to [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → **My Apps → Yurt**
 2. Click **+ Version or Platform** → **iOS** → enter the version number
 3. Fill in:
    - **What's New** — describe what changed in this version

@@ -4,6 +4,18 @@ A full-stack café ordering platform with a mobile-first customer app, a desktop
 
 ---
 
+## Quick Start (local)
+
+```bash
+./scripts/dev.sh        # Postgres + API (Docker) + customer app + admin panel
+```
+
+Customer app http://localhost:4200, admin panel http://localhost:4300 (`admin` / `admin12345`), API http://localhost:8080.
+Needs Docker and Node 20+. More in [docs/runbook.md](docs/runbook.md); the platform roadmap is
+[docs/MODULARIZATION_TODO.md](docs/MODULARIZATION_TODO.md).
+
+---
+
 ## What It Does
 
 Yurt connects café customers with café staff in real time. Customers browse the menu, build a cart, and place pickup orders from their phone. Staff see incoming orders instantly and manage them through a live dashboard. Admins control the full menu, locations, staff accounts, promotions, and analytics from a separate admin panel.

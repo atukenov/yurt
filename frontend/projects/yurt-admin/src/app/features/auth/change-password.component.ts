@@ -13,7 +13,7 @@ import { ButtonComponent } from 'shared-ui';
     <div class="min-h-screen bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center p-4">
       <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8">
         <div class="text-center mb-8">
-          <img src="logo.png" alt="Altyncup" class="w-16 h-16 object-contain mx-auto mb-3" />
+          <img src="logo.png" alt="Yurt" class="w-16 h-16 object-contain mx-auto mb-3" />
           <h1 class="text-2xl font-bold text-stone-800">Change Password</h1>
           <p class="text-slate-400 text-sm mt-1">You must set a new password before continuing.</p>
         </div>

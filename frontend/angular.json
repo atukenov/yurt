@@ -50,7 +50,9 @@
                 "input": "projects/yurt-customer/public"
               }
             ],
-            "styles": ["projects/yurt-customer/src/styles.css"]
+            "styles": [
+              "projects/yurt-customer/src/styles.css"
+            ]
           },
           "configurations": {
             "production": {
@@ -72,6 +74,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "local": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "projects/yurt-customer/src/environments/environment.ts",
+                  "with": "projects/yurt-customer/src/environments/environment.local.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -84,6 +97,9 @@
             },
             "development": {
               "buildTarget": "yurt-customer:build:development"
+            },
+            "local": {
+              "buildTarget": "yurt-customer:build:local"
             }
           },
           "defaultConfiguration": "development"
@@ -133,7 +149,9 @@
                 "input": "projects/yurt-admin/public"
               }
             ],
-            "styles": ["projects/yurt-admin/src/styles.css"]
+            "styles": [
+              "projects/yurt-admin/src/styles.css"
+            ]
           },
           "configurations": {
             "production": {
@@ -155,6 +173,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "local": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "projects/yurt-admin/src/environments/environment.ts",
+                  "with": "projects/yurt-admin/src/environments/environment.local.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -167,6 +196,9 @@
             },
             "development": {
               "buildTarget": "yurt-admin:build:development"
+            },
+            "local": {
+              "buildTarget": "yurt-admin:build:local"
             }
           },
           "defaultConfiguration": "development"
