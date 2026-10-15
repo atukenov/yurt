@@ -35,6 +35,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<UserReport> UserReports => Set<UserReport>();
     public DbSet<AppRelease> AppReleases => Set<AppRelease>();
     public DbSet<CustomerDeviceToken> CustomerDeviceTokens => Set<CustomerDeviceToken>();
+    public DbSet<ModuleLicense> ModuleLicenses => Set<ModuleLicense>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

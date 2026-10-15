@@ -100,3 +100,10 @@ public enum DevicePlatform
     Ios = 0,
     Android = 1
 }
+
+public enum ModuleLicenseSource
+{
+    Manual = 0,
+    Trial = 1,
+    Paid = 2
+}

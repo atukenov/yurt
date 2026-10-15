@@ -590,6 +590,29 @@ export interface AppRelease {
   createdAt: string;
 }
 
+// ── Modules (paid platform features) ───────────────────────────────────────
+
+/** Public runtime config: keys of the modules that are switched on. */
+export interface AppConfig {
+  modules: string[];
+}
+
+export type ModuleState = 'active' | 'grace' | 'expired' | 'disabled';
+
+export interface ModuleStatusInfo {
+  key: string;
+  state: ModuleState;
+  enabled: boolean;
+  validUntil: string | null;
+  graceEndsAt: string | null;
+  source: string;
+  notes: string | null;
+}
+
+export interface SubscriptionInfo {
+  modules: ModuleStatusInfo[];
+}
+
 // ── Discount Codes ────────────────────────────────────────────────────────────
 
 export interface DiscountCode {

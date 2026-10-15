@@ -31,6 +31,7 @@ public interface IApplicationDbContext
     DbSet<UserReport> UserReports { get; }
     DbSet<AppRelease> AppReleases { get; }
     DbSet<CustomerDeviceToken> CustomerDeviceTokens { get; }
+    DbSet<ModuleLicense> ModuleLicenses { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -7,6 +7,7 @@ import {
   AnalyticsResponse,
   ApplePayConfigResponse,
   AppRelease,
+  AppConfig,
   AppUpdateInfo,
   AuditLogEntry,
   AuthResponse,
@@ -41,6 +42,7 @@ import {
   UserReport,
   ValidateDiscountCodeResponse,
   WorkerAccount,
+  SubscriptionInfo,
 } from 'shared-models';
 
 @Injectable({ providedIn: 'root' })
@@ -59,6 +61,14 @@ export class YurtApiService {
   // ── App ────────────────────────────────────────────────────────────────────
   getAppUpdateInfo(): Observable<AppUpdateInfo> {
     return this.http.get<AppUpdateInfo>(`${this.api}/app/update-info`);
+  }
+
+  getAppConfig(): Observable<AppConfig> {
+    return this.http.get<AppConfig>(`${this.api}/app/config`);
+  }
+
+  getAdminSubscription(): Observable<SubscriptionInfo> {
+    return this.http.get<SubscriptionInfo>(`${this.api}/admin/subscription`);
   }
 
   // Admin app releases (what's-new popup / forced update)
