@@ -32,6 +32,12 @@ How a gate is built:
 - **Checkout is unaffected:** regular orders do not touch group carts. A group cart created before the module was turned off cannot be continued until it is back on.
 - **Depends on:** nothing.
 
+### `engagement` (ratings, achievements, 2GIS directions)
+- **Covers:** `POST /api/v1/orders/{id}/rating`; in the customer app the rating card on a completed order, the achievements route, the achievements tiles on News and Profile, and the 2GIS "route" button on an accepted order; in the admin app the rating shown on an order and the 2GIS link field on a location.
+- **When off:** the rating endpoint returns `403 module_disabled`, `/achievements` redirects to News, and the UI above is hidden. Achievements are computed in the app from the customer's own stats, so there is no endpoint to gate.
+- **Existing data:** ratings already given and each location's stored 2GIS link are kept and show again when the module is back on. The location API still accepts and returns the 2GIS link; only the UI is hidden.
+- **Depends on:** nothing.
+
 ## Not gated yet
-`engagement`, `staff_audit`, `multi_location`, `push`, `loyalty`, `iiko_sync`,
+`staff_audit`, `multi_location`, `push`, `loyalty`, `iiko_sync`,
 `online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).

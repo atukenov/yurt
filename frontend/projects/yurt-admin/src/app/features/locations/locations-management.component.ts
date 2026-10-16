@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService } from 'shared-api';
+import { ModuleService, YurtApiService } from 'shared-api';
 import { Location, IikoTerminalGroup } from 'shared-models';
 import { ButtonComponent, ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -51,6 +51,7 @@ function parseSlots(wh: string): WorkingSlot[] {
 })
 export class LocationsManagementComponent implements OnInit {
   private api = inject(YurtApiService);
+  readonly modules = inject(ModuleService);
   private toast = inject(ToastService);
   private confirmSvc = inject(ConfirmService);
 

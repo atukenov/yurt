@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService, SignalrService } from 'shared-api';
+import { ModuleService, YurtApiService, SignalrService } from 'shared-api';
 import { Order, OrderStatus, Location, IikoOrderSyncStatus } from 'shared-models';
 import {
   BadgeComponent,
@@ -34,6 +34,7 @@ import { SoundService } from '../../core/sound.service';
 export class OrdersLiveComponent implements OnInit, OnDestroy {
   readonly signalr = inject(SignalrService);
   private api = inject(YurtApiService);
+  readonly modules = inject(ModuleService);
   private toast = inject(ToastService);
   private sound = inject(SoundService);
 

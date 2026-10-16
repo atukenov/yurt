@@ -51,7 +51,7 @@ export const routes: Routes = [
       },
       {
         path: 'achievements',
-        canActivate: [authGuard],
+        canActivate: [authGuard, moduleGuard('engagement', '/news')],
         loadComponent: () =>
           import('./features/achievements/achievements.component').then((m) => m.AchievementsComponent),
       },

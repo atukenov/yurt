@@ -4,6 +4,7 @@ using Asp.Versioning;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Orders.Services;
+using Yurt.Domain;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers;
@@ -64,6 +65,7 @@ public class OrdersController : ApiControllerBase
 
     /// <summary>Rate a completed order (1-5 stars, optional comment). Once only.</summary>
     [HttpPost("{id:guid}/rating")]
+    [RequireModule(ModuleKeys.Engagement)]
     public async Task<IActionResult> Rate(Guid id, [FromBody] RateOrderDto dto, CancellationToken ct)
         => ToResult(await _orderService.RateOrderAsync(id, _currentUser.UserId!.Value, dto, ct));
 }

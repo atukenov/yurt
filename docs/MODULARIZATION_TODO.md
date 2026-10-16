@@ -83,7 +83,7 @@ Gating order (lowest risk first):
 - [x] `analytics` (admin-only, no customer impact) _(details in `docs/modules.md`)_
 - [x] `marketing` (promotions, discount codes) _(details in `docs/modules.md`)_
 - [x] `group_orders` _(details in `docs/modules.md`)_
-- [ ] `engagement` (ratings, achievements, 2GIS button)
+- [x] `engagement` (ratings, achievements, 2GIS button) _(details in `docs/modules.md`)_
 - [ ] `staff_audit`
 - [ ] `multi_location` (enforce the 1-location limit in core)
 - [ ] `push`

@@ -79,7 +79,7 @@
       </p>
 
       <!-- 2GIS directions — once the cafe has accepted the order -->
-      @if (o.locationTwoGisUrl && (o.status === OrderStatus.Accepted || o.status === OrderStatus.Preparing || o.status === OrderStatus.Ready)) {
+      @if (modules.isEnabled('engagement') && o.locationTwoGisUrl && (o.status === OrderStatus.Accepted || o.status === OrderStatus.Preparing || o.status === OrderStatus.Ready)) {
         <a class="gis-btn" [href]="o.locationTwoGisUrl" target="_blank" rel="noopener noreferrer">
           <span class="gis-pin" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -255,7 +255,7 @@
     }
 
     <!-- ── Rating card — only when Completed ────────────────────────────────── -->
-    @if (o.status === OrderStatus.Completed) {
+    @if (modules.isEnabled('engagement') && o.status === OrderStatus.Completed) {
       <div class="order-card" style="margin:10px 16px 0;text-align:center">
         @if (o.rating) {
           <p style="font-size:13px;font-weight:600;color:#78716c;margin-bottom:6px">{{ 'rating.thanks' | t }}</p>

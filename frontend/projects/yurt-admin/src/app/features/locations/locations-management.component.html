@@ -101,6 +101,7 @@
           />
         </div>
 
+        @if (modules.isEnabled('engagement')) {
         <!-- 2GIS link -->
         <div>
           <label for="location-2gis" class="block text-xs font-medium text-slate-600 mb-1">{{ 'locations.twoGis' | t }}</label>
@@ -115,6 +116,7 @@
           />
           <p class="text-xs text-slate-400 mt-1">{{ 'locations.twoGisHint' | t }}</p>
         </div>
+        }
 
         <!-- Working Hours -->
         <div>
