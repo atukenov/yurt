@@ -186,7 +186,7 @@ export class AnalyticsComponent implements OnInit {
 
   statusColor(status: string): string {
     const map: Record<string, string> = {
-      Created: 'bg-brand-100 text-brand-700',
+      Created: 'bg-brand-100 text-brand-ink',
       Accepted: 'bg-blue-100 text-blue-700',
       Preparing: 'bg-teal-100 text-teal-700',
       Ready: 'bg-green-100 text-green-700',

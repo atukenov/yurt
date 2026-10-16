@@ -51,7 +51,7 @@
               <td class="px-5 py-3 text-slate-800">{{ c.displayName || '—' }}</td>
               <td class="px-5 py-3 text-slate-400">{{ c.registeredAt | date: 'MMM d, y' }}</td>
               <td class="px-5 py-3 text-right font-semibold text-slate-700">{{ c.orderCount }}</td>
-              <td class="px-5 py-3 text-right font-semibold text-brand-600">{{ c.totalSpent | currency2 }}</td>
+              <td class="px-5 py-3 text-right font-semibold text-brand-ink">{{ c.totalSpent | currency2 }}</td>
             </tr>
           }
         </tbody>
@@ -76,7 +76,7 @@
           </div>
           <div class="flex gap-3 mt-2 text-sm">
             <span class="text-slate-500">{{ 'customers.orders' | t }}: <strong class="text-slate-700">{{ c.orderCount }}</strong></span>
-            <span class="text-slate-500">{{ 'customers.spent' | t }}: <strong class="text-brand-600">{{ c.totalSpent | currency2 }}</strong></span>
+            <span class="text-slate-500">{{ 'customers.spent' | t }}: <strong class="text-brand-ink">{{ c.totalSpent | currency2 }}</strong></span>
           </div>
         </div>
       }

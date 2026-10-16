@@ -37,11 +37,11 @@
       <div class="grid gap-3 mt-5"
         [class]="loyalty()?.enabled ? 'grid-cols-3' : 'grid-cols-2'">
         <div class="bg-brand-50 rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold text-brand-600">{{ c.totalOrders }}</p>
+          <p class="text-2xl font-bold text-brand-ink">{{ c.totalOrders }}</p>
           <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.totalOrders' | t }}</p>
         </div>
         <div class="bg-brand-50 rounded-xl p-4 text-center">
-          <p class="text-2xl font-bold text-brand-600">{{ c.totalSpent | currency2 }}</p>
+          <p class="text-2xl font-bold text-brand-ink">{{ c.totalSpent | currency2 }}</p>
           <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.totalSpent' | t }}</p>
         </div>
         @if (loyalty(); as l) {
@@ -117,7 +117,7 @@
                 <td class="px-5 py-3">
                   <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
                     [ngClass]="{
-                      'bg-brand-100 text-brand-700': o.status === 'Created',
+                      'bg-brand-100 text-brand-ink': o.status === 'Created',
                       'bg-blue-100 text-blue-700': o.status === 'Accepted',
                       'bg-teal-100 text-teal-700': o.status === 'Preparing',
                       'bg-green-100 text-green-700': o.status === 'Ready',
@@ -126,14 +126,14 @@
                     }">{{ 'order.status.' + o.status | t }}</span>
                 </td>
                 <td class="px-5 py-3 text-right text-slate-600">{{ o.itemCount }}</td>
-                <td class="px-5 py-3 text-right font-semibold text-brand-600">{{ o.total | currency2 }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-brand-ink">{{ o.total | currency2 }}</td>
                 @if (loyalty()?.enabled) {
                   <td class="px-5 py-3 text-right whitespace-nowrap">
                     @if (o.loyaltyPointsEarned) {
                       <span class="text-teal-600 font-semibold">+{{ o.loyaltyPointsEarned | currency2 }}</span>
                     }
                     @if (o.loyaltyPointsSpent) {
-                      <span class="text-brand-600 font-semibold" [class.ml-2]="o.loyaltyPointsEarned">−{{ o.loyaltyPointsSpent | currency2 }}</span>
+                      <span class="text-brand-ink font-semibold" [class.ml-2]="o.loyaltyPointsEarned">−{{ o.loyaltyPointsSpent | currency2 }}</span>
                     }
                     @if (!o.loyaltyPointsEarned && !o.loyaltyPointsSpent) {
                       <span class="text-slate-300">—</span>
