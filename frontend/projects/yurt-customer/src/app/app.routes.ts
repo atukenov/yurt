@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { moduleGuard } from 'shared-api';
 import { authGuard } from './guards/auth.guard';
 import { noAuthGuard } from './guards/no-auth.guard';
 
@@ -62,19 +63,19 @@ export const routes: Routes = [
       },
       {
         path: 'group-order/create',
-        canActivate: [authGuard],
+        canActivate: [authGuard, moduleGuard('group_orders', '/cart')],
         loadComponent: () =>
           import('./features/group-order/group-order-create.component').then((m) => m.GroupOrderCreateComponent),
       },
       {
         path: 'group-order/join',
-        canActivate: [authGuard],
+        canActivate: [authGuard, moduleGuard('group_orders', '/cart')],
         loadComponent: () =>
           import('./features/group-order/group-order-join.component').then((m) => m.GroupOrderJoinComponent),
       },
       {
         path: 'group-order/:id',
-        canActivate: [authGuard],
+        canActivate: [authGuard, moduleGuard('group_orders', '/cart')],
         loadComponent: () =>
           import('./features/group-order/group-order-view.component').then((m) => m.GroupOrderViewComponent),
       },

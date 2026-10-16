@@ -26,6 +26,12 @@ How a gate is built:
 - **Existing data:** promotions, codes and the discount recorded on past orders stay as they are and show again when the module is back on.
 - **Depends on:** nothing.
 
+### `group_orders` (shared carts and join links)
+- **Covers:** every `/api/v1/group-orders/*` endpoint (create, join, view, add/remove item, checkout); in the customer app the `group-order/*` routes.
+- **When off:** endpoints return `403 module_disabled` and the routes redirect to the cart. The "Start/Join group order" links in the cart are currently commented out in the template; when they are re-enabled they must be wrapped in `modules.isEnabled('group_orders')`.
+- **Checkout is unaffected:** regular orders do not touch group carts. A group cart created before the module was turned off cannot be continued until it is back on.
+- **Depends on:** nothing.
+
 ## Not gated yet
-`group_orders`, `engagement`, `staff_audit`, `multi_location`, `push`, `loyalty`, `iiko_sync`,
+`engagement`, `staff_audit`, `multi_location`, `push`, `loyalty`, `iiko_sync`,
 `online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.GroupOrders;
+using Yurt.Domain;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers;
@@ -11,6 +12,7 @@ namespace Yurt.WebApi.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/group-orders")]
 [Authorize(Policy = "CustomerOnly")]
+[RequireModule(ModuleKeys.GroupOrders)]
 public class GroupOrderController : ApiControllerBase
 {
     private readonly GroupOrderService _service;
