@@ -3,8 +3,10 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Domain.Entities;
 
-public class GroupCart : BaseEntity
+public class GroupCart : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Code { get; set; } = string.Empty;
     public Guid LocationId { get; set; }
     public Guid CreatedByUserId { get; set; }

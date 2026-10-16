@@ -6,7 +6,7 @@ using Yurt.Infrastructure.Persistence;
 
 namespace Yurt.IntegrationTests.Tests;
 
-/// <summary>One cafe can never read another cafe's menu or locations (Phase 5, tables filtered so far).</summary>
+/// <summary>One cafe can never read another cafe's menu or locations and orders and promotions (Phase 5, tables filtered so far).</summary>
 [Collection("Integration")]
 public class TenantIsolationTests(YurtWebAppFactory factory)
 {
@@ -59,6 +59,39 @@ public class TenantIsolationTests(YurtWebAppFactory factory)
             using var _ = scopeD;
             Assert.Equal(0, await dbDefault.MenuCategories.CountAsync(c => c.Name == name));
             Assert.Equal(0, await dbDefault.Locations.CountAsync(l => l.Name == name));
+        }
+    }
+
+    [Fact]
+    public async Task OrdersAndPromotions_AreStampedAndHiddenFromOtherCafes()
+    {
+        var slugA = $"a-{Guid.NewGuid():N}"[..12];
+        var slugB = $"b-{Guid.NewGuid():N}"[..12];
+        var a = await CreateTenantAsync(slugA);
+        var b = await CreateTenantAsync(slugB);
+        var title = $"Promo {Guid.NewGuid():N}";
+        Guid orderId;
+
+        using (var dbA = DbFor(a, slugA, out var scopeA))
+        {
+            using var _ = scopeA;
+            var customer = new CustomerUser { MobileNumber = $"+7{Random.Shared.NextInt64(7000000000, 7999999999)}", PinHash = "x", FirstName = "A", LastName = "B" };
+            var location = new Location { Name = title, Address = "x", WorkingHours = "x", ContactPhone = "x" };
+            var order = new Order { CustomerUser = customer, Location = location, Subtotal = 10, Total = 10 };
+            dbA.Promotions.Add(new Promotion { Title = title, Description = "d" });
+            dbA.Orders.Add(order);
+            await dbA.SaveChangesAsync();
+            orderId = order.Id;
+            Assert.Equal(a, order.TenantId);
+            Assert.Equal(1, await dbA.Orders.CountAsync(o => o.Id == orderId));
+            Assert.Equal(1, await dbA.Promotions.CountAsync(p => p.Title == title));
+        }
+
+        using (var dbB = DbFor(b, slugB, out var scopeB))
+        {
+            using var _ = scopeB;
+            Assert.Equal(0, await dbB.Orders.CountAsync(o => o.Id == orderId));
+            Assert.Equal(0, await dbB.Promotions.CountAsync(p => p.Title == title));
         }
     }
 

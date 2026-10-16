@@ -3,8 +3,10 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Domain.Entities;
 
-public class PaymentWebhookLog : BaseEntity
+public class PaymentWebhookLog : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
   public PaymentProvider Provider { get; set; }
   public string Payload { get; set; } = null!;
   public string Headers { get; set; } = null!;
