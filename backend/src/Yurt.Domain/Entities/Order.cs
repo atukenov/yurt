@@ -3,8 +3,10 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Domain.Entities;
 
-public class Order : BaseEntity
+public class Order : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public Guid CustomerUserId { get; set; }
     public Guid LocationId { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Created;

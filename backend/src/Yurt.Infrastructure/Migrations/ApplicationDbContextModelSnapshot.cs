@@ -319,12 +319,19 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<Guid>("MenuItemId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MenuItemId");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("CustomerUserId", "MenuItemId")
                         .IsUnique();
@@ -357,12 +364,19 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LocationId");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("GroupCarts");
                 });
@@ -399,6 +413,11 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<string>("ToppingsJson")
                         .IsRequired()
                         .HasColumnType("text");
@@ -412,6 +431,8 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("GroupCartId");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("GroupCartItems");
                 });
@@ -435,12 +456,19 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<Guid>("GroupCartId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("GroupCartId");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("GroupCartMembers");
                 });
@@ -903,6 +931,11 @@ namespace Yurt.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<decimal>("Total")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
@@ -915,6 +948,8 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("DiscountCodeId");
 
                     b.HasIndex("LocationId");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex("CustomerUserId", "IdempotencyKey")
                         .IsUnique()
@@ -953,6 +988,11 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
@@ -971,6 +1011,8 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("MenuItemId");
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("OrderItems");
                 });
@@ -991,6 +1033,11 @@ namespace Yurt.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<Guid>("ToppingId")
                         .HasColumnType("uuid");
 
@@ -1005,6 +1052,8 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderItemId");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("OrderItemToppings");
                 });
@@ -1059,6 +1108,11 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1068,6 +1122,8 @@ namespace Yurt.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("Payments");
                 });
@@ -1099,10 +1155,17 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("PaymentWebhookLogs");
                 });
@@ -1235,6 +1298,11 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1252,6 +1320,8 @@ namespace Yurt.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("Promotions");
                 });
@@ -1404,6 +1474,12 @@ namespace Yurt.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("CustomerUser");
 
                     b.Navigation("MenuItem");
@@ -1417,6 +1493,12 @@ namespace Yurt.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Location");
                 });
 
@@ -1428,6 +1510,12 @@ namespace Yurt.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("GroupCart");
                 });
 
@@ -1437,6 +1525,12 @@ namespace Yurt.Infrastructure.Migrations
                         .WithMany("Members")
                         .HasForeignKey("GroupCartId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("GroupCart");
@@ -1572,6 +1666,12 @@ namespace Yurt.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("CustomerUser");
 
                     b.Navigation("DiscountCode");
@@ -1593,6 +1693,12 @@ namespace Yurt.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("MenuItem");
 
                     b.Navigation("Order");
@@ -1606,6 +1712,12 @@ namespace Yurt.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("OrderItem");
                 });
 
@@ -1617,7 +1729,31 @@ namespace Yurt.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.PaymentWebhookLog", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.Promotion", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.UserReport", b =>

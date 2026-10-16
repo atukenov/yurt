@@ -127,8 +127,8 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
   - [x] `Tenant` table and one seeded default tenant (fixed id `Tenant.DefaultId`); no table is filtered yet.
   - [x] Request-to-tenant resolution by host name (`TenantMiddleware`, `ITenantContext`; unknown host, inactive tenant or a database error fall back to the default tenant). Still to do: the signed-in user's tenant, once users carry a `TenantId`.
   - [ ] `TenantId` (not null, existing rows get the default tenant) plus global query filter, one table group per PR:
-    - [x] Menu and locations (`Location`, `MenuCategory`, `MenuItem`, `MenuTopping`, `MenuItemVariant`, `MenuItemLocation`, `MenuToppingCategory`). New rows are stamped from `ITenantContext` on save. The startup log warns that `Order`, `OrderItem` and `GroupCart` point at filtered tables; the next group fixes that.
-    - [ ] Orders, payments, group carts and promotions.
+    - [x] Menu and locations (`Location`, `MenuCategory`, `MenuItem`, `MenuTopping`, `MenuItemVariant`, `MenuItemLocation`, `MenuToppingCategory`). New rows are stamped from `ITenantContext` on save. 
+    - [x] Orders, payments, group carts, promotions and favorites (`Order`, `OrderItem`, `OrderItemTopping`, `Payment`, `PaymentWebhookLog`, `GroupCart*`, `Promotion`, `Favorite`). The startup warnings about required navigations are gone. Payment webhooks resolve the cafe by host name like any request; giving each cafe its own webhook address and credentials is part of the per-tenant credentials step.
     - [ ] Users (customers, staff, refresh tokens, device tokens), audit log, discount codes, reports, app releases.
   - [ ] Per-tenant settings and credentials: module licenses, brand and other platform settings, iiko, payments, Firebase, OTP.
   - [ ] Make `TenantId` required once every table has it.

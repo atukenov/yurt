@@ -2,8 +2,10 @@ using Yurt.Domain.Common;
 
 namespace Yurt.Domain.Entities;
 
-public class Promotion : BaseEntity
+public class Promotion : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Title { get; set; } = string.Empty;
     public string? TitleRu { get; set; }
     public string? TitleKk { get; set; }

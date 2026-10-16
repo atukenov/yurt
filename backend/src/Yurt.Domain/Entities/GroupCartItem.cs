@@ -2,8 +2,10 @@ using Yurt.Domain.Common;
 
 namespace Yurt.Domain.Entities;
 
-public class GroupCartItem : BaseEntity
+public class GroupCartItem : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public Guid GroupCartId { get; set; }
     public Guid AddedByUserId { get; set; }
     public string AddedByName { get; set; } = string.Empty;
