@@ -2,8 +2,10 @@ using Yurt.Domain.Common;
 
 namespace Yurt.Domain.Entities;
 
-public class Location : BaseEntity
+public class Location : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public string WorkingHours { get; set; } = string.Empty;
