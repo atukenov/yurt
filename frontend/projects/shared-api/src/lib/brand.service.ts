@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { BrandConfig, BrandLink } from 'shared-models';
-import { buildScale, parseHex, readableOn, readableOnDark, readableOnLight } from './brand-palette';
+import { FONT_STACKS, RADIUS_SCALE, buildScale, parseHex, readableOn, readableOnDark, readableOnLight } from './brand-palette';
 
 /** Steps of the accent scale used for gradient ends and soft tints. */
 const ACCENT_STEPS = ['50', '400', '500'] as const;
@@ -61,6 +61,7 @@ export class BrandService {
     if (!root) return;
 
     this.applyIcon(root, httpsOrNull(brand.iconUrl));
+    this.applyShape(root, brand);
 
     const scale = buildScale(brand.primaryColor);
     const primary = parseHex(brand.primaryColor);
@@ -87,6 +88,16 @@ export class BrandService {
     }
 
     if (persist) this.writeCache(brand);
+  }
+
+  /** Corner roundness and font family; unknown or default values remove the override. */
+  private applyShape(root: HTMLElement, brand: BrandConfig): void {
+    const scale = RADIUS_SCALE[brand.radius ?? ''];
+    if (scale === undefined) root.style.removeProperty('--radius-scale');
+    else root.style.setProperty('--radius-scale', String(scale));
+    const font = FONT_STACKS[brand.font ?? ''];
+    if (!font) root.style.removeProperty('--brand-font');
+    else root.style.setProperty('--brand-font', font);
   }
 
   /** Swaps the browser-tab / home-screen icon; null restores the bundled one. */

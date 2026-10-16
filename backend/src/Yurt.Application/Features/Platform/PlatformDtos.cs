@@ -37,9 +37,18 @@ public record BrandDto(
     string? IconUrl = null,
     string? SplashUrl = null,
     string? WelcomeText = null,
-    IReadOnlyList<BrandLink>? Links = null)
+    IReadOnlyList<BrandLink>? Links = null,
+    string? Radius = null,
+    string? Font = null)
 {
     public static readonly BrandDto Default = new("Yurt", "#ffd119", "#ea580c", null, null);
+}
+
+/// <summary>Allowed values for <see cref="BrandDto.Radius"/> and <see cref="BrandDto.Font"/>; null means the default.</summary>
+public static class BrandChoices
+{
+    public static readonly string[] Radius = ["square", "default", "round"];
+    public static readonly string[] Font = ["default", "system", "serif"];
 }
 
 /// <summary>A labelled link shown in the customer app (Instagram, website, ...).</summary>
