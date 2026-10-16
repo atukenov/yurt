@@ -99,6 +99,7 @@
         </a>
         }
 
+        @if (modules.isEnabled('marketing')) {
         <a
           routerLink="/promotions"
           routerLinkActive="bg-amber-50 text-amber-700 font-semibold"
@@ -113,6 +114,7 @@
           </svg>
           @if (!collapsed()) { <span class="truncate">{{ 'nav.promotions' | t }}</span> }
         </a>
+        }
 
         @if (auth.isSuperAdmin) {
         <a
@@ -146,6 +148,7 @@
           @if (!collapsed()) { <span class="truncate">{{ 'nav.subscription' | t }}</span> }
         </a>
 
+        @if (modules.isEnabled('marketing')) {
         <a
           routerLink="/discount-codes"
           routerLinkActive="bg-amber-50 text-amber-700 font-semibold"
@@ -160,6 +163,7 @@
           </svg>
           @if (!collapsed()) { <span class="truncate">{{ 'nav.discountCodes' | t }}</span> }
         </a>
+        }
 
         <a
           routerLink="/customers"

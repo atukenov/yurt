@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Yurt.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Yurt.Application.Common.Interfaces;
@@ -12,6 +13,7 @@ namespace Yurt.WebApi.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/discount-codes")]
 [Authorize(Policy = "CustomerOnly")]
+[RequireModule(ModuleKeys.Marketing)]
 public class DiscountCodesController : ApiControllerBase
 {
     private readonly DiscountCodeService _service;

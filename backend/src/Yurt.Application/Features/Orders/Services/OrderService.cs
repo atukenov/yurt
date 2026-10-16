@@ -5,6 +5,7 @@ using Yurt.Application.Features.DiscountCodes.Services;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty.Services;
 using Yurt.Application.Features.Orders.DTOs;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
@@ -18,10 +19,12 @@ public class OrderService
     private readonly DiscountCodeService _discountCodes;
     private readonly LoyaltyService _loyalty;
     private readonly IikoOrderSyncService _iikoSync;
+    private readonly IModuleGate _modules;
 
     public OrderService(
         IApplicationDbContext db, IOrdersHubService hub, IAuditLogService audit,
-        DiscountCodeService discountCodes, LoyaltyService loyalty, IikoOrderSyncService iikoSync)
+        DiscountCodeService discountCodes, LoyaltyService loyalty, IikoOrderSyncService iikoSync,
+        IModuleGate modules)
     {
         _db = db;
         _hub = hub;
@@ -29,6 +32,7 @@ public class OrderService
         _discountCodes = discountCodes;
         _loyalty = loyalty;
         _iikoSync = iikoSync;
+        _modules = modules;
     }
 
     public const string CustomerCancelReason = "Cancelled by customer";
@@ -128,8 +132,9 @@ public class OrderService
         order.Subtotal = orderItems.Sum(i => i.LineTotal);
         order.IdempotencyKey = dto.IdempotencyKey;
 
-        // Apply discount code if provided
-        if (!string.IsNullOrWhiteSpace(dto.DiscountCode))
+        // Apply discount code if provided (ignored while the marketing module is off)
+        if (!string.IsNullOrWhiteSpace(dto.DiscountCode)
+            && await _modules.IsEnabledAsync(ModuleKeys.Marketing, ct))
         {
             var normalizedCode = dto.DiscountCode.Trim().ToUpperInvariant();
             var codeEntity = await _db.DiscountCodes

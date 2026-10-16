@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
+using Yurt.Domain;
+using Yurt.WebApi.Common;
 using Yurt.Application.Features.Promotions.Services;
 
 namespace Yurt.WebApi.Controllers;
@@ -7,6 +9,7 @@ namespace Yurt.WebApi.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/promotions")]
+[RequireModule(ModuleKeys.Marketing)]
 public class PromotionsController : ControllerBase
 {
     private readonly PromotionService _promotionService;

@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, OnInit, signal } from '@angular/co
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService, AuthStateService, ApplePayService } from 'shared-api';
+import { YurtApiService, AuthStateService, ApplePayService, ModuleService } from 'shared-api';
 import { CartItem, LoyaltyBalance, PaymentMethod } from 'shared-models';
 import { CartService } from './cart.service';
 import { ToastService, Currency2Pipe } from 'shared-ui';
@@ -21,6 +21,7 @@ export class CartComponent implements OnInit {
   readonly cart = inject(CartService);
   readonly langService = inject(LangService);
   private api = inject(YurtApiService);
+  readonly modules = inject(ModuleService);
   private applePay = inject(ApplePayService);
   private router = inject(Router);
   private toast = inject(ToastService);
@@ -57,6 +58,10 @@ export class CartComponent implements OnInit {
   private lastPayableTotal = this.payableTotal();
 
   constructor() {
+    // A code applied before the marketing module went off no longer counts at checkout.
+    effect(() => {
+      if (!this.modules.isEnabled('marketing') && this.cart.appliedDiscount()) this.cart.clearDiscount();
+    });
     effect(() => {
       const value = this.payableTotal();
       if (value === this.lastPayableTotal) return;

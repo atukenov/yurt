@@ -1,6 +1,6 @@
 import { Component, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { YurtApiService } from 'shared-api';
+import { ModuleService, YurtApiService } from 'shared-api';
 import { Promotion } from 'shared-models';
 import { environment } from '../../environments/environment';
 import { PromoViewerService } from '../core/promo-viewer.service';
@@ -14,6 +14,7 @@ import { PromoViewerService } from '../core/promo-viewer.service';
 })
 export class PromoPopupComponent implements OnInit, OnDestroy {
   private api = inject(YurtApiService);
+  private modules = inject(ModuleService);
   private promoViewer = inject(PromoViewerService);
 
   private readonly SEEN_KEY = 'yurt_seen_promos';
@@ -46,6 +47,7 @@ export class PromoPopupComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.api.configure(environment.apiUrl);
+    if (!this.modules.isEnabled('marketing')) return;
     this.api.getActivePromotions().subscribe({
       next: (all) => {
         const seen = this.loadSeen();

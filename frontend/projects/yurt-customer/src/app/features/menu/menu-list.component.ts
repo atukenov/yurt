@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthStateService, YurtApiService } from 'shared-api';
+import { AuthStateService, ModuleService, YurtApiService } from 'shared-api';
 import {
   MenuCategory,
   MenuItem,
@@ -43,6 +43,7 @@ function normalizeForSearch(text: string): string {
 })
 export class MenuListComponent implements OnInit {
   private api = inject(YurtApiService);
+  private modules = inject(ModuleService);
   private router = inject(Router);
   readonly cart = inject(CartService);
   private toast = inject(ToastService);
@@ -252,7 +253,11 @@ export class MenuListComponent implements OnInit {
   }
 
   loadItems(lang?: string): void {
-    this.swr.swr('promos', () => this.api.getActivePromotions()).subscribe({ next: (p) => this.promotions.set(p), error: () => {} });
+    if (this.modules.isEnabled('marketing')) {
+      this.swr.swr('promos', () => this.api.getActivePromotions()).subscribe({ next: (p) => this.promotions.set(p), error: () => {} });
+    } else {
+      this.promotions.set([]);
+    }
     const locationId = this.locationSvc.locationId() || undefined;
     const language = lang ?? this.langService.lang();
     // Saved copy (if any) paints instantly and flips loading off; the fresh copy replaces it.
