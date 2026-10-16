@@ -9,7 +9,7 @@
       </div>
       <button
         (click)="openCreate()"
-        class="px-4 py-2 rounded-xl bg-brand-500 text-stone-900 text-sm font-semibold hover:bg-brand-600 active:scale-95 transition-all shadow-sm"
+        class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 active:scale-95 transition-all shadow-sm"
       >
         {{ 'discountCodes.new' | t }}
       </button>
@@ -207,7 +207,7 @@
         <button
           (click)="save()"
           [disabled]="saving()"
-          class="flex-1 py-2.5 rounded-xl bg-brand-500 text-stone-900 font-semibold text-sm hover:bg-brand-600 active:scale-95 transition-all disabled:opacity-60"
+          class="flex-1 py-2.5 rounded-xl bg-brand-500 text-on-brand font-semibold text-sm hover:bg-brand-600 active:scale-95 transition-all disabled:opacity-60"
         >
           {{ saving() ? ('label.saving' | t) : ('action.save' | t) }}
         </button>

@@ -10,7 +10,7 @@
         (click)="activeTab.set(tab.id)"
         [class]="
           activeTab() === tab.id
-            ? 'bg-brand-500 text-stone-900 shadow-sm shadow-brand-200'
+            ? 'bg-brand-500 text-on-brand shadow-sm shadow-brand-200'
             : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
         "
         class="flex-1 py-2 text-sm font-semibold rounded-xl transition-all"
@@ -136,7 +136,7 @@
           <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:#1c1917">{{ 'empty.ordersTitle' | t }}</h3>
           <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:#78716c;line-height:1.55">{{ 'empty.ordersHint' | t }}</p>
           <a [routerLink]="['/menu']"
-            style="margin-top:22px;display:inline-block;background:var(--brand-500);border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:#1c1917;text-decoration:none;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
+            style="margin-top:22px;display:inline-block;background:var(--brand-500);border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:var(--brand-on-primary);text-decoration:none;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
             class="active:scale-[0.97] transition-transform">
             {{ 'empty.ordersCta' | t }}
           </a>
