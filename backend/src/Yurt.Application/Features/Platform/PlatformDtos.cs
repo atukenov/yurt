@@ -35,7 +35,12 @@ public record BrandDto(
     string? LogoUrl,
     string? SupportContact,
     string? IconUrl = null,
-    string? SplashUrl = null)
+    string? SplashUrl = null,
+    string? WelcomeText = null,
+    IReadOnlyList<BrandLink>? Links = null)
 {
     public static readonly BrandDto Default = new("Yurt", "#ffd119", "#ea580c", null, null);
 }
+
+/// <summary>A labelled link shown in the customer app (Instagram, website, ...).</summary>
+public record BrandLink(string Label, string Url);

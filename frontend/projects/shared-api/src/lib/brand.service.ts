@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { BrandConfig } from 'shared-models';
+import { BrandConfig, BrandLink } from 'shared-models';
 import { buildScale, parseHex, readableOn } from './brand-palette';
 
 const CACHE_KEY = 'yurt.brand';
@@ -28,6 +28,10 @@ export class BrandService {
   readonly supportContact = signal<string | null>(null);
   /** Absolute https URL of the splash image shown while the app loads, or null to show the logo. */
   readonly splashUrl = signal<string | null>(null);
+  /** Short line shown under the name on the sign-in screen; null uses the built-in tagline. */
+  readonly welcomeText = signal<string | null>(null);
+  /** Social / website links (https only) for the profile screen. */
+  readonly links = signal<BrandLink[]>([]);
   private defaultIconHref: string | null = null;
 
   constructor() {
@@ -46,6 +50,10 @@ export class BrandService {
     this.logoUrl.set(httpsOrNull(brand.logoUrl));
     this.supportContact.set(brand.supportContact?.trim() || null);
     this.splashUrl.set(httpsOrNull(brand.splashUrl));
+    this.welcomeText.set(brand.welcomeText?.trim() || null);
+    this.links.set((Array.isArray(brand.links) ? brand.links : [])
+      .filter((l) => l && typeof l.label === 'string' && l.label.trim() && httpsOrNull(l.url))
+      .map((l) => ({ label: l.label.trim(), url: l.url })));
 
     const root = typeof document === 'undefined' ? null : document.documentElement;
     if (!root) return;

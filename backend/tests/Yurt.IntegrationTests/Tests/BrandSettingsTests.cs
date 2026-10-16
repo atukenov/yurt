@@ -46,6 +46,18 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
         var badSplash = await super.PutAsJsonAsync("/api/v1/platform/brand",
             new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", splashUrl = "javascript:alert(1)" });
         Assert.Equal(HttpStatusCode.BadRequest, badSplash.StatusCode);
+        var badLink = await super.PutAsJsonAsync("/api/v1/platform/brand", new
+        {
+            name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9",
+            links = new[] { new { label = "Site", url = "http://insecure" } }
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, badLink.StatusCode);
+        var manyLinks = await super.PutAsJsonAsync("/api/v1/platform/brand", new
+        {
+            name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9",
+            links = Enumerable.Range(0, 7).Select(i => new { label = $"L{i}", url = $"https://x.example/{i}" }).ToArray()
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, manyLinks.StatusCode);
 
         try
         {
@@ -53,7 +65,8 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
             {
                 name = "Blue Cafe", primaryColor = "#1D4ED8", accentColor = "#0ea5e9",
                 logoUrl = "https://cdn.example.com/logo.png", iconUrl = "https://cdn.example.com/icon.png",
-                splashUrl = "https://cdn.example.com/splash.png", supportContact = "+7 700 000 00 00"
+                splashUrl = "https://cdn.example.com/splash.png", welcomeText = "Fresh coffee, every day",
+                links = new[] { new { label = "Instagram", url = "https://instagram.com/bluecafe" }, new { label = "", url = "" } }, supportContact = "+7 700 000 00 00"
             });
             Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
 
@@ -63,6 +76,10 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
             Assert.Equal("https://cdn.example.com/logo.png", served.GetProperty("logoUrl").GetString());
             Assert.Equal("https://cdn.example.com/icon.png", served.GetProperty("iconUrl").GetString());
             Assert.Equal("https://cdn.example.com/splash.png", served.GetProperty("splashUrl").GetString());
+            Assert.Equal("Fresh coffee, every day", served.GetProperty("welcomeText").GetString());
+            var links = served.GetProperty("links");
+            Assert.Equal(1, links.GetArrayLength()); // the blank row is dropped
+            Assert.Equal("Instagram", links[0].GetProperty("label").GetString());
 
             // Branding module off: the apps get the Yurt default, the saved brand is kept
             await super.PutAsJsonAsync($"/api/v1/platform/modules/{ModuleKeys.Branding}", License(false));

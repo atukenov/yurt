@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, buildScale, parseHex, readableOn } from 'shared-api';
 import { ToastService } from 'shared-ui';
-import { BrandConfig, IntegrationStatus, PlatformModule } from 'shared-models';
+import { BrandConfig, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 interface ModuleEdit {
@@ -38,7 +38,7 @@ export class PlatformComponent implements OnInit {
 
   // ── Brand ──
   private static readonly DEFAULT_BRAND: BrandConfig = {
-    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null, iconUrl: null, splashUrl: null,
+    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null, iconUrl: null, splashUrl: null, welcomeText: null, links: [],
   };
   brand = signal<BrandConfig>({ ...PlatformComponent.DEFAULT_BRAND });
   savingBrand = signal(false);
@@ -60,6 +60,18 @@ export class PlatformComponent implements OnInit {
     this.brand.update((b) => ({ ...b, ...patch }));
   }
 
+  addBrandLink(): void {
+    this.brand.update((b) => ({ ...b, links: [...(b.links ?? []), { label: '', url: '' }] }));
+  }
+
+  patchBrandLink(index: number, patch: Partial<BrandLink>): void {
+    this.brand.update((b) => ({ ...b, links: (b.links ?? []).map((l, i) => (i === index ? { ...l, ...patch } : l)) }));
+  }
+
+  removeBrandLink(index: number): void {
+    this.brand.update((b) => ({ ...b, links: (b.links ?? []).filter((_, i) => i !== index) }));
+  }
+
   resetBrand(): void {
     this.brand.set({ ...PlatformComponent.DEFAULT_BRAND });
   }
@@ -75,6 +87,8 @@ export class PlatformComponent implements OnInit {
       supportContact: b.supportContact?.trim() || null,
       iconUrl: b.iconUrl?.trim() || null,
       splashUrl: b.splashUrl?.trim() || null,
+      welcomeText: b.welcomeText?.trim() || null,
+      links: (b.links ?? []).filter((l) => l.label.trim() || l.url.trim()).map((l) => ({ label: l.label.trim(), url: l.url.trim() })),
     }).subscribe({
       next: (saved) => {
         this.brand.set(saved);

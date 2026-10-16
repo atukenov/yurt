@@ -120,6 +120,11 @@ public class PlatformService
             SupportContact = string.IsNullOrWhiteSpace(dto.SupportContact) ? null : dto.SupportContact.Trim(),
             IconUrl = string.IsNullOrWhiteSpace(dto.IconUrl) ? null : dto.IconUrl.Trim(),
             SplashUrl = string.IsNullOrWhiteSpace(dto.SplashUrl) ? null : dto.SplashUrl.Trim(),
+            WelcomeText = string.IsNullOrWhiteSpace(dto.WelcomeText) ? null : dto.WelcomeText.Trim(),
+            Links = dto.Links?
+                .Where(l => !string.IsNullOrWhiteSpace(l.Label) || !string.IsNullOrWhiteSpace(l.Url))
+                .Select(l => new BrandLink((l.Label ?? string.Empty).Trim(), (l.Url ?? string.Empty).Trim()))
+                .ToList(),
         };
         if (ValidateBrand(brand) is { } error)
             return Result<BrandDto>.Failure(error, 400);
@@ -139,6 +144,13 @@ public class PlatformService
         if (b.LogoUrl is { } logo && !IsHttpsUrl(logo)) return "Logo must be an https URL (max 500 characters).";
         if (b.IconUrl is { } icon && !IsHttpsUrl(icon)) return "Icon must be an https URL (max 500 characters).";
         if (b.SplashUrl is { } splash && !IsHttpsUrl(splash)) return "Splash image must be an https URL (max 500 characters).";
+        if (b.WelcomeText is { Length: > 120 }) return "Welcome text is too long (max 120 characters).";
+        if (b.Links is { } links)
+        {
+            if (links.Count > 6) return "At most 6 links.";
+            if (links.Any(l => l.Label.Length is 0 or > 30 || !IsHttpsUrl(l.Url)))
+                return "Each link needs a label (max 30 characters) and an https URL.";
+        }
         if (b.SupportContact is { Length: > 200 }) return "Support contact is too long (max 200 characters).";
         return null;
     }
