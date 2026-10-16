@@ -93,6 +93,7 @@ How a gate is built:
 - **Covers:** the saved brand (name, primary and accent colour, logo, app icon and splash image URLs (all https), welcome line, up to 6 links, support contact) in `GET /api/v1/app/config`. The apps turn the primary colour into the `--brand-*` scale and cache it, so a returning customer sees the cafe's colours on the first paint.
 - **How it switches off:** the config serves the Yurt default brand and the saved brand is kept, so switching the module back on restores it. The platform operator can still edit the brand while it is off (`GET`/`PUT /api/v1/platform/brand`, SuperAdmin only).
 - **Admin screen:** the Brand section on the Platform page (SuperAdmin) edits these values with a live preview.
+- **Accent scale:** gradient ends and soft tints use `accent-50/400/500`, generated from the accent colour (defaults are the orange the gradients always had).
 - **Readability:** text on the primary colour follows `--brand-on-primary`, and near-black buttons use `--brand-on-dark` (the primary lightened until it reads on near-black). The Brand screen warns about a primary that is too light or too dark.
 - **Not done yet:** light/dark logos (waiting for dark mode).
 - **Depends on:** nothing.

@@ -2,6 +2,8 @@ import { Injectable, signal } from '@angular/core';
 import { BrandConfig, BrandLink } from 'shared-models';
 import { buildScale, parseHex, readableOn, readableOnDark } from './brand-palette';
 
+/** Steps of the accent scale used for gradient ends and soft tints. */
+const ACCENT_STEPS = ['50', '400', '500'] as const;
 const CACHE_KEY = 'yurt.brand';
 /** The built-in Yurt colours live in shared-ui theme/brand.css; a brand with these values changes nothing. */
 const DEFAULT_PRIMARY = '#ffd119';
@@ -72,6 +74,10 @@ export class BrandService {
       root.style.setProperty('--brand-500-rgb', primary!.join(' '));
       root.style.setProperty('--brand-on-primary', readableOn(primary!));
       root.style.setProperty('--brand-on-dark', readableOnDark(primary!));
+      const accentScale = buildScale(brand.accentColor);
+      if (accentScale) {
+        for (const step of ACCENT_STEPS) root.style.setProperty(`--accent-${step}`, accentScale[step]);
+      }
       if (parseHex(brand.accentColor)) {
         root.style.setProperty('--brand-accent', brand.accentColor);
         root.style.setProperty('--brand-accent-soft', brand.accentColor);
@@ -102,7 +108,7 @@ export class BrandService {
 
   private clear(root: HTMLElement): void {
     for (const step of STEPS) root.style.removeProperty(`--brand-${step}`);
-    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-on-dark', '--brand-accent', '--brand-accent-soft'])
+    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-on-dark', '--brand-accent', '--brand-accent-soft', ...ACCENT_STEPS.map((s) => `--accent-${s}`)])
       root.style.removeProperty(name);
   }
 
