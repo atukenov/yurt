@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
+using Yurt.Domain;
 
 namespace Yurt.Application.Features.Push.Services;
 
@@ -13,17 +14,20 @@ public class PushNotificationService
     private readonly IPushNotificationSender _sender;
     private readonly FirebaseOptions _options;
     private readonly ILogger<PushNotificationService> _logger;
+    private readonly IModuleGate _modules;
 
     public PushNotificationService(
         IApplicationDbContext db,
         IPushNotificationSender sender,
         FirebaseOptions options,
-        ILogger<PushNotificationService> logger)
+        ILogger<PushNotificationService> logger,
+        IModuleGate modules)
     {
         _db = db;
         _sender = sender;
         _options = options;
         _logger = logger;
+        _modules = modules;
     }
 
     public async Task SendOrderStatusPushAsync(
@@ -37,6 +41,9 @@ public class PushNotificationService
 
         try
         {
+            // No remote pushes while the push module is off; order updates still reach open apps over SignalR.
+            if (!await _modules.IsEnabledAsync(ModuleKeys.Push, ct)) return;
+
             var tokens = await _db.CustomerDeviceTokens
                 .Where(t => t.CustomerUserId == customerUserId)
                 .Select(t => t.Token)

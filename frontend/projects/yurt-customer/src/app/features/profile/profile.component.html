@@ -289,6 +289,7 @@
       }
     </div>
 
+    @if (modules.isEnabled('push')) {
     <!-- Push Notifications -->
     <div style="border-bottom:1px solid #f5f5f4;display:flex;align-items:center;gap:12px;padding:16px">
       <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
@@ -307,6 +308,7 @@
           [style.transform]="notificationsEnabled() ? 'translateX(20px)' : 'translateX(0)'"></span>
       </button>
     </div>
+    }
 
     <!-- Report a Problem -->
     <div style="border-bottom:1px solid #f5f5f4">

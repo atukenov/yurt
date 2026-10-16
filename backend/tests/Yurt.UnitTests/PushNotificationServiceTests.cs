@@ -12,7 +12,7 @@ namespace Yurt.UnitTests;
 public class PushNotificationServiceTests
 {
     private static (PushNotificationService svc, IApplicationDbContext db, IPushNotificationSender sender) Build(
-        IEnumerable<CustomerDeviceToken>? tokens = null, bool enabled = true)
+        IEnumerable<CustomerDeviceToken>? tokens = null, bool enabled = true, bool moduleOn = true)
     {
         var db = Substitute.For<IApplicationDbContext>();
         var set = (tokens ?? []).ToList().BuildMockDbSet();
@@ -22,7 +22,10 @@ public class PushNotificationServiceTests
         var options = new FirebaseOptions { Enabled = enabled };
         var logger = Substitute.For<ILogger<PushNotificationService>>();
 
-        return (new PushNotificationService(db, sender, options, logger), db, sender);
+        var modules = Substitute.For<IModuleGate>();
+        modules.IsEnabledAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(moduleOn);
+
+        return (new PushNotificationService(db, sender, options, logger, modules), db, sender);
     }
 
     [Fact]
@@ -35,6 +38,24 @@ public class PushNotificationServiceTests
             Platform = DevicePlatform.Ios,
         };
         var (svc, _, sender) = Build([token], enabled: false);
+
+        await svc.SendOrderStatusPushAsync(token.CustomerUserId, "title", "body");
+
+        await sender.DidNotReceive().SendAsync(
+            Arg.Any<IReadOnlyList<string>>(), Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<IReadOnlyDictionary<string, string>?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SendOrderStatusPushAsync_PushModuleOff_NeverCallsSender()
+    {
+        var token = new CustomerDeviceToken
+        {
+            CustomerUserId = Guid.NewGuid(),
+            Token = "t1",
+            Platform = DevicePlatform.Android,
+        };
+        var (svc, _, sender) = Build([token], enabled: true, moduleOn: false);
 
         await svc.SendOrderStatusPushAsync(token.CustomerUserId, "title", "body");
 

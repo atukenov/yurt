@@ -86,7 +86,7 @@ Gating order (lowest risk first):
 - [x] `engagement` (ratings, achievements, 2GIS button) _(details in `docs/modules.md`)_
 - [x] `staff_audit` _(details in `docs/modules.md`)_
 - [x] `multi_location` (enforce the 1-location limit in core) _(details in `docs/modules.md`)_
-- [ ] `push`
+- [x] `push` _(details in `docs/modules.md`)_
 - [ ] `loyalty` (+ its background jobs)
 - [ ] `iiko_sync` (adapter only; keep it working, no new features)
 - [ ] `own_pos` (gated as it ships, see Phase 6)
