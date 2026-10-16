@@ -3,7 +3,7 @@
 // The brand is seeded through the same localStorage cache the app uses (key "yurt.brand"), so no backend is needed.
 //   cd frontend && npx ng build yurt-customer --configuration production
 //   node scripts/brand-screenshots.mjs [outDir] [--a11y]
-// --a11y also runs axe-core's colour-contrast rule on every screen and prints the failures (needs `axe-core`
+// --a11y also runs axe-core's colour-contrast and target-size (24px) rules on every screen and prints the failures (needs `axe-core`
 // resolvable like playwright, e.g. NODE_PATH to a folder that has both).
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
@@ -47,13 +47,15 @@ function serve() {
 async function checkContrast(page, label) {
   const require = createRequire(import.meta.url);
   await page.addScriptTag({ path: require.resolve('axe-core') });
-  const results = await page.evaluate(() => window.axe.run(document, { runOnly: ['color-contrast'] }));
-  const nodes = results.violations.flatMap((v) => v.nodes);
-  console.log(`  ${label}: ${nodes.length} contrast failure(s)`);
-  for (const n of nodes) {
+  const results = await page.evaluate(() => window.axe.run(document, { runOnly: ['color-contrast', 'target-size'] }));
+  const contrast = results.violations.filter((v) => v.id === 'color-contrast').flatMap((v) => v.nodes);
+  const small = results.violations.filter((v) => v.id === 'target-size').flatMap((v) => v.nodes);
+  console.log(`  ${label}: ${contrast.length} contrast failure(s), ${small.length} tap target(s) under 24px`);
+  for (const n of contrast) {
     const d = n.any[0]?.data ?? {};
     console.log(`    ${d.contrastRatio ?? '?'} ${d.fgColor ?? '?'} on ${d.bgColor ?? '?'}: ${(d.messageKey ?? '') || n.target.join(' ')}`);
   }
+  for (const n of small) console.log(`    small target: ${n.target.join(' ')}`);
 }
 
 async function main() {
