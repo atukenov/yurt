@@ -10,6 +10,7 @@ import {
   AppConfig,
   IntegrationStatus,
   MaintenanceInfo,
+  BrandConfig,
   PlatformModule,
   UpdateModuleLicenseRequest,
   AppUpdateInfo,
@@ -90,6 +91,13 @@ export class YurtApiService {
   }
   getIntegrationStatus(): Observable<IntegrationStatus[]> {
     return this.http.get<IntegrationStatus[]>(`${this.api}/platform/integrations`);
+  }
+
+  getBrand(): Observable<BrandConfig> {
+    return this.http.get<BrandConfig>(`${this.api}/platform/brand`);
+  }
+  setBrand(req: BrandConfig): Observable<BrandConfig> {
+    return this.http.put<BrandConfig>(`${this.api}/platform/brand`, req);
   }
 
   // App releases (what's-new popup / forced update) - operator tool under /platform

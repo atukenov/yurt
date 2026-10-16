@@ -29,6 +29,87 @@
       </button>
     </section>
 
+    <!-- Brand -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <h2 class="font-semibold text-slate-800">{{ 'plat.brand' | t }}</h2>
+      <p class="text-sm text-slate-500 mt-1">{{ 'plat.brandHint' | t }}</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div class="space-y-3">
+          <div>
+            <label for="brand-name" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandName' | t }}</label>
+            <input id="brand-name" type="text" maxlength="60" [ngModel]="brand().name" (ngModelChange)="patchBrand({ name: $event })"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="brand-primary" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandPrimary' | t }}</label>
+              <div class="flex items-center gap-2">
+                <input type="color" [ngModel]="brand().primaryColor" (ngModelChange)="patchBrand({ primaryColor: $event })"
+                  [attr.aria-label]="'plat.brandPrimary' | t" class="w-10 h-10 rounded-lg border border-slate-200 p-0.5 bg-white" />
+                <input id="brand-primary" type="text" maxlength="7" [ngModel]="brand().primaryColor" (ngModelChange)="patchBrand({ primaryColor: $event })"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono" />
+              </div>
+            </div>
+            <div>
+              <label for="brand-accent" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandAccent' | t }}</label>
+              <div class="flex items-center gap-2">
+                <input type="color" [ngModel]="brand().accentColor" (ngModelChange)="patchBrand({ accentColor: $event })"
+                  [attr.aria-label]="'plat.brandAccent' | t" class="w-10 h-10 rounded-lg border border-slate-200 p-0.5 bg-white" />
+                <input id="brand-accent" type="text" maxlength="7" [ngModel]="brand().accentColor" (ngModelChange)="patchBrand({ accentColor: $event })"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <label for="brand-logo" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLogo' | t }}</label>
+            <input id="brand-logo" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().logoUrl ?? ''" (ngModelChange)="patchBrand({ logoUrl: $event })"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div>
+            <label for="brand-support" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandSupport' | t }}</label>
+            <input id="brand-support" type="text" maxlength="200" [ngModel]="brand().supportContact ?? ''" (ngModelChange)="patchBrand({ supportContact: $event })"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button (click)="saveBrand()" [disabled]="savingBrand() || !colorsValid() || !brand().name.trim()"
+              class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 disabled:opacity-40">
+              {{ 'action.save' | t }}
+            </button>
+            <button (click)="resetBrand()" type="button"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+              {{ 'plat.brandReset' | t }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Live preview: uses scoped variables, the real app changes only after Save -->
+        <div>
+          <p class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandPreview' | t }}</p>
+          <div class="rounded-2xl border border-slate-200 overflow-hidden bg-stone-50" [style]="previewVars()">
+            <div class="flex items-center gap-3 px-4 py-3" style="background:var(--p-500);color:var(--p-on)">
+              @if (logoOk()) {
+                <img [src]="brand().logoUrl" alt="" class="h-8 w-8 rounded-full object-cover bg-white" />
+              }
+              <span class="font-extrabold text-lg">{{ brand().name || '—' }}</span>
+            </div>
+            <div class="p-4 space-y-3">
+              <button type="button" class="w-full rounded-2xl py-2.5 text-sm font-bold" style="background:var(--p-500);color:var(--p-on)">
+                {{ 'plat.brandPreviewButton' | t }}
+              </button>
+              <div class="flex gap-2 flex-wrap">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background:var(--p-100);color:var(--p-800)">{{ 'plat.brandPreviewTag' | t }}</span>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background:var(--p-50);color:var(--p-700);border:1px solid var(--p-200)">{{ 'plat.brandPreviewTag' | t }}</span>
+              </div>
+              <div class="rounded-xl h-10" style="background:linear-gradient(135deg,var(--p-500),var(--p-accent))"></div>
+              @if (brand().supportContact) {
+                <p class="text-xs text-slate-500">{{ brand().supportContact }}</p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Modules -->
     <section>
       <h2 class="font-semibold text-slate-800 mb-3">{{ 'plat.modules' | t }}</h2>

@@ -108,7 +108,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [ ] `Brand` settings per cafe: display name, logo (light/dark), icon, splash, primary/accent colors, support contact, social links, welcome texts. _(Partly done: name, primary and accent colour, logo URL and support contact are stored; light/dark logos, icon, splash, social links and welcome texts are still to do.)_
 - [x] Serve through `GET /app/config`; apply at app start before first paint (no color flash); cache with stale-while-revalidate. _(Done: `brand` is in the app config, served only while the `branding` module is on; `BrandService` overrides the `--brand-*` variables and caches the last brand in localStorage.)_
 - [ ] Replace hard-coded "Altyncup" strings in UI, translations, push/OTP/WhatsApp templates, receipts and emails with `{brand}`.
-- [ ] Admin page (super admin) to edit brand values with a live preview.
+- [x] Admin page (super admin) to edit brand values with a live preview. _(Done: a Brand section on the Platform page; the preview uses scoped variables, so the real app changes only after Save.)_
 
 **Native shells (premium own-app)**
 - [ ] Per-cafe Capacitor config: app id, app name, icons and splash generated from the logo (script).
