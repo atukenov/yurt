@@ -46,7 +46,7 @@
         </div>
         @if (loyalty(); as l) {
           @if (l.enabled) {
-            <div class="bg-yellow-50 rounded-xl p-4 text-center relative">
+            <div class="bg-brand-50 rounded-xl p-4 text-center relative">
               <button
                 (click)="refreshLoyalty()"
                 [disabled]="loyaltyLoading()"
@@ -58,7 +58,7 @@
                 </svg>
               </button>
               @if (l.available && l.linked && l.balance !== null) {
-                <p class="text-2xl font-bold text-yellow-600">{{ l.balance | currencyDecimal }}</p>
+                <p class="text-2xl font-bold text-brand-ink">{{ l.balance | currencyDecimal }}</p>
                 <p class="text-xs text-slate-500 mt-0.5">{{ 'customers.loyaltyBalance' | t }}</p>
               } @else if (l.available && !l.linked) {
                 <p class="text-2xl font-bold text-slate-300">—</p>

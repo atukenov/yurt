@@ -40,8 +40,8 @@ import { CommonModule } from '@angular/common';
         transition: all 0.15s;
       }
       .pin-box:focus {
-        border-color: #fbbf24;
-        box-shadow: 0 0 0 2px rgba(253, 230, 138, 0.6);
+        border-color: var(--brand-400);
+        box-shadow: 0 0 0 2px rgb(var(--brand-500-rgb) / 0.35);
       }
     `,
   ],
