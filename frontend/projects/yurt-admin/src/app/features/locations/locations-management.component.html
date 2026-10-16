@@ -1,6 +1,6 @@
 <div class="flex-1 overflow-y-auto">
   <div
-    class="px-4 md:px-6 py-4 sticky top-0 bg-white border-b border-slate-100 flex items-center justify-between z-10"
+    class="px-4 md:px-6 py-4 sticky top-0 bg-surface border-b border-slate-100 flex items-center justify-between z-10"
   >
     <h2 class="text-lg font-bold text-slate-800">{{ 'locations.title' | t }}</h2>
     @if (modules.isEnabled('multi_location') || locations().length === 0) {
@@ -21,7 +21,7 @@
     <div class="p-6 grid gap-4 max-w-3xl">
       @for (loc of locations(); track loc.id) {
         <div
-          class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-start gap-4"
+          class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm flex items-start gap-4"
         >
           <div
             class="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-xl shrink-0"
@@ -70,7 +70,7 @@
 <!-- Dialog -->
 @if (showDialog()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showDialog.set(false)">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" role="dialog" aria-modal="true" aria-labelledby="location-dialog-title">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" role="dialog" aria-modal="true" aria-labelledby="location-dialog-title">
       <!-- Dialog header -->
       <div class="px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
         <h3 id="location-dialog-title" class="text-lg font-bold text-slate-800">
@@ -128,7 +128,7 @@
           <div class="rounded-xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
             @for (slot of form().workingSlots; track slot.day; let i = $index) {
               <div class="flex items-center gap-3 px-3 py-2.5 transition-colors"
-                   [class]="slot.enabled ? 'bg-white' : 'bg-slate-50'">
+                   [class]="slot.enabled ? 'bg-surface' : 'bg-slate-50'">
 
                 <!-- Toggle switch -->
                 <button
@@ -141,7 +141,7 @@
                   [class]="slot.enabled ? 'bg-brand-500' : 'bg-slate-200'"
                 >
                   <span
-                    class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                    class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-surface shadow-sm transition-transform duration-200"
                     [class]="slot.enabled ? 'translate-x-4' : 'translate-x-0'"
                   ></span>
                 </button>
@@ -161,7 +161,7 @@
                     [ngModel]="slot.from"
                     (ngModelChange)="updateSlotTime(i, 'from', $event)"
                     [attr.aria-label]="DAY_NAMES[slot.day - 1] + ' opening time'"
-                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-white"
+                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-surface"
                   />
                   <span class="text-slate-400 text-xs shrink-0 font-medium">–</span>
                   <input
@@ -169,7 +169,7 @@
                     [ngModel]="slot.to"
                     (ngModelChange)="updateSlotTime(i, 'to', $event)"
                     [attr.aria-label]="DAY_NAMES[slot.day - 1] + ' closing time'"
-                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-white"
+                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-surface"
                   />
                 } @else {
                   <span class="flex-1 text-xs text-slate-400 italic">Closed</span>

@@ -25,7 +25,7 @@
         <p class="text-sm mt-1">{{ 'discountCodes.noCodesHint' | t }}</p>
       </div>
     } @else {
-      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="bg-surface rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200">
@@ -91,7 +91,7 @@
 <!-- Create / Edit dialog -->
 @if (showForm()) {
   <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="cancel()" (keydown.escape)="cancel()">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="discount-dialog-title" (click)="$event.stopPropagation()">
+    <div class="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="discount-dialog-title" (click)="$event.stopPropagation()">
       <h2 id="discount-dialog-title" class="text-lg font-bold text-slate-800 mb-5">
         {{ isEditing() ? ('discountCodes.editTitle' | t) : ('discountCodes.addTitle' | t) }}
       </h2>

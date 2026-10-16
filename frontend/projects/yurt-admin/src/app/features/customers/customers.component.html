@@ -7,7 +7,7 @@
   </div>
 
   <!-- Search -->
-  <div class="bg-white rounded-2xl border border-slate-100 p-4 mb-4 shadow-sm">
+  <div class="bg-surface rounded-2xl border border-slate-100 p-4 mb-4 shadow-sm">
     <input
       type="text"
       [(ngModel)]="phone"
@@ -28,7 +28,7 @@
     <div class="text-center py-20 text-slate-400">{{ 'customers.noFound' | t }}</div>
   } @else {
     <!-- Desktop table -->
-    <div class="hidden md:block bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+    <div class="hidden md:block bg-surface rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wide">
@@ -65,7 +65,7 @@
           [routerLink]="[c.id]"
           tabindex="0"
           (keydown.enter)="goToCustomer(c.id)"
-          class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 cursor-pointer hover:border-brand-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-400"
+          class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-4 cursor-pointer hover:border-brand-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-400"
         >
           <div class="flex items-start justify-between mb-2">
             <div>

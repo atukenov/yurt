@@ -10,8 +10,8 @@ import { ButtonComponent } from 'shared-ui';
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonComponent],
   template: `
-    <div class="min-h-screen bg-gradient-to-br from-stone-800 to-stone-900 flex items-center justify-center p-4">
-      <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8">
+    <div class="min-h-screen bg-gradient-to-br from-night-800 to-night-900 flex items-center justify-center p-4">
+      <div class="bg-surface rounded-3xl shadow-2xl w-full max-w-sm p-8">
         <div class="text-center mb-8">
           <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="w-16 h-16 object-contain mx-auto mb-3" />
           <h1 class="text-2xl font-bold text-stone-800">Change Password</h1>

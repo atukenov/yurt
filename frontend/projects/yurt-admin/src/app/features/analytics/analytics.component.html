@@ -12,7 +12,7 @@
             [ngModel]="selectedLocationId()"
             (ngModelChange)="setLocation($event)"
             aria-label="Location"
-            class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white shadow-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-300"
+            class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-surface shadow-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-300"
           >
             <option [value]="null">All locations</option>
             @for (loc of locations(); track loc.id) {
@@ -20,7 +20,7 @@
             }
           </select>
         }
-        <div class="flex bg-white rounded-xl border border-slate-200 p-1 shadow-sm" role="group" aria-label="Period">
+        <div class="flex bg-surface rounded-xl border border-slate-200 p-1 shadow-sm" role="group" aria-label="Period">
           @for (p of periods; track p.value) {
             <button
               (click)="setPeriod(p.value)"
@@ -38,7 +38,7 @@
         <button
           (click)="exportCsv()"
           [disabled]="!data()"
-          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-surface border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -53,13 +53,13 @@
       <div class="space-y-6 animate-pulse">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           @for (_ of [1, 2, 3, 4]; track $index) {
-            <div class="bg-white rounded-2xl border border-slate-100 p-6 h-32">
+            <div class="bg-surface rounded-2xl border border-slate-100 p-6 h-32">
               <div class="h-4 bg-slate-200 rounded w-24 mb-4"></div>
               <div class="h-8 bg-slate-200 rounded w-32"></div>
             </div>
           }
         </div>
-        <div class="bg-white rounded-2xl border border-slate-100 p-6 h-72">
+        <div class="bg-surface rounded-2xl border border-slate-100 p-6 h-72">
           <div class="h-4 bg-slate-200 rounded w-32 mb-4"></div>
           <div class="h-48 bg-slate-100 rounded"></div>
         </div>
@@ -73,7 +73,7 @@
       }
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Total Revenue -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +90,7 @@
         </div>
 
         <!-- Total Orders -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +107,7 @@
         </div>
 
         <!-- Avg Order Value -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-9 h-9 rounded-xl bg-brand-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-brand-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +124,7 @@
         </div>
 
         <!-- Avg Prep Time -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@
         </div>
 
         <!-- Decline Rate -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +157,7 @@
         </div>
 
         <!-- New vs Returning Customers -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center">
               <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,7 +181,7 @@
       </div>
 
       <!-- ── Revenue Over Time ─────────────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
+      <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
         <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.revenueOverTime' | t }}</h2>
         <p class="text-xs text-slate-400 mb-6">{{ 'analytics.completedRev' | t }}</p>
 
@@ -216,7 +216,7 @@
       <!-- ── Two column: Top Items + Locations ─────────────────────────────── -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Top Selling Items -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.topSelling' | t }}</h2>
           <p class="text-xs text-slate-400 mb-5">{{ 'analytics.byQuantity' | t }}</p>
 
@@ -243,7 +243,7 @@
         </div>
 
         <!-- Revenue by Location -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.revenueByLocation' | t }}</h2>
           <p class="text-xs text-slate-400 mb-5">{{ 'analytics.perLocation' | t }}</p>
 
@@ -270,7 +270,7 @@
       <!-- ── Two column: Peak Hours + Payment Methods ──────────────────────── -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Peak Hours -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.peakHours' | t }}</h2>
           <p class="text-xs text-slate-400 mb-5">{{ 'analytics.hourlyDist' | t }}</p>
 
@@ -298,7 +298,7 @@
         </div>
 
         <!-- Payment Methods -->
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.paymentMethods' | t }}</h2>
           <p class="text-xs text-slate-400 mb-5">{{ 'analytics.howPay' | t }}</p>
 
@@ -332,7 +332,7 @@
       </div>
 
       <!-- ── Order Status Breakdown ────────────────────────────────────────── -->
-      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
         <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.statusBreakdown' | t }}</h2>
         <p class="text-xs text-slate-400 mb-5">{{ 'analytics.allOrders' | t }}</p>
 

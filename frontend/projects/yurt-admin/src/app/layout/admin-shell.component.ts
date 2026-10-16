@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthStateService, BrandService, ModuleService } from 'shared-api';
+import { AuthStateService, BrandService, ModuleService, ThemeService } from 'shared-api';
 import { ToastService } from 'shared-ui';
 import { AdminLangService } from '../core/lang.service';
 import { AdminTranslatePipe } from '../core/translate.pipe';
@@ -20,6 +20,8 @@ export class AdminShellComponent {
   readonly modules = inject(ModuleService);
   readonly brand = inject(BrandService);
   readonly langService = inject(AdminLangService);
+  readonly theme = inject(ThemeService);
+  readonly themeModes = ['light', 'dark', 'system'] as const;
   private router = inject(Router);
   private toast = inject(ToastService);
 

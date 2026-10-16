@@ -22,7 +22,7 @@
     } @else {
       <div class="space-y-3">
         @for (r of releases(); track r.id; let first = $first) {
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+          <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-4">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="font-mono font-bold text-slate-800 text-lg">v{{ r.version }}</span>
               @if (first) { <span class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">latest</span> }
@@ -48,7 +48,7 @@
 
 @if (showForm()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showForm.set(false)">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" role="dialog" aria-modal="true">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" role="dialog" aria-modal="true">
       <div class="px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
         <h3 class="text-lg font-bold text-slate-800">{{ editId() ? ('rel.edit' | t) : ('rel.add' | t) }}</h3>
       </div>

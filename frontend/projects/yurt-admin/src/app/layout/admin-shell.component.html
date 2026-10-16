@@ -2,21 +2,21 @@
   <!-- Sidebar -->
   <aside
     [class]="collapsed() ? 'w-16' : 'w-64'"
-    class="bg-white border-r border-slate-200 flex flex-col shadow-sm shrink-0 transition-[width] duration-200 ease-in-out overflow-hidden"
+    class="bg-surface border-r border-slate-200 flex flex-col shadow-sm shrink-0 transition-[width] duration-200 ease-in-out overflow-hidden"
   >
     <!-- Logo + toggle -->
     <div class="border-b border-slate-100 flex items-center shrink-0"
          [class]="collapsed() ? 'px-0 py-4 justify-center' : 'px-4 py-4 justify-between'">
       @if (!collapsed()) {
         <div class="flex items-center gap-2 min-w-0">
-          <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="w-8 h-8 object-contain shrink-0" />
+          <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="brand-logo w-8 h-8 object-contain shrink-0" />
           <div class="min-w-0">
             <h1 class="text-sm font-bold text-stone-800 truncate">{{ brand.name() }} Admin</h1>
             <p class="text-xs text-slate-400 truncate">{{ 'nav.console' | t }}</p>
           </div>
         </div>
       } @else {
-        <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="w-8 h-8 object-contain" />
+        <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="brand-logo w-8 h-8 object-contain" />
       }
 
       <button
@@ -246,6 +246,21 @@
                 : 'flex-1 py-1 text-xs rounded-lg text-slate-500 hover:bg-slate-100 transition-colors'"
             >
               {{ l.toUpperCase() }}
+            </button>
+          }
+        </div>
+
+        <!-- Theme switcher -->
+        <div class="flex gap-1 mb-3" role="group" [attr.aria-label]="'theme.label' | t">
+          @for (m of themeModes; track m) {
+            <button
+              (click)="theme.set(m)"
+              [attr.aria-pressed]="theme.mode() === m"
+              [class]="theme.mode() === m
+                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-100 text-brand-ink'
+                : 'flex-1 py-1 text-xs rounded-lg text-slate-500 hover:bg-slate-100 transition-colors'"
+            >
+              {{ 'theme.' + m | t }}
             </button>
           }
         </div>
