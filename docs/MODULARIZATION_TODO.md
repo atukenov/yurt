@@ -91,7 +91,7 @@ Gating order (lowest risk first):
 - [x] `iiko_sync` (adapter only; keep it working, no new features) _(details in `docs/modules.md`)_
 - [ ] `own_pos` (gated as it ships, see Phase 6)
 - [x] `online_payments` _(details in `docs/modules.md`)_
-- [ ] `verification` (builds on the `Otp:Required` switch)
+- [x] `verification` (builds on the `Otp:Required` switch) _(details in `docs/modules.md`)_
 For each: backend `RequireModule`, hide UI, deep-link redirect, test that a disabled module returns `403`, document dependencies.
 
 ## Phase 4 — White-label design

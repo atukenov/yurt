@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Auth.DTOs;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
@@ -15,6 +16,7 @@ public class AuthService
     private readonly IPasswordHasher _passwordHasher;
     private readonly IOtpSender _otpSender;
     private readonly OtpOptions _otpOptions;
+    private readonly IModuleGate _modules;
     private readonly ILogger<AuthService> _logger;
 
     private const int MaxFailedAttempts = 5;
@@ -26,6 +28,7 @@ public class AuthService
         IPasswordHasher passwordHasher,
         IOtpSender otpSender,
         OtpOptions otpOptions,
+        IModuleGate modules,
         ILogger<AuthService> logger)
     {
         _db = db;
@@ -33,8 +36,16 @@ public class AuthService
         _passwordHasher = passwordHasher;
         _otpSender = otpSender;
         _otpOptions = otpOptions;
+        _modules = modules;
         _logger = logger;
     }
+
+    /// <summary>
+    /// Phone verification is on only when it is configured (<c>Otp:Required</c>) and the
+    /// <c>verification</c> module is licensed. Without either, sign-up and phone changes skip the code.
+    /// </summary>
+    private async Task<bool> VerificationRequiredAsync(CancellationToken ct)
+        => _otpOptions.Required && await _modules.IsEnabledAsync(ModuleKeys.Verification, ct);
 
     /// <summary>
     /// Step 1 of registration: validate the payload, generate a 4-digit code, persist it
@@ -52,7 +63,7 @@ public class AuthService
             return Result<RegistrationStartResponseDto>.Failure("Mobile number already registered.", 409);
 
         // OTP switched off: no code, no second step — create the account right away.
-        if (!_otpOptions.Required)
+        if (!await VerificationRequiredAsync(ct))
         {
             var user = new CustomerUser
             {
@@ -405,7 +416,7 @@ public class AuthService
             return Result<RegistrationStartResponseDto>.Failure("Mobile number already in use.", 409);
 
         // OTP switched off: apply the new number immediately.
-        if (!_otpOptions.Required)
+        if (!await VerificationRequiredAsync(ct))
         {
             user.MobileNumber = normalizedMobile;
             user.UpdatedAt = DateTime.UtcNow;
