@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Loyalty.DTOs;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
@@ -18,20 +19,29 @@ public class LoyaltyService
     private readonly IikoOptions _options;
     private readonly IAuditLogService _audit;
     private readonly ILogger<LoyaltyService> _logger;
+    private readonly IModuleGate _modules;
 
     public LoyaltyService(
         IApplicationDbContext db,
         IIikoApiClient iiko,
         IikoOptions options,
         IAuditLogService audit,
-        ILogger<LoyaltyService> logger)
+        ILogger<LoyaltyService> logger,
+        IModuleGate modules)
     {
         _db = db;
         _iiko = iiko;
         _options = options;
         _audit = audit;
         _logger = logger;
+        _modules = modules;
     }
+
+    /// <summary>Loyalty is live only when iiko loyalty is configured AND the <c>loyalty</c> module is on.
+    /// Used by new activity (balance, history, earning, new holds). Finalising or releasing an existing
+    /// hold deliberately ignores the module, so switching it off never strands points mid-order.</summary>
+    private async Task<bool> ActiveAsync(CancellationToken ct)
+        => _options.Enabled && await _modules.IsEnabledAsync(ModuleKeys.Loyalty, ct);
 
     public static decimal CalculatePoints(decimal orderTotal, decimal earnPercent)
         => orderTotal <= 0 || earnPercent <= 0
@@ -46,7 +56,7 @@ public class LoyaltyService
     public async Task<LoyaltyBalanceDto> GetBalanceAsync(
         Guid customerId, bool linkIfMissing = true, CancellationToken ct = default)
     {
-        if (!_options.Enabled)
+        if (!await ActiveAsync(ct))
             return new LoyaltyBalanceDto(false, false, false, null, 0);
 
         var user = await _db.CustomerUsers.FirstOrDefaultAsync(u => u.Id == customerId, ct);
@@ -108,7 +118,7 @@ public class LoyaltyService
     /// </summary>
     public async Task<LoyaltyHistoryDto> GetTransactionHistoryAsync(Guid customerId, CancellationToken ct = default)
     {
-        if (!_options.Enabled)
+        if (!await ActiveAsync(ct))
             return new LoyaltyHistoryDto(false, false, false, []);
 
         var user = await _db.CustomerUsers.FirstOrDefaultAsync(u => u.Id == customerId, ct);
@@ -174,7 +184,7 @@ public class LoyaltyService
     /// </summary>
     public async Task CreditForOrderAsync(Order order, CancellationToken ct = default)
     {
-        if (!_options.Enabled) return;
+        if (!await ActiveAsync(ct)) return;
         if (order.LoyaltyPointsEarned != null)
         {
             if (order.LoyaltyPendingAction == LoyaltyPendingAction.Credit)
@@ -242,7 +252,7 @@ public class LoyaltyService
     public async Task<decimal> TryHoldForOrderAsync(
         Order order, decimal requestedPoints, CancellationToken ct = default)
     {
-        if (!_options.Enabled || requestedPoints <= 0) return 0m;
+        if (requestedPoints <= 0 || !await ActiveAsync(ct)) return 0m;
 
         try
         {
