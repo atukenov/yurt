@@ -109,12 +109,13 @@ Never commit: `google-services.json`, `GoogleService-Info.plist`, signing keys, 
 
 ## Branded app builds
 
-The Capacitor app id and name default to the platform (`com.yurt.app`, "Yurt") and can be overridden per cafe:
+Each cafe with its own store app has a folder `cafes/<slug>/` (see `cafes/README.md`): `cafe.json` holds the app id,
+name and version, and the git-ignored `secrets/` folder holds that cafe's Firebase files.
 
 ```bash
-cd frontend
-YURT_APP_ID=kz.mycafe.app YURT_APP_NAME="My Cafe" npx cap sync
+node scripts/apply-cafe.mjs mycafe            # app id, name, version and Firebase files into android/ and ios/
+cd frontend && npm run build && YURT_CAFE=mycafe npx cap sync
 ```
 
-The Android package, `strings.xml` and the iOS bundle id still need to be generated per cafe; that automation is
-Phase 4 of `MODULARIZATION_TODO.md`.
+Do this on the build machine or CI checkout, because the script rewrites tracked native files. Still manual per
+cafe: app icons and splash images (to be generated from the logo), signing keys, and the store listing.
