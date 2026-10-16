@@ -66,6 +66,19 @@ export function readableOnDark(color: Rgb, minContrast = 4.5): string {
 }
 
 /**
+ * The brand colour, darkened just enough to read as text on the light page background (#fafaf9).
+ * A dark primary comes back unchanged; a bright one is mixed towards black.
+ */
+export function readableOnLight(color: Rgb, minContrast = 4.5): string {
+  const page: Rgb = [250, 250, 249];
+  for (let t = 0; t <= 1; t += 0.05) {
+    const c = mix(color, [0, 0, 0], t);
+    if (contrastRatio(c, page) >= minContrast) return toHex(c);
+  }
+  return toHex(DARK_TEXT);
+}
+
+/**
  * A heads-up for primaries that make a poor palette: so light that buttons vanish on white pages
  * and the tints collapse into white, or so dark that the shades collapse into black.
  */

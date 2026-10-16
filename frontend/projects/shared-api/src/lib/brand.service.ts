@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { BrandConfig, BrandLink } from 'shared-models';
-import { buildScale, parseHex, readableOn, readableOnDark } from './brand-palette';
+import { buildScale, parseHex, readableOn, readableOnDark, readableOnLight } from './brand-palette';
 
 /** Steps of the accent scale used for gradient ends and soft tints. */
 const ACCENT_STEPS = ['50', '400', '500'] as const;
@@ -74,6 +74,8 @@ export class BrandService {
       root.style.setProperty('--brand-500-rgb', primary!.join(' '));
       root.style.setProperty('--brand-on-primary', readableOn(primary!));
       root.style.setProperty('--brand-on-dark', readableOnDark(primary!));
+      root.style.setProperty('--brand-ink', readableOnLight(primary!));
+      root.style.setProperty('--brand-hero-text', readableOn(primary!));
       const accentScale = buildScale(brand.accentColor);
       if (accentScale) {
         for (const step of ACCENT_STEPS) root.style.setProperty(`--accent-${step}`, accentScale[step]);
@@ -108,7 +110,7 @@ export class BrandService {
 
   private clear(root: HTMLElement): void {
     for (const step of STEPS) root.style.removeProperty(`--brand-${step}`);
-    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-on-dark', '--brand-accent', '--brand-accent-soft', ...ACCENT_STEPS.map((s) => `--accent-${s}`)])
+    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-on-dark', '--brand-ink', '--brand-hero-text', '--brand-accent', '--brand-accent-soft', ...ACCENT_STEPS.map((s) => `--accent-${s}`)])
       root.style.removeProperty(name);
   }
 

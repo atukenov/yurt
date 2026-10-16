@@ -26,6 +26,12 @@
   /* Readable text on top of the primary colour. */
   --brand-on-primary: #1c1917;
 
+  /* Text on gradient headers that start with the primary colour: white by default, dark on a pale brand. */
+  --brand-hero-text: #ffffff;
+
+  /* The primary colour as text on light surfaces (#fafaf9): a shade dark enough to read. Default keeps brand-600. */
+  --brand-ink: var(--brand-600);
+
   /* The primary colour as text/icons on near-black (#1c1917) buttons: lightened for dark brands. */
   --brand-on-dark: #ffd119;
 
@@ -59,4 +65,6 @@
 /* Text that sits on the primary colour: `text-on-brand` picks dark or white for readability. */
 @theme {
   --color-on-brand: var(--brand-on-primary);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-hero: var(--brand-hero-text);
 }

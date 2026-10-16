@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-stone-50 flex flex-col">
   <div
-    class="bg-gradient-to-br from-brand-500 via-brand-400 to-accent-400 pb-12 px-6 text-white text-center"
+    class="bg-gradient-to-br from-brand-500 via-brand-400 to-accent-400 pb-12 px-6 text-brand-hero text-center"
     style="padding-top: calc(4rem + env(safe-area-inset-top))"
   >
     <div
@@ -9,7 +9,7 @@
       ☕
     </div>
     <h1 class="text-3xl font-bold">{{ brand.name() }}</h1>
-    <p class="text-brand-100 mt-1.5 text-sm font-medium">{{ 'auth.createYourAccount' | t }}</p>
+    <p class="opacity-80 mt-1.5 text-sm font-medium">{{ 'auth.createYourAccount' | t }}</p>
   </div>
 
   <div class="flex-1 px-6 pt-8 pb-10 max-w-sm mx-auto w-full">
@@ -114,13 +114,13 @@
 
     <div class="flex items-center gap-3 my-6">
       <div class="flex-1 h-px bg-stone-200"></div>
-      <span class="text-stone-400 text-xs font-medium">{{ 'auth.haveAccount' | t }}</span>
+      <span class="text-stone-500 text-xs font-medium">{{ 'auth.haveAccount' | t }}</span>
       <div class="flex-1 h-px bg-stone-200"></div>
     </div>
 
     <a
       routerLink="/auth/login"
-      class="block w-full text-center py-3.5 rounded-2xl border-2 border-brand-400 text-brand-600 font-semibold text-base hover:bg-brand-50 transition-colors"
+      class="block w-full text-center py-3.5 rounded-2xl border-2 border-brand-400 text-brand-ink font-semibold text-base hover:bg-brand-50 transition-colors"
     >
       {{ 'auth.signIn' | t }}
     </a>
@@ -155,7 +155,7 @@
       type="button"
       [disabled]="resendIn() > 0"
       (click)="onResend()"
-      class="block w-full text-center py-3.5 mt-4 text-brand-600 font-semibold text-sm disabled:text-stone-400 disabled:cursor-not-allowed"
+      class="block w-full text-center py-3.5 mt-4 text-brand-ink font-semibold text-sm disabled:text-stone-500 disabled:cursor-not-allowed"
     >
       {{ resendIn() > 0 ? ('auth.resendIn' | t).replace('{seconds}', resendIn().toString()) : ('auth.resendCode' | t) }}
     </button>
@@ -163,7 +163,7 @@
     <button
       type="button"
       (click)="onBack()"
-      class="block w-full text-center py-3 text-stone-400 text-sm font-medium hover:text-stone-600 transition-colors"
+      class="block w-full text-center py-3 text-stone-500 text-sm font-medium hover:text-stone-600 transition-colors"
     >
       ← {{ 'auth.changeNumber' | t }}
     </button>
@@ -171,7 +171,7 @@
 
     <a
       routerLink="/menu"
-      class="block w-full text-center py-3 mt-4 text-stone-400 text-sm font-medium hover:text-stone-600 transition-colors"
+      class="block w-full text-center py-3 mt-4 text-stone-500 text-sm font-medium hover:text-stone-600 transition-colors"
     >
       ← {{ 'nav.menu' | t }}
     </a>
