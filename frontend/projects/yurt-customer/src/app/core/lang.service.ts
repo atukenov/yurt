@@ -5,7 +5,7 @@ export type Lang = 'en' | 'ru' | 'kk';
 const T: Record<Lang, Record<string, string>> = {
   en: {
     'nav.menu': 'Menu', 'nav.cart': 'Cart', 'nav.orders': 'Orders', 'nav.saved': 'Saved', 'nav.profile': 'Profile', 'nav.news': 'News',
-    'auth.tagline': 'Your coffee, your way', 'auth.welcomeBack': 'Welcome back', 'auth.signInSubtitle': 'Sign in to continue ordering',
+    'profile.support': 'Support', 'auth.tagline': 'Your coffee, your way', 'auth.welcomeBack': 'Welcome back', 'auth.signInSubtitle': 'Sign in to continue ordering',
     'auth.mobileNumber': 'Mobile Number', 'auth.pin': '4-Digit PIN', 'auth.signIn': 'Sign In', 'auth.newHere': 'New here?',
     'auth.createAccount': 'Create Account', 'auth.createYourAccount': 'Create your account', 'auth.getStarted': 'Get started',
     'auth.setupDesc': 'Set up your account in seconds', 'auth.firstName': 'First Name', 'auth.lastName': 'Last Name',
@@ -104,7 +104,7 @@ const T: Record<Lang, Record<string, string>> = {
   },
   ru: {
     'nav.menu': 'Меню', 'nav.cart': 'Корзина', 'nav.orders': 'Заказы', 'nav.saved': 'Избранное', 'nav.profile': 'Профиль', 'nav.news': 'Новости',
-    'auth.tagline': 'Ваш кофе, ваш выбор', 'auth.welcomeBack': 'С возвращением', 'auth.signInSubtitle': 'Войдите, чтобы продолжить',
+    'profile.support': 'Поддержка', 'auth.tagline': 'Ваш кофе, ваш выбор', 'auth.welcomeBack': 'С возвращением', 'auth.signInSubtitle': 'Войдите, чтобы продолжить',
     'auth.mobileNumber': 'Номер телефона', 'auth.pin': '4-значный PIN', 'auth.signIn': 'Войти', 'auth.newHere': 'Впервые здесь?',
     'auth.createAccount': 'Создать аккаунт', 'auth.createYourAccount': 'Создайте аккаунт', 'auth.getStarted': 'Начните здесь',
     'auth.setupDesc': 'Настройте аккаунт за секунды', 'auth.firstName': 'Имя', 'auth.lastName': 'Фамилия',
@@ -203,7 +203,7 @@ const T: Record<Lang, Record<string, string>> = {
   },
   kk: {
     'nav.menu': 'Мәзір', 'nav.cart': 'Себет', 'nav.orders': 'Тапсырыстар', 'nav.saved': 'Сақталған', 'nav.profile': 'Профиль', 'nav.news': 'Жаңалықтар',
-    'auth.tagline': 'Сіздің кофеңіз', 'auth.welcomeBack': 'Қош келдіңіз', 'auth.signInSubtitle': 'Жалғастыру үшін кіріңіз',
+    'profile.support': 'Қолдау', 'auth.tagline': 'Сіздің кофеңіз', 'auth.welcomeBack': 'Қош келдіңіз', 'auth.signInSubtitle': 'Жалғастыру үшін кіріңіз',
     'auth.mobileNumber': 'Телефон нөмірі', 'auth.pin': '4 таңбалы PIN', 'auth.signIn': 'Кіру', 'auth.newHere': 'Жаңа пайдаланушы?',
     'auth.createAccount': 'Тіркелу', 'auth.createYourAccount': 'Тіркелгі жасаңыз', 'auth.getStarted': 'Бастаңыз',
     'auth.setupDesc': 'Бірнеше секундта тіркелу', 'auth.firstName': 'Аты', 'auth.lastName': 'Тегі',

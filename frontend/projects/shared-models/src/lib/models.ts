@@ -609,6 +609,13 @@ export interface BrandConfig {
   supportContact?: string | null;
   iconUrl?: string | null;
   splashUrl?: string | null;
+  welcomeText?: string | null;
+  links?: BrandLink[] | null;
+}
+
+export interface BrandLink {
+  label: string;
+  url: string;
 }
 
 export interface MaintenanceInfo {

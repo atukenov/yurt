@@ -76,6 +76,29 @@
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
           </div>
           <div>
+            <label for="brand-welcome" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandWelcome' | t }}</label>
+            <input id="brand-welcome" type="text" maxlength="120" [ngModel]="brand().welcomeText ?? ''" (ngModelChange)="patchBrand({ welcomeText: $event })"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div>
+            <p class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLinks' | t }}</p>
+            <div class="space-y-2">
+              @for (link of brand().links ?? []; track $index) {
+                <div class="flex gap-2">
+                  <input type="text" maxlength="30" [attr.aria-label]="'plat.brandLinkLabel' | t" [placeholder]="'plat.brandLinkLabel' | t" [ngModel]="link.label" (ngModelChange)="patchBrandLink($index, { label: $event })"
+                    class="w-1/3 px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+                  <input type="url" maxlength="500" placeholder="https://" [attr.aria-label]="'plat.brandLinkUrl' | t" [ngModel]="link.url" (ngModelChange)="patchBrandLink($index, { url: $event })"
+                    class="flex-1 min-w-0 px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+                  <button type="button" (click)="removeBrandLink($index)" [attr.aria-label]="'plat.brandLinkRemove' | t"
+                    class="px-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50">✕</button>
+                </div>
+              }
+            </div>
+            @if ((brand().links ?? []).length < 6) {
+              <button type="button" (click)="addBrandLink()" class="mt-2 text-sm font-semibold text-slate-600 hover:underline">+ {{ 'plat.brandLinkAdd' | t }}</button>
+            }
+          </div>
+          <div>
             <label for="brand-support" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandSupport' | t }}</label>
             <input id="brand-support" type="text" maxlength="200" [ngModel]="brand().supportContact ?? ''" (ngModelChange)="patchBrand({ supportContact: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
