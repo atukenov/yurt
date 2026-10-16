@@ -44,6 +44,13 @@ How a gate is built:
 - **Keeps working:** existing staff accounts can still sign in and work orders (the module only covers managing accounts). The audit log keeps being written in the background so the history is complete when the module is switched back on; only reading it is gated.
 - **Depends on:** nothing.
 
+### `multi_location` (more than one branch)
+- **Core includes one location.** This is the only module that limits instead of blocking a feature, because locations are part of ordering.
+- **When off:** `POST /api/v1/admin/locations` returns `403 module_disabled` once one location exists; the admin **Add location** button is replaced by a note; `GET /api/v1/locations` (customer app) returns only the first active location (by name).
+- **Kept working:** viewing and editing locations, working hours, the closed notice, and ordering for the first location. Extra branches that already exist are **not deleted or deactivated**, and their menu availability and orders are untouched; they simply are not offered to customers. A customer who selected another branch earlier can still finish an order there until they pick again.
+- **When it comes back on:** all active branches are offered again.
+- **Depends on:** nothing.
+
 ## Not gated yet
-`multi_location`, `push`, `loyalty`, `iiko_sync`,
+`push`, `loyalty`, `iiko_sync`,
 `online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).
