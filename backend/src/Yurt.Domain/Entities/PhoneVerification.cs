@@ -10,8 +10,10 @@ namespace Yurt.Domain.Entities;
 /// CustomerUser is only created once the code is confirmed. One row per
 /// (MobileNumber, Purpose) pair — a new request overwrites the previous one for that purpose.
 /// </summary>
-public class PhoneVerification : BaseEntity
+public class PhoneVerification : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string MobileNumber { get; set; } = string.Empty;
     public VerificationPurpose Purpose { get; set; } = VerificationPurpose.Registration;
     public string CodeHash { get; set; } = string.Empty;

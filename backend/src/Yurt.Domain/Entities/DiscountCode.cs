@@ -3,8 +3,10 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Domain.Entities;
 
-public class DiscountCode : BaseEntity
+public class DiscountCode : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Code { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public DiscountType DiscountType { get; set; }

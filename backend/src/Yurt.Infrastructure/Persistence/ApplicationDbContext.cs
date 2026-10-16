@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Domain.Common;
 using Yurt.Domain.Entities;
+using Yurt.Domain.Enums;
 
 namespace Yurt.Infrastructure.Persistence;
 
@@ -57,12 +58,18 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
             entity.Property(nameof(ITenantOwned.TenantId)).HasDefaultValue(Tenant.DefaultId);
             entity.HasIndex(nameof(ITenantOwned.TenantId));
             entity.HasOne(typeof(Tenant)).WithMany().HasForeignKey(nameof(ITenantOwned.TenantId)).OnDelete(DeleteBehavior.Restrict);
+            if (entityType.ClrType == typeof(AdminUser)) continue; // own filter below
             typeof(ApplicationDbContext)
                 .GetMethod(nameof(ApplyTenantFilter), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
                 .MakeGenericMethod(entityType.ClrType)
                 .Invoke(this, [modelBuilder]);
         }
+        ConfigureAdminUserFilter(modelBuilder);
     }
+
+    private void ConfigureAdminUserFilter(ModelBuilder modelBuilder)
+        // Platform operators belong to no cafe: they must be able to sign in from any cafe's host.
+        => modelBuilder.Entity<AdminUser>().HasQueryFilter(e => e.TenantId == CurrentTenantId || e.Role == AdminRole.SuperAdmin);
 
     private void ApplyTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantOwned
         => modelBuilder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId);

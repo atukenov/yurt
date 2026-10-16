@@ -2,8 +2,10 @@ using Yurt.Domain.Common;
 
 namespace Yurt.Domain.Entities;
 
-public class AuditLog : BaseEntity
+public class AuditLog : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Action { get; set; } = "";
     public string EntityType { get; set; } = "";
     public string? EntityId { get; set; }
