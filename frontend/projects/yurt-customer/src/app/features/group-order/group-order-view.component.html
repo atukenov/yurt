@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-stone-50 pb-32">
-  <div class="bg-white border-b border-stone-100 px-4 py-4 flex items-center gap-3">
+  <div class="bg-surface border-b border-stone-100 px-4 py-4 flex items-center gap-3">
     <a routerLink="/cart" class="text-stone-400 hover:text-stone-600 transition-colors">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -15,8 +15,8 @@
 
   @if (loading()) {
     <div class="p-4 space-y-3 animate-pulse">
-      <div class="bg-white rounded-2xl h-28"></div>
-      <div class="bg-white rounded-2xl h-20"></div>
+      <div class="bg-surface rounded-2xl h-28"></div>
+      <div class="bg-surface rounded-2xl h-20"></div>
     </div>
   } @else if (!cart()) {
     <div class="text-center py-20 text-stone-400">Group order not found.</div>
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Members -->
-    <div class="mx-4 mt-3 bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+    <div class="mx-4 mt-3 bg-surface rounded-2xl border border-stone-100 shadow-sm p-4">
       <p class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Members ({{ c.members.length }})</p>
       <div class="flex flex-wrap gap-2">
         @for (m of c.members; track m.customerId) {
@@ -57,12 +57,12 @@
     <!-- Items -->
     <div class="mx-4 mt-3 space-y-2">
       @if (!c.items.length) {
-        <div class="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 text-center text-stone-400 text-sm">
+        <div class="bg-surface rounded-2xl border border-stone-100 shadow-sm p-6 text-center text-stone-400 text-sm">
           No items yet. Add something!
         </div>
       } @else {
         @for (item of c.items; track item.id) {
-          <div class="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex items-center gap-3">
+          <div class="bg-surface rounded-2xl border border-stone-100 shadow-sm p-4 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center text-xl shrink-0">☕</div>
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-stone-800 text-sm truncate">{{ item.menuItemName }}</p>
@@ -98,7 +98,7 @@
 
     <!-- Checkout (creator only) -->
     @if (c.isCreator && c.status === GroupCartStatus.Open && c.items.length > 0) {
-      <div class="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-stone-100 max-w-lg mx-auto"
+      <div class="fixed bottom-16 left-0 right-0 p-4 bg-surface border-t border-stone-100 max-w-lg mx-auto"
         style="box-shadow: 0 -1px 12px rgba(0,0,0,0.06)">
         <button
           (click)="placeOrder()"
@@ -116,7 +116,7 @@
 @if (showAddSheet()) {
   <div class="fixed inset-0 z-50 flex flex-col justify-end" (click)="showAddSheet.set(false)">
     <div class="absolute inset-0 bg-black/40"></div>
-    <div class="relative bg-white rounded-t-3xl max-h-[70vh] flex flex-col" (click)="$event.stopPropagation()">
+    <div class="relative bg-surface rounded-t-3xl max-h-[70vh] flex flex-col" (click)="$event.stopPropagation()">
       <div class="flex items-center justify-between px-5 py-4 border-b border-stone-100">
         <h2 class="font-bold text-stone-800">Add Item</h2>
         <button (click)="showAddSheet.set(false)" class="text-stone-400 hover:text-stone-600">

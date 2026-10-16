@@ -1,4 +1,4 @@
-<div style="min-height:100%;background:#fafaf9;padding-bottom:40px" pullToRefresh (refreshed)="loadProfile()">
+<div style="min-height:100%;background:var(--ink-50);padding-bottom:40px" pullToRefresh (refreshed)="loadProfile()">
 
   <!-- ── Yellow header ────────────────────────────────────────────────────────── -->
   <div style="background:var(--brand-500);padding-bottom:64px">
@@ -50,7 +50,7 @@
 
   <!-- ── Edit form (replaces bonus card when active) ───────────────────────── -->
   @if (editMode()) {
-    <div style="margin:-46px 16px 14px;background:white;border-radius:22px;padding:18px 20px;
+    <div style="margin:-46px 16px 14px;background:var(--surface-card);border-radius:22px;padding:18px 20px;
       box-shadow:0 8px 24px rgba(28,25,23,.12);position:relative;z-index:2">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div>
@@ -78,8 +78,8 @@
         </button>
         <button (click)="editMode.set(false)"
           class="active:scale-[0.98] transition-transform"
-          style="flex:1;padding:13px;background:#f5f5f4;border:none;border-radius:12px;
-            font-size:14px;font-weight:700;color:#57534e;cursor:pointer">
+          style="flex:1;padding:13px;background:var(--ink-100);border:none;border-radius:12px;
+            font-size:14px;font-weight:700;color:var(--ink-600);cursor:pointer">
           {{ 'profile.cancel' | t }}
         </button>
       </div>
@@ -88,7 +88,7 @@
 
   <!-- ── Dark bonus card (overlaps header, hidden in edit mode) ───────────── -->
   @if (!editMode()) {
-    <div style="margin:-46px 16px 0;background:#1c1917;border-radius:22px;padding:18px 20px;
+    <div style="margin:-46px 16px 0;background:var(--surface-dark);border-radius:22px;padding:18px 20px;
       box-shadow:0 8px 24px rgba(28,25,23,.25);position:relative;z-index:1;
       display:flex;align-items:center;gap:12px">
       <div style="flex:1;min-width:0">
@@ -142,29 +142,29 @@
 @if (modules.isEnabled('engagement')) {
     <a routerLink="/achievements"
       class="active:scale-[0.97] transition-transform"
-      style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
+      style="background:var(--surface-card);border:1px solid var(--ink-200);border-radius:18px;padding:16px;
         display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
       <svg width="20" height="20" fill="none" stroke="var(--brand-ink)" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
       </svg>
       <div>
-        <p style="font-size:13.5px;font-weight:800;color:#1c1917">{{ 'news.achievements' | t }}</p>
-        <p style="font-size:11px;font-weight:600;color:#a8a29e;margin-top:2px">открывайте награды</p>
+        <p style="font-size:13.5px;font-weight:800;color:var(--ink-900)">{{ 'news.achievements' | t }}</p>
+        <p style="font-size:11px;font-weight:600;color:var(--ink-400);margin-top:2px">открывайте награды</p>
       </div>
     </a>
 }
     <a routerLink="/orders"
       class="active:scale-[0.97] transition-transform"
-      style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
+      style="background:var(--surface-card);border:1px solid var(--ink-200);border-radius:18px;padding:16px;
         display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
       <svg width="20" height="20" fill="none" stroke="var(--brand-ink)" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
       </svg>
       <div>
-        <p style="font-size:13.5px;font-weight:800;color:#1c1917">{{ 'profile.myOrders' | t }}</p>
-        <p style="font-size:11px;font-weight:600;color:#a8a29e;margin-top:2px">история и повтор</p>
+        <p style="font-size:13.5px;font-weight:800;color:var(--ink-900)">{{ 'profile.myOrders' | t }}</p>
+        <p style="font-size:11px;font-weight:600;color:var(--ink-400);margin-top:2px">история и повтор</p>
       </div>
     </a>
   </div>
@@ -176,31 +176,45 @@
       <button (click)="langService.setLang(l.code)"
         class="active:scale-[0.97] transition-all"
         style="flex:1;padding:11px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s"
-        [style.background]="langService.lang() === l.code ? 'var(--brand-500)' : '#f5f5f4'"
-        [style.color]="langService.lang() === l.code ? '#1c1917' : '#78716c'"
+        [style.background]="langService.lang() === l.code ? 'var(--brand-500)' : 'var(--ink-100)'"
+        [style.color]="langService.lang() === l.code ? 'var(--brand-on-primary)' : 'var(--ink-500)'"
         [style.box-shadow]="langService.lang() === l.code ? '0 2px 8px rgba(217,175,0,.3)' : 'none'">
         {{ l.code === 'ru' ? 'Русский' : l.code === 'kk' ? 'Қазақша' : 'English' }}
       </button>
     }
   </div>
 
+  <!-- ── Theme switcher ──────────────────────────────────────────────────────── -->
+  <p class="section-label" style="margin:18px 20px 8px">{{ 'profile.theme' | t }}</p>
+  <div style="margin:0 16px;display:flex;gap:8px">
+    @for (m of themeModes; track m) {
+      <button (click)="theme.set(m)"
+        class="active:scale-[0.97] transition-all"
+        style="flex:1;padding:11px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s"
+        [style.background]="theme.mode() === m ? 'var(--brand-500)' : 'var(--ink-100)'"
+        [style.color]="theme.mode() === m ? 'var(--brand-on-primary)' : 'var(--ink-500)'">
+        {{ ('profile.theme.' + m) | t }}
+      </button>
+    }
+  </div>
+
   <!-- ── Settings card ───────────────────────────────────────────────────────── -->
-  <div style="margin:14px 16px 0;background:white;border:1px solid #ece9e4;border-radius:20px;overflow:hidden">
+  <div style="margin:14px 16px 0;background:var(--surface-card);border:1px solid var(--ink-200);border-radius:20px;overflow:hidden">
 
     <!-- Change PIN -->
-    <div style="border-bottom:1px solid #f5f5f4">
+    <div style="border-bottom:1px solid var(--ink-100)">
       <button (click)="showPinForm.set(!showPinForm())"
         class="active:bg-stone-50 transition-colors"
         style="display:flex;align-items:center;gap:12px;padding:16px;text-align:left;
           background:transparent;border:none;cursor:pointer;width:100%">
-        <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+        <svg width="17" height="17" fill="none" stroke="var(--ink-500)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
         </svg>
-        <span style="font-size:14px;font-weight:700;color:#1c1917;flex:1;text-align:left">
+        <span style="font-size:14px;font-weight:700;color:var(--ink-900);flex:1;text-align:left">
           {{ 'profile.changePin' | t }}
         </span>
-        <svg width="16" height="16" fill="none" stroke="#d6d3d1" stroke-width="2" viewBox="0 0 24 24"
+        <svg width="16" height="16" fill="none" stroke="var(--ink-300)" stroke-width="2" viewBox="0 0 24 24"
           class="transition-transform" [class]="showPinForm() ? 'rotate-90' : ''">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
         </svg>
@@ -224,19 +238,19 @@
     </div>
 
     <!-- Change Phone Number -->
-    <div style="border-bottom:1px solid #f5f5f4">
+    <div style="border-bottom:1px solid var(--ink-100)">
       <button (click)="toggleShowPhoneForm()"
         class="active:bg-stone-50 transition-colors"
         style="display:flex;align-items:center;gap:12px;padding:16px;text-align:left;
           background:transparent;border:none;cursor:pointer;width:100%">
-        <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+        <svg width="17" height="17" fill="none" stroke="var(--ink-500)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
         </svg>
-        <span style="font-size:14px;font-weight:700;color:#1c1917;flex:1;text-align:left">
+        <span style="font-size:14px;font-weight:700;color:var(--ink-900);flex:1;text-align:left">
           {{ 'profile.changePhone' | t }}
         </span>
-        <svg width="16" height="16" fill="none" stroke="#d6d3d1" stroke-width="2" viewBox="0 0 24 24"
+        <svg width="16" height="16" fill="none" stroke="var(--ink-300)" stroke-width="2" viewBox="0 0 24 24"
           class="transition-transform" [class]="showPhoneForm() ? 'rotate-90' : ''">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
         </svg>
@@ -261,7 +275,7 @@
       }
       @if (showPhoneForm() && phoneStep() === 'otp') {
         <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:10px">
-          <p style="font-size:12.5px;font-weight:600;color:#78716c;margin:0">
+          <p style="font-size:12.5px;font-weight:600;color:var(--ink-500);margin:0">
             {{ 'profile.enterCodeSentTo' | t }} {{ phoneFormatted }}
           </p>
           <yurt-otp-boxes #phoneOtpBoxes (codeChange)="phoneOtp = $event"></yurt-otp-boxes>
@@ -278,12 +292,12 @@
           </button>
           <div style="display:flex;justify-content:space-between;align-items:center">
             <button type="button" (click)="backToPhoneForm()"
-              style="background:transparent;border:none;font-size:12.5px;font-weight:700;color:#78716c;cursor:pointer;padding:4px">
+              style="background:transparent;border:none;font-size:12.5px;font-weight:700;color:var(--ink-500);cursor:pointer;padding:4px">
               {{ 'auth.changeNumber' | t }}
             </button>
             <button type="button" [disabled]="phoneResendIn() > 0" (click)="resendPhoneChangeCode()"
               style="background:transparent;border:none;font-size:12.5px;font-weight:700;color:#b45309;cursor:pointer;padding:4px"
-              [style.color]="phoneResendIn() > 0 ? '#d6d3d1' : '#b45309'">
+              [style.color]="phoneResendIn() > 0 ? 'var(--ink-300)' : '#b45309'">
               {{ phoneResendIn() > 0 ? ('auth.resendIn' | t).replace('{seconds}', phoneResendIn().toString()) : ('auth.resendCode' | t) }}
             </button>
           </div>
@@ -293,39 +307,39 @@
 
     @if (modules.isEnabled('push')) {
     <!-- Push Notifications -->
-    <div style="border-bottom:1px solid #f5f5f4;display:flex;align-items:center;gap:12px;padding:16px">
-      <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+    <div style="border-bottom:1px solid var(--ink-100);display:flex;align-items:center;gap:12px;padding:16px">
+      <svg width="17" height="17" fill="none" stroke="var(--ink-500)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
       </svg>
       <div style="flex:1;min-width:0">
-        <p style="font-size:14px;font-weight:700;color:#1c1917">{{ 'profile.notifications' | t }}</p>
-        <p style="font-size:11.5px;font-weight:600;color:#a8a29e;margin-top:2px">{{ 'profile.notifSubtitle' | t }}</p>
+        <p style="font-size:14px;font-weight:700;color:var(--ink-900)">{{ 'profile.notifications' | t }}</p>
+        <p style="font-size:11.5px;font-weight:600;color:var(--ink-400);margin-top:2px">{{ 'profile.notifSubtitle' | t }}</p>
       </div>
       <button type="button" (click)="toggleNotifications()" role="switch" [attr.aria-checked]="notificationsEnabled()"
         class="active:scale-95 transition-transform"
         style="width:46px;height:26px;border-radius:13px;border:none;padding:2px;cursor:pointer;flex-shrink:0;transition:background-color .2s"
-        [style.background]="notificationsEnabled() ? 'var(--brand-500)' : '#e7e5e4'">
-        <span style="display:block;width:22px;height:22px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s"
+        [style.background]="notificationsEnabled() ? 'var(--brand-500)' : 'var(--ink-200)'">
+        <span style="display:block;width:22px;height:22px;border-radius:50%;background:var(--surface-card);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s"
           [style.transform]="notificationsEnabled() ? 'translateX(20px)' : 'translateX(0)'"></span>
       </button>
     </div>
     }
 
     <!-- Report a Problem -->
-    <div style="border-bottom:1px solid #f5f5f4">
+    <div style="border-bottom:1px solid var(--ink-100)">
       <button (click)="showReportModal.set(true)"
         class="active:bg-stone-50 transition-colors"
         style="display:flex;align-items:center;gap:12px;padding:16px;
           background:transparent;border:none;cursor:pointer;width:100%">
-        <svg width="17" height="17" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+        <svg width="17" height="17" fill="none" stroke="var(--ink-500)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <span style="font-size:14px;font-weight:700;color:#1c1917;flex:1;text-align:left">
+        <span style="font-size:14px;font-weight:700;color:var(--ink-900);flex:1;text-align:left">
           {{ 'profile.report' | t }}
         </span>
-        <svg width="16" height="16" fill="none" stroke="#d6d3d1" stroke-width="2" viewBox="0 0 24 24">
+        <svg width="16" height="16" fill="none" stroke="var(--ink-300)" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
         </svg>
       </button>
@@ -346,14 +360,14 @@
 
   <!-- ── Contact + brand links ───────────────────────────────────────────────── -->
   @if (brand.supportContact() || brand.links().length) {
-    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:22px;color:#a8a29e;font-size:12.5px;font-weight:700">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:22px;color:var(--ink-400);font-size:12.5px;font-weight:700">
       @if (brand.supportContact(); as contact) {
         <span>{{ 'profile.support' | t }}: {{ contact }}</span>
       }
       @if (brand.links().length) {
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px">
           @for (link of brand.links(); track link.url) {
-            <a [href]="link.url" target="_blank" rel="noopener noreferrer" style="color:#a8a29e;text-decoration:none">{{ link.label }}</a>
+            <a [href]="link.url" target="_blank" rel="noopener noreferrer" style="color:var(--ink-400);text-decoration:none">{{ link.label }}</a>
           }
         </div>
       }
@@ -362,7 +376,7 @@
 
   <!-- ── Danger zone (edit mode only) ───────────────────────────────────────── -->
   @if (editMode()) {
-    <div style="margin:14px 16px 0;background:white;border:1px solid #fecaca;border-radius:20px;padding:16px">
+    <div style="margin:14px 16px 0;background:var(--surface-card);border:1px solid #fecaca;border-radius:20px;padding:16px">
       <p class="section-label" style="color:#f87171;margin-bottom:12px">{{ 'profile.dangerZone' | t }}</p>
       @if (!showDeleteConfirm()) {
         <button (click)="showDeleteConfirm.set(true)"
@@ -372,11 +386,11 @@
           {{ 'profile.deleteAccount' | t }}
         </button>
       } @else {
-        <p style="font-size:13px;color:#57534e;margin-bottom:12px">{{ 'profile.deleteConfirm' | t }}</p>
+        <p style="font-size:13px;color:var(--ink-600);margin-bottom:12px">{{ 'profile.deleteConfirm' | t }}</p>
         <div style="display:flex;gap:8px">
           <button (click)="showDeleteConfirm.set(false)"
-            style="flex:1;padding:11px;border:1px solid #e7e5e4;border-radius:12px;
-              background:white;font-size:14px;font-weight:600;color:#57534e;cursor:pointer">
+            style="flex:1;padding:11px;border:1px solid var(--ink-200);border-radius:12px;
+              background:var(--surface-card);font-size:14px;font-weight:600;color:var(--ink-600);cursor:pointer">
             {{ 'profile.cancel' | t }}
           </button>
           <button (click)="confirmDelete()" [disabled]="deleteLoading()"
@@ -395,7 +409,7 @@
 @if (showReportModal()) {
   <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
     (click)="showReportModal.set(false)">
-    <div class="w-full max-w-lg bg-white rounded-t-3xl p-6 pb-safe"
+    <div class="w-full max-w-lg bg-surface rounded-t-3xl p-6 pb-safe"
       (click)="$event.stopPropagation()">
       <div class="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-5"></div>
       <h2 class="text-lg font-bold text-stone-800 mb-4">{{ 'profile.reportTitle' | t }}</h2>
@@ -416,7 +430,7 @@
 @if (showAvatarPicker()) {
   <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
     (click)="showAvatarPicker.set(false)">
-    <div class="w-full max-w-lg bg-white rounded-t-3xl p-6 pb-safe"
+    <div class="w-full max-w-lg bg-surface rounded-t-3xl p-6 pb-safe"
       (click)="$event.stopPropagation()">
       <div class="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-5"></div>
       <h2 class="text-lg font-bold text-stone-800 mb-4">{{ 'profile.chooseAvatar' | t }}</h2>
@@ -425,7 +439,7 @@
           <button type="button" (click)="chooseAvatar(avatar)"
             class="active:scale-95 transition-transform rounded-full overflow-hidden aspect-square"
             [style.outline]="selectedAvatar() === avatar ? '3px solid var(--brand-500)' : 'none'"
-            style="outline-offset:2px;border:none;padding:0;cursor:pointer;background:#f5f5f4">
+            style="outline-offset:2px;border:none;padding:0;cursor:pointer;background:var(--ink-100)">
             <img [src]="avatar" alt="" width="64" height="64" class="w-full h-full object-cover">
           </button>
         }

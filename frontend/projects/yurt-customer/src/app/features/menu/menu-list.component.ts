@@ -471,6 +471,6 @@ export class MenuListComponent implements OnInit {
   }
 
   catChipClass(active: boolean): string {
-    return active ? 'bg-brand-500 text-on-brand' : 'bg-white text-stone-600 border border-stone-200';
+    return active ? 'bg-brand-500 text-on-brand' : 'bg-surface text-stone-600 border border-stone-200';
   }
 }

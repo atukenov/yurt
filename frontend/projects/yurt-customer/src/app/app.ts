@@ -5,6 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import {
   AuthStateService,
   BrandService,
+  ThemeService,
   ModuleService,
   NotificationService,
   OrderNotificationService,
@@ -31,6 +32,7 @@ export class App implements OnInit, OnDestroy {
   private api = inject(YurtApiService);
   private modules = inject(ModuleService);
   private brand = inject(BrandService);
+  private theme = inject(ThemeService);
   private auth = inject(AuthStateService);
   private signalr = inject(SignalrService);
   private orderNotifications = inject(OrderNotificationService);

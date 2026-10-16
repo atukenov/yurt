@@ -24,7 +24,7 @@
 
 @layer components {
   .pin-box {
-    @apply w-14 h-14 text-center text-2xl font-bold border-2 border-stone-200 rounded-2xl bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-200 transition-all outline-none;
+    @apply w-14 h-14 text-center text-2xl font-bold border-2 border-stone-200 rounded-2xl bg-surface focus:border-brand-400 focus:ring-2 focus:ring-brand-200 transition-all outline-none;
   }
   .h-scroll {
     -webkit-overflow-scrolling: touch;

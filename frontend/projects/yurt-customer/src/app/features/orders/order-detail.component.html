@@ -1,18 +1,18 @@
-<div pullToRefresh (refreshed)="loadOrder()" style="min-height:100%;background:#fafaf9;padding-bottom:32px">
+<div pullToRefresh (refreshed)="loadOrder()" style="min-height:100%;background:var(--ink-50);padding-bottom:32px">
 
   <!-- ── Header ──────────────────────────────────────────────────────────────── -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px">
     <button (click)="router.navigate(['/orders'])"
       class="active:scale-95 transition-transform"
-      style="width:38px;height:38px;border-radius:50%;background:white;border:1px solid #e7e5e4;
+      style="width:38px;height:38px;border-radius:50%;background:var(--surface-card);border:1px solid var(--ink-200);
         display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">
-      <svg width="18" height="18" fill="none" stroke="#57534e" stroke-width="2" viewBox="0 0 24 24">
+      <svg width="18" height="18" fill="none" stroke="var(--ink-600)" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
       </svg>
     </button>
 
     @if (order(); as o) {
-      <h1 style="font-size:15px;font-weight:700;color:#1c1917">
+      <h1 style="font-size:15px;font-weight:700;color:var(--ink-900)">
         {{ 'order.details' | t }} #{{ o.id.slice(-6).toUpperCase() }}
       </h1>
       @if (isActive(o.status)) {
@@ -32,11 +32,11 @@
   <!-- ── Loading skeleton ─────────────────────────────────────────────────────── -->
   @if (loading()) {
     <div class="animate-pulse" style="padding:0 16px;display:flex;flex-direction:column;gap:12px;margin-top:8px">
-      <div style="width:150px;height:150px;border-radius:50%;background:#e7e5e4;margin:0 auto"></div>
-      <div style="height:22px;background:#e7e5e4;border-radius:8px;width:140px;margin:0 auto"></div>
-      <div style="height:72px;background:#e7e5e4;border-radius:12px"></div>
-      <div style="height:160px;background:#e7e5e4;border-radius:20px"></div>
-      <div style="height:86px;background:#e7e5e4;border-radius:20px"></div>
+      <div style="width:150px;height:150px;border-radius:50%;background:var(--ink-200);margin:0 auto"></div>
+      <div style="height:22px;background:var(--ink-200);border-radius:8px;width:140px;margin:0 auto"></div>
+      <div style="height:72px;background:var(--ink-200);border-radius:12px"></div>
+      <div style="height:160px;background:var(--ink-200);border-radius:20px"></div>
+      <div style="height:86px;background:var(--ink-200);border-radius:20px"></div>
     </div>
 
   } @else if (order()) {
@@ -48,7 +48,7 @@
       <div style="position:relative;width:150px;height:150px">
         <svg width="150" height="150" viewBox="0 0 150 150">
           <!-- Track -->
-          <circle cx="75" cy="75" r="54" fill="white" stroke="#f0eee9" stroke-width="12"/>
+          <circle cx="75" cy="75" r="54" fill="var(--surface-card)" stroke="var(--ink-200)" stroke-width="12"/>
           <!-- Progress arc -->
           <circle cx="75" cy="75" r="54" fill="none" stroke="var(--brand-500)" stroke-width="12"
             stroke-linecap="round" stroke-dasharray="339.3"
@@ -58,11 +58,11 @@
         </svg>
         <!-- Center overlay -->
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
-          <span style="font-size:34px;font-weight:800;color:#1c1917;line-height:1">
+          <span style="font-size:34px;font-weight:800;color:var(--ink-900);line-height:1">
             {{ o.status === OrderStatus.Completed ? '✓' :
                (o.etaMinutes && isActive(o.status)) ? o.etaMinutes : '' }}
           </span>
-          <span style="font-size:11px;font-weight:600;color:#a8a29e;text-align:center;padding:0 8px">
+          <span style="font-size:11px;font-weight:600;color:var(--ink-400);text-align:center;padding:0 8px">
             {{ o.status === OrderStatus.Completed ? ('order.issued' | t) :
                o.status === OrderStatus.Ready ? ('order.readyPickup' | t) :
                (o.etaMinutes && isActive(o.status)) ? ('order.minLeft' | t) : '' }}
@@ -71,10 +71,10 @@
       </div>
 
       <!-- Status label + location -->
-      <h2 style="font-size:16px;font-weight:800;color:#1c1917;margin-top:10px">
+      <h2 style="font-size:16px;font-weight:800;color:var(--ink-900);margin-top:10px">
         {{ o.status | orderStatusLabel }}
       </h2>
-      <p style="font-size:12px;font-weight:600;color:#a8a29e;margin-top:3px">
+      <p style="font-size:12px;font-weight:600;color:var(--ink-400);margin-top:3px">
         {{ o.locationName }} · самовывоз
       </p>
 
@@ -114,19 +114,19 @@
           <!-- Step column -->
           <div style="flex:none;width:62px;display:flex;flex-direction:column;align-items:center">
             <div style="width:15px;height:15px;border-radius:50%;transition:background .3s,box-shadow .3s"
-              [style.background]="stepIsReached(o.status, step.status) ? 'var(--brand-500)' : '#e7e5e4'"
+              [style.background]="stepIsReached(o.status, step.status) ? 'var(--brand-500)' : 'var(--ink-200)'"
               [style.box-shadow]="o.status === step.status ? '0 0 0 5px rgb(var(--brand-500-rgb) / .25)' : 'none'">
             </div>
             <span style="font-size:11px;text-align:center;margin-top:6px;transition:color .3s,font-weight .3s"
               [style.font-weight]="stepIsReached(o.status, step.status) ? '700' : '500'"
-              [style.color]="stepIsReached(o.status, step.status) ? '#1c1917' : '#a8a29e'">
+              [style.color]="stepIsReached(o.status, step.status) ? 'var(--brand-on-primary)' : 'var(--ink-400)'">
               {{ step.labelKey | t }}
             </span>
           </div>
           <!-- Connector -->
           @if (!$last) {
             <div style="flex:1;height:3px;border-radius:3px;margin-top:6px;transition:background .3s"
-              [style.background]="stepIsReached(o.status, displaySteps[$index + 1].status) ? 'var(--brand-500)' : '#e7e5e4'">
+              [style.background]="stepIsReached(o.status, displaySteps[$index + 1].status) ? 'var(--brand-500)' : 'var(--ink-200)'">
             </div>
           }
         }
@@ -139,32 +139,32 @@
       @for (item of o.items; track item.id; let last = $last) {
         <div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
-            <span style="font-size:13px;font-weight:600;color:#292524">
+            <span style="font-size:13px;font-weight:600;color:var(--ink-800)">
               {{ item.menuItemName }}
               @if (item.quantity > 1) {
-                <span style="color:#a8a29e;font-weight:500"> ×{{ item.quantity }}</span>
+                <span style="color:var(--ink-400);font-weight:500"> ×{{ item.quantity }}</span>
               }
             </span>
-            <span style="font-size:13px;font-weight:600;color:#292524;font-variant-numeric:tabular-nums;flex-shrink:0">
+            <span style="font-size:13px;font-weight:600;color:var(--ink-800);font-variant-numeric:tabular-nums;flex-shrink:0">
               {{ item.lineTotal | currency2 }}
             </span>
           </div>
           @if (item.toppings.length) {
-            <p style="font-size:11.5px;color:#a8a29e;margin-top:2px">
+            <p style="font-size:11.5px;color:var(--ink-400);margin-top:2px">
               + {{ toppingList(item.toppings) }}
             </p>
           }
           @if (!last) {
-            <div style="border-top:1px dashed #e7e5e4;margin:10px 0"></div>
+            <div style="border-top:1px dashed var(--ink-200);margin:10px 0"></div>
           }
         </div>
       }
       <!-- Divider before total -->
-      <div style="border-top:1px dashed #e7e5e4;margin:12px 0"></div>
+      <div style="border-top:1px dashed var(--ink-200);margin:12px 0"></div>
       @if (o.discountCode) {
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px;font-weight:600;color:#292524">{{ 'order.subtotal' | t }}</span>
-          <span style="font-size:13px;color:#57534e;font-variant-numeric:tabular-nums">{{ o.subtotal | currency2 }}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--ink-800)">{{ 'order.subtotal' | t }}</span>
+          <span style="font-size:13px;color:var(--ink-600);font-variant-numeric:tabular-nums">{{ o.subtotal | currency2 }}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px">
           <span style="font-size:13px;color:#0d9488">🏷 {{ o.discountCode }}</span>
@@ -173,7 +173,7 @@
       }
       <!-- Total row -->
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:13px;font-weight:800;color:#1c1917">{{ 'order.total' | t }}</span>
+        <span style="font-size:13px;font-weight:800;color:var(--ink-900)">{{ 'order.total' | t }}</span>
         <span style="font-size:16px;font-weight:800;color:var(--brand-ink);font-variant-numeric:tabular-nums">
           {{ o.total | currency2 }}
         </span>
@@ -206,7 +206,7 @@
           } @else if (o.paymentMethod === PaymentMethod.FreedomBank) {
             <img src="freedom.png" alt="Freedom" style="width:26px;height:26px;object-fit:contain"/>
           } @else {
-            <svg width="18" height="18" fill="none" stroke="#78716c" stroke-width="2" viewBox="0 0 24 24">
+            <svg width="18" height="18" fill="none" stroke="var(--ink-500)" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
             </svg>
@@ -214,7 +214,7 @@
         </div>
         <!-- Bank name + status -->
         <div style="flex:1;min-width:0">
-          <p style="font-size:13.5px;font-weight:700;color:#1c1917">
+          <p style="font-size:13.5px;font-weight:700;color:var(--ink-900)">
             {{ o.paymentMethod === PaymentMethod.KaspiBank ? 'Kaspi Bank' :
                o.paymentMethod === PaymentMethod.HalykBank ? 'Halyk Bank' :
                o.paymentMethod === PaymentMethod.FreedomBank ? 'Freedom Bank' :
@@ -229,7 +229,7 @@
         @if (o.status === OrderStatus.Completed) {
           <button (click)="showReceipt.set(true)"
             class="active:scale-95 transition-transform"
-            style="font-size:12px;font-weight:700;color:#78716c;background:#f5f5f4;
+            style="font-size:12px;font-weight:700;color:var(--ink-500);background:var(--ink-100);
               border:none;border-radius:999px;padding:8px 14px;cursor:pointer;flex-shrink:0">
             {{ 'order.receipt' | t }}
           </button>
@@ -247,7 +247,7 @@
     @if (o.status === OrderStatus.Created) {
       <div style="margin:10px 16px 0">
         <button type="button" (click)="cancelOrder()" [disabled]="cancelling()"
-          style="width:100%;padding:14px;border:1.5px solid #fecaca;background:#fff;color:#dc2626;border-radius:16px;font-size:14px;font-weight:700;cursor:pointer"
+          style="width:100%;padding:14px;border:1.5px solid #fecaca;background:var(--surface-card);color:#dc2626;border-radius:16px;font-size:14px;font-weight:700;cursor:pointer"
           [style.opacity]="cancelling() ? '.6' : '1'">
           {{ 'order.cancel' | t }}
         </button>
@@ -258,17 +258,17 @@
     @if (modules.isEnabled('engagement') && o.status === OrderStatus.Completed) {
       <div class="order-card" style="margin:10px 16px 0;text-align:center">
         @if (o.rating) {
-          <p style="font-size:13px;font-weight:600;color:#78716c;margin-bottom:6px">{{ 'rating.thanks' | t }}</p>
+          <p style="font-size:13px;font-weight:600;color:var(--ink-500);margin-bottom:6px">{{ 'rating.thanks' | t }}</p>
           <div style="font-size:22px;letter-spacing:2px" aria-hidden="true">
             @for (s of stars; track s) {
-              <span [style.color]="s <= o.rating! ? '#f59e0b' : '#e7e5e4'">★</span>
+              <span [style.color]="s <= o.rating! ? '#f59e0b' : 'var(--ink-200)'">★</span>
             }
           </div>
           @if (o.ratingComment) {
-            <p style="font-size:12.5px;color:#78716c;margin-top:8px;font-style:italic">"{{ o.ratingComment }}"</p>
+            <p style="font-size:12.5px;color:var(--ink-500);margin-top:8px;font-style:italic">"{{ o.ratingComment }}"</p>
           }
         } @else {
-          <p style="font-size:13px;font-weight:700;color:#1c1917;margin-bottom:10px">{{ 'rating.prompt' | t }}</p>
+          <p style="font-size:13px;font-weight:700;color:var(--ink-900);margin-bottom:10px">{{ 'rating.prompt' | t }}</p>
           <div
             role="radiogroup"
             [attr.aria-label]="'rating.prompt' | t"
@@ -284,7 +284,7 @@
                 (mouseenter)="hoverRating.set(s)"
                 (mouseleave)="hoverRating.set(0)"
                 style="background:none;border:none;padding:2px;cursor:pointer"
-                [style.color]="s <= (hoverRating() || selectedRating()) ? '#f59e0b' : '#e7e5e4'"
+                [style.color]="s <= (hoverRating() || selectedRating()) ? '#f59e0b' : 'var(--ink-200)'"
               >★</button>
             }
           </div>
@@ -293,7 +293,7 @@
             (ngModelChange)="ratingComment.set($event)"
             [placeholder]="'rating.commentPlaceholder' | t"
             rows="2"
-            style="width:100%;margin-top:12px;padding:10px 12px;border:1px solid #e7e5e4;border-radius:14px;
+            style="width:100%;margin-top:12px;padding:10px 12px;border:1px solid var(--ink-200);border-radius:14px;
               font-size:13px;font-family:inherit;resize:none;box-sizing:border-box"
           ></textarea>
           <button
@@ -317,7 +317,7 @@
     @let r = order()!;
     <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
       (click)="showReceipt.set(false)">
-      <div class="w-full max-w-lg bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto"
+      <div class="w-full max-w-lg bg-surface rounded-t-3xl max-h-[85vh] overflow-y-auto"
         (click)="$event.stopPropagation()">
         <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-stone-100">
           <h2 class="text-base font-bold text-stone-800">{{ 'order.receipt' | t }}</h2>

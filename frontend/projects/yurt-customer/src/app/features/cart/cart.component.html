@@ -1,8 +1,8 @@
-<div class="min-h-full" style="background:#f5f3ef">
+<div class="min-h-full" style="background:var(--surface-warm)">
   <div style="padding:14px 20px 16px;text-align:center">
-    <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:#1c1917;letter-spacing:-.01em">{{ 'cart.title' | t }}</h1>
+    <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:var(--ink-900);letter-spacing:-.01em">{{ 'cart.title' | t }}</h1>
     @if (locationName()) {
-      <span style="font-size:12px;font-weight:600;color:#78716c;display:inline-flex;align-items:center;gap:5px">
+      <span style="font-size:12px;font-weight:600;color:var(--ink-500);display:inline-flex;align-items:center;gap:5px">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand-ink)" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
           <circle cx="12" cy="11" r="3"></circle>
@@ -40,8 +40,8 @@
           <path d="M108,108 h8 M112,104 v8" stroke="var(--brand-500)" stroke-width="3" stroke-linecap="round"></path>
         </svg>
       </span>
-      <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:#1c1917">{{ 'empty.cartTitle' | t }}</h3>
-      <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:#78716c;line-height:1.55">{{ 'empty.cartHint' | t }}</p>
+      <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:var(--ink-900)">{{ 'empty.cartTitle' | t }}</h3>
+      <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:var(--ink-500);line-height:1.55">{{ 'empty.cartHint' | t }}</p>
       <button (click)="goToMenu()"
         style="margin-top:22px;background:var(--brand-500);border:none;border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:var(--brand-on-primary);cursor:pointer;font-family:inherit;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
         class="active:scale-[0.97] transition-transform">
@@ -51,48 +51,48 @@
   } @else {
     <div class="p-4 mb-44" style="max-width:32rem;margin-left:auto;margin-right:auto">
       <!-- Receipt card: items, promo, bonus, savings, total -->
-      <div style="background:#ffffff;border-radius:22px;box-shadow:0 2px 12px rgba(0,0,0,.05);padding:6px 16px 16px;position:relative">
+      <div style="background:var(--surface-card);border-radius:22px;box-shadow:0 2px 12px rgba(0,0,0,.05);padding:6px 16px 16px;position:relative">
         @for (item of cart.items(); track cart.itemKey(item)) {
-          <div style="padding:13px 0;border-bottom:1px solid #f5f5f4" (click)="toggleItem(cart.itemKey(item))">
+          <div style="padding:13px 0;border-bottom:1px solid var(--ink-100)" (click)="toggleItem(cart.itemKey(item))">
             <div style="display:flex;align-items:center;gap:12px">
               <div style="flex:1;min-width:0">
-                <p style="margin:0;font-size:14px;font-weight:700;color:#1c1917">
+                <p style="margin:0;font-size:14px;font-weight:700;color:var(--ink-900)">
                   {{ langService.lang() === 'ru' && item.nameRu ? item.nameRu
                    : langService.lang() === 'kk' && item.nameKk ? item.nameKk
                    : item.name }}
                   @if (item.variantLabel) {
-                    <span style="font-weight:400;color:#a8a29e"> · {{ item.variantLabel }}</span>
+                    <span style="font-weight:400;color:var(--ink-400)"> · {{ item.variantLabel }}</span>
                   }
-                  <span style="font-size:10px;color:#d6d3d1">{{ isItemExpanded(cart.itemKey(item)) ? '▴' : '▾' }}</span>
+                  <span style="font-size:10px;color:var(--ink-300)">{{ isItemExpanded(cart.itemKey(item)) ? '▴' : '▾' }}</span>
                 </p>
                 @if (item.selectedToppings?.length) {
-                  <p style="margin:2px 0 0;font-size:11.5px;color:#a8a29e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  <p style="margin:2px 0 0;font-size:11.5px;color:var(--ink-400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                     {{ item.selectedToppings!.map(t => t.toppingName).join(', ') }}
                   </p>
                 }
               </div>
-              <span style="display:flex;align-items:center;gap:1px;background:#f5f5f4;border-radius:10px;padding:2px;flex:none" (click)="$event.stopPropagation()">
+              <span style="display:flex;align-items:center;gap:1px;background:var(--ink-100);border-radius:10px;padding:2px;flex:none" (click)="$event.stopPropagation()">
                 <button
                   (click)="cart.updateQty(item, item.quantity - 1)"
-                  style="width:26px;height:26px;border-radius:8px;border:none;background:transparent;font-size:14px;font-weight:700;color:#57534e;cursor:pointer;font-family:inherit"
+                  style="width:26px;height:26px;border-radius:8px;border:none;background:transparent;font-size:14px;font-weight:700;color:var(--ink-600);cursor:pointer;font-family:inherit"
                   [style.opacity]="item.quantity <= 1 ? 0.35 : 1"
                   class="active:scale-90 transition-transform"
                   aria-label="Decrease"
                 >−</button>
-                <span style="font-size:13px;font-weight:800;color:#1c1917;width:20px;text-align:center;font-variant-numeric:tabular-nums">{{ item.quantity }}</span>
+                <span style="font-size:13px;font-weight:800;color:var(--ink-900);width:20px;text-align:center;font-variant-numeric:tabular-nums">{{ item.quantity }}</span>
                 <button
                   (click)="cart.updateQty(item, item.quantity + 1)"
-                  style="width:26px;height:26px;border-radius:8px;border:none;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,.1);font-size:14px;font-weight:700;color:#1c1917;cursor:pointer;font-family:inherit"
+                  style="width:26px;height:26px;border-radius:8px;border:none;background:var(--surface-card);box-shadow:0 1px 2px rgba(0,0,0,.1);font-size:14px;font-weight:700;color:var(--ink-900);cursor:pointer;font-family:inherit"
                   class="active:scale-90 transition-transform"
                   aria-label="Increase"
                 >+</button>
               </span>
-              <span style="font-size:13.5px;font-weight:700;color:#292524;font-variant-numeric:tabular-nums;width:64px;text-align:right;flex:none">{{ itemLineTotal(item) | currency2 }}</span>
+              <span style="font-size:13.5px;font-weight:700;color:var(--ink-800);font-variant-numeric:tabular-nums;width:64px;text-align:right;flex:none">{{ itemLineTotal(item) | currency2 }}</span>
             </div>
 
             @if (isItemExpanded(cart.itemKey(item))) {
-              <div style="margin-top:8px;padding-top:8px;border-top:1px solid #fafaf9" (click)="$event.stopPropagation()">
-                <div style="display:flex;justify-content:space-between;font-size:11px;color:#a8a29e">
+              <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--ink-50)" (click)="$event.stopPropagation()">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-400)">
                   <span>
                     {{ langService.lang() === 'ru' && item.nameRu ? item.nameRu
                      : langService.lang() === 'kk' && item.nameKk ? item.nameKk
@@ -102,7 +102,7 @@
                   <span>{{ item.price * item.quantity | currency2 }}</span>
                 </div>
                 @for (t of item.selectedToppings ?? []; track t.toppingId) {
-                  <div style="display:flex;justify-content:space-between;font-size:11px;color:#d6d3d1">
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-300)">
                     <span>+ {{ t.toppingName }}</span>
                     <span>{{ t.price * item.quantity | currency2 }}</span>
                   </div>
@@ -113,7 +113,7 @@
             <div style="margin-top:6px" (click)="$event.stopPropagation()">
               <button
                 (click)="toggleNote(cart.itemKey(item))"
-                style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:#a8a29e;cursor:pointer;font-family:inherit"
+                style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:var(--ink-400);cursor:pointer;font-family:inherit"
               >
                 {{ isNoteExpanded(cart.itemKey(item)) ? ('cart.hideNote' | t) : ('cart.addNote' | t) }}
               </button>
@@ -123,7 +123,7 @@
                   (ngModelChange)="cart.updateNotes(item, $event)"
                   [placeholder]="'cart.notePlaceholder' | t"
                   rows="2"
-                  style="font-size:16px;margin-top:6px;width:100%;border-radius:10px;border:1px solid #e7e5e4;background:#fafaf9;padding:8px 10px;color:#57534e;resize:none"
+                  style="font-size:16px;margin-top:6px;width:100%;border-radius:10px;border:1px solid var(--ink-200);background:var(--ink-50);padding:8px 10px;color:var(--ink-600);resize:none"
                 ></textarea>
               }
             </div>
@@ -139,7 +139,7 @@
             </svg>
             <span style="flex:1;font-size:12.5px;font-weight:700;color:#10b981">{{ discount.code }}</span>
             <span style="font-size:12.5px;font-weight:800;color:#10b981;font-variant-numeric:tabular-nums">− {{ discount.discountAmount | currency2 }}</span>
-            <button (click)="removePromoCode()" style="background:none;border:none;padding:0 0 0 4px;font-size:12px;color:#d6d3d1;cursor:pointer;font-family:inherit" [attr.aria-label]="'cart.removePromo' | t">✕</button>
+            <button (click)="removePromoCode()" style="background:none;border:none;padding:0 0 0 4px;font-size:12px;color:var(--ink-300);cursor:pointer;font-family:inherit" [attr.aria-label]="'cart.removePromo' | t">✕</button>
           </div>
         } @else {
           <div style="padding:13px 0 4px">
@@ -171,30 +171,30 @@
 
         <!-- Bonus points (iiko loyalty) -->
         @if (maxBonus() > 0) {
-          <div style="display:flex;align-items:center;gap:10px;padding:12px 0 4px;border-top:1px solid #f5f5f4;margin-top:4px">
-            <span style="width:30px;height:30px;border-radius:999px;background:#fff8dd;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">🎁</span>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 0 4px;border-top:1px solid var(--ink-100);margin-top:4px">
+            <span style="width:30px;height:30px;border-radius:999px;background:var(--brand-50);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">🎁</span>
             <span style="flex:1;min-width:0">
-              <span style="display:block;font-size:13px;font-weight:700;color:#1c1917">{{ 'cart.bonuses' | t }}</span>
-              <span style="display:block;font-size:11.5px;font-weight:600;color:#a8a29e">{{ 'cart.bonusAvailable' | t }} {{ fullBonusBalance() | currency2 }}</span>
+              <span style="display:block;font-size:13px;font-weight:700;color:var(--ink-900)">{{ 'cart.bonuses' | t }}</span>
+              <span style="display:block;font-size:11.5px;font-weight:600;color:var(--ink-400)">{{ 'cart.bonusAvailable' | t }} {{ fullBonusBalance() | currency2 }}</span>
             </span>
             <button
               (click)="appliedBonus() > 0 ? bonusInput.set(0) : useAllBonus()"
               [attr.aria-pressed]="appliedBonus() > 0"
               style="width:38px;height:22px;border-radius:999px;border:none;position:relative;cursor:pointer;transition:background .18s;flex:none"
-              [style.background]="appliedBonus() > 0 ? 'var(--brand-500)' : '#e7e5e4'"
+              [style.background]="appliedBonus() > 0 ? 'var(--brand-500)' : 'var(--ink-200)'"
             >
               <span
-                style="position:absolute;top:2px;width:18px;height:18px;border-radius:999px;background:#ffffff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s"
+                style="position:absolute;top:2px;width:18px;height:18px;border-radius:999px;background:var(--surface-card);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s"
                 [style.left]="appliedBonus() > 0 ? '20px' : '2px'"
               ></span>
             </button>
           </div>
           @if (appliedBonus() > 0) {
-            <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--brand-700);padding:6px 0 0 40px">
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--brand-ink);padding:6px 0 0 40px">
               <span>{{ 'cart.bonusApplied' | t }}</span>
               <span style="font-variant-numeric:tabular-nums">− {{ appliedBonus() | currency2 }}</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:#a8a29e;padding:2px 0 0 40px">
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-400);padding:2px 0 0 40px">
               <span>{{ 'cart.bonusRemaining' | t }}</span>
               <span style="font-variant-numeric:tabular-nums">{{ remainingBonus() | currency2 }}</span>
             </div>
@@ -202,9 +202,9 @@
         }
 
         <!-- Dashed divider -->
-        <div style="border-top:1px dashed #d6d3d1;margin:12px -16px 12px;position:relative">
-          <span style="position:absolute;left:-8px;top:-8px;width:16px;height:16px;border-radius:999px;background:#f5f3ef"></span>
-          <span style="position:absolute;right:-8px;top:-8px;width:16px;height:16px;border-radius:999px;background:#f5f3ef"></span>
+        <div style="border-top:1px dashed var(--ink-300);margin:12px -16px 12px;position:relative">
+          <span style="position:absolute;left:-8px;top:-8px;width:16px;height:16px;border-radius:999px;background:var(--surface-warm)"></span>
+          <span style="position:absolute;right:-8px;top:-8px;width:16px;height:16px;border-radius:999px;background:var(--surface-warm)"></span>
         </div>
 
         <!-- Savings banner -->
@@ -219,9 +219,9 @@
 
         <!-- Total -->
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span style="font-size:13px;font-weight:700;color:#78716c">{{ 'cart.total' | t }}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--ink-500)">{{ 'cart.total' | t }}</span>
           <span
-            style="font-size:22px;font-weight:800;color:#1c1917;font-variant-numeric:tabular-nums"
+            style="font-size:22px;font-weight:800;color:var(--ink-900);font-variant-numeric:tabular-nums"
             [class.total-pop]="totalPulse()"
           >{{ payableTotal() | currency2 }}</span>
         </div>
@@ -233,7 +233,7 @@
           <p style="margin:0;font-size:13.5px;font-weight:700;color:#059669">{{ 'cart.fullyCoveredByBonus' | t }}</p>
         </div>
       } @else {
-        <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:#a8a29e;text-transform:uppercase;letter-spacing:.12em">{{ 'cart.payHow' | t }}</p>
+        <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.12em">{{ 'cart.payHow' | t }}</p>
         <div class="grid grid-cols-3 gap-2">
           @if (applePayAvailable()) {
             <!-- Apple's branding guidelines require this mark to render unmodified —
@@ -260,8 +260,8 @@
               (click)="selectedPaymentMethod.set(bank.method)"
               class="flex flex-col items-center justify-center gap-2 py-3 px-2 rounded-2xl border-2 font-semibold text-xs transition-all active:scale-95"
               [class]="selectedPaymentMethod() === bank.method
-                ? 'border-brand-400 bg-brand-50 text-brand-ink shadow-sm'
-                : 'border-stone-200 bg-white text-stone-500 hover:border-stone-300'"
+                ? 'border-brand-400 bg-white shadow-sm'
+                : 'border-stone-200 bg-white hover:border-stone-300'"
             >
               <img [src]="bank.logo" [alt]="bank.label | t" class="h-8 w-auto object-contain" loading="lazy" />
             </button>
@@ -275,13 +275,13 @@
        h-16 (64px) plus env(safe-area-inset-bottom) for the iOS home-indicator area -->
   <div
     class="fixed left-0 right-0 max-w-lg mx-auto"
-    style="bottom:calc(4rem + env(safe-area-inset-bottom));padding:12px 16px 14px;background:rgba(245,243,239,.96);backdrop-filter:blur(6px);border-top:1px solid rgba(0,0,0,.05)"
+    style="bottom:calc(4rem + env(safe-area-inset-bottom));padding:12px 16px 14px;background:color-mix(in srgb, var(--surface-warm) 96%, transparent);backdrop-filter:blur(6px);border-top:1px solid rgba(0,0,0,.05)"
   >
     @if (cart.items().length) {
       <button
         (click)="openConfirm()"
         [disabled]="(!selectedPaymentMethod() && !fullyCoveredByBonus()) || loading()"
-        style="width:100%;background:#1c1917;color:var(--brand-on-dark);font-weight:800;border:none;border-radius:18px;padding:17px 22px;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 20px -6px rgba(28,25,23,.35);cursor:pointer;font-family:inherit"
+        style="width:100%;background:var(--surface-dark);color:var(--brand-on-dark);font-weight:800;border:none;border-radius:18px;padding:17px 22px;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 20px -6px rgba(28,25,23,.35);cursor:pointer;font-family:inherit"
         class="active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
       >
         @if (loading()) {
@@ -310,7 +310,7 @@
 @if (showConfirm()) {
   <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm px-4 pb-8"
        (click)="showConfirm.set(false)">
-    <div class="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl"
+    <div class="w-full max-w-sm bg-surface rounded-3xl p-6 shadow-2xl"
          (click)="$event.stopPropagation()">
       <div class="text-center mb-5">
         <div class="text-5xl mb-3">🛒</div>

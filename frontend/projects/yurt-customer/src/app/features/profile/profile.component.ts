@@ -2,7 +2,7 @@ import { Component, inject, OnDestroy, OnInit, signal, viewChild } from '@angula
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BrandService, ModuleService, YurtApiService, AuthStateService, NotificationService } from 'shared-api';
+import { BrandService, ModuleService, YurtApiService, AuthStateService, NotificationService, ThemeService, ThemeMode } from 'shared-api';
 import { CustomerProfile, CustomerStats, LoyaltyBalance } from 'shared-models';
 import { Currency2Pipe, OtpBoxesComponent, ToastService } from 'shared-ui';
 import { LangService, Lang } from '../../core/lang.service';
@@ -33,6 +33,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private notifications = inject(NotificationService);
   readonly langService = inject(LangService);
+  readonly theme = inject(ThemeService);
+  readonly themeModes: ThemeMode[] = ['light', 'dark', 'system'];
   readonly langs: { code: Lang; label: string }[] = [
     { code: 'en', label: 'EN' },
     { code: 'ru', label: 'RU' },

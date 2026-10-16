@@ -2,7 +2,7 @@
 .section-label {
   font-size: 11px;
   font-weight: 700;
-  color: #a8a29e;
+  color: var(--ink-400);
   text-transform: uppercase;
   letter-spacing: .12em;
   display: block;
@@ -12,7 +12,7 @@
 .field-label {
   font-size: 11px;
   font-weight: 700;
-  color: #a8a29e;
+  color: var(--ink-400);
   text-transform: uppercase;
   letter-spacing: .06em;
   display: block;
@@ -23,10 +23,10 @@
 .profile-input {
   width: 100%;
   padding: 10px 12px;
-  border: 2px solid #e7e5e4;
+  border: 2px solid var(--ink-200);
   border-radius: 12px;
   outline: none;
-  color: #1c1917;
+  color: var(--ink-900);
   box-sizing: border-box;
   transition: border-color .15s;
 }
