@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-stone-50 flex flex-col">
   <div
-    class="bg-gradient-to-br from-amber-500 via-amber-400 to-orange-400 pb-12 px-6 text-white text-center"
+    class="bg-gradient-to-br from-brand-500 via-brand-400 to-orange-400 pb-12 px-6 text-white text-center"
     style="padding-top: calc(4rem + env(safe-area-inset-top))"
   >
     <div
@@ -9,7 +9,7 @@
       ☕
     </div>
     <h1 class="text-3xl font-bold">Yurt</h1>
-    <p class="text-amber-100 mt-1.5 text-sm font-medium">{{ 'auth.createYourAccount' | t }}</p>
+    <p class="text-brand-100 mt-1.5 text-sm font-medium">{{ 'auth.createYourAccount' | t }}</p>
   </div>
 
   <div class="flex-1 px-6 pt-8 pb-10 max-w-sm mx-auto w-full">
@@ -26,7 +26,7 @@
           [(ngModel)]="firstName"
           placeholder="Sara"
           autocomplete="given-name"
-          class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-100 outline-none transition-all text-base"
+          class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white focus:border-brand-400 focus:ring-4 focus:ring-brand-100 outline-none transition-all text-base"
         />
       </div>
       <div>
@@ -37,7 +37,7 @@
           [(ngModel)]="lastName"
           placeholder="Ali"
           autocomplete="family-name"
-          class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-100 outline-none transition-all text-base"
+          class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white focus:border-brand-400 focus:ring-4 focus:ring-brand-100 outline-none transition-all text-base"
         />
       </div>
     </div>
@@ -53,7 +53,7 @@
         (input)="onPhoneInput($event)"
         placeholder="+7 (777) 123-4567"
         autocomplete="tel"
-        class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white text-stone-900 placeholder-stone-400 text-base outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 transition-all"
+        class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white text-stone-900 placeholder-stone-400 text-base outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-100 transition-all"
       />
     </div>
 
@@ -120,7 +120,7 @@
 
     <a
       routerLink="/auth/login"
-      class="block w-full text-center py-3.5 rounded-2xl border-2 border-amber-400 text-amber-600 font-semibold text-base hover:bg-amber-50 transition-colors"
+      class="block w-full text-center py-3.5 rounded-2xl border-2 border-brand-400 text-brand-600 font-semibold text-base hover:bg-brand-50 transition-colors"
     >
       {{ 'auth.signIn' | t }}
     </a>
@@ -155,7 +155,7 @@
       type="button"
       [disabled]="resendIn() > 0"
       (click)="onResend()"
-      class="block w-full text-center py-3.5 mt-4 text-amber-600 font-semibold text-sm disabled:text-stone-400 disabled:cursor-not-allowed"
+      class="block w-full text-center py-3.5 mt-4 text-brand-600 font-semibold text-sm disabled:text-stone-400 disabled:cursor-not-allowed"
     >
       {{ resendIn() > 0 ? ('auth.resendIn' | t).replace('{seconds}', resendIn().toString()) : ('auth.resendCode' | t) }}
     </button>

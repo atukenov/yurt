@@ -57,7 +57,7 @@ export class ButtonComponent {
       'inline-flex items-center justify-center font-semibold rounded-2xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants: Record<ButtonVariant, string> = {
-      primary: 'bg-amber-500 text-stone-900 hover:bg-amber-600 focus:ring-amber-400',
+      primary: 'bg-brand-500 text-stone-900 hover:bg-brand-600 focus:ring-brand-400',
       secondary: 'bg-stone-100 text-stone-800 hover:bg-stone-200 focus:ring-stone-300',
       ghost: 'bg-transparent text-stone-700 hover:bg-stone-100 focus:ring-stone-300',
       destructive: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-400',

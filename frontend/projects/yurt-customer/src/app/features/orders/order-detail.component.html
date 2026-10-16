@@ -50,7 +50,7 @@
           <!-- Track -->
           <circle cx="75" cy="75" r="54" fill="white" stroke="#f0eee9" stroke-width="12"/>
           <!-- Progress arc -->
-          <circle cx="75" cy="75" r="54" fill="none" stroke="#ffd119" stroke-width="12"
+          <circle cx="75" cy="75" r="54" fill="none" stroke="var(--brand-500)" stroke-width="12"
             stroke-linecap="round" stroke-dasharray="339.3"
             [style.stroke-dashoffset]="339.3 * (1 - pct / 100)"
             transform="rotate(-90 75 75)"
@@ -114,8 +114,8 @@
           <!-- Step column -->
           <div style="flex:none;width:62px;display:flex;flex-direction:column;align-items:center">
             <div style="width:15px;height:15px;border-radius:50%;transition:background .3s,box-shadow .3s"
-              [style.background]="stepIsReached(o.status, step.status) ? '#ffd119' : '#e7e5e4'"
-              [style.box-shadow]="o.status === step.status ? '0 0 0 5px rgba(255,209,25,.25)' : 'none'">
+              [style.background]="stepIsReached(o.status, step.status) ? 'var(--brand-500)' : '#e7e5e4'"
+              [style.box-shadow]="o.status === step.status ? '0 0 0 5px rgb(var(--brand-500-rgb) / .25)' : 'none'">
             </div>
             <span style="font-size:11px;text-align:center;margin-top:6px;transition:color .3s,font-weight .3s"
               [style.font-weight]="stepIsReached(o.status, step.status) ? '700' : '500'"
@@ -126,7 +126,7 @@
           <!-- Connector -->
           @if (!$last) {
             <div style="flex:1;height:3px;border-radius:3px;margin-top:6px;transition:background .3s"
-              [style.background]="stepIsReached(o.status, displaySteps[$index + 1].status) ? '#ffd119' : '#e7e5e4'">
+              [style.background]="stepIsReached(o.status, displaySteps[$index + 1].status) ? 'var(--brand-500)' : '#e7e5e4'">
             </div>
           }
         }
@@ -174,7 +174,7 @@
       <!-- Total row -->
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:13px;font-weight:800;color:#1c1917">{{ 'order.total' | t }}</span>
-        <span style="font-size:16px;font-weight:800;color:#d9af00;font-variant-numeric:tabular-nums">
+        <span style="font-size:16px;font-weight:800;color:var(--brand-600);font-variant-numeric:tabular-nums">
           {{ o.total | currency2 }}
         </span>
       </div>
@@ -365,12 +365,12 @@
             }
             <div class="flex justify-between font-bold text-base">
               <span class="text-stone-800">{{ 'order.total' | t }}</span>
-              <span class="text-amber-600">{{ r.total | currency2 }}</span>
+              <span class="text-brand-600">{{ r.total | currency2 }}</span>
             </div>
             @if (r.loyaltyPointsSpent) {
               <div class="flex justify-between text-sm">
-                <span class="text-amber-600">✨ {{ 'order.bonusSpent' | t }}</span>
-                <span class="text-amber-600 font-semibold">-{{ r.loyaltyPointsSpent | currency2 }}</span>
+                <span class="text-brand-600">✨ {{ 'order.bonusSpent' | t }}</span>
+                <span class="text-brand-600 font-semibold">-{{ r.loyaltyPointsSpent | currency2 }}</span>
               </div>
             }
             @if (r.loyaltyPointsEarned) {

@@ -12,7 +12,7 @@
             [ngModel]="selectedLocationId()"
             (ngModelChange)="setLocation($event)"
             aria-label="Location"
-            class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white shadow-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            class="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white shadow-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-300"
           >
             <option [value]="null">All locations</option>
             @for (loc of locations(); track loc.id) {
@@ -27,7 +27,7 @@
               [attr.aria-pressed]="activePeriod() === p.value"
               [class]="
                 activePeriod() === p.value
-                  ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-amber-500 text-stone-900 shadow-sm transition-all'
+                  ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-stone-900 shadow-sm transition-all'
                   : 'px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all'
               "
             >
@@ -109,8 +109,8 @@
         <!-- Avg Order Value -->
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
-              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-9 h-9 rounded-xl bg-brand-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
               </svg>
             </div>
@@ -231,7 +231,7 @@
                       <span class="text-xs text-slate-500 ml-2 whitespace-nowrap">{{ item.quantitySold }} sold · {{ formatTenge(item.revenue) }}</span>
                     </div>
                     <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div class="h-full bg-amber-400 rounded-full transition-all duration-500" [style.width]="barWidth(item.quantitySold, topItemMax())"></div>
+                      <div class="h-full bg-brand-400 rounded-full transition-all duration-500" [style.width]="barWidth(item.quantitySold, topItemMax())"></div>
                     </div>
                   </div>
                 </div>

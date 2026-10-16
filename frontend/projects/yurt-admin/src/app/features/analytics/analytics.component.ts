@@ -186,7 +186,7 @@ export class AnalyticsComponent implements OnInit {
 
   statusColor(status: string): string {
     const map: Record<string, string> = {
-      Created: 'bg-amber-100 text-amber-700',
+      Created: 'bg-brand-100 text-brand-700',
       Accepted: 'bg-blue-100 text-blue-700',
       Preparing: 'bg-teal-100 text-teal-700',
       Ready: 'bg-green-100 text-green-700',
@@ -197,7 +197,7 @@ export class AnalyticsComponent implements OnInit {
   }
 
   paymentColor(index: number): string {
-    const colors = ['bg-amber-500', 'bg-blue-500', 'bg-teal-500', 'bg-rose-400'];
+    const colors = ['bg-brand-500', 'bg-blue-500', 'bg-teal-500', 'bg-rose-400'];
     return colors[index % colors.length];
   }
 }

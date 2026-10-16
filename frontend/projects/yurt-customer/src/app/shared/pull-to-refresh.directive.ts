@@ -39,7 +39,7 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
     this.renderer.setStyle(this.indicator, 'transform', 'translateY(-52px) scale(0.4)');
     this.renderer.setStyle(this.indicator, 'z-index', '9999');
     this.indicator.innerHTML = `
-      <div style="width:32px;height:32px;border-radius:50%;border:3px solid #ffd119;border-top-color:transparent;animation:ptr-spin 0.7s linear infinite;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.15)"></div>
+      <div style="width:32px;height:32px;border-radius:50%;border:3px solid var(--brand-500);border-top-color:transparent;animation:ptr-spin 0.7s linear infinite;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.15)"></div>
       <style>@keyframes ptr-spin{to{transform:rotate(360deg)}}</style>
     `;
     document.body.appendChild(this.indicator);

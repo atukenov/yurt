@@ -143,7 +143,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
   }
 
   stepDotClass(current: OrderStatus, step: OrderStatus): string {
-    return this.stepIsReached(current, step) ? 'bg-amber-500' : 'bg-stone-200';
+    return this.stepIsReached(current, step) ? 'bg-brand-500' : 'bg-stone-200';
   }
 
   statusEmoji(status: OrderStatus): string {

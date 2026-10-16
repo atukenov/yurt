@@ -1,0 +1,46 @@
+/*
+ * Brand design tokens (Phase 4 white-label).
+ *
+ * Both apps import this file. Components never use a literal brand colour: they use the
+ * Tailwind `brand-*` utilities (mapped below) or `var(--brand-*)` in inline styles and
+ * component CSS. A cafe's brand is applied by overriding these variables on :root at app
+ * start (see the `Brand` settings in docs/MODULARIZATION_TODO.md, Phase 4).
+ */
+:root {
+  /* Primary scale (default: Yurt yellow). 500 is the main brand colour. */
+  --brand-50:  #fffde5;
+  --brand-100: #fffab8;
+  --brand-200: #fff388;
+  --brand-300: #ffe94f;
+  --brand-400: #ffdc30;
+  --brand-500: #ffd119;
+  --brand-600: #d9af00;
+  --brand-700: #a68700;
+  --brand-800: #745e00;
+  --brand-900: #423500;
+  --brand-950: #251e00;
+
+  /* Same colour as an "r, g, b" triplet, for translucent glows: rgb(var(--brand-500-rgb) / .3) */
+  --brand-500-rgb: 255 209 25;
+
+  /* Readable text on top of the primary colour. */
+  --brand-on-primary: #1c1917;
+
+  /* Secondary accent used for the end of brand gradients, and the warmer update-sheet tint. */
+  --brand-accent: #ea580c;
+  --brand-accent-soft: #ffb300;
+}
+
+@theme {
+  --color-brand-50:  var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+}

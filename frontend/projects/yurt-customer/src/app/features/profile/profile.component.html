@@ -1,7 +1,7 @@
 <div style="min-height:100%;background:#fafaf9;padding-bottom:40px" pullToRefresh (refreshed)="loadProfile()">
 
   <!-- ── Yellow header ────────────────────────────────────────────────────────── -->
-  <div style="background:#ffd119;padding-bottom:64px">
+  <div style="background:var(--brand-500);padding-bottom:64px">
     <div style="display:flex;align-items:center;gap:16px;padding:22px 24px 0">
       <!-- Avatar circle -->
       <button type="button" (click)="showAvatarPicker.set(true)"
@@ -11,7 +11,7 @@
         @if (selectedAvatar(); as avatar) {
           <img [src]="avatar" alt="" width="56" height="56" style="width:100%;height:100%;object-fit:cover">
         } @else {
-          <span style="font-size:20px;font-weight:800;color:#ffd119;letter-spacing:-.02em">
+          <span style="font-size:20px;font-weight:800;color:var(--brand-500);letter-spacing:-.02em">
             {{ initials || '?' }}
           </span>
         }
@@ -72,7 +72,7 @@
       <div style="display:flex;gap:8px">
         <button (click)="saveProfile()" [disabled]="saving()"
           class="active:scale-[0.98] transition-transform"
-          style="flex:1;padding:13px;background:#ffd119;border:none;border-radius:12px;
+          style="flex:1;padding:13px;background:var(--brand-500);border:none;border-radius:12px;
             font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
           {{ saving() ? '…' : ('profile.save' | t) }}
         </button>
@@ -97,7 +97,7 @@
           text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px">{{ 'profile.bonuses' | t }}</p>
         @if (loyalty(); as l) {
           @if (l.enabled && l.available && l.balance !== null) {
-            <p style="font-size:26px;font-weight:800;color:#ffd119;font-variant-numeric:tabular-nums;line-height:1">
+            <p style="font-size:26px;font-weight:800;color:var(--brand-500);font-variant-numeric:tabular-nums;line-height:1">
               ₸{{ l.balance | number: '1.0-2' }}
             </p>
             <p style="font-size:11px;font-weight:600;color:rgba(255,255,255,.45);margin-top:4px">
@@ -108,12 +108,12 @@
               {{ 'profile.bonusUnavailable' | t }}
             </p>
           } @else {
-            <p style="font-size:26px;font-weight:800;color:#ffd119;font-variant-numeric:tabular-nums;line-height:1">
+            <p style="font-size:26px;font-weight:800;color:var(--brand-500);font-variant-numeric:tabular-nums;line-height:1">
               ₸0
             </p>
           }
         } @else {
-          <p style="font-size:26px;font-weight:800;color:#ffd119;font-variant-numeric:tabular-nums;line-height:1">
+          <p style="font-size:26px;font-weight:800;color:var(--brand-500);font-variant-numeric:tabular-nums;line-height:1">
             ₸0
           </p>
         }
@@ -130,9 +130,9 @@
         </div>
       }
       <!-- KZT (tenge) icon -->
-      <div style="width:30px;height:30px;border-radius:50%;border:1.8px solid #ffd119;
+      <div style="width:30px;height:30px;border-radius:50%;border:1.8px solid var(--brand-500);
         display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <span style="color:#ffd119;font-size:15px;font-weight:800;line-height:1">₸</span>
+        <span style="color:var(--brand-500);font-size:15px;font-weight:800;line-height:1">₸</span>
       </div>
     </div>
   }
@@ -144,7 +144,7 @@
       class="active:scale-[0.97] transition-transform"
       style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
         display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="#d9af00" stroke-width="2" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" stroke="var(--brand-600)" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
       </svg>
@@ -158,7 +158,7 @@
       class="active:scale-[0.97] transition-transform"
       style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
         display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="#d9af00" stroke-width="2" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" stroke="var(--brand-600)" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
       </svg>
@@ -176,7 +176,7 @@
       <button (click)="langService.setLang(l.code)"
         class="active:scale-[0.97] transition-all"
         style="flex:1;padding:11px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s"
-        [style.background]="langService.lang() === l.code ? '#ffd119' : '#f5f5f4'"
+        [style.background]="langService.lang() === l.code ? 'var(--brand-500)' : '#f5f5f4'"
         [style.color]="langService.lang() === l.code ? '#1c1917' : '#78716c'"
         [style.box-shadow]="langService.lang() === l.code ? '0 2px 8px rgba(217,175,0,.3)' : 'none'">
         {{ l.code === 'ru' ? 'Русский' : l.code === 'kk' ? 'Қазақша' : 'English' }}
@@ -215,7 +215,7 @@
             class="profile-input" style="font-size:16px"/>
           <button (click)="submitPinChange()" [disabled]="pinLoading()"
             class="active:scale-[0.98] transition-transform"
-            style="width:100%;padding:13px;background:#ffd119;border:none;border-radius:12px;
+            style="width:100%;padding:13px;background:var(--brand-500);border:none;border-radius:12px;
               font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
             {{ 'profile.updatePin' | t }}
           </button>
@@ -253,7 +253,7 @@
           }
           <button (click)="submitPhoneChange()" [disabled]="phoneLoading()"
             class="active:scale-[0.98] transition-transform"
-            style="width:100%;padding:13px;background:#ffd119;border:none;border-radius:12px;
+            style="width:100%;padding:13px;background:var(--brand-500);border:none;border-radius:12px;
               font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
             {{ 'profile.sendCode' | t }}
           </button>
@@ -272,7 +272,7 @@
           }
           <button (click)="verifyPhoneChange()" [disabled]="phoneLoading()"
             class="active:scale-[0.98] transition-transform"
-            style="width:100%;padding:13px;background:#ffd119;border:none;border-radius:12px;
+            style="width:100%;padding:13px;background:var(--brand-500);border:none;border-radius:12px;
               font-size:14px;font-weight:700;color:#1c1917;cursor:pointer">
             {{ 'profile.updatePhone' | t }}
           </button>
@@ -305,7 +305,7 @@
       <button type="button" (click)="toggleNotifications()" role="switch" [attr.aria-checked]="notificationsEnabled()"
         class="active:scale-95 transition-transform"
         style="width:46px;height:26px;border-radius:13px;border:none;padding:2px;cursor:pointer;flex-shrink:0;transition:background-color .2s"
-        [style.background]="notificationsEnabled() ? '#ffd119' : '#e7e5e4'">
+        [style.background]="notificationsEnabled() ? 'var(--brand-500)' : '#e7e5e4'">
         <span style="display:block;width:22px;height:22px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s"
           [style.transform]="notificationsEnabled() ? 'translateX(20px)' : 'translateX(0)'"></span>
       </button>
@@ -396,11 +396,11 @@
       <h2 class="text-lg font-bold text-stone-800 mb-4">{{ 'profile.reportTitle' | t }}</h2>
       <textarea [(ngModel)]="reportText" [placeholder]="'profile.reportPlaceholder' | t"
         rows="5" style="font-size:16px"
-        class="w-full border border-stone-200 rounded-2xl p-3 text-stone-800 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300">
+        class="w-full border border-stone-200 rounded-2xl p-3 text-stone-800 resize-none focus:outline-none focus:ring-2 focus:ring-brand-300">
       </textarea>
       <button (click)="submitReport()"
         [disabled]="!reportText.trim() || reportLoading()"
-        class="mt-4 w-full bg-amber-500 active:bg-amber-600 text-stone-900 font-bold rounded-2xl py-3.5 text-base transition-colors disabled:opacity-40 disabled:pointer-events-none">
+        class="mt-4 w-full bg-brand-500 active:bg-brand-600 text-stone-900 font-bold rounded-2xl py-3.5 text-base transition-colors disabled:opacity-40 disabled:pointer-events-none">
         {{ 'profile.reportSubmit' | t }}
       </button>
     </div>
@@ -419,7 +419,7 @@
         @for (avatar of avatars; track avatar) {
           <button type="button" (click)="chooseAvatar(avatar)"
             class="active:scale-95 transition-transform rounded-full overflow-hidden aspect-square"
-            [style.outline]="selectedAvatar() === avatar ? '3px solid #ffd119' : 'none'"
+            [style.outline]="selectedAvatar() === avatar ? '3px solid var(--brand-500)' : 'none'"
             style="outline-offset:2px;border:none;padding:0;cursor:pointer;background:#f5f5f4">
             <img [src]="avatar" alt="" width="64" height="64" class="w-full h-full object-cover">
           </button>

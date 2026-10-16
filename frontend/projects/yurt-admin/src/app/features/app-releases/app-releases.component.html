@@ -7,7 +7,7 @@
         <p class="text-sm text-slate-500 mt-1">{{ 'rel.subtitle' | t }}</p>
       </div>
       <button (click)="openCreate()"
-        class="shrink-0 px-4 py-2 rounded-xl bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 active:scale-95 transition-all shadow-sm">
+        class="shrink-0 px-4 py-2 rounded-xl bg-brand-500 text-stone-900 text-sm font-semibold hover:bg-brand-600 active:scale-95 transition-all shadow-sm">
         {{ 'rel.new' | t }}
       </button>
     </div>
@@ -56,7 +56,7 @@
         <div>
           <label for="rel-version" class="block text-xs font-medium text-slate-600 mb-1">{{ 'rel.version' | t }}</label>
           <input id="rel-version" type="text" placeholder="5.3.0" [(ngModel)]="form.version"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-amber-400 outline-none" />
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-brand-400 outline-none" />
         </div>
         <div>
           <div class="flex items-center justify-between mb-1">
@@ -65,23 +65,23 @@
               @for (t of tabs; track t) {
                 <button type="button" (click)="tab.set(t)"
                   class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors"
-                  [class]="tab() === t ? 'bg-amber-500 text-stone-900' : 'bg-slate-100 text-slate-500'">{{ t.toUpperCase() }}</button>
+                  [class]="tab() === t ? 'bg-brand-500 text-stone-900' : 'bg-slate-100 text-slate-500'">{{ t.toUpperCase() }}</button>
               }
             </div>
           </div>
           <textarea id="rel-notes" rows="6" [(ngModel)]="currentNotes" [name]="'notes'"
             placeholder="Cancel your order before it's accepted&#10;2GIS directions for accepted orders"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"></textarea>
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"></textarea>
           <p class="text-xs text-slate-400 mt-1">{{ 'rel.notesHint' | t }}</p>
         </div>
         <label class="flex items-start gap-2 text-sm text-slate-700 select-none cursor-pointer">
-          <input type="checkbox" [(ngModel)]="form.isMandatory" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400" />
+          <input type="checkbox" [(ngModel)]="form.isMandatory" class="mt-0.5 w-4 h-4 rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
           <span>{{ 'rel.mandatory' | t }}</span>
         </label>
       </div>
       <div class="px-6 py-4 border-t border-slate-100 flex gap-3 shrink-0">
         <button (click)="showForm.set(false)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">{{ 'action.cancel' | t }}</button>
-        <button (click)="save()" [disabled]="saving()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-stone-900 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">{{ 'action.save' | t }}</button>
+        <button (click)="save()" [disabled]="saving()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-stone-900 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60">{{ 'action.save' | t }}</button>
       </div>
     </div>
   </div>

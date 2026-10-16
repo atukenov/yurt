@@ -44,7 +44,7 @@
       </div>
       <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
         <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.revenueToday' | t }}</p>
-        <p class="text-3xl font-bold text-amber-600 mt-2">{{ d.revenueToday | currency2 }}</p>
+        <p class="text-3xl font-bold text-brand-600 mt-2">{{ d.revenueToday | currency2 }}</p>
       </div>
       <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
         <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.avgOrderValue' | t }}</p>
@@ -52,7 +52,7 @@
       </div>
       <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
         <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.pendingOrders' | t }}</p>
-        <p class="text-3xl font-bold mt-2" [class]="d.pendingCount > 0 ? 'text-amber-500' : 'text-slate-800'">{{ d.pendingCount }}</p>
+        <p class="text-3xl font-bold mt-2" [class]="d.pendingCount > 0 ? 'text-brand-500' : 'text-slate-800'">{{ d.pendingCount }}</p>
       </div>
     </div>
 
@@ -68,7 +68,7 @@
               }
               <div
                 class="w-full rounded-t-sm transition-all"
-                [class]="bar.count > 0 ? 'bg-amber-400' : 'bg-slate-100'"
+                [class]="bar.count > 0 ? 'bg-brand-400' : 'bg-slate-100'"
                 [style.height.%]="bar.pct > 0 ? bar.pct : 5"
                 [title]="bar.hour + ': ' + bar.count + ' orders'"
               ></div>
@@ -91,7 +91,7 @@
     <div class="flex gap-3">
       <a
         routerLink="/orders"
-        class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold rounded-xl px-5 py-3 text-sm transition-colors"
+        class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-stone-900 font-semibold rounded-xl px-5 py-3 text-sm transition-colors"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7 4h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />

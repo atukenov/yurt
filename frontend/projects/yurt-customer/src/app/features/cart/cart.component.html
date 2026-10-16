@@ -3,7 +3,7 @@
     <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:#1c1917;letter-spacing:-.01em">{{ 'cart.title' | t }}</h1>
     @if (locationName()) {
       <span style="font-size:12px;font-weight:600;color:#78716c;display:inline-flex;align-items:center;gap:5px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d9af00" stroke-width="2.5">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
           <circle cx="12" cy="11" r="3"></circle>
         </svg>
@@ -25,11 +25,11 @@
   @if (!cart.items().length) {
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 200px);padding:0 40px 80px;text-align:center">
       <span style="position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <span style="position:absolute;inset:10px;border-radius:999px;background:radial-gradient(circle,rgba(255,209,25,.3),transparent 68%)"></span>
+        <span style="position:absolute;inset:10px;border-radius:999px;background:radial-gradient(circle,rgb(var(--brand-500-rgb) / .3),transparent 68%)"></span>
         <svg width="140" height="140" viewBox="0 0 140 140" style="position:relative">
           <g stroke="#1c1917" stroke-width="4" stroke-linecap="round" fill="none">
             <path d="M96,60 Q114,62 112,76 Q110,90 92,90"></path>
-            <path d="M38,52 L98,52 L92,104 Q91,112 82,112 L54,112 Q45,112 44,104 Z" fill="#ffd119"></path>
+            <path d="M38,52 L98,52 L92,104 Q91,112 82,112 L54,112 Q45,112 44,104 Z" fill="var(--brand-500)"></path>
             <path d="M50,68 L86,68" stroke="#ffffff" stroke-width="5" opacity=".85"></path>
             <path d="M52,80 L84,80" stroke="#ffffff" stroke-width="5" opacity=".5"></path>
             <path d="M56,36 Q52,28 56,20" class="steam"></path>
@@ -37,13 +37,13 @@
             <path d="M84,36 Q80,28 84,20" class="steam steam-d2"></path>
           </g>
           <circle cx="112" cy="108" r="14" fill="#1c1917"></circle>
-          <path d="M108,108 h8 M112,104 v8" stroke="#ffd119" stroke-width="3" stroke-linecap="round"></path>
+          <path d="M108,108 h8 M112,104 v8" stroke="var(--brand-500)" stroke-width="3" stroke-linecap="round"></path>
         </svg>
       </span>
       <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:#1c1917">{{ 'empty.cartTitle' | t }}</h3>
       <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:#78716c;line-height:1.55">{{ 'empty.cartHint' | t }}</p>
       <button (click)="goToMenu()"
-        style="margin-top:22px;background:#ffd119;border:none;border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:#1c1917;cursor:pointer;font-family:inherit;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
+        style="margin-top:22px;background:var(--brand-500);border:none;border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:#1c1917;cursor:pointer;font-family:inherit;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
         class="active:scale-[0.97] transition-transform">
         {{ 'empty.cartCta' | t }}
       </button>
@@ -152,13 +152,13 @@
                 style="font-size:16px"
                 [class]="promoError()
                   ? 'flex-1 min-w-0 rounded-xl border border-red-300 bg-stone-50 px-3 py-2 text-stone-700 placeholder-stone-300 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-red-300'
-                  : 'flex-1 min-w-0 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-stone-700 placeholder-stone-300 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-amber-300'"
+                  : 'flex-1 min-w-0 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-stone-700 placeholder-stone-300 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-brand-300'"
               />
               <button
                 (click)="applyPromoCode()"
                 [disabled]="promoLoading() || !promoCodeInput().trim()"
                 style="font-size:12.5px"
-                class="shrink-0 px-3 py-2 rounded-xl bg-amber-500 text-stone-900 font-semibold hover:bg-amber-600 active:scale-95 transition-all disabled:opacity-50"
+                class="shrink-0 px-3 py-2 rounded-xl bg-brand-500 text-stone-900 font-semibold hover:bg-brand-600 active:scale-95 transition-all disabled:opacity-50"
               >
                 {{ promoLoading() ? ('cart.applying' | t) : ('cart.apply' | t) }}
               </button>
@@ -181,7 +181,7 @@
               (click)="appliedBonus() > 0 ? bonusInput.set(0) : useAllBonus()"
               [attr.aria-pressed]="appliedBonus() > 0"
               style="width:38px;height:22px;border-radius:999px;border:none;position:relative;cursor:pointer;transition:background .18s;flex:none"
-              [style.background]="appliedBonus() > 0 ? '#ffd119' : '#e7e5e4'"
+              [style.background]="appliedBonus() > 0 ? 'var(--brand-500)' : '#e7e5e4'"
             >
               <span
                 style="position:absolute;top:2px;width:18px;height:18px;border-radius:999px;background:#ffffff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s"
@@ -190,7 +190,7 @@
             </button>
           </div>
           @if (appliedBonus() > 0) {
-            <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:#a68700;padding:6px 0 0 40px">
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--brand-700);padding:6px 0 0 40px">
               <span>{{ 'cart.bonusApplied' | t }}</span>
               <span style="font-variant-numeric:tabular-nums">− {{ appliedBonus() | currency2 }}</span>
             </div>
@@ -241,7 +241,7 @@
                  wrapper shows selection instead, without touching the mark. -->
             <div
               class="rounded-2xl transition-all"
-              [style.box-shadow]="selectedPaymentMethod() === PaymentMethod.ApplePay ? '0 0 0 2px #ffd119' : 'none'"
+              [style.box-shadow]="selectedPaymentMethod() === PaymentMethod.ApplePay ? '0 0 0 2px var(--brand-500)' : 'none'"
               style="padding:3px"
             >
               <button
@@ -260,7 +260,7 @@
               (click)="selectedPaymentMethod.set(bank.method)"
               class="flex flex-col items-center justify-center gap-2 py-3 px-2 rounded-2xl border-2 font-semibold text-xs transition-all active:scale-95"
               [class]="selectedPaymentMethod() === bank.method
-                ? 'border-amber-400 bg-amber-50 text-amber-700 shadow-sm'
+                ? 'border-brand-400 bg-brand-50 text-brand-700 shadow-sm'
                 : 'border-stone-200 bg-white text-stone-500 hover:border-stone-300'"
             >
               <img [src]="bank.logo" [alt]="bank.label | t" class="h-8 w-auto object-contain" loading="lazy" />
@@ -281,7 +281,7 @@
       <button
         (click)="openConfirm()"
         [disabled]="(!selectedPaymentMethod() && !fullyCoveredByBonus()) || loading()"
-        style="width:100%;background:#1c1917;color:#ffd119;font-weight:800;border:none;border-radius:18px;padding:17px 22px;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 20px -6px rgba(28,25,23,.35);cursor:pointer;font-family:inherit"
+        style="width:100%;background:#1c1917;color:var(--brand-500);font-weight:800;border:none;border-radius:18px;padding:17px 22px;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 20px -6px rgba(28,25,23,.35);cursor:pointer;font-family:inherit"
         class="active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
       >
         @if (loading()) {
@@ -294,11 +294,11 @@
     }
     <!-- Group order links hidden for now
     <div class="flex items-center gap-3 mt-2.5">
-      <a routerLink="/group-order/create" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-amber-600 transition-colors py-1">
+      <a routerLink="/group-order/create" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-brand-600 transition-colors py-1">
         👥 Start Group Order
       </a>
       <span class="text-stone-200">|</span>
-      <a routerLink="/group-order/join" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-amber-600 transition-colors py-1">
+      <a routerLink="/group-order/join" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-brand-600 transition-colors py-1">
         Join Group
       </a>
     </div>
@@ -323,7 +323,7 @@
           {{ 'cart.confirmCancel' | t }}
         </button>
         <button (click)="showConfirm.set(false); checkout()"
-                class="flex-1 py-3 rounded-2xl bg-amber-500 text-stone-900 font-bold text-sm active:scale-95 transition-transform shadow-lg shadow-amber-200">
+                class="flex-1 py-3 rounded-2xl bg-brand-500 text-stone-900 font-bold text-sm active:scale-95 transition-transform shadow-lg shadow-brand-200">
           {{ 'cart.confirmProceed' | t }}
         </button>
       </div>

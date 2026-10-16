@@ -10,7 +10,7 @@
         (click)="activeTab.set(tab.id)"
         [class]="
           activeTab() === tab.id
-            ? 'bg-amber-500 text-stone-900 shadow-sm shadow-amber-200'
+            ? 'bg-brand-500 text-stone-900 shadow-sm shadow-brand-200'
             : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
         "
         class="flex-1 py-2 text-sm font-semibold rounded-xl transition-all"
@@ -63,7 +63,7 @@
           }
           <div class="flex justify-between items-center pt-2 border-t border-stone-50">
             <span class="text-xs text-stone-400">{{ 'orders.total' | t }}</span>
-            <span class="font-bold text-amber-600 text-base">{{ order.total | currency2 }}</span>
+            <span class="font-bold text-brand-600 text-base">{{ order.total | currency2 }}</span>
           </div>
         </a>
       }
@@ -118,7 +118,7 @@
       @if (!visibleOrders().length && !(activeTab() === 1 && offsiteTransactions().length)) {
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 220px);padding:0 40px 60px;text-align:center">
           <span style="position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <span style="position:absolute;inset:10px;border-radius:999px;background:radial-gradient(circle,rgba(255,209,25,.3),transparent 68%)"></span>
+            <span style="position:absolute;inset:10px;border-radius:999px;background:radial-gradient(circle,rgb(var(--brand-500-rgb) / .3),transparent 68%)"></span>
             <svg width="140" height="140" viewBox="0 0 140 140" style="position:relative">
               <g stroke="#1c1917" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
                 <path d="M44,24 L96,24 L96,112 L88,106 L80,112 L72,106 L64,112 L56,106 L48,112 L44,108 Z" fill="#ffffff"></path>
@@ -126,7 +126,7 @@
                 <path d="M56,56 L84,56" opacity=".45"></path>
                 <path d="M56,68 L74,68" opacity=".45"></path>
               </g>
-              <circle cx="98" cy="94" r="26" fill="#ffd119" stroke="#1c1917" stroke-width="4"></circle>
+              <circle cx="98" cy="94" r="26" fill="var(--brand-500)" stroke="#1c1917" stroke-width="4"></circle>
               <g stroke="#1c1917" stroke-width="3.5" stroke-linecap="round" fill="none">
                 <path d="M88,88 L106,88 L104,104 Q103.8,107 100,107 L94,107 Q90.2,107 90,104 Z" fill="#ffffff"></path>
                 <path d="M106,91 Q112,92 110,97 Q109,101 104,100"></path>
@@ -136,7 +136,7 @@
           <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:#1c1917">{{ 'empty.ordersTitle' | t }}</h3>
           <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:#78716c;line-height:1.55">{{ 'empty.ordersHint' | t }}</p>
           <a [routerLink]="['/menu']"
-            style="margin-top:22px;display:inline-block;background:#ffd119;border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:#1c1917;text-decoration:none;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
+            style="margin-top:22px;display:inline-block;background:var(--brand-500);border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:#1c1917;text-decoration:none;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
             class="active:scale-[0.97] transition-transform">
             {{ 'empty.ordersCta' | t }}
           </a>
