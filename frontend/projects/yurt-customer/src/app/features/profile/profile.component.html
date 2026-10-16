@@ -137,6 +137,7 @@
 
   <!-- ── Action tiles grid ────────────────────────────────────────────────────── -->
   <div style="margin:14px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+@if (modules.isEnabled('engagement')) {
     <a routerLink="/achievements"
       class="active:scale-[0.97] transition-transform"
       style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
@@ -150,6 +151,7 @@
         <p style="font-size:11px;font-weight:600;color:#a8a29e;margin-top:2px">открывайте награды</p>
       </div>
     </a>
+}
     <a routerLink="/orders"
       class="active:scale-[0.97] transition-transform"
       style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;

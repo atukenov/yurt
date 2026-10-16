@@ -22,7 +22,7 @@ import { ACHIEVEMENTS, Achievement, buildAchievementFlags } from './achievements
 })
 export class NewsComponent implements OnInit {
   private api = inject(YurtApiService);
-  private modules = inject(ModuleService);
+  readonly modules = inject(ModuleService);
   private cart = inject(CartService);
   private storeStatus = inject(StoreStatusService);
   private router = inject(Router);
