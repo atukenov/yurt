@@ -97,6 +97,9 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Test native build scripts
+        run: node --test scripts/*.test.mjs
+
       - name: Build customer app
         working-directory: frontend
         run: npx ng build yurt-customer --configuration production
