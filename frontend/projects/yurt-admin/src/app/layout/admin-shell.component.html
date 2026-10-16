@@ -180,6 +180,7 @@
           @if (!collapsed()) { <span class="truncate">{{ 'nav.customers' | t }}</span> }
         </a>
 
+        @if (modules.isEnabled('staff_audit')) {
         <a
           routerLink="/workers"
           routerLinkActive="bg-amber-50 text-amber-700 font-semibold"
@@ -194,7 +195,9 @@
           </svg>
           @if (!collapsed()) { <span class="truncate">{{ 'nav.workers' | t }}</span> }
         </a>
+        }
 
+        @if (modules.isEnabled('staff_audit')) {
         <a
           routerLink="/audit-log"
           routerLinkActive="bg-amber-50 text-amber-700 font-semibold"
@@ -209,6 +212,7 @@
           </svg>
           @if (!collapsed()) { <span class="truncate">{{ 'nav.auditLog' | t }}</span> }
         </a>
+        }
 
         <a
           routerLink="/reports"

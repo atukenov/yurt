@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
+using Yurt.Domain;
+using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
 
@@ -10,6 +12,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 [Route("api/v{version:apiVersion}/admin/audit-log")]
 [ApiController]
 [Authorize(Roles = "Admin,SuperAdmin")]
+[RequireModule(ModuleKeys.StaffAudit)]
 public class AdminAuditController(IApplicationDbContext db) : ControllerBase
 {
     [HttpGet]
