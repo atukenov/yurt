@@ -113,9 +113,9 @@ Each cafe with its own store app has a folder `cafes/<slug>/` (see `cafes/README
 name and version, and the git-ignored `secrets/` folder holds that cafe's Firebase files.
 
 ```bash
-node scripts/apply-cafe.mjs mycafe            # app id, name, version and Firebase files into android/ and ios/
+node scripts/apply-cafe.mjs mycafe --generate # app id, name, version, Firebase files and icons/splash into android/ and ios/
 cd frontend && npm run build && YURT_CAFE=mycafe npx cap sync
 ```
 
-Do this on the build machine or CI checkout, because the script rewrites tracked native files. Still manual per
-cafe: app icons and splash images (to be generated from the logo), signing keys, and the store listing.
+Do this on the build machine or CI checkout, because the script rewrites tracked native files. Icons and splash are generated from `cafes/mycafe/assets/icon-only.png` and `splash.png`. Still manual per
+cafe: signing keys and the store listing.

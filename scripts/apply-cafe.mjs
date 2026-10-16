@@ -1,13 +1,18 @@
 #!/usr/bin/env node
-// Applies cafes/<slug>/cafe.json to the Capacitor native projects (Android + iOS) and copies the cafe's
-// Firebase files from cafes/<slug>/secrets/. See cafes/README.md.
-import { existsSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+// Applies cafes/<slug>/cafe.json to the Capacitor native projects (Android + iOS), copies the cafe's
+// Firebase files from cafes/<slug>/secrets/ and its icon/splash sources from cafes/<slug>/assets/
+// (--generate then makes every icon and splash size). See cafes/README.md.
+import { spawnSync } from 'node:child_process';
+import { existsSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const APP_ID = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
 const VERSION_NAME = /^\d+\.\d+\.\d+$/;
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
+/** Source images @capacitor/assets understands; the first two are required for a branded build. */
+const ASSETS = ['icon-only.png', 'splash.png', 'icon-foreground.png', 'icon-background.png', 'splash-dark.png'];
+const REQUIRED_ASSETS = ['icon-only.png', 'splash.png'];
 
 export function readCafe(root, slug) {
   if (!SLUG.test(slug)) throw new Error(`Invalid cafe name "${slug}" (use lowercase letters, digits and dashes).`);
@@ -77,7 +82,19 @@ export function applyCafe({ root, slug, dryRun = false }) {
       if (!dryRun) copyFileSync(source, join(root, target));
     } else missing.push(name);
   }
-  return { cafe, changes, missingSecrets: missing };
+
+  const missingAssets = [];
+  for (const name of ASSETS) {
+    const source = join(root, 'cafes', slug, 'assets', name);
+    if (existsSync(source)) {
+      changes.push(`frontend/assets/${name}`);
+      if (!dryRun) {
+        mkdirSync(join(root, 'frontend/assets'), { recursive: true });
+        copyFileSync(source, join(root, 'frontend/assets', name));
+      }
+    } else if (REQUIRED_ASSETS.includes(name)) missingAssets.push(name);
+  }
+  return { cafe, changes, missingSecrets: missing, missingAssets };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -89,11 +106,20 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
     const dryRun = flags.includes('--dry-run');
-    const { cafe, changes, missingSecrets } = applyCafe({ root, slug, dryRun });
+    const generate = flags.includes('--generate');
+    const { cafe, changes, missingSecrets, missingAssets } = applyCafe({ root, slug, dryRun });
     console.log(`${dryRun ? 'Would apply' : 'Applied'} ${slug}: ${cafe.appName} (${cafe.appId})`);
     for (const c of changes) console.log(`  ${dryRun ? 'would change' : 'changed'} ${c}`);
     if (!changes.length) console.log('  nothing to change (already applied)');
     for (const m of missingSecrets) console.warn(`  warning: cafes/${slug}/secrets/${m} not found; push notifications will not work in this build`);
+    for (const m of missingAssets) console.warn(`  warning: cafes/${slug}/assets/${m} not found; the app keeps the default ${m.startsWith('icon') ? 'icon' : 'splash'}`);
+    if (generate && !dryRun) {
+      if (missingAssets.length) throw new Error('--generate needs icon-only.png and splash.png in the cafe assets folder.');
+      const r = spawnSync('npx', ['--yes', '@capacitor/assets@3.0.5', 'generate', '--android', '--ios'], {
+        cwd: join(root, 'frontend'), stdio: 'inherit', shell: process.platform === 'win32',
+      });
+      if (r.status !== 0) throw new Error('@capacitor/assets failed.');
+    }
   } catch (e) {
     console.error(`apply-cafe: ${e.message}`);
     process.exit(1);

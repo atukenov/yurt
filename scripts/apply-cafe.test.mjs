@@ -67,6 +67,19 @@ test('copies the cafe Firebase files and reports missing ones', () => {
   assert.equal(existsSync(join(without, 'frontend/android/app/google-services.json')), false);
 });
 
+test('copies icon and splash sources and reports the required ones that are missing', () => {
+  const root = scratch({ appId: 'kz.brew.app', appName: 'Brew' });
+  assert.deepEqual(applyCafe({ root, slug: 'brew' }).missingAssets, ['icon-only.png', 'splash.png']);
+  mkdirSync(join(root, 'cafes/brew/assets'), { recursive: true });
+  writeFileSync(join(root, 'cafes/brew/assets/icon-only.png'), 'icon');
+  writeFileSync(join(root, 'cafes/brew/assets/splash.png'), 'splash');
+  writeFileSync(join(root, 'cafes/brew/assets/readme.txt'), 'ignored');
+  const result = applyCafe({ root, slug: 'brew' });
+  assert.deepEqual(result.missingAssets, []);
+  assert.equal(read(root, 'frontend/assets/icon-only.png'), 'icon');
+  assert.equal(existsSync(join(root, 'frontend/assets/readme.txt')), false);
+});
+
 test('rejects bad config', () => {
   for (const bad of [
     { appId: 'Kz.Brew', appName: 'X' }, { appId: 'brew', appName: 'X' }, { appId: 'kz.1brew', appName: 'X' },
