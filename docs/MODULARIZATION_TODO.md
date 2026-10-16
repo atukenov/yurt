@@ -82,7 +82,7 @@ Bundles: **Starter** = Core; **Pro** = Core + Marketing + Analytics + Engagement
 Gating order (lowest risk first):
 - [x] `analytics` (admin-only, no customer impact) _(details in `docs/modules.md`)_
 - [x] `marketing` (promotions, discount codes) _(details in `docs/modules.md`)_
-- [ ] `group_orders`
+- [x] `group_orders` _(details in `docs/modules.md`)_
 - [ ] `engagement` (ratings, achievements, 2GIS button)
 - [ ] `staff_audit`
 - [ ] `multi_location` (enforce the 1-location limit in core)
