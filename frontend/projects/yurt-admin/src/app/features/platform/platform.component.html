@@ -13,7 +13,7 @@
     </div>
 
     <!-- Maintenance -->
-    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+    <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
       <h2 class="font-semibold text-slate-800">{{ 'plat.maintenance' | t }}</h2>
       <p class="text-sm text-slate-500 mt-1">{{ 'plat.maintenanceHint' | t }}</p>
       <label class="flex items-center gap-3 mt-4 text-sm text-slate-700">
@@ -30,7 +30,7 @@
     </section>
 
     <!-- Brand -->
-    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+    <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
       <h2 class="font-semibold text-slate-800">{{ 'plat.brand' | t }}</h2>
       <p class="text-sm text-slate-500 mt-1">{{ 'plat.brandHint' | t }}</p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
@@ -45,7 +45,7 @@
               <label for="brand-primary" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandPrimary' | t }}</label>
               <div class="flex items-center gap-2">
                 <input type="color" [ngModel]="brand().primaryColor" (ngModelChange)="patchBrand({ primaryColor: $event })"
-                  [attr.aria-label]="'plat.brandPrimary' | t" class="w-10 h-10 rounded-lg border border-slate-200 p-0.5 bg-white" />
+                  [attr.aria-label]="'plat.brandPrimary' | t" class="w-10 h-10 rounded-lg border border-slate-200 p-0.5 bg-surface" />
                 <input id="brand-primary" type="text" maxlength="7" [ngModel]="brand().primaryColor" (ngModelChange)="patchBrand({ primaryColor: $event })"
                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono" />
               </div>
@@ -54,7 +54,7 @@
               <label for="brand-accent" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandAccent' | t }}</label>
               <div class="flex items-center gap-2">
                 <input type="color" [ngModel]="brand().accentColor" (ngModelChange)="patchBrand({ accentColor: $event })"
-                  [attr.aria-label]="'plat.brandAccent' | t" class="w-10 h-10 rounded-lg border border-slate-200 p-0.5 bg-white" />
+                  [attr.aria-label]="'plat.brandAccent' | t" class="w-10 h-10 rounded-lg border border-slate-200 p-0.5 bg-surface" />
                 <input id="brand-accent" type="text" maxlength="7" [ngModel]="brand().accentColor" (ngModelChange)="patchBrand({ accentColor: $event })"
                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono" />
               </div>
@@ -84,7 +84,7 @@
             <div>
               <label for="brand-radius" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandRadius' | t }}</label>
               <select id="brand-radius" [ngModel]="brand().radius ?? 'default'" (ngModelChange)="patchBrand({ radius: $event === 'default' ? null : $event })"
-                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-surface">
                 <option value="square">{{ 'plat.radiusSquare' | t }}</option>
                 <option value="default">{{ 'plat.radiusDefault' | t }}</option>
                 <option value="round">{{ 'plat.radiusRound' | t }}</option>
@@ -93,7 +93,7 @@
             <div>
               <label for="brand-font" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandFont' | t }}</label>
               <select id="brand-font" [ngModel]="brand().font ?? 'default'" (ngModelChange)="patchBrand({ font: $event === 'default' ? null : $event })"
-                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-surface">
                 <option value="default">{{ 'plat.fontDefault' | t }}</option>
                 <option value="system">{{ 'plat.fontSystem' | t }}</option>
                 <option value="serif">{{ 'plat.fontSerif' | t }}</option>
@@ -146,7 +146,7 @@
           <div class="rounded-2xl border border-slate-200 overflow-hidden bg-stone-50" [style]="previewVars()">
             <div class="flex items-center gap-3 px-4 py-3" style="background:var(--p-500);color:var(--p-on)">
               @if (logoOk()) {
-                <img [src]="brand().logoUrl" alt="" class="h-8 w-8 rounded-full object-cover bg-white" />
+                <img [src]="brand().logoUrl" alt="" class="h-8 w-8 rounded-full object-cover bg-surface" />
               }
               <span class="font-extrabold text-lg">{{ brand().name || '—' }}</span>
             </div>
@@ -176,7 +176,7 @@
       } @else {
         <div class="space-y-3">
           @for (m of modules(); track m.key) {
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-4">
               <div class="flex items-center gap-3 flex-wrap">
                 <span class="font-semibold text-slate-800">{{ 'sub.module.' + m.key | t }}</span>
                 <span class="font-mono text-xs text-slate-400">{{ m.key }}</span>
@@ -224,7 +224,7 @@
     <section>
       <h2 class="font-semibold text-slate-800">{{ 'plat.integrations' | t }}</h2>
       <p class="text-sm text-slate-500 mt-1 mb-3">{{ 'plat.integrationsHint' | t }}</p>
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+      <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
         @for (i of integrations(); track i.key) {
           <div class="flex items-center gap-3 px-4 py-3 text-sm">
             <span class="font-medium text-slate-700">{{ 'plat.int.' + i.key | t }}</span>

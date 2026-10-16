@@ -4,7 +4,10 @@
 
 /* Admin pages sit on slate, not stone (unlayered, so it wins over brand.css). */
 :root {
-  --surface-page: #f8fafc;
+  --surface-page: var(--slate-50);
+}
+:root[data-theme='dark'] {
+  --surface-page: var(--surface-warm); /* matches the warm dark cards, the slate scale alone looks blue */
 }
 
 @layer base {
@@ -18,4 +21,11 @@
   * {
     @apply box-border;
   }
+}
+
+/* The logo artwork has dark lettering, so on dark pages it sits on a light tile. */
+:root[data-theme='dark'] .brand-logo {
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 2px;
 }

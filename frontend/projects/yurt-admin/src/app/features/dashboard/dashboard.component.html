@@ -6,7 +6,7 @@
     </div>
     <button
       (click)="load()"
-      class="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-xl px-4 py-2 transition-colors"
+      class="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 bg-surface border border-slate-200 rounded-xl px-4 py-2 transition-colors"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -38,26 +38,26 @@
 
     <!-- KPI Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+      <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
         <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.ordersToday' | t }}</p>
         <p class="text-3xl font-bold text-slate-800 mt-2">{{ d.ordersToday }}</p>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+      <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
         <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.revenueToday' | t }}</p>
         <p class="text-3xl font-bold text-brand-ink mt-2">{{ d.revenueToday | currency2 }}</p>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+      <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
         <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.avgOrderValue' | t }}</p>
         <p class="text-3xl font-bold text-slate-800 mt-2">{{ d.avgOrderValue | currency2 }}</p>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+      <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
         <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.pendingOrders' | t }}</p>
         <p class="text-3xl font-bold mt-2" [class]="d.pendingCount > 0 ? 'text-brand-500' : 'text-slate-800'">{{ d.pendingCount }}</p>
       </div>
     </div>
 
     <!-- Hourly chart -->
-    <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-6">
+    <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm mb-6">
       <h2 class="text-sm font-bold text-slate-700 mb-4">{{ 'dashboard.ordersHourly' | t }}</h2>
       @if (chartBars().length) {
         <div class="flex items-end gap-0.5 h-36">
@@ -100,7 +100,7 @@
       </a>
       <a
         routerLink="/menu"
-        class="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl px-5 py-3 text-sm hover:bg-slate-50 transition-colors"
+        class="flex items-center gap-2 bg-surface border border-slate-200 text-slate-700 font-semibold rounded-xl px-5 py-3 text-sm hover:bg-slate-50 transition-colors"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

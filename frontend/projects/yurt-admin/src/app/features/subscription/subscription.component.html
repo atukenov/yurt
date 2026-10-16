@@ -11,7 +11,7 @@
     } @else {
       <div class="space-y-2">
         @for (m of modules(); track m.key) {
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
+          <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
             <div class="flex items-center gap-3 flex-wrap">
               <span class="font-semibold text-slate-800">{{ 'sub.module.' + m.key | t }}</span>
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="badgeClass(m)">

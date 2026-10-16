@@ -13,7 +13,7 @@ import { ConfirmService } from './confirm.service';
         (keydown.escape)="svc.resolve(false)"
       >
         <div
-          class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6"
+          class="bg-surface rounded-3xl shadow-2xl w-full max-w-sm p-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"

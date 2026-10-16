@@ -7,7 +7,7 @@
   <!-- Category sidebar (desktop: static, mobile: drawer) -->
   <div
     [class]="mobileCatOpen() ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
-    class="fixed md:relative z-50 md:z-auto w-56 h-full bg-white border-r border-slate-100 flex flex-col shrink-0 transition-transform duration-200 ease-in-out md:flex"
+    class="fixed md:relative z-50 md:z-auto w-56 h-full bg-surface border-r border-slate-100 flex flex-col shrink-0 transition-transform duration-200 ease-in-out md:flex"
   >
     <div class="px-4 py-4 border-b border-slate-100">
       <h3 class="font-semibold text-slate-700 text-sm">{{ 'menu.categories' | t }}</h3>
@@ -95,7 +95,7 @@
   <div class="flex-1 overflow-y-auto flex flex-col min-w-0">
     <!-- Tab bar + action button -->
     <div
-      class="px-4 md:px-6 py-4 sticky top-0 bg-white border-b border-slate-100 flex items-center justify-between z-10 gap-2"
+      class="px-4 md:px-6 py-4 sticky top-0 bg-surface border-b border-slate-100 flex items-center justify-between z-10 gap-2"
     >
       <button
         (click)="mobileCatOpen.set(true)"
@@ -111,7 +111,7 @@
           (click)="activeTab.set('items')"
           [class]="
             activeTab() === 'items'
-              ? 'bg-white text-slate-800 shadow-sm'
+              ? 'bg-surface text-slate-800 shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
           "
           class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
@@ -122,7 +122,7 @@
           (click)="activeTab.set('toppings')"
           [class]="
             activeTab() === 'toppings'
-              ? 'bg-white text-slate-800 shadow-sm'
+              ? 'bg-surface text-slate-800 shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
           "
           class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
@@ -205,7 +205,7 @@
             </tr>
           </thead>
           <tbody
-            class="bg-white divide-y divide-slate-50"
+            class="bg-surface divide-y divide-slate-50"
             cdkDropList
             aria-label="Items"
             [cdkDropListDisabled]="!itemsReorderable()"
@@ -291,7 +291,7 @@
             <th class="px-6 py-3"></th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-slate-50">
+        <tbody class="bg-surface divide-y divide-slate-50">
           @for (topping of filteredToppings(); track topping.id) {
             <tr class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-3 font-medium text-slate-800">{{ localizedToppingName(topping) }}</td>
@@ -349,7 +349,7 @@
 <!-- Item dialog -->
 @if (showItemDialog()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showItemDialog.set(false)">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="item-dialog-title">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="item-dialog-title">
       <h3 id="item-dialog-title" class="text-lg font-bold text-slate-800 mb-4">
         {{ itemForm().id ? ('menu.editMenuItemTitle' | t) : ('menu.addMenuItemTitle' | t) }}
       </h3>
@@ -583,7 +583,7 @@
 <!-- Category dialog -->
 @if (showCatDialog()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showCatDialog.set(false)">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" role="dialog" aria-modal="true" aria-labelledby="cat-dialog-title">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6" role="dialog" aria-modal="true" aria-labelledby="cat-dialog-title">
       <h3 id="cat-dialog-title" class="text-lg font-bold text-slate-800 mb-4">
         {{ catInput().id ? ('menu.editCategoryTitle' | t) : ('menu.addCategoryTitle' | t) }}
       </h3>
@@ -626,7 +626,7 @@
 <!-- Topping dialog -->
 @if (showToppingDialog()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showToppingDialog.set(false)">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="topping-dialog-title">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="topping-dialog-title">
       <h3 id="topping-dialog-title" class="text-lg font-bold text-slate-800 mb-4">
         {{ toppingForm().id ? ('menu.editToppingTitle' | t) : ('menu.addToppingTitle' | t) }}
       </h3>
