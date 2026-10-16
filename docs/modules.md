@@ -57,6 +57,15 @@ How a gate is built:
 - **Keeps working:** order updates for an open app over SignalR and the in-app/local notifications (core), and all ordering.
 - **Depends on:** nothing. Firebase credentials are still configured separately (`Firebase:Enabled`); the module is the commercial switch on top.
 
+### `loyalty` (bonus points: earn, spend, hold, balance, history)
+- **Covers:** `LoyaltyService` new activity: balance, offsite history, earning on completion, and placing a new hold when a customer pays with bonuses. In the customer app the bonus balance on Profile, the bonuses tile on News and the "pay with bonuses" row in the cart; in the admin app the customer's bonus balance and the bonuses column.
+- **How it switches off:** like `Loyalty` being unconfigured, the API answers `enabled: false` instead of an error (the apps already hide everything for `enabled: false`, and `GET /loyalty/*` is read in the background, so a 403 would only produce noise). It is a second switch on top of `Iiko:Enabled`; both must be on.
+- **Background jobs:** the loyalty retry job checks the gate and does nothing while the module is off (done in Phase 1). Nothing is deleted.
+- **Never strands points:** finalising or releasing a hold that already exists ignores the module, so switching it off mid-order cannot leave points reserved in iiko.
+- **When it comes back on:** completed orders that earned nothing while the module was off are picked up by the existing safety-net sweep and credited, so customers are not penalised for the gap.
+- **Existing data:** points spent/earned on past orders still show on those orders.
+- **Depends on:** iiko adapter or, later, `own_pos` (see Phase 6); the dependency check is a warning only.
+
 ## Not gated yet
-`loyalty`, `iiko_sync`,
+`iiko_sync`,
 `online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).
