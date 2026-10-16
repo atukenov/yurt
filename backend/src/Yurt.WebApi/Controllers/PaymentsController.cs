@@ -5,6 +5,7 @@ using Asp.Versioning;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Payments.DTOs;
 using Yurt.Application.Features.Payments.Services;
+using Yurt.Domain;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers;
@@ -16,14 +17,19 @@ public class PaymentsController : ApiControllerBase
 {
   private readonly PaymentService _paymentService;
   private readonly ICurrentUserService _currentUser;
+  private readonly IModuleGate _modules;
 
-  public PaymentsController(PaymentService paymentService, ICurrentUserService currentUser)
+  public PaymentsController(PaymentService paymentService, ICurrentUserService currentUser, IModuleGate modules)
   {
     _paymentService = paymentService;
     _currentUser = currentUser;
+    _modules = modules;
   }
 
+  /// <summary>Starts a new online payment. Gated by <c>online_payments</c>; status, Apple Pay
+  /// confirm and the webhook deliberately are not, so a payment already started can finish.</summary>
   [HttpPost("create")]
+  [RequireModule(ModuleKeys.OnlinePayments)]
   [Authorize(Policy = "CustomerOnly")]
   public async Task<IActionResult> Create([FromBody] CreatePaymentDto dto, CancellationToken ct)
   {
@@ -52,8 +58,11 @@ public class PaymentsController : ApiControllerBase
   /// doesn't hardcode either and ops can kill the feature without a release.</summary>
   [HttpGet("apple-pay/config")]
   [Authorize(Policy = "CustomerOnly")]
-  public IActionResult ApplePayConfig()
+  public async Task<IActionResult> ApplePayConfig(CancellationToken ct)
   {
+    // Module off: the same answer as "Apple Pay not configured", so the app just hides the button.
+    if (!await _modules.IsEnabledAsync(ModuleKeys.OnlinePayments, ct))
+      return Ok(new ApplePayConfigResponse(false, string.Empty));
     return Ok(_paymentService.GetApplePayConfig());
   }
 

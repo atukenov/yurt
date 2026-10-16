@@ -75,5 +75,12 @@ How a gate is built:
 - **Not covered:** loyalty talks to iiko too, but it has its own `loyalty` module.
 - **Depends on:** nothing; replaced by `own_pos` in Phase 6.
 
+### `online_payments` (Apple Pay / Freedom Pay and other online providers)
+- **Covers:** starting a new online payment (`POST /payments/create`) and showing Apple Pay in the customer cart.
+- **How it switches off:** `POST /payments/create` returns `403 {code:"module_disabled"}`; `GET /payments/apple-pay/config` answers `enabled: false` (same as "not configured") so the app hides the Apple Pay button on its own.
+- **Never strands a payment:** payment status, Apple Pay confirm and the provider webhook ignore the module, so a payment that already started still finishes and is recorded.
+- **Keeps working:** the Kaspi / Halyk / Freedom bank choices in the cart are labels for paying at the counter (staff mark the order paid), so they stay in core; an Apple Pay order that was started on an older app falls back to paying at the counter, as it already does when the sheet is cancelled.
+- **Depends on:** nothing. Provider credentials are still configured separately (`FreedomPay:Enabled`, `Payment:*`).
+
 ## Not gated yet
-`online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).
+`verification`, `own_pos`, `branding` (see the gating order in the plan).
