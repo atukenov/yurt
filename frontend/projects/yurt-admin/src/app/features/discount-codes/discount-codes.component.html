@@ -9,7 +9,7 @@
       </div>
       <button
         (click)="openCreate()"
-        class="px-4 py-2 rounded-xl bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 active:scale-95 transition-all shadow-sm"
+        class="px-4 py-2 rounded-xl bg-brand-500 text-stone-900 text-sm font-semibold hover:bg-brand-600 active:scale-95 transition-all shadow-sm"
       >
         {{ 'discountCodes.new' | t }}
       </button>
@@ -47,9 +47,9 @@
                 <td class="px-4 py-3 text-slate-700">{{ code.title }}</td>
                 <td class="px-4 py-3 text-slate-700">
                   @if (code.discountType === 'Percentage') {
-                    <span class="text-amber-600 font-semibold">{{ code.discountValue }}%</span>
+                    <span class="text-brand-600 font-semibold">{{ code.discountValue }}%</span>
                   } @else {
-                    <span class="text-amber-600 font-semibold">{{ code.discountValue | number:'1.0-0' }} ₸</span>
+                    <span class="text-brand-600 font-semibold">{{ code.discountValue | number:'1.0-0' }} ₸</span>
                   }
                   @if (code.minOrderAmount) {
                     <span class="text-xs text-slate-400 ml-1">(min {{ code.minOrderAmount | number:'1.0-0' }} ₸)</span>
@@ -74,7 +74,7 @@
                 </td>
                 <td class="px-4 py-3">
                   <div class="flex items-center gap-2">
-                    <button (click)="openEdit(code)" class="text-xs text-slate-500 hover:text-amber-600 transition-colors font-medium">{{ 'action.edit' | t }}</button>
+                    <button (click)="openEdit(code)" class="text-xs text-slate-500 hover:text-brand-600 transition-colors font-medium">{{ 'action.edit' | t }}</button>
                     <button (click)="delete(code)" class="text-xs text-slate-500 hover:text-red-500 transition-colors font-medium">{{ 'action.delete' | t }}</button>
                   </div>
                 </td>
@@ -105,7 +105,7 @@
             [(ngModel)]="formCode"
             [disabled]="isEditing()"
             placeholder="e.g. SUMMER20"
-            class="w-full text-sm font-mono uppercase tracking-wider rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-60"
+            class="w-full text-sm font-mono uppercase tracking-wider rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300 disabled:opacity-60"
           />
         </div>
 
@@ -116,7 +116,7 @@
             id="discount-title"
             [(ngModel)]="formTitle"
             placeholder="{{ 'discountCodes.titlePlaceholder' | t }}"
-            class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+            class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
           />
         </div>
 
@@ -127,7 +127,7 @@
             <select
               id="discount-type"
               [(ngModel)]="formType"
-              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
             >
               <option value="Percentage">{{ 'discountCodes.percentage' | t }}</option>
               <option value="FixedAmount">{{ 'discountCodes.fixedAmount' | t }}</option>
@@ -143,7 +143,7 @@
               type="number"
               min="1"
               [max]="formType === 'Percentage' ? 100 : null"
-              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
             />
           </div>
         </div>
@@ -158,7 +158,7 @@
               type="number"
               min="1"
               placeholder="{{ 'discountCodes.unlimited' | t }}"
-              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
             />
           </div>
           <div>
@@ -169,7 +169,7 @@
               type="number"
               min="0"
               placeholder="0"
-              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
             />
           </div>
         </div>
@@ -182,7 +182,7 @@
               id="discount-starts-at"
               [(ngModel)]="formStartsAt"
               type="datetime-local"
-              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
             />
           </div>
           <div>
@@ -191,14 +191,14 @@
               id="discount-expires-at"
               [(ngModel)]="formExpiresAt"
               type="datetime-local"
-              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
             />
           </div>
         </div>
 
         <!-- Active toggle -->
         <label class="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" [(ngModel)]="formActive" class="w-4 h-4 accent-amber-500 rounded" />
+          <input type="checkbox" [(ngModel)]="formActive" class="w-4 h-4 accent-brand-500 rounded" />
           <span class="text-sm font-medium text-slate-700">{{ 'discountCodes.activeLabel' | t }}</span>
         </label>
       </div>
@@ -207,7 +207,7 @@
         <button
           (click)="save()"
           [disabled]="saving()"
-          class="flex-1 py-2.5 rounded-xl bg-amber-500 text-stone-900 font-semibold text-sm hover:bg-amber-600 active:scale-95 transition-all disabled:opacity-60"
+          class="flex-1 py-2.5 rounded-xl bg-brand-500 text-stone-900 font-semibold text-sm hover:bg-brand-600 active:scale-95 transition-all disabled:opacity-60"
         >
           {{ saving() ? ('label.saving' | t) : ('action.save' | t) }}
         </button>

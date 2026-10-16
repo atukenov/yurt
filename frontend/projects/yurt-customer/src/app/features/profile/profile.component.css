@@ -32,5 +32,5 @@
 }
 
 .profile-input:focus {
-  border-color: #ffdc30;
+  border-color: var(--brand-400);
 }

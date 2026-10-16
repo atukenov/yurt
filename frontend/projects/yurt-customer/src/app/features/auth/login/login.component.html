@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-stone-50 flex flex-col">
   <!-- Hero -->
   <div
-    class="bg-gradient-to-br from-amber-500 via-amber-400 to-orange-400 pb-12 px-6 text-white text-center"
+    class="bg-gradient-to-br from-brand-500 via-brand-400 to-orange-400 pb-12 px-6 text-white text-center"
     style="padding-top: calc(4rem + env(safe-area-inset-top))"
   >
     <div
@@ -10,7 +10,7 @@
       ☕
     </div>
     <h1 class="text-3xl font-bold tracking-tight">Yurt</h1>
-    <p class="text-amber-100 mt-1.5 text-sm font-medium">{{ 'auth.tagline' | t }}</p>
+    <p class="text-brand-100 mt-1.5 text-sm font-medium">{{ 'auth.tagline' | t }}</p>
   </div>
 
   <div class="flex-1 px-6 pt-8 pb-10 max-w-sm mx-auto w-full">
@@ -29,7 +29,7 @@
         (input)="onPhoneInput($event)"
         placeholder="+7 (777) 123-4567"
         autocomplete="tel"
-        class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white text-stone-900 placeholder-stone-400 text-base outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 transition-all"
+        class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-white text-stone-900 placeholder-stone-400 text-base outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-100 transition-all"
         aria-label="Mobile number"
       />
     </div>
@@ -83,7 +83,7 @@
 
     <a
       routerLink="/auth/register"
-      class="block w-full text-center py-3.5 rounded-2xl border-2 border-amber-400 text-amber-600 font-semibold text-base hover:bg-amber-50 transition-colors"
+      class="block w-full text-center py-3.5 rounded-2xl border-2 border-brand-400 text-brand-600 font-semibold text-base hover:bg-brand-50 transition-colors"
     >
       {{ 'auth.createAccount' | t }}
     </a>

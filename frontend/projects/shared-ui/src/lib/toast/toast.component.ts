@@ -40,7 +40,7 @@ export class ToastContainerComponent {
     const map: Record<ToastType, string> = {
       success: 'bg-teal-600 text-white',
       error: 'bg-red-600 text-white',
-      warning: 'bg-amber-500 text-stone-900',
+      warning: 'bg-brand-500 text-stone-900',
       info: 'bg-slate-700 text-white',
     };
     return map[type];

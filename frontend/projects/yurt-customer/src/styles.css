@@ -1,18 +1,6 @@
 @import "tailwindcss";
+@import "../../shared-ui/src/lib/theme/brand.css";
 
-@theme {
-  --color-amber-50:  #fffde5;
-  --color-amber-100: #fffab8;
-  --color-amber-200: #fff388;
-  --color-amber-300: #ffe94f;
-  --color-amber-400: #ffdc30;
-  --color-amber-500: #ffd119;
-  --color-amber-600: #d9af00;
-  --color-amber-700: #a68700;
-  --color-amber-800: #745e00;
-  --color-amber-900: #423500;
-  --color-amber-950: #251e00;
-}
 
 @layer base {
   html {
@@ -35,7 +23,7 @@
 
 @layer components {
   .pin-box {
-    @apply w-14 h-14 text-center text-2xl font-bold border-2 border-stone-200 rounded-2xl bg-white focus:border-amber-400 focus:ring-2 focus:ring-amber-200 transition-all outline-none;
+    @apply w-14 h-14 text-center text-2xl font-bold border-2 border-stone-200 rounded-2xl bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-200 transition-all outline-none;
   }
   .h-scroll {
     -webkit-overflow-scrolling: touch;

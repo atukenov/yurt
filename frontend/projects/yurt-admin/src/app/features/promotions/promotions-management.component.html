@@ -8,7 +8,7 @@
     </div>
     <button
       (click)="openDialog()"
-      class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-stone-900 font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
+      class="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-stone-900 font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
     >
       {{ 'promotions.newPromotion' | t }}
     </button>
@@ -29,7 +29,7 @@
           class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-start gap-4"
         >
           <div
-            class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-xl shrink-0"
+            class="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-xl shrink-0"
           >
             📢
           </div>
@@ -60,7 +60,7 @@
           <div class="flex gap-2 shrink-0">
             <button
               (click)="openDialog(promo)"
-              class="text-xs text-slate-600 hover:text-amber-600 px-2 py-1 rounded hover:bg-amber-50 transition-colors"
+              class="text-xs text-slate-600 hover:text-brand-600 px-2 py-1 rounded hover:bg-brand-50 transition-colors"
             >
               {{ 'action.edit' | t }}
             </button>
@@ -111,7 +111,7 @@
               type="text"
               [ngModel]="form().title"
               (ngModelChange)="patch('title', $event)"
-              class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
               placeholder="e.g. Buy 2 Get 3rd Free!"
             />
           </div>
@@ -122,7 +122,7 @@
               [ngModel]="form().description"
               (ngModelChange)="patch('description', $event)"
               rows="3"
-              class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none"
+              class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 resize-none"
               [placeholder]="'promotions.detailsPlaceholder' | t"
             ></textarea>
           </div>
@@ -133,7 +133,7 @@
               type="text"
               [ngModel]="form().imageUrl"
               (ngModelChange)="patch('imageUrl', $event)"
-              class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+              class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
               placeholder="https://..."
             />
           </div>
@@ -145,7 +145,7 @@
                 type="text"
                 [ngModel]="form().buttonLabel"
                 (ngModelChange)="patch('buttonLabel', $event)"
-                class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
                 placeholder="e.g. Order now"
               />
             </div>
@@ -156,7 +156,7 @@
                 type="text"
                 [ngModel]="form().buttonUrl"
                 (ngModelChange)="patch('buttonUrl', $event)"
-                class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
                 placeholder="https://..."
               />
             </div>
@@ -169,7 +169,7 @@
                 type="datetime-local"
                 [ngModel]="form().expiresAt"
                 (ngModelChange)="patch('expiresAt', $event)"
-                class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
               />
             </div>
             <div class="flex items-end pb-1">
@@ -178,7 +178,7 @@
                   type="checkbox"
                   [ngModel]="form().isActive"
                   (ngModelChange)="patch('isActive', $event)"
-                  class="w-4 h-4 rounded accent-amber-500"
+                  class="w-4 h-4 rounded accent-brand-500"
                 />
                 <span class="text-sm text-slate-700">{{ 'promotions.active' | t }}</span>
               </label>
@@ -196,7 +196,7 @@
           <button
             (click)="save()"
             [disabled]="saving()"
-            class="px-5 py-2 rounded-xl text-sm font-semibold bg-amber-500 text-stone-900 hover:bg-amber-600 disabled:opacity-50 transition-colors shadow-sm"
+            class="px-5 py-2 rounded-xl text-sm font-semibold bg-brand-500 text-stone-900 hover:bg-brand-600 disabled:opacity-50 transition-colors shadow-sm"
           >
             {{ saving() ? ('promotions.saving' | t) : ('action.save' | t) }}
           </button>

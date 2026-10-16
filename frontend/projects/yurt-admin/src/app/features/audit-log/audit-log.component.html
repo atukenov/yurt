@@ -10,7 +10,7 @@
       [(ngModel)]="entityTypeFilter"
       (change)="applyFilter()"
       aria-label="{{ 'auditLog.entity' | t }}"
-      class="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400"
+      class="border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-400"
     >
       <option value="">{{ 'auditLog.all' | t }}</option>
       @for (et of entityTypes; track et) {
@@ -52,7 +52,7 @@
               <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">{{ formatDate(entry.createdAt) }}</td>
               <td class="px-4 py-3 font-medium text-slate-700">{{ entry.performedByUsername }}</td>
               <td class="px-4 py-3">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700">
                   {{ entry.action }}
                 </span>
               </td>
@@ -76,7 +76,7 @@
       <button
         (click)="loadMore()"
         [disabled]="loading()"
-        class="px-6 py-2 bg-amber-500 text-stone-900 rounded-xl font-medium text-sm hover:bg-amber-600 disabled:opacity-50 transition-colors"
+        class="px-6 py-2 bg-brand-500 text-stone-900 rounded-xl font-medium text-sm hover:bg-brand-600 disabled:opacity-50 transition-colors"
       >
         {{ loading() ? '…' : ('auditLog.loadMore' | t) }}
       </button>

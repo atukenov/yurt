@@ -18,9 +18,9 @@ import { TranslatePipe } from '../../core/translate.pipe';
       animation: rise .4s cubic-bezier(.2,1,.3,1) both; max-height: 88vh; overflow-y: auto; }
     .grab { width: 38px; height: 4px; border-radius: 4px; background: #e7e5e4; margin: 0 auto 18px; }
     .hero { position: relative; width: 76px; height: 76px; margin: 0 auto 14px; border-radius: 26px;
-      background: linear-gradient(145deg, #ffd119, #ffb300); display: grid; place-items: center; font-size: 36px;
+      background: linear-gradient(145deg, var(--brand-500), var(--brand-accent-soft)); display: grid; place-items: center; font-size: 36px;
       box-shadow: 0 14px 26px -10px rgba(255,179,0,.7); }
-    .hero::after { content: '✦'; position: absolute; top: -8px; right: -6px; font-size: 20px; color: #ffb300; }
+    .hero::after { content: '✦'; position: absolute; top: -8px; right: -6px; font-size: 20px; color: var(--brand-accent-soft); }
     h2 { font-size: 21px; font-weight: 800; color: #1c1917; text-align: center; letter-spacing: -.02em; }
     .chip { display: table; margin: 8px auto 0; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7;
       border-radius: 999px; padding: 4px 12px; }
@@ -29,7 +29,7 @@ import { TranslatePipe } from '../../core/translate.pipe';
     .whats-title { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #a8a29e; margin-bottom: 10px; }
     ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
     li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; font-weight: 600; color: #292524; line-height: 1.35; }
-    .tick { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; background: #ffd119; display: grid; place-items: center; }
+    .tick { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; background: var(--brand-500); display: grid; place-items: center; }
     .cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 18px; padding: 15px;
       border-radius: 18px; background: #1c1917; color: #fff; font-size: 15px; font-weight: 800; text-decoration: none;
       box-shadow: 0 12px 22px -10px rgba(28,25,23,.6); transition: transform .15s ease; }

@@ -1,13 +1,13 @@
 <div class="min-h-screen bg-stone-50" pullToRefresh [enabled]="!toppingModalItem()" (refreshed)="loadItems()">
   <!-- ── Branded gradient header ─────────────────────────────────────────── -->
-  <div class="bg-linear-to-br from-amber-500 to-amber-600 shadow-md">
+  <div class="bg-linear-to-br from-brand-500 to-brand-600 shadow-md">
     <div class="px-4 pb-4" style="padding-top: 1rem">
       <div class="flex items-center justify-between mb-3">
         <div>
           <h1 class="text-lg font-bold text-white leading-snug">{{ greeting }}</h1>
           <button
             routerLink="/locations"
-            class="flex items-center gap-1 mt-0.5 text-amber-100 text-xs font-medium hover:text-white transition-colors active:opacity-70"
+            class="flex items-center gap-1 mt-0.5 text-brand-100 text-xs font-medium hover:text-white transition-colors active:opacity-70"
           >
             <svg class="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -18,9 +18,9 @@
             </svg>
             @if (locationName()) {
               {{ locationName() }}
-              <span class="text-amber-200 ml-0.5">· {{ 'menu.change' | t }}</span>
+              <span class="text-brand-200 ml-0.5">· {{ 'menu.change' | t }}</span>
             } @else {
-              <span class="text-amber-200">{{ 'menu.selectLocation' | t }}</span>
+              <span class="text-brand-200">{{ 'menu.selectLocation' | t }}</span>
             }
           </button>
         </div>
@@ -67,7 +67,7 @@
             (blur)="onSearchBlur()"
             [placeholder]="'menu.search' | t"
             style="font-size: 16px"
-            class="w-full pl-10 pr-10 py-3 rounded-2xl bg-white text-stone-800 placeholder-stone-400 outline-none shadow-sm focus:ring-2 focus:ring-amber-300 transition-all"
+            class="w-full pl-10 pr-10 py-3 rounded-2xl bg-white text-stone-800 placeholder-stone-400 outline-none shadow-sm focus:ring-2 focus:ring-brand-300 transition-all"
           />
           <button
             (click)="collapseSearch()"
@@ -79,7 +79,7 @@
               @for (term of searchHistory(); track term) {
                 <button
                   (click)="selectHistory(term)"
-                  class="w-full flex items-center justify-between px-4 py-3 text-sm text-stone-700 hover:bg-amber-50 transition-colors border-b border-stone-50 last:border-0"
+                  class="w-full flex items-center justify-between px-4 py-3 text-sm text-stone-700 hover:bg-brand-50 transition-colors border-b border-stone-50 last:border-0"
                 >
                   <span class="flex items-center gap-2">
                     <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
                 loading="lazy"
               />
             } @else {
-              <div class="w-full h-full bg-linear-to-br from-amber-400 to-orange-500"></div>
+              <div class="w-full h-full bg-linear-to-br from-brand-400 to-orange-500"></div>
             }
             <div
               class="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-3"
@@ -214,14 +214,14 @@
           />
         } @else {
           <div
-            class="w-full h-24 bg-linear-to-br from-amber-50 to-orange-50 flex items-center justify-center text-3xl shrink-0"
+            class="w-full h-24 bg-linear-to-br from-brand-50 to-orange-50 flex items-center justify-center text-3xl shrink-0"
           >
             ☕
           </div>
         }
         <div class="p-2 pb-1 flex flex-col flex-1">
           <h3 class="font-bold text-stone-800 text-xs leading-snug line-clamp-2">{{ item.name }}</h3>
-          <p class="text-amber-600 font-bold text-xs mt-auto pt-1">
+          <p class="text-brand-600 font-bold text-xs mt-auto pt-1">
             @if (item.variants && item.variants.length > 0) {
               from {{ item.variants[0].price | currency2 }}
             } @else {
@@ -233,7 +233,7 @@
       <!-- New badge (top-right) -->
       @if (isNew(item)) {
         <span
-          class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-sm"
+          class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-brand-500 text-white text-[9px] font-bold uppercase tracking-wide shadow-sm"
         >
           {{ 'menu.new' | t }}
         </span>
@@ -256,7 +256,7 @@
       <div class="px-2 pb-2">
         <button
           (click)="addToCart(item, $event)"
-          class="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-stone-900 text-xs font-bold rounded-xl py-1.5 transition-colors focus:outline-none"
+          class="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-stone-900 text-xs font-bold rounded-xl py-1.5 transition-colors focus:outline-none"
         >
           {{ 'menu.addIcon' | t }}
         </button>
@@ -290,10 +290,10 @@
                   <button
                     (click)="selectedVariant.set(v)"
                     class="flex flex-col items-center px-4 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all active:scale-95"
-                    [class]="sel ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-stone-200 bg-white text-stone-600'"
+                    [class]="sel ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-stone-200 bg-white text-stone-600'"
                   >
                     <span>{{ v.label }}</span>
-                    <span class="text-xs font-bold mt-0.5" [class]="sel ? 'text-amber-600' : 'text-stone-400'">{{ v.price | currency2 }}</span>
+                    <span class="text-xs font-bold mt-0.5" [class]="sel ? 'text-brand-600' : 'text-stone-400'">{{ v.price | currency2 }}</span>
                   </button>
                 }
               </div>
@@ -316,10 +316,10 @@
                     <button
                       (click)="toggleTopping(topping)"
                       class="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all active:scale-95"
-                      [class]="sel ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-stone-200 bg-white text-stone-600'"
+                      [class]="sel ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-stone-200 bg-white text-stone-600'"
                     >
                       @if (sel) {
-                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-3.5 h-3.5 text-brand-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
                       }
@@ -339,12 +339,12 @@
                     <button
                       (click)="toggleTopping(topping)"
                       class="w-full flex items-center justify-between py-3 px-4 rounded-2xl border-2 transition-all active:scale-[0.99]"
-                      [class]="sel ? 'border-amber-400 bg-amber-50' : 'border-stone-100 bg-stone-50'"
+                      [class]="sel ? 'border-brand-400 bg-brand-50' : 'border-stone-100 bg-stone-50'"
                     >
                       <div class="flex items-center gap-3">
                         <span
                           class="w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all"
-                          [class]="sel ? 'border-amber-500 bg-amber-500' : 'border-stone-300 bg-white'"
+                          [class]="sel ? 'border-brand-500 bg-brand-500' : 'border-stone-300 bg-white'"
                         >
                           @if (sel) {
                             <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
@@ -354,7 +354,7 @@
                         </span>
                         <span class="text-stone-800 font-medium text-sm">{{ topping.name }}</span>
                       </div>
-                      <span class="text-sm font-semibold" [class]="sel ? 'text-amber-600' : 'text-stone-400'">
+                      <span class="text-sm font-semibold" [class]="sel ? 'text-brand-600' : 'text-stone-400'">
                         {{ topping.price === 0 ? ('menu.free' | t) : '+' + (topping.price | currency2) }}
                       </span>
                     </button>
@@ -366,7 +366,7 @@
         </div>
         <button
           (click)="confirmToppings($event)"
-          class="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-stone-900 font-bold rounded-2xl py-4 transition-colors focus:outline-none flex items-center justify-between px-5"
+          class="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-stone-900 font-bold rounded-2xl py-4 transition-colors focus:outline-none flex items-center justify-between px-5"
         >
           <span class="w-16"></span>
           <span>{{ 'menu.addToCart' | t }}</span>
@@ -380,7 +380,7 @@
   @if (cartCount() > 0) {
     <button
       routerLink="/cart"
-      class="cart-fly-target fixed right-4 z-30 w-14 h-14 bg-amber-500 hover:bg-amber-600 active:scale-95 rounded-full shadow-xl shadow-amber-300/60 flex items-center justify-center transition-all focus:outline-none"
+      class="cart-fly-target fixed right-4 z-30 w-14 h-14 bg-brand-500 hover:bg-brand-600 active:scale-95 rounded-full shadow-xl shadow-brand-300/60 flex items-center justify-center transition-all focus:outline-none"
       style="bottom: calc(5rem + env(safe-area-inset-bottom))"
       aria-label="View cart"
     >

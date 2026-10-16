@@ -10,9 +10,9 @@
 }
 
 @keyframes shimmer {
-  0%   { filter: drop-shadow(0 0 0px rgba(255, 209, 25, 0)); }
-  50%  { filter: drop-shadow(0 0 8px rgba(255, 209, 25, 0.9)); }
-  100% { filter: drop-shadow(0 0 0px rgba(255, 209, 25, 0)); }
+  0%   { filter: drop-shadow(0 0 0px rgb(var(--brand-500-rgb) / 0)); }
+  50%  { filter: drop-shadow(0 0 8px rgb(var(--brand-500-rgb) / 0.9)); }
+  100% { filter: drop-shadow(0 0 0px rgb(var(--brand-500-rgb) / 0)); }
 }
 
 @keyframes checkPop {

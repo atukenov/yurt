@@ -19,7 +19,7 @@ import { TranslatePipe } from '../core/translate.pipe';
     }
     .icon {
       flex: none; width: 38px; height: 38px; border-radius: 14px; display: grid; place-items: center;
-      background: #ffd119; font-size: 19px;
+      background: var(--brand-500); font-size: 19px;
     }
     .title { font-size: 14px; font-weight: 800; line-height: 1.2; }
     .sub { font-size: 12px; font-weight: 500; color: #d6d3d1; margin-top: 2px; }

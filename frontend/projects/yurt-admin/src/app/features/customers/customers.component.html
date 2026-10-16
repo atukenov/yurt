@@ -14,7 +14,7 @@
       (ngModelChange)="onSearch()"
       [placeholder]="'customers.searchPhone' | t"
       [attr.aria-label]="'customers.searchPhone' | t"
-      class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300"
+      class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
     />
   </div>
 
@@ -45,13 +45,13 @@
               [routerLink]="[c.id]"
               tabindex="0"
               (keydown.enter)="goToCustomer(c.id)"
-              class="border-b border-slate-50 last:border-0 hover:bg-slate-50 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-amber-400"
+              class="border-b border-slate-50 last:border-0 hover:bg-slate-50 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-400"
             >
               <td class="px-5 py-3 font-mono text-slate-700">{{ c.phone }}</td>
               <td class="px-5 py-3 text-slate-800">{{ c.displayName || '—' }}</td>
               <td class="px-5 py-3 text-slate-400">{{ c.registeredAt | date: 'MMM d, y' }}</td>
               <td class="px-5 py-3 text-right font-semibold text-slate-700">{{ c.orderCount }}</td>
-              <td class="px-5 py-3 text-right font-semibold text-amber-600">{{ c.totalSpent | currency2 }}</td>
+              <td class="px-5 py-3 text-right font-semibold text-brand-600">{{ c.totalSpent | currency2 }}</td>
             </tr>
           }
         </tbody>
@@ -65,7 +65,7 @@
           [routerLink]="[c.id]"
           tabindex="0"
           (keydown.enter)="goToCustomer(c.id)"
-          class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 cursor-pointer hover:border-amber-200 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
+          class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 cursor-pointer hover:border-brand-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-400"
         >
           <div class="flex items-start justify-between mb-2">
             <div>
@@ -76,7 +76,7 @@
           </div>
           <div class="flex gap-3 mt-2 text-sm">
             <span class="text-slate-500">{{ 'customers.orders' | t }}: <strong class="text-slate-700">{{ c.orderCount }}</strong></span>
-            <span class="text-slate-500">{{ 'customers.spent' | t }}: <strong class="text-amber-600">{{ c.totalSpent | currency2 }}</strong></span>
+            <span class="text-slate-500">{{ 'customers.spent' | t }}: <strong class="text-brand-600">{{ c.totalSpent | currency2 }}</strong></span>
           </div>
         </div>
       }

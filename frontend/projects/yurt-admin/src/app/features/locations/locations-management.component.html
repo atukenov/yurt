@@ -6,7 +6,7 @@
     @if (modules.isEnabled('multi_location') || locations().length === 0) {
     <button
       (click)="openDialog()"
-      class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-stone-900 font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
+      class="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-stone-900 font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
     >
       <span class="text-base leading-none font-bold">+</span> {{ 'locations.add' | t }}
     </button>
@@ -24,7 +24,7 @@
           class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex items-start gap-4"
         >
           <div
-            class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-xl shrink-0"
+            class="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-xl shrink-0"
           >
             📍
           </div>
@@ -47,7 +47,7 @@
           <div class="flex gap-2 shrink-0">
             <button
               (click)="openDialog(loc)"
-              class="text-xs text-slate-600 hover:text-amber-600 px-2 py-1 rounded hover:bg-amber-50 transition-colors"
+              class="text-xs text-slate-600 hover:text-brand-600 px-2 py-1 rounded hover:bg-brand-50 transition-colors"
             >
               {{ 'action.edit' | t }}
             </button>
@@ -89,7 +89,7 @@
             type="text"
             [ngModel]="form().name"
             (ngModelChange)="patch('name', $event)"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
           />
         </div>
 
@@ -101,7 +101,7 @@
             type="text"
             [ngModel]="form().address"
             (ngModelChange)="patch('address', $event)"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
           />
         </div>
 
@@ -116,7 +116,7 @@
             placeholder="https://2gis.kz/…"
             [ngModel]="form().twoGisUrl"
             (ngModelChange)="patch('twoGisUrl', $event)"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
           />
           <p class="text-xs text-slate-400 mt-1">{{ 'locations.twoGisHint' | t }}</p>
         </div>
@@ -137,8 +137,8 @@
                   [attr.aria-checked]="slot.enabled"
                   [attr.aria-label]="DAY_NAMES[slot.day - 1]"
                   (click)="toggleDay(i)"
-                  class="relative shrink-0 w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1"
-                  [class]="slot.enabled ? 'bg-amber-500' : 'bg-slate-200'"
+                  class="relative shrink-0 w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-1"
+                  [class]="slot.enabled ? 'bg-brand-500' : 'bg-slate-200'"
                 >
                   <span
                     class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200"
@@ -161,7 +161,7 @@
                     [ngModel]="slot.from"
                     (ngModelChange)="updateSlotTime(i, 'from', $event)"
                     [attr.aria-label]="DAY_NAMES[slot.day - 1] + ' opening time'"
-                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-amber-400 outline-none bg-white"
+                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-white"
                   />
                   <span class="text-slate-400 text-xs shrink-0 font-medium">–</span>
                   <input
@@ -169,7 +169,7 @@
                     [ngModel]="slot.to"
                     (ngModelChange)="updateSlotTime(i, 'to', $event)"
                     [attr.aria-label]="DAY_NAMES[slot.day - 1] + ' closing time'"
-                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-amber-400 outline-none bg-white"
+                    class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-white"
                   />
                 } @else {
                   <span class="flex-1 text-xs text-slate-400 italic">Closed</span>
@@ -187,7 +187,7 @@
             type="text"
             [ngModel]="form().contactPhone"
             (ngModelChange)="patch('contactPhone', $event)"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
           />
         </div>
 
@@ -198,7 +198,7 @@
             id="isActive"
             [ngModel]="form().isActive"
             (ngModelChange)="patch('isActive', $event)"
-            class="w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400"
+            class="w-4 h-4 rounded border-slate-300 text-brand-500 focus:ring-brand-400"
           />
           <label for="isActive" class="text-sm text-slate-700 select-none">{{ 'locations.active' | t }}</label>
         </div>
@@ -212,7 +212,7 @@
               id="location-iiko-terminal-group"
               [ngModel]="form().iikoTerminalGroupId"
               (ngModelChange)="patch('iikoTerminalGroupId', $event)"
-              class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+              class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
             >
               <option value="">Not mapped</option>
               @for (g of iikoTerminalGroups(); track g.id) {

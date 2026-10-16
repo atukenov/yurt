@@ -20,7 +20,7 @@
         [(ngModel)]="selectedLocationId"
         (ngModelChange)="loadOrders()"
         aria-label="{{ 'orders.allLocations' | t }}"
-        class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none"
+        class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-brand-400 outline-none"
       >
         <option value="">{{ 'orders.allLocations' | t }}</option>
         @for (loc of locations(); track loc.id) {
@@ -34,7 +34,7 @@
         (ngModelChange)="onSearchChange()"
         placeholder="{{ 'orders.search' | t }}"
         aria-label="{{ 'orders.search' | t }}"
-        class="mt-2 w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-400 outline-none"
+        class="mt-2 w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-brand-400 outline-none"
       />
     </div>
     <!-- Status tabs -->
@@ -45,7 +45,7 @@
           [attr.aria-pressed]="activeTab() === tab.value"
           [class]="
             activeTab() === tab.value
-              ? 'bg-amber-100 text-amber-700 font-semibold'
+              ? 'bg-brand-100 text-brand-700 font-semibold'
               : 'text-slate-500 hover:text-slate-700'
           "
           class="flex-1 text-xs rounded-lg py-1.5 transition-colors"
@@ -74,7 +74,7 @@
             (click)="selectedOrder.set(order)"
             [class]="
               selectedOrder()?.id === order.id
-                ? 'bg-amber-50 border-l-4 border-l-amber-500'
+                ? 'bg-brand-50 border-l-4 border-l-brand-500'
                 : 'border-l-4 border-l-transparent hover:bg-slate-50'
             "
             class="w-full text-left px-4 py-3 border-b border-slate-50 transition-colors"
@@ -95,7 +95,7 @@
                 </yurt-badge>
               </div>
             </div>
-            <p class="text-amber-600 font-bold text-sm mt-1">{{ order.total | currency2 }}</p>
+            <p class="text-brand-600 font-bold text-sm mt-1">{{ order.total | currency2 }}</p>
           </button>
         }
       }
@@ -157,7 +157,7 @@
                 [(ngModel)]="etaPresetValue"
                 (ngModelChange)="onEtaPresetChange($event)"
                 aria-label="{{ 'orders.eta' | t }}"
-                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
               >
                 <option value="10">10 min</option>
                 <option value="15">15 min</option>
@@ -173,7 +173,7 @@
                   max="120"
                   [placeholder]="'orders.etaPlaceholder' | t"
                   [attr.aria-label]="'orders.etaPlaceholder' | t"
-                  class="w-full mt-2 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                  class="w-full mt-2 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
                 />
               }
             </div>
@@ -181,7 +181,7 @@
               <button
                 [disabled]="actionLoading() || !canAccept(o)"
                 (click)="acceptOrder(o)"
-                class="flex-1 inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-stone-900 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
+                class="flex-1 inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-stone-900 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
               >
                 @if (actionLoading()) {
                   <span
@@ -198,7 +198,7 @@
               </button>
             </div>
             @if (!canAccept(o)) {
-              <p class="text-xs text-amber-600 font-medium mt-1">{{ 'orders.acceptRequiresPayment' | t }}</p>
+              <p class="text-xs text-brand-600 font-medium mt-1">{{ 'orders.acceptRequiresPayment' | t }}</p>
             }
           </div>
         }
@@ -270,7 +270,7 @@
                   [disabled]="paymentLoading()"
                   class="flex-1 text-xs font-semibold py-2 rounded-xl border-2 transition-all disabled:opacity-50"
                   [class]="paymentStatus === s
-                    ? (s === 'Paid' ? 'border-teal-400 bg-teal-50 text-teal-700' : s === 'Refunded' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-amber-400 bg-amber-50 text-amber-700')
+                    ? (s === 'Paid' ? 'border-teal-400 bg-teal-50 text-teal-700' : s === 'Refunded' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-brand-400 bg-brand-50 text-brand-700')
                     : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'"
                 >
                   {{ 'orders.' + s.toLowerCase() | t }}
@@ -286,7 +286,7 @@
             <h3 class="text-sm font-semibold text-slate-700 mb-2">{{ 'orders.rating' | t }}</h3>
             <div class="text-base" aria-hidden="true">
               @for (s of [1, 2, 3, 4, 5]; track s) {
-                <span [class]="s <= o.rating! ? 'text-amber-500' : 'text-slate-200'">★</span>
+                <span [class]="s <= o.rating! ? 'text-brand-500' : 'text-slate-200'">★</span>
               }
             </div>
             <span class="sr-only">{{ o.rating }} / 5</span>
@@ -338,12 +338,12 @@
             }
             <div class="flex justify-between">
               <span class="font-bold text-slate-800">{{ 'orders.total' | t }}</span>
-              <span class="font-bold text-amber-600">{{ o.total | currency2 }}</span>
+              <span class="font-bold text-brand-600">{{ o.total | currency2 }}</span>
             </div>
             @if (o.loyaltyPointsSpent) {
               <div class="flex justify-between text-sm">
-                <span class="text-amber-600">✨ {{ 'orders.bonusPaid' | t }}</span>
-                <span class="text-amber-600 font-semibold">-{{ o.loyaltyPointsSpent | currency2 }}</span>
+                <span class="text-brand-600">✨ {{ 'orders.bonusPaid' | t }}</span>
+                <span class="text-brand-600 font-semibold">-{{ o.loyaltyPointsSpent | currency2 }}</span>
               </div>
               <div class="flex justify-between text-sm">
                 <span class="font-semibold text-slate-600">{{ 'orders.dueAtCounter' | t }}</span>

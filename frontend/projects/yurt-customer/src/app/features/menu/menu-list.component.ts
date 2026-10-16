@@ -386,7 +386,7 @@ export class MenuListComponent implements OnInit {
     const dy = endY - startY;
 
     const ghost = document.createElement('div');
-    ghost.style.cssText = `position:fixed;width:${size}px;height:${size}px;border-radius:50%;top:${startY}px;left:${startX}px;z-index:9999;pointer-events:none;overflow:hidden;background:#ffd119;box-shadow:0 4px 14px rgba(255,209,25,0.55);`;
+    ghost.style.cssText = `position:fixed;width:${size}px;height:${size}px;border-radius:50%;top:${startY}px;left:${startX}px;z-index:9999;pointer-events:none;overflow:hidden;background:var(--brand-500);box-shadow:0 4px 14px rgb(var(--brand-500-rgb) / 0.55);`;
     if (item.imageUrl) {
       const img = document.createElement('img');
       img.src = item.imageUrl;
@@ -471,6 +471,6 @@ export class MenuListComponent implements OnInit {
   }
 
   catChipClass(active: boolean): string {
-    return active ? 'bg-amber-500 text-stone-900' : 'bg-white text-stone-600 border border-stone-200';
+    return active ? 'bg-brand-500 text-stone-900' : 'bg-white text-stone-600 border border-stone-200';
   }
 }

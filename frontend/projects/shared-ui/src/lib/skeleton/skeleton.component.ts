@@ -21,7 +21,7 @@ export class SkeletonComponent {}
       <div class="h-32 bg-stone-200 rounded-xl mb-3"></div>
       <div class="h-4 bg-stone-200 rounded w-2/3 mb-2"></div>
       <div class="h-3 bg-stone-200 rounded w-full mb-2"></div>
-      <div class="h-5 bg-amber-100 rounded w-1/4"></div>
+      <div class="h-5 bg-brand-100 rounded w-1/4"></div>
     </div>
   `,
 })
@@ -52,7 +52,7 @@ export class SkeletonCardComponent {}
       <div class="h-3 bg-stone-200 rounded w-3/4 mb-3"></div>
       <div class="flex justify-between items-center pt-2 border-t border-stone-100">
         <div class="h-3 bg-stone-200 rounded w-10"></div>
-        <div class="h-5 bg-amber-100 rounded w-16"></div>
+        <div class="h-5 bg-brand-100 rounded w-16"></div>
       </div>
     </div>
   `,
@@ -74,7 +74,7 @@ export class SkeletonOrderCardComponent {}
     <div class="flex flex-col gap-0 pb-6 animate-pulse">
 
       <!-- Stats banner -->
-      <div class="mx-4 mt-4 rounded-3xl bg-amber-100 h-28"></div>
+      <div class="mx-4 mt-4 rounded-3xl bg-brand-100 h-28"></div>
 
       <!-- Achievements row -->
       <div class="mt-5 px-4">
@@ -105,7 +105,7 @@ export class SkeletonOrderCardComponent {}
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
-              <div class="h-4 bg-amber-100 rounded w-16"></div>
+              <div class="h-4 bg-brand-100 rounded w-16"></div>
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
@@ -113,7 +113,7 @@ export class SkeletonOrderCardComponent {}
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
-              <div class="h-4 bg-amber-100 rounded w-16"></div>
+              <div class="h-4 bg-brand-100 rounded w-16"></div>
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
@@ -121,7 +121,7 @@ export class SkeletonOrderCardComponent {}
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
-              <div class="h-4 bg-amber-100 rounded w-16"></div>
+              <div class="h-4 bg-brand-100 rounded w-16"></div>
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
@@ -136,7 +136,7 @@ export class SkeletonOrderCardComponent {}
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
-              <div class="h-4 bg-amber-100 rounded w-16"></div>
+              <div class="h-4 bg-brand-100 rounded w-16"></div>
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
@@ -144,7 +144,7 @@ export class SkeletonOrderCardComponent {}
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
-              <div class="h-4 bg-amber-100 rounded w-16"></div>
+              <div class="h-4 bg-brand-100 rounded w-16"></div>
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
@@ -152,7 +152,7 @@ export class SkeletonOrderCardComponent {}
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
-              <div class="h-4 bg-amber-100 rounded w-16"></div>
+              <div class="h-4 bg-brand-100 rounded w-16"></div>
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>

@@ -59,14 +59,14 @@
 .revenue-bar {
   width: 70%;
   border-radius: 6px 6px 2px 2px;
-  background: linear-gradient(to top, #ffd119, #ffdc30);
+  background: linear-gradient(to top, var(--brand-500), var(--brand-400));
   transition: height 0.5s ease;
   min-height: 2px;
 }
 
 .revenue-bar-group:hover .revenue-bar,
 .revenue-bar-group.active .revenue-bar {
-  background: linear-gradient(to top, #d9af00, #ffd119);
+  background: linear-gradient(to top, var(--brand-600), var(--brand-500));
 }
 
 .revenue-label {
@@ -136,7 +136,7 @@
 }
 
 .hourly-bar-peak {
-  background: linear-gradient(to top, #ffd119, #ffdc30) !important;
+  background: linear-gradient(to top, var(--brand-500), var(--brand-400)) !important;
 }
 
 .hourly-label {

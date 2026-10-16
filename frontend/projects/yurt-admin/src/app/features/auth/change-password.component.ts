@@ -28,7 +28,7 @@ import { ButtonComponent } from 'shared-ui';
                 [(ngModel)]="currentPassword"
                 required
                 autocomplete="current-password"
-                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none transition-all"
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -41,7 +41,7 @@ import { ButtonComponent } from 'shared-ui';
                 required
                 minlength="8"
                 autocomplete="new-password"
-                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none transition-all"
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -53,7 +53,7 @@ import { ButtonComponent } from 'shared-ui';
                 [(ngModel)]="confirmPassword"
                 required
                 autocomplete="new-password"
-                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none transition-all"
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none transition-all"
                 placeholder="••••••••"
               />
             </div>
