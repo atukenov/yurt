@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-stone-50 pb-6">
 
   <!-- Header -->
-  <div class="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-stone-100 px-4 py-3.5">
+  <div class="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-stone-100 px-4 py-3.5">
     <h1 class="text-xl font-bold text-stone-800">{{ 'nav.news' | t }}</h1>
   </div>
 
@@ -64,7 +64,7 @@
           @let unlocked = unlockedAchievements().includes(a);
           <div class="badge-card shrink-0 w-20 flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 text-center"
                [class]="unlocked
-                 ? 'bg-white shadow-md shadow-brand-100 border border-brand-100'
+                 ? 'bg-surface shadow-md shadow-brand-100 border border-brand-100'
                  : 'bg-stone-100 border border-stone-200'">
             <span class="text-3xl leading-none" [class.grayscale]="!unlocked" [class.opacity-40]="!unlocked">
               {{ a.icon }}
@@ -123,7 +123,7 @@
         </div>
         <div class="flex gap-3 overflow-x-auto h-scroll pb-2 pl-4 pr-2">
           @for (item of newItems(); track item.id) {
-            <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white shadow-sm border border-stone-100 flex flex-col">
+            <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface shadow-sm border border-stone-100 flex flex-col">
               <a [routerLink]="['/menu/item', item.id]" class="flex flex-col flex-1">
                 @if (item.imageUrl) {
                   <img [src]="item.imageUrl" alt="" class="w-full h-24 object-cover" />
@@ -162,7 +162,7 @@
         </div>
         <div class="flex gap-3 overflow-x-auto h-scroll pb-2 pl-4 pr-2">
           @for (item of recommendedItems(); track item.id) {
-            <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white shadow-sm border border-stone-100 flex flex-col">
+            <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface shadow-sm border border-stone-100 flex flex-col">
               <a [routerLink]="['/menu/item', item.id]" class="flex flex-col flex-1">
                 @if (item.imageUrl) {
                   <img [src]="item.imageUrl" alt="" class="w-full h-24 object-cover" />
@@ -204,7 +204,7 @@
             <p class="text-white/80 text-xs mt-0.5">{{ 'news.woltDesc' | t }}</p>
           </div>
           <button (click)="openWolt()"
-                  class="shrink-0 bg-white text-sky-600 font-bold text-sm px-4 py-2 rounded-xl active:scale-95 transition-transform whitespace-nowrap">
+                  class="shrink-0 bg-surface text-sky-600 font-bold text-sm px-4 py-2 rounded-xl active:scale-95 transition-transform whitespace-nowrap">
             {{ 'news.woltBtn' | t }}
           </button>
         </div>
@@ -217,7 +217,7 @@
         <h2 class="text-base font-bold text-stone-800 mb-3">{{ 'news.recentOrders' | t }}</h2>
         <div class="flex flex-col gap-3">
           @for (order of recentOrders(); track order.id) {
-            <div class="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <div class="bg-surface rounded-2xl border border-stone-100 shadow-sm p-4">
               <div class="flex items-start justify-between">
                 <div>
                   <p class="text-sm font-semibold text-stone-800">{{ order.locationName }}</p>

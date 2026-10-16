@@ -80,7 +80,7 @@
         <div class="flex gap-1.5 mt-3 flex-wrap">
           @for (a of sortedAchievements(); track a.id; let i = $index) {
             <div class="w-2 h-2 rounded-full transition-colors"
-                 [class]="isUnlocked(a) ? 'bg-white' : 'bg-white/25'"></div>
+                 [class]="isUnlocked(a) ? 'bg-surface' : 'bg-white/25'"></div>
           }
         </div>
       </div>
@@ -105,7 +105,7 @@
         <div class="achievement-card flex flex-col rounded-2xl overflow-hidden border transition-all"
              [style.animation-delay]="(i * 0.06) + 's'"
              [class]="unlocked
-               ? 'bg-white border-brand-200 shadow-md shadow-brand-100/60'
+               ? 'bg-surface border-brand-200 shadow-md shadow-brand-100/60'
                : 'bg-stone-100 border-stone-200'">
 
           <!-- Top: emoji area -->

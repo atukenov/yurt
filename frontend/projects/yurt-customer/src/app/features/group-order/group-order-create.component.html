@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-stone-50 pb-8">
-  <div class="bg-white border-b border-stone-100 px-4 py-4">
+  <div class="bg-surface border-b border-stone-100 px-4 py-4">
     <h1 class="text-xl font-bold text-stone-800">Start Group Order</h1>
     <p class="text-xs text-stone-500 mt-0.5">Choose a location and share the code with friends</p>
   </div>
@@ -15,7 +15,7 @@
           (click)="selectedId.set(loc.id)"
           [class]="selectedId() === loc.id
             ? 'ring-2 ring-brand-400 border-brand-200 bg-brand-50'
-            : 'border-stone-100 bg-white hover:border-brand-200'"
+            : 'border-stone-100 bg-surface hover:border-brand-200'"
           class="w-full text-left rounded-2xl border-2 p-4 shadow-sm transition-all focus:outline-none"
         >
           <div class="flex items-center gap-3">
@@ -38,7 +38,7 @@
   </div>
 
   @if (selectedId()) {
-    <div class="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-stone-100 max-w-lg mx-auto"
+    <div class="fixed bottom-16 left-0 right-0 p-4 bg-surface border-t border-stone-100 max-w-lg mx-auto"
       style="box-shadow: 0 -1px 12px rgba(0,0,0,0.06)">
       <button
         (click)="create()"

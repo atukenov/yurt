@@ -1,10 +1,10 @@
 <div class="min-h-full bg-stone-50" pullToRefresh (refreshed)="loadOrders()">
-  <div class="bg-white border-b border-stone-100 px-4 py-4">
+  <div class="bg-surface border-b border-stone-100 px-4 py-4">
     <h1 class="text-xl font-bold text-stone-800">{{ 'orders.title' | t }}</h1>
   </div>
 
   <!-- Tabs -->
-  <div class="flex gap-2 px-4 py-3 bg-white border-b border-stone-100">
+  <div class="flex gap-2 px-4 py-3 bg-surface border-b border-stone-100">
     @for (tab of tabs; track tab.id) {
       <button
         (click)="activeTab.set(tab.id)"
@@ -29,7 +29,7 @@
       @for (order of visibleOrders(); track order.id) {
         <a
           [routerLink]="['/orders', order.id]"
-          class="block bg-white rounded-2xl border border-stone-100 p-4 shadow-sm hover:shadow-md active:scale-[0.99] transition-all"
+          class="block bg-surface rounded-2xl border border-stone-100 p-4 shadow-sm hover:shadow-md active:scale-[0.99] transition-all"
         >
           <div class="flex items-start justify-between mb-2">
             <div>
@@ -75,7 +75,7 @@
           </p>
           <div class="space-y-2">
             @for (tx of offsiteTransactions(); track tx.whenCreated + '-' + (tx.orderNumber ?? '')) {
-              <div class="bg-white rounded-2xl border border-stone-100 p-4 shadow-sm">
+              <div class="bg-surface rounded-2xl border border-stone-100 p-4 shadow-sm">
                 <div class="flex items-center justify-between mb-1">
                   <p class="font-bold text-stone-800 text-sm">{{ 'orders.offsitePurchase' | t }}</p>
                   <p class="text-xs text-stone-400">{{ tx.whenCreated | date: 'MMM d · h:mm a' }}</p>
@@ -133,8 +133,8 @@
               </g>
             </svg>
           </span>
-          <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:#1c1917">{{ 'empty.ordersTitle' | t }}</h3>
-          <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:#78716c;line-height:1.55">{{ 'empty.ordersHint' | t }}</p>
+          <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:var(--ink-900)">{{ 'empty.ordersTitle' | t }}</h3>
+          <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:var(--ink-500);line-height:1.55">{{ 'empty.ordersHint' | t }}</p>
           <a [routerLink]="['/menu']"
             style="margin-top:22px;display:inline-block;background:var(--brand-500);border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:var(--brand-on-primary);text-decoration:none;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
             class="active:scale-[0.97] transition-transform">

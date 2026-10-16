@@ -17,7 +17,7 @@ export class SkeletonComponent {}
   selector: 'yurt-skeleton-card',
   standalone: true,
   template: `
-    <div class="bg-white rounded-2xl border border-stone-100 p-4 animate-pulse">
+    <div class="bg-surface rounded-2xl border border-stone-100 p-4 animate-pulse">
       <div class="h-32 bg-stone-200 rounded-xl mb-3"></div>
       <div class="h-4 bg-stone-200 rounded w-2/3 mb-2"></div>
       <div class="h-3 bg-stone-200 rounded w-full mb-2"></div>
@@ -40,7 +40,7 @@ export class SkeletonCardComponent {}
   selector: 'yurt-skeleton-order-card',
   standalone: true,
   template: `
-    <div class="bg-white rounded-2xl border border-stone-100 p-4 animate-pulse">
+    <div class="bg-surface rounded-2xl border border-stone-100 p-4 animate-pulse">
       <div class="flex items-start justify-between mb-2">
         <div class="flex-1 min-w-0">
           <div class="h-4 bg-stone-200 rounded w-28 mb-1.5"></div>
@@ -101,7 +101,7 @@ export class SkeletonOrderCardComponent {}
       <div class="mt-5">
         <div class="h-4 bg-stone-200 rounded w-36 mb-3 mx-4"></div>
         <div class="flex gap-3 pl-4 overflow-hidden">
-          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white border border-stone-100">
+          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface border border-stone-100">
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
@@ -109,7 +109,7 @@ export class SkeletonOrderCardComponent {}
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
-          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white border border-stone-100">
+          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface border border-stone-100">
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
@@ -117,7 +117,7 @@ export class SkeletonOrderCardComponent {}
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
-          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white border border-stone-100">
+          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface border border-stone-100">
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
@@ -132,7 +132,7 @@ export class SkeletonOrderCardComponent {}
       <div class="mt-5">
         <div class="h-4 bg-stone-200 rounded w-44 mb-3 mx-4"></div>
         <div class="flex gap-3 pl-4 overflow-hidden">
-          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white border border-stone-100">
+          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface border border-stone-100">
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
@@ -140,7 +140,7 @@ export class SkeletonOrderCardComponent {}
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
-          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white border border-stone-100">
+          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface border border-stone-100">
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>
@@ -148,7 +148,7 @@ export class SkeletonOrderCardComponent {}
               <div class="h-7 bg-stone-100 rounded-xl"></div>
             </div>
           </div>
-          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-white border border-stone-100">
+          <div class="shrink-0 w-36 rounded-2xl overflow-hidden bg-surface border border-stone-100">
             <div class="h-24 bg-stone-200"></div>
             <div class="p-2.5 space-y-1.5">
               <div class="h-3 bg-stone-200 rounded"></div>

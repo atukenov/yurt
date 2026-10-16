@@ -19,7 +19,7 @@
           [class]="
             selectedId() === loc.id
               ? 'ring-2 ring-brand-400 border-brand-200 bg-brand-50'
-              : 'border-stone-100 bg-white hover:border-brand-200 hover:bg-brand-50/40'
+              : 'border-stone-100 bg-surface hover:border-brand-200 hover:bg-brand-50/40'
           "
           class="w-full text-left rounded-2xl border-2 p-4 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand-400"
         >
@@ -108,7 +108,7 @@
 
   @if (selectedId()) {
     <div
-      class="fixed left-0 right-0 p-4 bg-white border-t border-stone-100 max-w-lg mx-auto"
+      class="fixed left-0 right-0 p-4 bg-surface border-t border-stone-100 max-w-lg mx-auto"
       style="bottom: calc(4rem + env(safe-area-inset-bottom)); box-shadow: 0 -1px 12px rgba(0, 0, 0, 0.06)"
     >
       <button

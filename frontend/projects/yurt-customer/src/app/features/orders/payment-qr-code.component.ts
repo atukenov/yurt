@@ -6,7 +6,7 @@ import { Component, Input } from '@angular/core';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="rounded-3xl border border-stone-200 bg-white p-4 shadow-sm">
+    <div class="rounded-3xl border border-stone-200 bg-surface p-4 shadow-sm">
       <div class="text-sm font-semibold text-stone-700 mb-3">{{ label }}</div>
       <div class="grid place-items-center">
         <img

@@ -10,12 +10,12 @@ import { TranslatePipe } from '../core/translate.pipe';
   styles: [`
     .overlay {
       position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px;
-      background: #fafaf9; text-align: center;
+      background: var(--ink-50); text-align: center;
     }
     .box { max-width: 340px; }
     .icon { font-size: 48px; }
-    h1 { font-size: 20px; font-weight: 800; margin: 12px 0 6px; color: #1c1917; }
-    p { font-size: 14px; color: #57534e; margin: 0; }
+    h1 { font-size: 20px; font-weight: 800; margin: 12px 0 6px; color: var(--ink-900); }
+    p { font-size: 14px; color: var(--ink-600); margin: 0; }
   `],
   template: `
     @if (modules.maintenance(); as m) {

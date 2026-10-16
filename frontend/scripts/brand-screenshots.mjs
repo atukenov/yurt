@@ -2,7 +2,8 @@
 // Screenshots the customer app's public screens for a few sample brands, to eyeball white-label changes.
 // The brand is seeded through the same localStorage cache the app uses (key "yurt.brand"), so no backend is needed.
 //   cd frontend && npx ng build yurt-customer --configuration production
-//   node scripts/brand-screenshots.mjs [outDir] [--a11y]
+//   node scripts/brand-screenshots.mjs [outDir] [--a11y] [--dark]
+// --dark seeds the dark theme (localStorage key "yurt.theme") and adds "-dark" to the file names.
 // --a11y also runs axe-core's colour-contrast and target-size (24px) rules on every screen and prints the failures (needs `axe-core`
 // resolvable like playwright, e.g. NODE_PATH to a folder that has both).
 import { createServer } from 'node:http';
@@ -14,6 +15,7 @@ import { createRequire } from 'node:module';
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'dist', 'yurt-customer', 'browser');
 const args = process.argv.slice(2);
 const a11y = args.includes('--a11y');
+const dark = args.includes('--dark');
 const out = args.find((a) => !a.startsWith('--')) ?? join(process.cwd(), 'brand-screenshots');
 const SCREENS = ['/auth/login', '/auth/register'];
 
@@ -68,17 +70,18 @@ async function main() {
   try {
     for (const [slug, brand] of Object.entries(BRANDS)) {
       const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
-      await context.addInitScript((b) => {
+      await context.addInitScript(([b, theme]) => {
         localStorage.setItem('yurt.brand', JSON.stringify(b));
         localStorage.setItem('yurt_lang', 'en');
-      }, brand);
+        localStorage.setItem('yurt.theme', theme);
+      }, [brand, dark ? 'dark' : 'light']);
       const page = await context.newPage();
       // Backend is not running: fail API calls fast instead of waiting.
       await page.route('**/api/**', (r) => r.abort());
       for (const screen of SCREENS) {
         await page.goto(base + screen, { waitUntil: 'load' });
         await page.waitForTimeout(2500); // intro video falls back, splash dismisses
-        const file = join(out, `${slug}${screen.replace(/\//g, '-')}.png`);
+        const file = join(out, `${slug}${screen.replace(/\//g, '-')}${dark ? '-dark' : ''}.png`);
         await page.screenshot({ path: file, fullPage: true });
         console.log(file);
         if (a11y) await checkContrast(page, `${slug}${screen}`);

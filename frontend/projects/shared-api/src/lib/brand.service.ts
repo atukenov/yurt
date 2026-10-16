@@ -75,7 +75,7 @@ export class BrandService {
       root.style.setProperty('--brand-500-rgb', primary!.join(' '));
       root.style.setProperty('--brand-on-primary', readableOn(primary!));
       root.style.setProperty('--brand-on-dark', readableOnDark(primary!));
-      root.style.setProperty('--brand-ink', readableOnLight(primary!));
+      root.style.setProperty('--brand-ink-light', readableOnLight(primary!));
       root.style.setProperty('--brand-hero-text', readableOn(primary!));
       const accentScale = buildScale(brand.accentColor);
       if (accentScale) {
@@ -121,7 +121,7 @@ export class BrandService {
 
   private clear(root: HTMLElement): void {
     for (const step of STEPS) root.style.removeProperty(`--brand-${step}`);
-    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-on-dark', '--brand-ink', '--brand-hero-text', '--brand-accent', '--brand-accent-soft', ...ACCENT_STEPS.map((s) => `--accent-${s}`)])
+    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-on-dark', '--brand-ink-light', '--brand-hero-text', '--brand-accent', '--brand-accent-soft', ...ACCENT_STEPS.map((s) => `--accent-${s}`)])
       root.style.removeProperty(name);
   }
 

@@ -35,7 +35,7 @@ import { CommonModule } from '@angular/common';
         font-weight: 700;
         border: 2px solid #e7e5e4;
         border-radius: 1rem;
-        background: #fff;
+        background: var(--surface-card);
         outline: none;
         transition: all 0.15s;
       }
