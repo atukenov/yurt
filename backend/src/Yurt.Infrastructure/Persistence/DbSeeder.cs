@@ -19,13 +19,13 @@ public static class DbSeeder
 
         await db.Database.MigrateAsync();
 
+        await SeedDefaultTenantAsync(db, logger);
         await SeedLocationsAsync(db, logger);
         await SeedMenuAsync(db, logger);
         await SeedToppingsAsync(db, logger);
         await SeedAdminsAsync(db, logger);
         await SeedSuperAdminAsync(db, logger);
         await SeedModuleLicensesAsync(db, logger);
-        await SeedDefaultTenantAsync(db, logger);
     }
 
     private static async Task SeedLocationsAsync(ApplicationDbContext db, ILogger logger)

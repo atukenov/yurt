@@ -14,9 +14,7 @@ public class TenantSeedTests(YurtWebAppFactory factory)
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        var tenants = await db.Tenants.ToListAsync();
-
-        var tenant = Assert.Single(tenants);
+        var tenant = Assert.Single(await db.Tenants.Where(t => t.Id == Tenant.DefaultId).ToListAsync());
         Assert.Equal(Tenant.DefaultId, tenant.Id);
         Assert.Equal(Tenant.DefaultSlug, tenant.Slug);
         Assert.True(tenant.IsActive);

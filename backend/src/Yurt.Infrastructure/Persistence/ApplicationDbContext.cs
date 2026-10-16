@@ -1,13 +1,19 @@
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
+using Yurt.Domain.Common;
 using Yurt.Domain.Entities;
 
 namespace Yurt.Infrastructure.Persistence;
 
 public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options) { }
+    private readonly ITenantContext _tenant;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenant)
+        : base(options) => _tenant = tenant;
+
+    /// <summary>Read by the tenant query filters; EF evaluates it per context instance, so each request sees its own cafe.</summary>
+    private Guid CurrentTenantId => _tenant.TenantId;
 
     public DbSet<CustomerUser> CustomerUsers => Set<CustomerUser>();
     public DbSet<PhoneVerification> PhoneVerifications => Set<PhoneVerification>();
@@ -43,10 +49,31 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes().Where(t => typeof(ITenantOwned).IsAssignableFrom(t.ClrType)).ToList())
+        {
+            var entity = modelBuilder.Entity(entityType.ClrType);
+            // Rows that existed before the column was added belong to the default tenant.
+            entity.Property(nameof(ITenantOwned.TenantId)).HasDefaultValue(Tenant.DefaultId);
+            entity.HasIndex(nameof(ITenantOwned.TenantId));
+            entity.HasOne(typeof(Tenant)).WithMany().HasForeignKey(nameof(ITenantOwned.TenantId)).OnDelete(DeleteBehavior.Restrict);
+            typeof(ApplicationDbContext)
+                .GetMethod(nameof(ApplyTenantFilter), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .MakeGenericMethod(entityType.ClrType)
+                .Invoke(this, [modelBuilder]);
+        }
     }
+
+    private void ApplyTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantOwned
+        => modelBuilder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        foreach (var entry in ChangeTracker.Entries<ITenantOwned>())
+        {
+            if (entry.State == EntityState.Added && entry.Entity.TenantId == Guid.Empty)
+                entry.Entity.TenantId = _tenant.TenantId;
+        }
         foreach (var entry in ChangeTracker.Entries<Domain.Common.BaseEntity>())
         {
             if (entry.State == EntityState.Modified)
