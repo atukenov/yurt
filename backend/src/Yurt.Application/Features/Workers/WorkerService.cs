@@ -19,8 +19,11 @@ public class WorkerService
         _audit = audit;
     }
 
+    // Platform operators are invisible to the cafe's staff page and cannot be edited from it.
+    private IQueryable<AdminUser> CafeStaff => _db.AdminUsers.Where(u => u.Role != AdminRole.SuperAdmin);
+
     public async Task<List<WorkerDto>> GetWorkersAsync(CancellationToken ct = default)
-        => await _db.AdminUsers
+        => await CafeStaff
             .OrderBy(u => u.Username)
             .Select(u => new WorkerDto(u.Id, u.Username, u.Role.ToString(), u.IsActive, u.CreatedAt))
             .ToListAsync(ct);
@@ -47,7 +50,7 @@ public class WorkerService
 
     public async Task<Result<WorkerDto>> UpdateWorkerAsync(Guid id, UpdateWorkerDto dto, CancellationToken ct = default)
     {
-        var worker = await _db.AdminUsers.FirstOrDefaultAsync(u => u.Id == id, ct);
+        var worker = await CafeStaff.FirstOrDefaultAsync(u => u.Id == id, ct);
         if (worker == null) return Result<WorkerDto>.NotFound();
 
         if (worker.Username != dto.Username &&
@@ -67,7 +70,7 @@ public class WorkerService
 
     public async Task<Result<WorkerDto>> SetActiveAsync(Guid id, bool isActive, CancellationToken ct = default)
     {
-        var worker = await _db.AdminUsers.FirstOrDefaultAsync(u => u.Id == id, ct);
+        var worker = await CafeStaff.FirstOrDefaultAsync(u => u.Id == id, ct);
         if (worker is null) return Result<WorkerDto>.NotFound();
 
         worker.IsActive = isActive;
@@ -82,7 +85,7 @@ public class WorkerService
 
     public async Task<Result<WorkerDto>> ResetPasswordAsync(Guid id, ResetWorkerPasswordDto dto, CancellationToken ct = default)
     {
-        var worker = await _db.AdminUsers.FirstOrDefaultAsync(u => u.Id == id, ct);
+        var worker = await CafeStaff.FirstOrDefaultAsync(u => u.Id == id, ct);
         if (worker == null) return Result<WorkerDto>.NotFound();
 
         worker.PasswordHash = _hasher.Hash(dto.NewPassword);

@@ -26,6 +26,7 @@ using Yurt.Application.Features.AuditLog.Services;
 using Yurt.Application.Features.Reports;
 using Yurt.Application.Features.AppUpdate;
 using Yurt.Application.Features.Modules;
+using Yurt.Application.Features.Platform;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty;
 using Yurt.Application.Features.Loyalty.Services;
@@ -119,6 +120,8 @@ public static class DependencyInjection
         // Paid-module licensing (fail-open; see docs/MODULARIZATION_TODO.md Phase 1)
         services.AddSingleton(configuration.GetSection("Modules").Get<ModuleOptions>() ?? new ModuleOptions());
         services.AddSingleton<IModuleGate, ModuleGate>();
+        services.AddSingleton<IMaintenanceGate, MaintenanceGate>();
+        services.AddScoped<PlatformService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();
@@ -189,7 +192,12 @@ public static class DependencyInjection
             options.AddPolicy("AdminRoleAdmin", policy =>
             {
                 policy.RequireClaim("user_type", "admin");
-                policy.RequireRole("Admin");
+                policy.RequireRole("Admin", "SuperAdmin");
+            });
+            options.AddPolicy("SuperAdminOnly", policy =>
+            {
+                policy.RequireClaim("user_type", "admin");
+                policy.RequireRole("SuperAdmin");
             });
         });
 

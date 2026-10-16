@@ -15,13 +15,14 @@ import { environment } from '../environments/environment';
 import { SplashComponent } from './features/loading/splash.component';
 import { AppUpdateGateComponent } from './features/app-update/app-update-gate.component';
 import { ClosedNoticeComponent } from './shared/closed-notice.component';
+import { MaintenanceNoticeComponent } from './shared/maintenance-notice.component';
 import { AppStateService } from './core/app-state.service';
 import { AppResumeService } from './core/app-resume.service';
 import { AppUpdateService } from './core/app-update.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SplashComponent, AppUpdateGateComponent, ClosedNoticeComponent],
+  imports: [RouterOutlet, SplashComponent, AppUpdateGateComponent, ClosedNoticeComponent, MaintenanceNoticeComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

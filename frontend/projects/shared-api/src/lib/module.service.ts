@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { MaintenanceInfo } from 'shared-models';
 import { YurtApiService } from './yurt-api.service';
 
 const CACHE_KEY = 'yurt.modules';
@@ -18,12 +19,16 @@ export class ModuleService {
   /** Null means "unknown": everything is treated as enabled. */
   private readonly enabledKeys = signal<ReadonlySet<string> | null>(this.readCache());
 
+  /** Set while the operator has maintenance mode on; the apps show a notice. Never persisted. */
+  readonly maintenance = signal<MaintenanceInfo | null>(null);
+
   /** Reads the cache synchronously, then refreshes from the server. Safe to call more than once. */
   load(): void {
     this.api.getAppConfig().subscribe({
       next: (cfg) => {
         this.enabledKeys.set(new Set(cfg.modules));
         this.writeCache(cfg.modules);
+        this.maintenance.set(cfg.maintenance?.enabled ? cfg.maintenance : null);
       },
       error: () => { /* keep the cached/unknown state: fail-open */ },
     });

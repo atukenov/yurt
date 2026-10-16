@@ -58,7 +58,9 @@ public enum PaymentMethod
 public enum AdminRole
 {
     Admin = 0,
-    Worker = 1
+    Worker = 1,
+    /// <summary>Platform operator. Has every Admin permission plus the /platform tools. Never listed in or editable from the cafe's staff page.</summary>
+    SuperAdmin = 2
 }
 
 public enum DiscountType

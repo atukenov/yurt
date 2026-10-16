@@ -1,0 +1,106 @@
+<div class="flex-1 overflow-y-auto">
+  <div class="px-6 py-6 max-w-4xl mx-auto space-y-8">
+
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">{{ 'plat.title' | t }}</h1>
+        <p class="text-sm text-slate-500 mt-1">{{ 'plat.subtitle' | t }}</p>
+      </div>
+      <a routerLink="/platform/app-releases"
+        class="shrink-0 px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+        {{ 'nav.appReleases' | t }}
+      </a>
+    </div>
+
+    <!-- Maintenance -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <h2 class="font-semibold text-slate-800">{{ 'plat.maintenance' | t }}</h2>
+      <p class="text-sm text-slate-500 mt-1">{{ 'plat.maintenanceHint' | t }}</p>
+      <label class="flex items-center gap-3 mt-4 text-sm text-slate-700">
+        <input type="checkbox" [(ngModel)]="maintenanceEnabled" class="w-4 h-4" />
+        {{ 'plat.maintenanceOn' | t }}
+      </label>
+      <label for="maintenance-message" class="block text-xs font-semibold text-slate-500 mt-4 mb-1">{{ 'plat.maintenanceMessage' | t }}</label>
+      <input id="maintenance-message" type="text" maxlength="500" [(ngModel)]="maintenanceMessage"
+        class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+      <button (click)="saveMaintenance()" [disabled]="savingMaintenance()"
+        class="mt-4 px-4 py-2 rounded-xl bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 disabled:opacity-50">
+        {{ 'action.save' | t }}
+      </button>
+    </section>
+
+    <!-- Modules -->
+    <section>
+      <h2 class="font-semibold text-slate-800 mb-3">{{ 'plat.modules' | t }}</h2>
+      @if (loading()) {
+        <p class="text-slate-400 text-sm">{{ 'label.loading' | t }}</p>
+      } @else {
+        <div class="space-y-3">
+          @for (m of modules(); track m.key) {
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+              <div class="flex items-center gap-3 flex-wrap">
+                <span class="font-semibold text-slate-800">{{ 'sub.module.' + m.key | t }}</span>
+                <span class="font-mono text-xs text-slate-400">{{ m.key }}</span>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="badgeClass(m)">{{ 'sub.state.' + m.state | t }}</span>
+                @if (m.state === 'grace' && m.graceEndsAt) {
+                  <span class="text-xs text-amber-700">{{ 'sub.graceWarning' | t }} {{ m.graceEndsAt | date: 'MMM d, y' }}</span>
+                }
+              </div>
+              @for (w of m.warnings; track w) {
+                <p class="text-xs text-amber-700 mt-1">⚠ {{ w }}</p>
+              }
+              @if (edits[m.key]; as e) {
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3 items-end">
+                  <label class="flex items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" [(ngModel)]="e.enabled" [disabled]="m.key === 'core'" class="w-4 h-4" />
+                    {{ 'plat.enabled' | t }}
+                  </label>
+                  <div>
+                    <label [attr.for]="'vu-' + m.key" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'sub.validUntil' | t }}</label>
+                    <input [id]="'vu-' + m.key" type="date" [(ngModel)]="e.validUntil" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+                  </div>
+                  <div>
+                    <label [attr.for]="'src-' + m.key" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.source' | t }}</label>
+                    <select [id]="'src-' + m.key" [(ngModel)]="e.source" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+                      @for (s of sources; track s) { <option [value]="s">{{ s }}</option> }
+                    </select>
+                  </div>
+                  <div>
+                    <label [attr.for]="'n-' + m.key" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.notes' | t }}</label>
+                    <input [id]="'n-' + m.key" type="text" maxlength="1000" [(ngModel)]="e.notes" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+                  </div>
+                </div>
+                <button (click)="saveModule(m)" [disabled]="!isDirty(m) || savingKey() === m.key"
+                  class="mt-3 px-4 py-1.5 rounded-xl bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 disabled:opacity-40">
+                  {{ 'action.save' | t }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Integrations -->
+    <section>
+      <h2 class="font-semibold text-slate-800">{{ 'plat.integrations' | t }}</h2>
+      <p class="text-sm text-slate-500 mt-1 mb-3">{{ 'plat.integrationsHint' | t }}</p>
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+        @for (i of integrations(); track i.key) {
+          <div class="flex items-center gap-3 px-4 py-3 text-sm">
+            <span class="font-medium text-slate-700">{{ 'plat.int.' + i.key | t }}</span>
+            <span class="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class]="i.configured ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
+              {{ (i.configured ? 'plat.configured' : 'plat.notConfigured') | t }}
+            </span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class]="i.enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'">
+              {{ (i.enabled ? 'plat.switchOn' : 'plat.switchOff') | t }}
+            </span>
+          </div>
+        }
+      </div>
+    </section>
+
+  </div>
+</div>

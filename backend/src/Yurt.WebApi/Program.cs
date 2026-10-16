@@ -1,3 +1,4 @@
+using Yurt.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -177,7 +178,8 @@ app.UseAuthentication();
 app.Use(async (ctx, next) =>
 {
     var path = ctx.Request.Path.Value ?? "";
-    if (path.Contains("/admin/", StringComparison.OrdinalIgnoreCase) &&
+    if ((path.Contains("/admin/", StringComparison.OrdinalIgnoreCase) ||
+         path.Contains("/platform/", StringComparison.OrdinalIgnoreCase)) &&
         !path.Contains("/auth/login", StringComparison.OrdinalIgnoreCase) &&
         !path.Contains("/auth/logout", StringComparison.OrdinalIgnoreCase) &&
         !path.Contains("/auth/refresh", StringComparison.OrdinalIgnoreCase) &&
@@ -195,6 +197,31 @@ app.Use(async (ctx, next) =>
                 Detail = "You must change your password before accessing this resource.",
                 Instance = ctx.Request.Path
             });
+            return;
+        }
+    }
+    await next();
+});
+
+// Maintenance mode: customer API calls get 503 while the operator has it switched on. Staff (/admin), the
+// operator tools (/platform), app config/update checks (/app) and payment/POS webhooks keep working.
+app.Use(async (ctx, next) =>
+{
+    var path = ctx.Request.Path.Value ?? "";
+    var exempt = !path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("/admin/", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("/platform/", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("/app/", StringComparison.OrdinalIgnoreCase)
+        || path.Contains("webhook", StringComparison.OrdinalIgnoreCase)
+        || HttpMethods.IsOptions(ctx.Request.Method);
+    if (!exempt)
+    {
+        var maintenance = await ctx.RequestServices.GetRequiredService<IMaintenanceGate>().GetAsync(ctx.RequestAborted);
+        if (maintenance.Enabled)
+        {
+            ctx.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            ctx.Response.Headers["Retry-After"] = "300";
+            await ctx.Response.WriteAsJsonAsync(new { code = "maintenance", message = maintenance.Message }, ctx.RequestAborted);
             return;
         }
     }

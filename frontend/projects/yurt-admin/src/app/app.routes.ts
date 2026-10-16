@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminAuthGuard } from './guards/auth.guard';
+import { superAdminGuard } from './guards/super-admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
@@ -71,10 +72,22 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/audit-log/audit-log.component').then((m) => m.AuditLogComponent),
       },
+      { path: 'app-releases', redirectTo: 'platform/app-releases', pathMatch: 'full' },
       {
-        path: 'app-releases',
-        loadComponent: () =>
-          import('./features/app-releases/app-releases.component').then((m) => m.AppReleasesComponent),
+        path: 'platform',
+        canActivate: [superAdminGuard],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/platform/platform.component').then((m) => m.PlatformComponent),
+          },
+          {
+            path: 'app-releases',
+            loadComponent: () =>
+              import('./features/app-releases/app-releases.component').then((m) => m.AppReleasesComponent),
+          },
+        ],
       },
       {
         path: 'subscription',

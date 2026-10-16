@@ -38,6 +38,9 @@ services:
       # Creates the first admin on an empty database; the app forces a password change at first login.
       SEED_ADMIN_USERNAME: admin
       SEED_ADMIN_PASSWORD: admin12345
+      # Platform operator (the /platform tools in the admin panel). Must be 12+ characters.
+      SEED_SUPERADMIN_USERNAME: superadmin
+      SEED_SUPERADMIN_PASSWORD: superadmin12345
       # Local: no real WhatsApp/SMS provider, so skip phone verification.
       Otp__Required: "false"
     ports:

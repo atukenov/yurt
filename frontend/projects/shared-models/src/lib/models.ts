@@ -595,6 +595,36 @@ export interface AppRelease {
 /** Public runtime config: keys of the modules that are switched on. */
 export interface AppConfig {
   modules: string[];
+  maintenance?: MaintenanceInfo;
+}
+
+export interface MaintenanceInfo {
+  enabled: boolean;
+  message: string;
+}
+
+export interface PlatformModule {
+  key: string;
+  enabled: boolean;
+  state: ModuleState;
+  validUntil: string | null;
+  graceEndsAt: string | null;
+  source: 'Manual' | 'Trial' | 'Paid';
+  notes: string | null;
+  warnings: string[];
+}
+
+export interface UpdateModuleLicenseRequest {
+  enabled: boolean;
+  validUntil: string | null;
+  source: 'Manual' | 'Trial' | 'Paid';
+  notes: string | null;
+}
+
+export interface IntegrationStatus {
+  key: string;
+  configured: boolean;
+  enabled: boolean;
 }
 
 export type ModuleState = 'active' | 'grace' | 'expired' | 'disabled';

@@ -13,11 +13,13 @@ public class AppController : ApiControllerBase
 {
     private readonly AppReleaseService _releases;
     private readonly IModuleGate _modules;
+    private readonly IMaintenanceGate _maintenance;
 
-    public AppController(AppReleaseService releases, IModuleGate modules)
+    public AppController(AppReleaseService releases, IModuleGate modules, IMaintenanceGate maintenance)
     {
         _releases = releases;
         _modules = modules;
+        _maintenance = maintenance;
     }
 
     /// <summary>
@@ -29,13 +31,18 @@ public class AppController : ApiControllerBase
         => Ok(await _releases.GetUpdateInfoAsync(ct));
 
     /// <summary>
-    /// Runtime configuration for the apps: the keys of the enabled modules. Public (needed before login).
+    /// Runtime configuration for the apps: the keys of the enabled modules and the maintenance flag. Public (needed before login).
     /// A missing or failing lookup reports everything enabled, so old and new clients keep working.
     /// </summary>
     [HttpGet("config")]
     public async Task<IActionResult> GetConfig(CancellationToken ct)
     {
         var statuses = await _modules.GetStatusesAsync(ct);
-        return Ok(new { modules = statuses.Where(s => s.IsEnabled).Select(s => s.Key).ToList() });
+        var maintenance = await _maintenance.GetAsync(ct);
+        return Ok(new
+        {
+            modules = statuses.Where(s => s.IsEnabled).Select(s => s.Key).ToList(),
+            maintenance = new { enabled = maintenance.Enabled, message = maintenance.Message }
+        });
     }
 }

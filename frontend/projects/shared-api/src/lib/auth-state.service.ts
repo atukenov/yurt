@@ -31,8 +31,12 @@ export class AuthStateService {
   get isLoggedIn(): boolean {
     return !!this.currentUser;
   }
+  /** Cafe admin or platform operator (SuperAdmin has every admin permission). */
   get isAdmin(): boolean {
-    return this.currentUser?.role === 'Admin';
+    return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'SuperAdmin';
+  }
+  get isSuperAdmin(): boolean {
+    return this.currentUser?.role === 'SuperAdmin';
   }
 
   setUser(user: AuthUser): void {

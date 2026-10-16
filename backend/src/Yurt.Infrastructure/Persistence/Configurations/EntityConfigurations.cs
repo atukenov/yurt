@@ -334,3 +334,14 @@ public class ModuleLicenseConfiguration : IEntityTypeConfiguration<ModuleLicense
         builder.Property(e => e.Notes).HasMaxLength(1000);
     }
 }
+
+public class PlatformSettingConfiguration : IEntityTypeConfiguration<PlatformSetting>
+{
+    public void Configure(EntityTypeBuilder<PlatformSetting> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Key).HasMaxLength(100).IsRequired();
+        builder.HasIndex(e => e.Key).IsUnique();
+        builder.Property(e => e.Value).HasMaxLength(2000).IsRequired();
+    }
+}
