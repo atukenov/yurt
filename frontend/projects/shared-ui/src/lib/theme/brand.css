@@ -44,3 +44,8 @@
   --color-brand-900: var(--brand-900);
   --color-brand-950: var(--brand-950);
 }
+
+/* Text that sits on the primary colour: `text-on-brand` picks dark or white for readability. */
+@theme {
+  --color-on-brand: var(--brand-on-primary);
+}

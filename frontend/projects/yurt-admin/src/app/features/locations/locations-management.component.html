@@ -6,7 +6,7 @@
     @if (modules.isEnabled('multi_location') || locations().length === 0) {
     <button
       (click)="openDialog()"
-      class="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-stone-900 font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
+      class="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-on-brand font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
     >
       <span class="text-base leading-none font-bold">+</span> {{ 'locations.add' | t }}
     </button>

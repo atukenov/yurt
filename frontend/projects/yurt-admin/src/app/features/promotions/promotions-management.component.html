@@ -8,7 +8,7 @@
     </div>
     <button
       (click)="openDialog()"
-      class="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-stone-900 font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
+      class="inline-flex items-center gap-1.5 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-on-brand font-semibold text-sm px-4 py-2 rounded-xl transition-colors shadow-sm"
     >
       {{ 'promotions.newPromotion' | t }}
     </button>
@@ -196,7 +196,7 @@
           <button
             (click)="save()"
             [disabled]="saving()"
-            class="px-5 py-2 rounded-xl text-sm font-semibold bg-brand-500 text-stone-900 hover:bg-brand-600 disabled:opacity-50 transition-colors shadow-sm"
+            class="px-5 py-2 rounded-xl text-sm font-semibold bg-brand-500 text-on-brand hover:bg-brand-600 disabled:opacity-50 transition-colors shadow-sm"
           >
             {{ saving() ? ('promotions.saving' | t) : ('action.save' | t) }}
           </button>

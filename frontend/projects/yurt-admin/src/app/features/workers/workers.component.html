@@ -6,7 +6,7 @@
     </div>
     <button
       (click)="openCreate()"
-      class="bg-brand-500 hover:bg-brand-600 text-stone-900 font-semibold rounded-xl px-4 py-2 text-sm transition-colors whitespace-nowrap"
+      class="bg-brand-500 hover:bg-brand-600 text-on-brand font-semibold rounded-xl px-4 py-2 text-sm transition-colors whitespace-nowrap"
     >
       {{ 'workers.newWorker' | t }}
     </button>
@@ -141,7 +141,7 @@
       </div>
       <div class="flex gap-3 mt-5">
         <button (click)="showCreate.set(false)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{{ 'action.cancel' | t }}</button>
-        <button (click)="submitCreate()" [disabled]="createLoading()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-stone-900 font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
+        <button (click)="submitCreate()" [disabled]="createLoading()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-on-brand font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
           {{ createLoading() ? ('workers.creating' | t) : ('action.add' | t) }}
         </button>
       </div>
@@ -163,7 +163,7 @@
       </div>
       <div class="flex gap-3 mt-5">
         <button (click)="editWorker.set(null)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{{ 'action.cancel' | t }}</button>
-        <button (click)="submitEdit()" [disabled]="editLoading()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-stone-900 font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
+        <button (click)="submitEdit()" [disabled]="editLoading()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-on-brand font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
           {{ editLoading() ? ('workers.saving' | t) : ('action.save' | t) }}
         </button>
       </div>
@@ -180,7 +180,7 @@
       <input [(ngModel)]="resetPassword" type="password" [placeholder]="'workers.newPw' | t" [attr.aria-label]="'workers.newPw' | t" class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300" />
       <div class="flex gap-3 mt-5">
         <button (click)="resetWorker.set(null)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{{ 'action.cancel' | t }}</button>
-        <button (click)="submitReset()" [disabled]="resetLoading()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-stone-900 font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
+        <button (click)="submitReset()" [disabled]="resetLoading()" class="flex-1 bg-brand-500 hover:bg-brand-600 text-on-brand font-semibold rounded-xl py-2.5 text-sm disabled:opacity-60 transition-colors">
           {{ resetLoading() ? ('workers.resetting' | t) : ('action.confirm' | t) }}
         </button>
       </div>
