@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { BrandConfig } from 'shared-models';
 import { buildScale, parseHex, readableOn } from './brand-palette';
 
@@ -17,6 +17,12 @@ const STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '90
  */
 @Injectable({ providedIn: 'root' })
 export class BrandService {
+  /** The cafe's name, logo and support contact for headings, receipts and the like. */
+  readonly name = signal('Yurt');
+  /** Absolute https URL of the cafe's logo, or null to use the bundled logo.png. */
+  readonly logoUrl = signal<string | null>(null);
+  readonly supportContact = signal<string | null>(null);
+
   constructor() {
     const cached = this.readCache();
     if (cached) this.apply(cached, false);
@@ -29,6 +35,10 @@ export class BrandService {
   }
 
   private apply(brand: BrandConfig, persist: boolean): void {
+    this.name.set(brand.name?.trim() || 'Yurt');
+    this.logoUrl.set(brand.logoUrl && /^https:\/\//i.test(brand.logoUrl) ? brand.logoUrl : null);
+    this.supportContact.set(brand.supportContact?.trim() || null);
+
     const root = typeof document === 'undefined' ? null : document.documentElement;
     if (!root) return;
 
@@ -63,7 +73,7 @@ export class BrandService {
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      return parsed && typeof parsed.primaryColor === 'string' && typeof parsed.accentColor === 'string'
+      return parsed && typeof parsed.name === 'string' && typeof parsed.primaryColor === 'string' && typeof parsed.accentColor === 'string'
         ? (parsed as BrandConfig) : null;
     } catch {
       return null;

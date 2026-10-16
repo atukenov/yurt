@@ -2,7 +2,7 @@ import { Component, inject, signal, ElementRef, viewChildren } from '@angular/co
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { YurtApiService, AuthStateService } from 'shared-api';
+import { YurtApiService, AuthStateService, BrandService } from 'shared-api';
 import { ButtonComponent, ToastService } from 'shared-ui';
 import { TranslatePipe } from '../../../core/translate.pipe';
 import { LangService } from '../../../core/lang.service';
@@ -20,6 +20,7 @@ export class LoginComponent {
   private router = inject(Router);
   private toast = inject(ToastService);
   private lang = inject(LangService);
+  readonly brand = inject(BrandService);
 
   readonly pinInputs = viewChildren<ElementRef>('pinInput');
 

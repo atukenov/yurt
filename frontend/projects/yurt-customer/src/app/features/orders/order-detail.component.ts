@@ -4,7 +4,7 @@ import { Component, inject, Input, OnDestroy, OnInit, signal } from '@angular/co
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { ModuleService, SignalrService, SKIP_ERROR_TOAST, YurtApiService } from 'shared-api';
+import { BrandService, ModuleService, SignalrService, SKIP_ERROR_TOAST, YurtApiService } from 'shared-api';
 import {
   Order,
   OrderStatus,
@@ -37,6 +37,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
   readonly router = inject(Router);
   private api = inject(YurtApiService);
   readonly modules = inject(ModuleService);
+  readonly brand = inject(BrandService);
   private signalr = inject(SignalrService);
   private toast = inject(ToastService);
   private lang = inject(LangService);

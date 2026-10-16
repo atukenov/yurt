@@ -107,23 +107,7 @@ public class PlatformService
     private static readonly JsonSerializerOptions BrandJson = new(JsonSerializerDefaults.Web);
 
     /// <summary>The stored brand, or the Yurt default when none is saved (or the saved value is unreadable).</summary>
-    public async Task<BrandDto> GetBrandAsync(CancellationToken ct = default)
-    {
-        var raw = await _db.PlatformSettings.AsNoTracking()
-            .Where(s => s.Key == PlatformSettingKeys.Brand)
-            .Select(s => s.Value)
-            .FirstOrDefaultAsync(ct);
-        if (string.IsNullOrWhiteSpace(raw)) return BrandDto.Default;
-        try
-        {
-            var brand = JsonSerializer.Deserialize<BrandDto>(raw, BrandJson);
-            return brand is not null && Validate(brand) is null ? brand : BrandDto.Default;
-        }
-        catch (JsonException)
-        {
-            return BrandDto.Default;
-        }
-    }
+    public Task<BrandDto> GetBrandAsync(CancellationToken ct = default) => BrandReader.ReadAsync(_db, ct);
 
     public async Task<Result<BrandDto>> SetBrandAsync(BrandDto dto, CancellationToken ct = default)
     {
@@ -135,7 +119,7 @@ public class PlatformService
             LogoUrl = string.IsNullOrWhiteSpace(dto.LogoUrl) ? null : dto.LogoUrl.Trim(),
             SupportContact = string.IsNullOrWhiteSpace(dto.SupportContact) ? null : dto.SupportContact.Trim(),
         };
-        if (Validate(brand) is { } error)
+        if (ValidateBrand(brand) is { } error)
             return Result<BrandDto>.Failure(error, 400);
 
         await UpsertAsync(PlatformSettingKeys.Brand, JsonSerializer.Serialize(brand, BrandJson), ct);
@@ -145,7 +129,7 @@ public class PlatformService
         return Result<BrandDto>.Success(brand);
     }
 
-    private static string? Validate(BrandDto b)
+    internal static string? ValidateBrand(BrandDto b)
     {
         if (b.Name.Length is 0 or > 60) return "Name is required (max 60 characters).";
         if (!HexColor.IsMatch(b.PrimaryColor)) return "Primary colour must look like #rrggbb.";
