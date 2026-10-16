@@ -2,12 +2,18 @@
 @import "../../shared-ui/src/lib/theme/brand.css";
 
 
+/* Admin pages sit on slate, not stone (unlayered, so it wins over brand.css). */
+:root {
+  --surface-page: #f8fafc;
+}
+
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--brand-font);
   }
   body {
-    @apply bg-slate-50 text-stone-900;
+    background-color: var(--surface-page);
+    color: var(--text-body);
   }
   * {
     @apply box-border;

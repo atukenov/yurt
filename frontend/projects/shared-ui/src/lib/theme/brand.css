@@ -43,6 +43,16 @@
 
   --brand-accent: #ea580c;
   --brand-accent-soft: #ffb300;
+
+  /* Page background and body text. The admin app overrides --surface-page (slate instead of stone). */
+  --surface-page: #fafaf9;
+  --text-body: #1c1917;
+
+  /* Font family for the whole app. A cafe font is loaded first, then this is overridden. */
+  --brand-font: 'Inter', system-ui, sans-serif;
+
+  /* Corner roundness: 1 is today's look, 0 is square, 1.5 is rounder. Scales rounded-lg..3xl. */
+  --radius-scale: 1;
 }
 
 @theme {
@@ -67,4 +77,13 @@
   --color-on-brand: var(--brand-on-primary);
   --color-brand-ink: var(--brand-ink);
   --color-brand-hero: var(--brand-hero-text);
+}
+
+/* Typography and corner radius follow the tokens above. Defaults equal Tailwind's own values. */
+@theme {
+  --font-sans: var(--brand-font);
+  --radius-lg:  calc(0.5rem  * var(--radius-scale));
+  --radius-xl:  calc(0.75rem * var(--radius-scale));
+  --radius-2xl: calc(1rem    * var(--radius-scale));
+  --radius-3xl: calc(1.5rem  * var(--radius-scale));
 }
