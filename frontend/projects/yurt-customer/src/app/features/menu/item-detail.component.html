@@ -93,7 +93,7 @@
           <h2 style="font-size:26px;font-weight:800;color:#1c1917;letter-spacing:-.01em;line-height:1.15;flex:1">
             {{ i.name }}
           </h2>
-          <span style="font-size:22px;font-weight:800;color:var(--brand-600);flex-shrink:0;margin-top:2px;font-variant-numeric:tabular-nums">
+          <span style="font-size:22px;font-weight:800;color:var(--brand-ink);flex-shrink:0;margin-top:2px;font-variant-numeric:tabular-nums">
             {{ unitPrice() | currency2 }}
           </span>
         </div>
@@ -187,7 +187,7 @@
                       <!-- Price -->
                       @if (topping.price > 0) {
                         <span style="font-size:11px;font-weight:600"
-                          [style.color]="sel ? 'var(--brand-600)' : '#a8a29e'">+{{ topping.price | currency2 }}</span>
+                          [style.color]="sel ? 'var(--brand-ink)' : '#a8a29e'">+{{ topping.price | currency2 }}</span>
                       }
                     </button>
                   }
@@ -224,7 +224,7 @@
                         <span style="font-size:14px;font-weight:600;color:#292524">{{ topping.name }}</span>
                       </div>
                       <span style="font-size:13px;font-weight:600"
-                        [style.color]="sel ? 'var(--brand-600)' : '#a8a29e'">
+                        [style.color]="sel ? 'var(--brand-ink)' : '#a8a29e'">
                         {{ topping.price === 0 ? ('menu.free' | t) : ('+' + (topping.price | currency2)) }}
                       </span>
                     </button>
@@ -243,7 +243,7 @@
     <div class="flex flex-col items-center justify-center min-h-screen">
       <div class="text-6xl mb-4">🔍</div>
       <p class="text-stone-500 font-medium text-lg">{{ 'item.notFound' | t }}</p>
-      <button (click)="goBack()" class="mt-4 text-brand-600 font-semibold text-sm">← Back to menu</button>
+      <button (click)="goBack()" class="mt-4 text-brand-ink font-semibold text-sm">← Back to menu</button>
     </div>
   }
 

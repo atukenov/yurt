@@ -3,7 +3,7 @@
     <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:#1c1917;letter-spacing:-.01em">{{ 'cart.title' | t }}</h1>
     @if (locationName()) {
       <span style="font-size:12px;font-weight:600;color:#78716c;display:inline-flex;align-items:center;gap:5px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" stroke-width="2.5">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand-ink)" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
           <circle cx="12" cy="11" r="3"></circle>
         </svg>
@@ -260,7 +260,7 @@
               (click)="selectedPaymentMethod.set(bank.method)"
               class="flex flex-col items-center justify-center gap-2 py-3 px-2 rounded-2xl border-2 font-semibold text-xs transition-all active:scale-95"
               [class]="selectedPaymentMethod() === bank.method
-                ? 'border-brand-400 bg-brand-50 text-brand-700 shadow-sm'
+                ? 'border-brand-400 bg-brand-50 text-brand-ink shadow-sm'
                 : 'border-stone-200 bg-white text-stone-500 hover:border-stone-300'"
             >
               <img [src]="bank.logo" [alt]="bank.label | t" class="h-8 w-auto object-contain" loading="lazy" />
@@ -294,11 +294,11 @@
     }
     <!-- Group order links hidden for now
     <div class="flex items-center gap-3 mt-2.5">
-      <a routerLink="/group-order/create" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-brand-600 transition-colors py-1">
+      <a routerLink="/group-order/create" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-brand-ink transition-colors py-1">
         👥 Start Group Order
       </a>
       <span class="text-stone-200">|</span>
-      <a routerLink="/group-order/join" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-brand-600 transition-colors py-1">
+      <a routerLink="/group-order/join" class="flex-1 text-center text-xs font-semibold text-stone-500 hover:text-brand-ink transition-colors py-1">
         Join Group
       </a>
     </div>

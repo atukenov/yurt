@@ -174,7 +174,7 @@
       <!-- Total row -->
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:13px;font-weight:800;color:#1c1917">{{ 'order.total' | t }}</span>
-        <span style="font-size:16px;font-weight:800;color:var(--brand-600);font-variant-numeric:tabular-nums">
+        <span style="font-size:16px;font-weight:800;color:var(--brand-ink);font-variant-numeric:tabular-nums">
           {{ o.total | currency2 }}
         </span>
       </div>
@@ -365,12 +365,12 @@
             }
             <div class="flex justify-between font-bold text-base">
               <span class="text-stone-800">{{ 'order.total' | t }}</span>
-              <span class="text-brand-600">{{ r.total | currency2 }}</span>
+              <span class="text-brand-ink">{{ r.total | currency2 }}</span>
             </div>
             @if (r.loyaltyPointsSpent) {
               <div class="flex justify-between text-sm">
-                <span class="text-brand-600">✨ {{ 'order.bonusSpent' | t }}</span>
-                <span class="text-brand-600 font-semibold">-{{ r.loyaltyPointsSpent | currency2 }}</span>
+                <span class="text-brand-ink">✨ {{ 'order.bonusSpent' | t }}</span>
+                <span class="text-brand-ink font-semibold">-{{ r.loyaltyPointsSpent | currency2 }}</span>
               </div>
             }
             @if (r.loyaltyPointsEarned) {
