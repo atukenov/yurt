@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { adminAuthGuard } from './guards/auth.guard';
 import { superAdminGuard } from './guards/super-admin.guard';
+import { moduleGuard } from 'shared-api';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
@@ -41,6 +42,7 @@ export const routes: Routes = [
       },
       {
         path: 'analytics',
+        canActivate: [moduleGuard('analytics', '/orders')],
         loadComponent: () =>
           import('./features/analytics/analytics.component').then((m) => m.AnalyticsComponent),
       },

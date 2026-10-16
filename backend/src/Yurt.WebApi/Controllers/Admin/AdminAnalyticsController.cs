@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
+using Yurt.WebApi.Common;
+using Yurt.Domain;
 using Yurt.Application.Features.Analytics.Services;
 
 namespace Yurt.WebApi.Controllers.Admin;
@@ -9,6 +11,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/analytics")]
 [Authorize(Policy = "AdminOnly")]
+[RequireModule(ModuleKeys.Analytics)]
 public class AdminAnalyticsController : ControllerBase
 {
     private readonly AnalyticsService _analyticsService;

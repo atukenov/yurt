@@ -80,7 +80,7 @@ Bundles: **Starter** = Core; **Pro** = Core + Marketing + Analytics + Engagement
 **Business** = everything except usage-based items.
 
 Gating order (lowest risk first):
-- [ ] `analytics` (admin-only, no customer impact)
+- [x] `analytics` (admin-only, no customer impact) _(details in `docs/modules.md`)_
 - [ ] `marketing` (promotions, discount codes)
 - [ ] `group_orders`
 - [ ] `engagement` (ratings, achievements, 2GIS button)

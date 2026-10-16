@@ -82,6 +82,7 @@
           @if (!collapsed()) { <span class="truncate">{{ 'nav.locations' | t }}</span> }
         </a>
 
+        @if (modules.isEnabled('analytics')) {
         <a
           routerLink="/analytics"
           routerLinkActive="bg-amber-50 text-amber-700 font-semibold"
@@ -96,6 +97,7 @@
           </svg>
           @if (!collapsed()) { <span class="truncate">{{ 'nav.analytics' | t }}</span> }
         </a>
+        }
 
         <a
           routerLink="/promotions"
