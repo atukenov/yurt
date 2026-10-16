@@ -22,3 +22,18 @@ public record UpdateModuleLicenseDto(
 public record MaintenanceDto(bool Enabled, string Message);
 
 public record IntegrationStatusDto(string Key, bool Configured, bool Enabled);
+
+/// <summary>
+/// A cafe's brand as served to the apps (Phase 4 white-label). Colours are "#rrggbb".
+/// <see cref="PrimaryColor"/> is the main colour (the 500 step of the generated scale),
+/// <see cref="AccentColor"/> the secondary one used for gradient ends.
+/// </summary>
+public record BrandDto(
+    string Name,
+    string PrimaryColor,
+    string AccentColor,
+    string? LogoUrl,
+    string? SupportContact)
+{
+    public static readonly BrandDto Default = new("Yurt", "#ffd119", "#ea580c", null, null);
+}

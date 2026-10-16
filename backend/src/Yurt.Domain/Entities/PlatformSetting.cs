@@ -13,4 +13,6 @@ public static class PlatformSettingKeys
 {
     public const string MaintenanceEnabled = "maintenance.enabled";
     public const string MaintenanceMessage = "maintenance.message";
+    /// <summary>The cafe's brand (name, colours, logo, support contact) as one JSON document.</summary>
+    public const string Brand = "brand.settings";
 }

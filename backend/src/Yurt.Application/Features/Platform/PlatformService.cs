@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
@@ -99,6 +101,60 @@ public class PlatformService
             row.Value = value;
             row.UpdatedAt = DateTime.UtcNow;
         }
+    }
+
+    private static readonly Regex HexColor = new("^#[0-9a-fA-F]{6}$", RegexOptions.Compiled);
+    private static readonly JsonSerializerOptions BrandJson = new(JsonSerializerDefaults.Web);
+
+    /// <summary>The stored brand, or the Yurt default when none is saved (or the saved value is unreadable).</summary>
+    public async Task<BrandDto> GetBrandAsync(CancellationToken ct = default)
+    {
+        var raw = await _db.PlatformSettings.AsNoTracking()
+            .Where(s => s.Key == PlatformSettingKeys.Brand)
+            .Select(s => s.Value)
+            .FirstOrDefaultAsync(ct);
+        if (string.IsNullOrWhiteSpace(raw)) return BrandDto.Default;
+        try
+        {
+            var brand = JsonSerializer.Deserialize<BrandDto>(raw, BrandJson);
+            return brand is not null && Validate(brand) is null ? brand : BrandDto.Default;
+        }
+        catch (JsonException)
+        {
+            return BrandDto.Default;
+        }
+    }
+
+    public async Task<Result<BrandDto>> SetBrandAsync(BrandDto dto, CancellationToken ct = default)
+    {
+        var brand = dto with
+        {
+            Name = (dto.Name ?? string.Empty).Trim(),
+            PrimaryColor = (dto.PrimaryColor ?? string.Empty).Trim().ToLowerInvariant(),
+            AccentColor = (dto.AccentColor ?? string.Empty).Trim().ToLowerInvariant(),
+            LogoUrl = string.IsNullOrWhiteSpace(dto.LogoUrl) ? null : dto.LogoUrl.Trim(),
+            SupportContact = string.IsNullOrWhiteSpace(dto.SupportContact) ? null : dto.SupportContact.Trim(),
+        };
+        if (Validate(brand) is { } error)
+            return Result<BrandDto>.Failure(error, 400);
+
+        await UpsertAsync(PlatformSettingKeys.Brand, JsonSerializer.Serialize(brand, BrandJson), ct);
+        await _db.SaveChangesAsync(ct);
+        await _audit.LogAsync("BrandUpdated", "PlatformSetting", PlatformSettingKeys.Brand,
+            $"name={brand.Name}; primary={brand.PrimaryColor}; accent={brand.AccentColor}", ct);
+        return Result<BrandDto>.Success(brand);
+    }
+
+    private static string? Validate(BrandDto b)
+    {
+        if (b.Name.Length is 0 or > 60) return "Name is required (max 60 characters).";
+        if (!HexColor.IsMatch(b.PrimaryColor)) return "Primary colour must look like #rrggbb.";
+        if (!HexColor.IsMatch(b.AccentColor)) return "Accent colour must look like #rrggbb.";
+        if (b.LogoUrl is { } logo &&
+            (logo.Length > 500 || !Uri.TryCreate(logo, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps))
+            return "Logo must be an https URL (max 500 characters).";
+        if (b.SupportContact is { Length: > 200 }) return "Support contact is too long (max 200 characters).";
+        return null;
     }
 
     private static PlatformModuleDto ToDto(ModuleStatus s, Dictionary<string, List<string>> warnings)
