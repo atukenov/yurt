@@ -31,7 +31,11 @@ import { BrandService } from 'shared-api';
         } @else {
           <!-- Fallback: amber gradient with logo if video fails to load -->
           <div class="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-brand-500 to-brand-600">
-            <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="w-28 h-28 object-contain drop-shadow-2xl" style="animation: pulse 1.2s ease-in-out infinite" />
+            @if (brand.splashUrl(); as splash) {
+              <img [src]="splash" [alt]="brand.name()" class="w-full h-full object-cover" />
+            } @else {
+              <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="w-28 h-28 object-contain drop-shadow-2xl" style="animation: pulse 1.2s ease-in-out infinite" />
+            }
             <style>@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }</style>
           </div>
         }

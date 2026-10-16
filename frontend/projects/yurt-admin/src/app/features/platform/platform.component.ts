@@ -38,7 +38,7 @@ export class PlatformComponent implements OnInit {
 
   // ── Brand ──
   private static readonly DEFAULT_BRAND: BrandConfig = {
-    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null,
+    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null, iconUrl: null, splashUrl: null,
   };
   brand = signal<BrandConfig>({ ...PlatformComponent.DEFAULT_BRAND });
   savingBrand = signal(false);
@@ -73,6 +73,8 @@ export class PlatformComponent implements OnInit {
       accentColor: b.accentColor.trim(),
       logoUrl: b.logoUrl?.trim() || null,
       supportContact: b.supportContact?.trim() || null,
+      iconUrl: b.iconUrl?.trim() || null,
+      splashUrl: b.splashUrl?.trim() || null,
     }).subscribe({
       next: (saved) => {
         this.brand.set(saved);
