@@ -101,7 +101,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [ ] Define brand **design tokens** as CSS variables: primary, primary-contrast, accent, surface, text, radius, font family (light and dark). _(Partly done: `shared-ui/src/lib/theme/brand.css` has the primary scale `--brand-50..950`, `--brand-on-primary`, `--brand-accent`; surface, text, radius, font and dark mode are still to do.)_
 - [x] Replace hard-coded `#ffd119` / `amber-*` in `yurt-customer` and `yurt-admin` with the tokens (Tailwind theme mapped to the variables). _(Done: utilities are now `brand-*`, inline styles use `var(--brand-500)`, glows use `rgb(var(--brand-500-rgb) / a)`. Default values are unchanged, so nothing looks different.)_
 - [ ] Brand-agnostic **component audit**: buttons, badges, cards, popups (closed notice, update sheet, 2GIS button), toasts, skeletons.
-- [ ] Contrast checks: auto-pick readable text color for any primary color; provide a safe fallback palette. _(Partly done: text on the primary colour follows `--brand-on-primary` (`text-on-brand` class); buttons that put the primary colour as text on a near-black background and a safe fallback palette are still to do.)_
+- [x] Contrast checks: auto-pick readable text color for any primary color; provide a safe fallback palette. _(Done: text on the primary follows `--brand-on-primary`; the near-black buttons (add to cart, checkout) use `--brand-on-dark`, the primary lightened until it reads on near-black; the Brand screen warns when the primary is so light or so dark that buttons or shades vanish. The "fallback" is that warning plus the Yurt default when the module is off; the save is not blocked.)_
 - [ ] Optional per-cafe font (self-hosted, loaded from config).
 
 **Brand configuration**

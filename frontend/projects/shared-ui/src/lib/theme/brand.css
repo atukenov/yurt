@@ -26,6 +26,9 @@
   /* Readable text on top of the primary colour. */
   --brand-on-primary: #1c1917;
 
+  /* The primary colour as text/icons on near-black (#1c1917) buttons: lightened for dark brands. */
+  --brand-on-dark: #ffd119;
+
   /* Secondary accent used for the end of brand gradients, and the warmer update-sheet tint. */
   --brand-accent: #ea580c;
   --brand-accent-soft: #ffb300;

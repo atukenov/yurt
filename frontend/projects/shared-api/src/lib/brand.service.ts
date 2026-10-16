@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { BrandConfig, BrandLink } from 'shared-models';
-import { buildScale, parseHex, readableOn } from './brand-palette';
+import { buildScale, parseHex, readableOn, readableOnDark } from './brand-palette';
 
 const CACHE_KEY = 'yurt.brand';
 /** The built-in Yurt colours live in shared-ui theme/brand.css; a brand with these values changes nothing. */
@@ -71,6 +71,7 @@ export class BrandService {
       for (const step of STEPS) root.style.setProperty(`--brand-${step}`, scale![step]);
       root.style.setProperty('--brand-500-rgb', primary!.join(' '));
       root.style.setProperty('--brand-on-primary', readableOn(primary!));
+      root.style.setProperty('--brand-on-dark', readableOnDark(primary!));
       if (parseHex(brand.accentColor)) {
         root.style.setProperty('--brand-accent', brand.accentColor);
         root.style.setProperty('--brand-accent-soft', brand.accentColor);
@@ -101,7 +102,7 @@ export class BrandService {
 
   private clear(root: HTMLElement): void {
     for (const step of STEPS) root.style.removeProperty(`--brand-${step}`);
-    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-accent', '--brand-accent-soft'])
+    for (const name of ['--brand-500-rgb', '--brand-on-primary', '--brand-on-dark', '--brand-accent', '--brand-accent-soft'])
       root.style.removeProperty(name);
   }
 
