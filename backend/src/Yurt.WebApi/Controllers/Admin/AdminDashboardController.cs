@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
+using Yurt.Domain;
 using Yurt.Application.Features.Analytics.Services;
 using Yurt.WebApi.Common;
 
@@ -10,6 +11,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/dashboard")]
 [Authorize(Policy = "AdminOnly")]
+[RequireModule(ModuleKeys.Analytics)]
 public class AdminDashboardController : ApiControllerBase
 {
     private readonly AnalyticsService _analytics;
