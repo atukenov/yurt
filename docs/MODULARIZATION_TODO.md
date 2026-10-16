@@ -123,6 +123,12 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 
 ## Phase 5 — Multi-tenant (only when running several cafes in one deployment)
 - [ ] `Tenant` table and `TenantId` on all tenant data; global query filters; per-tenant credentials (iiko, payments, Firebase, OTP).
+  Approach (Lev chose shared database, step by step, 2026-10-16): each step is its own PR and the current cafe keeps working unchanged.
+  - [x] `Tenant` table and one seeded default tenant (fixed id `Tenant.DefaultId`); no table is filtered yet.
+  - [ ] Request-to-tenant resolution (host name, then the signed-in user's tenant), default tenant when only one exists.
+  - [ ] `TenantId` (nullable, defaulting to the default tenant) plus global query filter, one table group per PR: menu and locations, then users, orders and payments, then the rest.
+  - [ ] Per-tenant settings and credentials: module licenses, brand and other platform settings, iiko, payments, Firebase, OTP.
+  - [ ] Make `TenantId` required once every table has it.
 - [ ] Per-tenant domains/subdomains and CORS.
 - [ ] Data-isolation test suite (one cafe can never read another's data).
 - [ ] Tenant provisioning flow in `/platform` (create cafe, seed menu, first admin).

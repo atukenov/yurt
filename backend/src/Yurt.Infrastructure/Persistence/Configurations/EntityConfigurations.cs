@@ -323,6 +323,19 @@ public class AppReleaseConfiguration : IEntityTypeConfiguration<AppRelease>
     }
 }
 
+public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
+{
+    public void Configure(EntityTypeBuilder<Tenant> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Slug).HasMaxLength(50).IsRequired();
+        builder.HasIndex(e => e.Slug).IsUnique();
+        builder.Property(e => e.Name).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.Domain).HasMaxLength(255);
+        builder.HasIndex(e => e.Domain).IsUnique();
+    }
+}
+
 public class ModuleLicenseConfiguration : IEntityTypeConfiguration<ModuleLicense>
 {
     public void Configure(EntityTypeBuilder<ModuleLicense> builder)
