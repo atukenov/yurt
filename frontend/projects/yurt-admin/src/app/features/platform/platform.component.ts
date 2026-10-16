@@ -1,10 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { YurtApiService } from 'shared-api';
+import { YurtApiService, buildScale, parseHex, readableOn } from 'shared-api';
 import { ToastService } from 'shared-ui';
-import { IntegrationStatus, PlatformModule } from 'shared-models';
+import { BrandConfig, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 interface ModuleEdit {
@@ -36,6 +36,53 @@ export class PlatformComponent implements OnInit {
 
   readonly sources: ModuleEdit['source'][] = ['Manual', 'Trial', 'Paid'];
 
+  // ── Brand ──
+  private static readonly DEFAULT_BRAND: BrandConfig = {
+    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null,
+  };
+  brand = signal<BrandConfig>({ ...PlatformComponent.DEFAULT_BRAND });
+  savingBrand = signal(false);
+
+  /** Scoped CSS variables for the preview only; the real app is not touched until the brand is saved. */
+  previewVars = computed(() => {
+    const b = this.brand();
+    const scale = buildScale(b.primaryColor) ?? buildScale(PlatformComponent.DEFAULT_BRAND.primaryColor)!;
+    const base = parseHex(b.primaryColor) ?? parseHex(PlatformComponent.DEFAULT_BRAND.primaryColor)!;
+    const vars: Record<string, string> = { '--p-on': readableOn(base) };
+    for (const [step, hex] of Object.entries(scale)) vars[`--p-${step}`] = hex;
+    vars['--p-accent'] = parseHex(b.accentColor) ? b.accentColor : PlatformComponent.DEFAULT_BRAND.accentColor;
+    return vars;
+  });
+  logoOk = computed(() => /^https:\/\//i.test(this.brand().logoUrl ?? ''));
+  colorsValid = computed(() => !!parseHex(this.brand().primaryColor) && !!parseHex(this.brand().accentColor));
+
+  patchBrand(patch: Partial<BrandConfig>): void {
+    this.brand.update((b) => ({ ...b, ...patch }));
+  }
+
+  resetBrand(): void {
+    this.brand.set({ ...PlatformComponent.DEFAULT_BRAND });
+  }
+
+  saveBrand(): void {
+    const b = this.brand();
+    this.savingBrand.set(true);
+    this.api.setBrand({
+      name: b.name.trim(),
+      primaryColor: b.primaryColor.trim(),
+      accentColor: b.accentColor.trim(),
+      logoUrl: b.logoUrl?.trim() || null,
+      supportContact: b.supportContact?.trim() || null,
+    }).subscribe({
+      next: (saved) => {
+        this.brand.set(saved);
+        this.savingBrand.set(false);
+        this.toast.success('Brand saved');
+      },
+      error: () => this.savingBrand.set(false),
+    });
+  }
+
   ngOnInit(): void {
     this.api.getPlatformModules().subscribe({
       next: (m) => { this.setModules(m); this.loading.set(false); },
@@ -44,6 +91,7 @@ export class PlatformComponent implements OnInit {
     this.api.getMaintenance().subscribe({
       next: (m) => { this.maintenanceEnabled = m.enabled; this.maintenanceMessage = m.message; },
     });
+    this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }
 
