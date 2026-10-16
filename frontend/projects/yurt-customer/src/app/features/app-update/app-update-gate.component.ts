@@ -20,7 +20,7 @@ import { TranslatePipe } from '../../core/translate.pipe';
     .grab { width: 38px; height: 4px; border-radius: 4px; background: #e7e5e4; margin: 0 auto 18px; }
     .hero { position: relative; width: 76px; height: 76px; margin: 0 auto 14px; border-radius: 26px;
       background: linear-gradient(145deg, var(--brand-500), var(--brand-accent-soft)); display: grid; place-items: center; font-size: 36px;
-      box-shadow: 0 14px 26px -10px rgba(255,179,0,.7); }
+      box-shadow: 0 14px 26px -10px rgb(var(--brand-500-rgb) / .7); }
     .hero::after { content: '✦'; position: absolute; top: -8px; right: -6px; font-size: 20px; color: var(--brand-accent-soft); }
     h2 { font-size: 21px; font-weight: 800; color: #1c1917; text-align: center; letter-spacing: -.02em; }
     .chip { display: table; margin: 8px auto 0; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7;
