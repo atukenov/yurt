@@ -79,10 +79,12 @@ export class LocationsManagementComponent implements OnInit {
       next: (locs) => { this.locations.set(locs); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
-    this.api.getIikoTerminalGroups().subscribe({
-      next: (groups) => this.iikoTerminalGroups.set(groups),
-      error: () => this.iikoTerminalGroups.set([]), // iiko disabled/unreachable — picker just stays empty
-    });
+    if (this.modules.isEnabled('iiko_sync')) {
+      this.api.getIikoTerminalGroups().subscribe({
+        next: (groups) => this.iikoTerminalGroups.set(groups),
+        error: () => this.iikoTerminalGroups.set([]), // iiko disabled/unreachable — picker just stays empty
+      });
+    }
   }
 
   openDialog(loc?: Location): void {

@@ -66,6 +66,14 @@ How a gate is built:
 - **Existing data:** points spent/earned on past orders still show on those orders.
 - **Depends on:** iiko adapter or, later, `own_pos` (see Phase 6); the dependency check is a warning only.
 
+### `iiko_sync` (optional iiko adapter, no new features)
+- **Covers:** pushing new accepted orders to iiko (`IikoOrderSyncService.PushOrderAsync`), the iiko webhook (`/webhooks/iiko`) and the admin lookups (`/admin/iiko/*`: nomenclature, payment types, terminal groups, webhook registration). In the admin app the iiko product mapping on menu items, the terminal group on branches and the "Synced to iiko" badge on live orders are hidden.
+- **How it switches off:** `403 {code:"module_disabled"}` on the endpoints; new orders are simply not pushed (they stay `NotPushed`). It is a second switch on top of `Iiko:Enabled` and `Iiko:PushOrdersEnabled`.
+- **Background jobs:** the push retry job checks the gate (done in Phase 1).
+- **Never leaves orders open:** closing an order that was already pushed ignores the module.
+- **Existing data:** iiko ids on menu items and branches stay in the database, so switching the module back on needs no re-mapping.
+- **Not covered:** loyalty talks to iiko too, but it has its own `loyalty` module.
+- **Depends on:** nothing; replaced by `own_pos` in Phase 6.
+
 ## Not gated yet
-`iiko_sync`,
 `online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).

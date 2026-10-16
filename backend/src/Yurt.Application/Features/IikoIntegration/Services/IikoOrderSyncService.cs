@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Loyalty;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
@@ -22,6 +23,7 @@ public class IikoOrderSyncService
     private readonly IIikoApiClient _iiko;
     private readonly IikoOptions _options;
     private readonly IAuditLogService _audit;
+    private readonly IModuleGate _modules;
     private readonly ILogger<IikoOrderSyncService> _logger;
 
     public IikoOrderSyncService(
@@ -29,12 +31,14 @@ public class IikoOrderSyncService
         IIikoApiClient iiko,
         IikoOptions options,
         IAuditLogService audit,
+        IModuleGate modules,
         ILogger<IikoOrderSyncService> logger)
     {
         _db = db;
         _iiko = iiko;
         _options = options;
         _audit = audit;
+        _modules = modules;
         _logger = logger;
     }
 
@@ -47,6 +51,9 @@ public class IikoOrderSyncService
     {
         if (!_options.Enabled || !_options.PushOrdersEnabled) return;
         if (order.IikoOrderSyncStatus != IikoOrderSyncStatus.NotPushed) return; // already handled
+        // iiko_sync off: new orders are simply not pushed. Closing an order that was already
+        // pushed (CloseOrderAsync) ignores the module so nothing is left open in iiko.
+        if (!await _modules.IsEnabledAsync(ModuleKeys.IikoSync, ct)) return;
 
         var terminalGroupId = order.Location?.IikoTerminalGroupId;
         if (terminalGroupId == null)

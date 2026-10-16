@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { YurtApiService } from 'shared-api';
+import { ModuleService, YurtApiService } from 'shared-api';
 import { MenuItem, MenuCategory, MenuTopping, Location, MenuItemVariant, IikoNomenclatureProduct } from 'shared-models';
 import { ButtonComponent, ToastService, Currency2Pipe } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
@@ -65,6 +65,7 @@ interface CatInput {
 })
 export class MenuManagementComponent implements OnInit {
   private api = inject(YurtApiService);
+  readonly modules = inject(ModuleService);
   private toast = inject(ToastService);
   private confirmSvc = inject(ConfirmService);
   readonly langService = inject(AdminLangService);
@@ -139,10 +140,12 @@ export class MenuManagementComponent implements OnInit {
     });
     this.api.adminGetToppings().subscribe((toppings) => this.toppings.set(toppings));
     this.api.getAdminLocations().subscribe((locs) => this.locations.set(locs));
-    this.api.getIikoNomenclature().subscribe({
-      next: (products) => this.iikoNomenclature.set(products),
-      error: () => this.iikoNomenclature.set([]), // iiko disabled/unreachable — mapping picker just stays empty
-    });
+    if (this.modules.isEnabled('iiko_sync')) {
+      this.api.getIikoNomenclature().subscribe({
+        next: (products) => this.iikoNomenclature.set(products),
+        error: () => this.iikoNomenclature.set([]), // iiko disabled/unreachable — mapping picker just stays empty
+      });
+    }
   }
 
   localizedCatName(cat: MenuCategory): string {

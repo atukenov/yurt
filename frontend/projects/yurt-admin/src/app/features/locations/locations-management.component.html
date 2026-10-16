@@ -203,22 +203,24 @@
           <label for="isActive" class="text-sm text-slate-700 select-none">{{ 'locations.active' | t }}</label>
         </div>
 
-        <!-- iiko terminal group (order-push routing, optional) -->
-        <div>
-          <label for="location-iiko-terminal-group" class="block text-xs font-medium text-slate-600 mb-1">iiko terminal group (optional)</label>
-          <p class="text-xs text-slate-400 mb-2">Which iiko POS/KDS receives orders pushed from this location. Leave unmapped to skip iiko order-push for this location.</p>
-          <select
-            id="location-iiko-terminal-group"
-            [ngModel]="form().iikoTerminalGroupId"
-            (ngModelChange)="patch('iikoTerminalGroupId', $event)"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
-          >
-            <option value="">Not mapped</option>
-            @for (g of iikoTerminalGroups(); track g.id) {
-              <option [value]="g.id">{{ g.name }}</option>
-            }
-          </select>
-        </div>
+        @if (modules.isEnabled('iiko_sync')) {
+          <!-- iiko terminal group (order-push routing, optional) -->
+          <div>
+            <label for="location-iiko-terminal-group" class="block text-xs font-medium text-slate-600 mb-1">iiko terminal group (optional)</label>
+            <p class="text-xs text-slate-400 mb-2">Which iiko POS/KDS receives orders pushed from this location. Leave unmapped to skip iiko order-push for this location.</p>
+            <select
+              id="location-iiko-terminal-group"
+              [ngModel]="form().iikoTerminalGroupId"
+              (ngModelChange)="patch('iikoTerminalGroupId', $event)"
+              class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+            >
+              <option value="">Not mapped</option>
+              @for (g of iikoTerminalGroups(); track g.id) {
+                <option [value]="g.id">{{ g.name }}</option>
+              }
+            </select>
+          </div>
+        }
       </div>
 
       <!-- Dialog footer -->

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Loyalty;
+using Yurt.Domain;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
@@ -14,6 +15,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 /// value (IikoOptions.PaymentTypeId), consistent with every other global iiko setting;
 /// this controller just helps the operator find the right ID to put there.
 /// </summary>
+[RequireModule(ModuleKeys.IikoSync)]
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/iiko")]
