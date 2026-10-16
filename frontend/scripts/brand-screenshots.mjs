@@ -20,7 +20,7 @@ const SCREENS = ['/auth/login', '/auth/register'];
 /** Sample brands: the Yurt default, a deep blue, a dark green with a long name, links and a welcome line, and a pale one. */
 export const BRANDS = {
   yurt: { name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c' },
-  'blue-cafe': { name: 'Blue Cafe', primaryColor: '#1d4ed8', accentColor: '#0ea5e9', welcomeText: 'Fresh coffee every morning' },
+  'blue-cafe': { name: 'Blue Cafe', primaryColor: '#1d4ed8', accentColor: '#0ea5e9', welcomeText: 'Fresh coffee every morning', radius: 'square', font: 'serif' },
   'forest-roasters': {
     name: 'Forest Roasters & Bakery', primaryColor: '#14532d', accentColor: '#65a30d',
     welcomeText: 'Roasted in small batches', supportContact: '+7 700 000 00 00',

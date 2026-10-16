@@ -99,3 +99,12 @@ export function buildScale(primaryHex: string): Record<string, string> | null {
   for (const [step, t] of SHADES) scale[String(step)] = toHex(mix(base, [0, 0, 0], t));
   return scale;
 }
+
+/** Corner roundness presets: the multiplier for `--radius-scale` (1 is the default look). */
+export const RADIUS_SCALE: Record<string, number> = { square: 0, round: 1.5 };
+
+/** Font presets that need no download. Anything else keeps the bundled Inter. */
+export const FONT_STACKS: Record<string, string> = {
+  system: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  serif: "Georgia, 'Times New Roman', serif",
+};

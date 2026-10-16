@@ -80,6 +80,26 @@
             <input id="brand-welcome" type="text" maxlength="120" [ngModel]="brand().welcomeText ?? ''" (ngModelChange)="patchBrand({ welcomeText: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
           </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="brand-radius" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandRadius' | t }}</label>
+              <select id="brand-radius" [ngModel]="brand().radius ?? 'default'" (ngModelChange)="patchBrand({ radius: $event === 'default' ? null : $event })"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
+                <option value="square">{{ 'plat.radiusSquare' | t }}</option>
+                <option value="default">{{ 'plat.radiusDefault' | t }}</option>
+                <option value="round">{{ 'plat.radiusRound' | t }}</option>
+              </select>
+            </div>
+            <div>
+              <label for="brand-font" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandFont' | t }}</label>
+              <select id="brand-font" [ngModel]="brand().font ?? 'default'" (ngModelChange)="patchBrand({ font: $event === 'default' ? null : $event })"
+                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
+                <option value="default">{{ 'plat.fontDefault' | t }}</option>
+                <option value="system">{{ 'plat.fontSystem' | t }}</option>
+                <option value="serif">{{ 'plat.fontSerif' | t }}</option>
+              </select>
+            </div>
+          </div>
           <div>
             <p class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLinks' | t }}</p>
             <div class="space-y-2">

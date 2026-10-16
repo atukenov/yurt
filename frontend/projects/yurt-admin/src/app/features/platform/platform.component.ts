@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { YurtApiService, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
+import { YurtApiService, FONT_STACKS, RADIUS_SCALE, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService } from 'shared-ui';
 import { BrandConfig, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -38,7 +38,7 @@ export class PlatformComponent implements OnInit {
 
   // ── Brand ──
   private static readonly DEFAULT_BRAND: BrandConfig = {
-    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null, iconUrl: null, splashUrl: null, welcomeText: null, links: [],
+    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null, iconUrl: null, splashUrl: null, welcomeText: null, links: [], radius: null, font: null,
   };
   brand = signal<BrandConfig>({ ...PlatformComponent.DEFAULT_BRAND });
   savingBrand = signal(false);
@@ -51,6 +51,9 @@ export class PlatformComponent implements OnInit {
     const vars: Record<string, string> = { '--p-on': readableOn(base) };
     for (const [step, hex] of Object.entries(scale)) vars[`--p-${step}`] = hex;
     vars['--p-accent'] = parseHex(b.accentColor) ? b.accentColor : PlatformComponent.DEFAULT_BRAND.accentColor;
+    const scale2 = RADIUS_SCALE[b.radius ?? ''] ?? 1;
+    for (const [name, rem] of [['lg', 0.5], ['xl', 0.75], ['2xl', 1], ['3xl', 1.5]] as const) vars[`--radius-${name}`] = `${rem * scale2}rem`;
+    vars['font-family'] = FONT_STACKS[b.font ?? ''] ?? 'var(--brand-font)';
     return vars;
   });
   paletteWarning = computed(() => paletteWarningFor(this.brand().primaryColor));
@@ -89,6 +92,8 @@ export class PlatformComponent implements OnInit {
       iconUrl: b.iconUrl?.trim() || null,
       splashUrl: b.splashUrl?.trim() || null,
       welcomeText: b.welcomeText?.trim() || null,
+      radius: b.radius || null,
+      font: b.font || null,
       links: (b.links ?? []).filter((l) => l.label.trim() || l.url.trim()).map((l) => ({ label: l.label.trim(), url: l.url.trim() })),
     }).subscribe({
       next: (saved) => {

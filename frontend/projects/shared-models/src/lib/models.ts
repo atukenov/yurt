@@ -611,6 +611,10 @@ export interface BrandConfig {
   splashUrl?: string | null;
   welcomeText?: string | null;
   links?: BrandLink[] | null;
+  /** Corner style: 'square' | 'round'; null or 'default' keeps today's look. */
+  radius?: string | null;
+  /** Font: 'system' | 'serif'; null or 'default' keeps Inter. */
+  font?: string | null;
 }
 
 export interface BrandLink {

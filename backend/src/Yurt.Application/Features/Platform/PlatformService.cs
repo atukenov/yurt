@@ -121,6 +121,8 @@ public class PlatformService
             IconUrl = string.IsNullOrWhiteSpace(dto.IconUrl) ? null : dto.IconUrl.Trim(),
             SplashUrl = string.IsNullOrWhiteSpace(dto.SplashUrl) ? null : dto.SplashUrl.Trim(),
             WelcomeText = string.IsNullOrWhiteSpace(dto.WelcomeText) ? null : dto.WelcomeText.Trim(),
+            Radius = NormalizeChoice(dto.Radius),
+            Font = NormalizeChoice(dto.Font),
             Links = dto.Links?
                 .Where(l => !string.IsNullOrWhiteSpace(l.Label) || !string.IsNullOrWhiteSpace(l.Url))
                 .Select(l => new BrandLink((l.Label ?? string.Empty).Trim(), (l.Url ?? string.Empty).Trim()))
@@ -145,6 +147,8 @@ public class PlatformService
         if (b.IconUrl is { } icon && !IsHttpsUrl(icon)) return "Icon must be an https URL (max 500 characters).";
         if (b.SplashUrl is { } splash && !IsHttpsUrl(splash)) return "Splash image must be an https URL (max 500 characters).";
         if (b.WelcomeText is { Length: > 120 }) return "Welcome text is too long (max 120 characters).";
+        if (b.Radius is { } radius && !BrandChoices.Radius.Contains(radius)) return "Corner style must be square, default or round.";
+        if (b.Font is { } font && !BrandChoices.Font.Contains(font)) return "Font must be default, system or serif.";
         if (b.Links is { } links)
         {
             if (links.Count > 6) return "At most 6 links.";
@@ -154,6 +158,11 @@ public class PlatformService
         if (b.SupportContact is { Length: > 200 }) return "Support contact is too long (max 200 characters).";
         return null;
     }
+
+    /// <summary>Blank or "default" means no override.</summary>
+    private static string? NormalizeChoice(string? value)
+        => string.IsNullOrWhiteSpace(value) || value.Trim().Equals("default", StringComparison.OrdinalIgnoreCase)
+            ? null : value.Trim().ToLowerInvariant();
 
     private static bool IsHttpsUrl(string value)
         => value.Length <= 500 && Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps;
