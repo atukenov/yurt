@@ -90,7 +90,7 @@ Gating order (lowest risk first):
 - [x] `loyalty` (+ its background jobs) _(details in `docs/modules.md`)_
 - [x] `iiko_sync` (adapter only; keep it working, no new features) _(details in `docs/modules.md`)_
 - [ ] `own_pos` (gated as it ships, see Phase 6)
-- [ ] `online_payments`
+- [x] `online_payments` _(details in `docs/modules.md`)_
 - [ ] `verification` (builds on the `Otp:Required` switch)
 For each: backend `RequireModule`, hide UI, deep-link redirect, test that a disabled module returns `403`, document dependencies.
 
