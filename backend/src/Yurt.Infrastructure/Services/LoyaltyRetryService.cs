@@ -55,24 +55,24 @@ public class LoyaltyRetryService : BackgroundService
                     continue;
                 }
 
-                await using var scope = _services.CreateAsyncScope();
-                var loyalty = scope.ServiceProvider.GetRequiredService<LoyaltyService>();
-
-                await loyalty.RetryPendingAsync(stoppingToken);
-
+                // The sweep and revalidation timers are shared: decide once, then run for every cafe.
                 var now = DateTime.UtcNow;
+                var sweepDue = now >= _nextSweepDueUtc;
+                var revalidationDue = now >= _nextWalletRevalidationDueUtc;
 
-                if (now >= _nextSweepDueUtc)
-                {
-                    await loyalty.SweepMissedCreditsAsync(ct: stoppingToken);
-                    _nextSweepDueUtc = now + SweepInterval;
-                }
+                await TenantJobs.ForEachTenantAsync(
+                    _services.GetRequiredService<IServiceScopeFactory>(), _logger,
+                    async (sp, ct) =>
+                    {
+                        var loyalty = sp.GetRequiredService<LoyaltyService>();
+                        await loyalty.RetryPendingAsync(ct);
+                        if (sweepDue) await loyalty.SweepMissedCreditsAsync(ct: ct);
+                        if (revalidationDue) await loyalty.RevalidateWalletLinksAsync(ct);
+                    },
+                    stoppingToken);
 
-                if (now >= _nextWalletRevalidationDueUtc)
-                {
-                    await loyalty.RevalidateWalletLinksAsync(stoppingToken);
-                    _nextWalletRevalidationDueUtc = now + WalletRevalidationInterval;
-                }
+                if (sweepDue) _nextSweepDueUtc = now + SweepInterval;
+                if (revalidationDue) _nextWalletRevalidationDueUtc = now + WalletRevalidationInterval;
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

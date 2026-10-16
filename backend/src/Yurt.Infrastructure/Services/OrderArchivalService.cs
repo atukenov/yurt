@@ -29,10 +29,12 @@ public class OrderArchivalService : BackgroundService
         }
     }
 
-    private async Task ArchiveOldOrdersAsync(CancellationToken ct)
+    private Task ArchiveOldOrdersAsync(CancellationToken ct)
+        => TenantJobs.ForEachTenantAsync(_scopeFactory, _logger, ArchiveForTenantAsync, ct);
+
+    private async Task ArchiveForTenantAsync(IServiceProvider sp, CancellationToken ct)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var db = sp.GetRequiredService<IApplicationDbContext>();
 
         var cutoff = DateTime.UtcNow.AddDays(-90);
         var now = DateTime.UtcNow;
