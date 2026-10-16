@@ -134,7 +134,7 @@
             <yurt-badge [variant]="o.status | orderStatusColor" class="text-sm">
               {{ 'order.status.' + o.status | t }}
             </yurt-badge>
-            @if (iikoSyncBadge(o.iikoOrderSyncStatus); as sync) {
+            @if (modules.isEnabled('iiko_sync') && iikoSyncBadge(o.iikoOrderSyncStatus); as sync) {
               <yurt-badge [variant]="sync.variant" class="text-xs">{{ sync.label }}</yurt-badge>
             }
           </div>

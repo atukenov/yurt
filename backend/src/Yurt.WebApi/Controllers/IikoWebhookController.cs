@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Domain.Enums;
+using Yurt.Domain;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers;
@@ -16,6 +17,7 @@ namespace Yurt.WebApi.Controllers;
 /// only flags <see cref="IikoOrderSyncStatus.Failed"/> when iiko reports a cancellation
 /// or error on a pushed order, so staff notice a mismatch instead of it going unnoticed.
 /// </summary>
+[RequireModule(ModuleKeys.IikoSync)]
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/webhooks/iiko")]

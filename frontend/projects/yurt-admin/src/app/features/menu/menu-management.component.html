@@ -433,38 +433,40 @@
             </select>
           </div>
         </div>
-        <!-- iiko order-push mapping (optional) -->
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">iiko product mapping (optional)</label>
-          <p class="text-xs text-slate-400 mb-2">Maps this item to iiko's catalog so accepted orders can be pushed to iiko as real orders. Leave unmapped to skip iiko for this item.</p>
-          <div class="grid grid-cols-2 gap-2">
-            <select
-              aria-label="iiko product mapping"
-              [ngModel]="itemForm().iikoProductId"
-              (ngModelChange)="onIikoProductChange($event)"
-              class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
-            >
-              <option value="">Not mapped</option>
-              @for (p of iikoNomenclature(); track p.productId) {
-                <option [value]="p.productId">{{ p.name }}</option>
-              }
-            </select>
-            @if (itemForm().variants.length === 0) {
+        @if (modules.isEnabled('iiko_sync')) {
+          <!-- iiko order-push mapping (optional) -->
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">iiko product mapping (optional)</label>
+            <p class="text-xs text-slate-400 mb-2">Maps this item to iiko's catalog so accepted orders can be pushed to iiko as real orders. Leave unmapped to skip iiko for this item.</p>
+            <div class="grid grid-cols-2 gap-2">
               <select
-                aria-label="iiko product size mapping"
-                [ngModel]="itemForm().iikoProductSizeId"
-                (ngModelChange)="patchItemForm('iikoProductSizeId', $event)"
-                [disabled]="!selectedIikoProduct()?.sizes?.length"
-                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                aria-label="iiko product mapping"
+                [ngModel]="itemForm().iikoProductId"
+                (ngModelChange)="onIikoProductChange($event)"
+                class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none"
               >
-                <option value="">{{ selectedIikoProduct()?.sizes?.length ? 'Select size' : 'No sizes' }}</option>
-                @for (s of selectedIikoProduct()?.sizes ?? []; track s.productSizeId) {
-                  <option [value]="s.productSizeId">{{ s.name || s.productSizeId }}</option>
+                <option value="">Not mapped</option>
+                @for (p of iikoNomenclature(); track p.productId) {
+                  <option [value]="p.productId">{{ p.name }}</option>
                 }
               </select>
-            }
+              @if (itemForm().variants.length === 0) {
+                <select
+                  aria-label="iiko product size mapping"
+                  [ngModel]="itemForm().iikoProductSizeId"
+                  (ngModelChange)="patchItemForm('iikoProductSizeId', $event)"
+                  [disabled]="!selectedIikoProduct()?.sizes?.length"
+                  class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                >
+                  <option value="">{{ selectedIikoProduct()?.sizes?.length ? 'Select size' : 'No sizes' }}</option>
+                  @for (s of selectedIikoProduct()?.sizes ?? []; track s.productSizeId) {
+                    <option [value]="s.productSizeId">{{ s.name || s.productSizeId }}</option>
+                  }
+                </select>
+              }
+            </div>
           </div>
-        </div>
+        }
         <!-- Size Variants -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
