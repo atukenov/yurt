@@ -3,8 +3,10 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Domain.Entities;
 
-public class AdminUser : BaseEntity
+public class AdminUser : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Username { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public AdminRole Role { get; set; } = AdminRole.Worker;

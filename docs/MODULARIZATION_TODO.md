@@ -129,7 +129,9 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
   - [ ] `TenantId` (not null, existing rows get the default tenant) plus global query filter, one table group per PR:
     - [x] Menu and locations (`Location`, `MenuCategory`, `MenuItem`, `MenuTopping`, `MenuItemVariant`, `MenuItemLocation`, `MenuToppingCategory`). New rows are stamped from `ITenantContext` on save. 
     - [x] Orders, payments, group carts, promotions and favorites (`Order`, `OrderItem`, `OrderItemTopping`, `Payment`, `PaymentWebhookLog`, `GroupCart*`, `Promotion`, `Favorite`). The startup warnings about required navigations are gone. Payment webhooks resolve the cafe by host name like any request; giving each cafe its own webhook address and credentials is part of the per-tenant credentials step.
-    - [ ] Users (customers, staff, refresh tokens, device tokens), audit log, discount codes, reports, app releases.
+    - [x] Users and admin data (`CustomerUser`, `PhoneVerification`, `AdminUser`, `RefreshToken`, `CustomerDeviceToken`, `AuditLog`, `DiscountCode`, `UserReport`, `AppRelease`). Phone number, discount code and release version are now unique per cafe (the same person can join two cafes); admin usernames stay globally unique. SuperAdmin accounts are visible from every cafe's host. Sign-in, refresh and checkout all find the cafe by host name, so a token from one cafe's host does not work on another's.
+  - [ ] Background jobs (order timers, archival, loyalty retry, iiko order retry) run for every tenant, not only the default one. Must be done before a second cafe is created.
+  - [ ] Put the tenant in the sign-in token and check it matches the host.
   - [ ] Per-tenant settings and credentials: module licenses, brand and other platform settings, iiko, payments, Firebase, OTP.
   - [ ] Make `TenantId` required once every table has it.
 - [ ] Per-tenant domains/subdomains and CORS.

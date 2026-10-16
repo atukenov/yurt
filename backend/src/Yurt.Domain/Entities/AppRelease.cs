@@ -6,8 +6,10 @@ namespace Yurt.Domain.Entities;
 /// A published app version with its "what's new" notes. The newest release drives the
 /// update popup; a mandatory release raises the minimum version older apps are blocked below.
 /// </summary>
-public class AppRelease : BaseEntity
+public class AppRelease : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Version { get; set; } = string.Empty;
 
     // One bullet per line.

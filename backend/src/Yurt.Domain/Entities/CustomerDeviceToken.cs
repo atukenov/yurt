@@ -3,8 +3,10 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Domain.Entities;
 
-public class CustomerDeviceToken : BaseEntity
+public class CustomerDeviceToken : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public Guid CustomerUserId { get; set; }
     public string Token { get; set; } = string.Empty;
     public DevicePlatform Platform { get; set; }

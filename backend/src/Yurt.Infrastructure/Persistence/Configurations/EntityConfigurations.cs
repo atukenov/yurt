@@ -9,7 +9,7 @@ public class CustomerUserConfiguration : IEntityTypeConfiguration<CustomerUser>
     public void Configure(EntityTypeBuilder<CustomerUser> builder)
     {
         builder.HasKey(e => e.Id);
-        builder.HasIndex(e => e.MobileNumber).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.MobileNumber }).IsUnique();
         builder.Property(e => e.MobileNumber).HasMaxLength(20).IsRequired();
         builder.Property(e => e.PinHash).HasMaxLength(200).IsRequired();
     }
@@ -20,7 +20,7 @@ public class PhoneVerificationConfiguration : IEntityTypeConfiguration<PhoneVeri
     public void Configure(EntityTypeBuilder<PhoneVerification> builder)
     {
         builder.HasKey(e => e.Id);
-        builder.HasIndex(e => new { e.MobileNumber, e.Purpose }).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.MobileNumber, e.Purpose }).IsUnique();
         builder.Property(e => e.MobileNumber).HasMaxLength(20).IsRequired();
         builder.Property(e => e.CodeHash).HasMaxLength(200).IsRequired();
         builder.Property(e => e.PinHash).HasMaxLength(200).IsRequired();
@@ -126,7 +126,7 @@ public class DiscountCodeConfiguration : IEntityTypeConfiguration<DiscountCode>
     public void Configure(EntityTypeBuilder<DiscountCode> builder)
     {
         builder.HasKey(e => e.Id);
-        builder.HasIndex(e => e.Code).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.Code }).IsUnique();
         builder.Property(e => e.Code).HasMaxLength(50).IsRequired();
         builder.Property(e => e.Title).HasMaxLength(200).IsRequired();
         builder.Property(e => e.DiscountType).HasConversion<string>().HasMaxLength(20);
@@ -316,7 +316,7 @@ public class AppReleaseConfiguration : IEntityTypeConfiguration<AppRelease>
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Version).HasMaxLength(20).IsRequired();
-        builder.HasIndex(e => e.Version).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.Version }).IsUnique();
         builder.Property(e => e.NotesEn).HasColumnType("text").IsRequired();
         builder.Property(e => e.NotesRu).HasColumnType("text").IsRequired();
         builder.Property(e => e.NotesKk).HasColumnType("text").IsRequired();

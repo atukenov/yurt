@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Domain.Entities;
+using Yurt.Domain.Enums;
 using Yurt.Infrastructure.Persistence;
 
 namespace Yurt.IntegrationTests.Tests;
@@ -93,6 +94,50 @@ public class TenantIsolationTests(YurtWebAppFactory factory)
             Assert.Equal(0, await dbB.Orders.CountAsync(o => o.Id == orderId));
             Assert.Equal(0, await dbB.Promotions.CountAsync(p => p.Title == title));
         }
+    }
+
+    [Fact]
+    public async Task Customers_AreSeparatePerCafe_AndTheSamePhoneCanJoinTwoCafes()
+    {
+        var slugA = $"a-{Guid.NewGuid():N}"[..12];
+        var slugB = $"b-{Guid.NewGuid():N}"[..12];
+        var a = await CreateTenantAsync(slugA);
+        var b = await CreateTenantAsync(slugB);
+        var phone = $"+7{Random.Shared.NextInt64(7000000000, 7999999999)}";
+
+        foreach (var (id, slug) in new[] { (a, slugA), (b, slugB) })
+        {
+            using var db = DbFor(id, slug, out var scope);
+            using var _ = scope;
+            db.CustomerUsers.Add(new CustomerUser { MobileNumber = phone, PinHash = "x", FirstName = "A", LastName = "B" });
+            await db.SaveChangesAsync(); // would fail on a global unique index
+            var own = await db.CustomerUsers.Where(c => c.MobileNumber == phone).ToListAsync();
+            Assert.Equal(id, Assert.Single(own).TenantId);
+        }
+    }
+
+    [Fact]
+    public async Task PlatformOperators_AreVisibleFromEveryCafe_ButCafeAdminsAreNot()
+    {
+        var slugA = $"a-{Guid.NewGuid():N}"[..12];
+        var slugB = $"b-{Guid.NewGuid():N}"[..12];
+        var a = await CreateTenantAsync(slugA);
+        var b = await CreateTenantAsync(slugB);
+        var op = $"op-{Guid.NewGuid():N}"[..16];
+        var admin = $"adm-{Guid.NewGuid():N}"[..16];
+
+        using (var dbA = DbFor(a, slugA, out var scopeA))
+        {
+            using var _ = scopeA;
+            dbA.AdminUsers.Add(new AdminUser { Username = op, PasswordHash = "x", Role = AdminRole.SuperAdmin });
+            dbA.AdminUsers.Add(new AdminUser { Username = admin, PasswordHash = "x", Role = AdminRole.Admin });
+            await dbA.SaveChangesAsync();
+        }
+
+        using var dbB = DbFor(b, slugB, out var scopeB);
+        using var __ = scopeB;
+        Assert.Equal(1, await dbB.AdminUsers.CountAsync(u => u.Username == op));
+        Assert.Equal(0, await dbB.AdminUsers.CountAsync(u => u.Username == admin));
     }
 
     [Fact]

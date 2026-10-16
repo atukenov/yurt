@@ -4,8 +4,10 @@ namespace Yurt.Domain.Entities;
 
 public enum RefreshTokenUserType { Customer, Admin }
 
-public class RefreshToken : BaseEntity
+public class RefreshToken : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Token { get; set; } = "";
     public RefreshTokenUserType UserType { get; set; }
     public Guid UserId { get; set; }
