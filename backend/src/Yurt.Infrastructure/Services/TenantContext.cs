@@ -1,3 +1,4 @@
+using Yurt.Application.Common;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Domain.Entities;
 
@@ -12,5 +13,6 @@ public class TenantContext : ITenantContext
     {
         TenantId = tenantId;
         Slug = slug;
+        TenantAmbient.Current = tenantId;
     }
 }

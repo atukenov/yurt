@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Yurt.Application.Common;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Platform;
 using Yurt.Domain.Entities;
@@ -14,7 +16,7 @@ public class MaintenanceGate : IMaintenanceGate
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<MaintenanceGate> _logger;
-    private volatile Snapshot? _snapshot;
+    private readonly ConcurrentDictionary<Guid, Snapshot> _snapshots = new();
 
     private sealed record Snapshot(MaintenanceDto Value, DateTime LoadedAtUtc);
 
@@ -26,13 +28,15 @@ public class MaintenanceGate : IMaintenanceGate
 
     public async Task<MaintenanceDto> GetAsync(CancellationToken ct = default)
     {
-        var current = _snapshot;
+        var tenantId = TenantAmbient.Current ?? Tenant.DefaultId;
+        _snapshots.TryGetValue(tenantId, out var current);
         if (current is not null && DateTime.UtcNow - current.LoadedAtUtc < CacheFor)
             return current.Value;
 
         try
         {
             using var scope = _scopeFactory.CreateScope();
+            scope.ServiceProvider.GetRequiredService<ITenantContext>().Set(tenantId, string.Empty);
             var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
             var rows = await db.PlatformSettings.AsNoTracking()
                 .Where(s => s.Key == PlatformSettingKeys.MaintenanceEnabled || s.Key == PlatformSettingKeys.MaintenanceMessage)
@@ -41,7 +45,7 @@ public class MaintenanceGate : IMaintenanceGate
             var enabled = rows.FirstOrDefault(r => r.Key == PlatformSettingKeys.MaintenanceEnabled)?.Value == "true";
             var message = rows.FirstOrDefault(r => r.Key == PlatformSettingKeys.MaintenanceMessage)?.Value ?? string.Empty;
             var value = new MaintenanceDto(enabled, message);
-            _snapshot = new Snapshot(value, DateTime.UtcNow);
+            _snapshots[tenantId] = new Snapshot(value, DateTime.UtcNow);
             return value;
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -53,10 +57,10 @@ public class MaintenanceGate : IMaintenanceGate
             // Fail open: a broken lookup must never lock customers out.
             _logger.LogError(ex, "Maintenance lookup failed; treating as not in maintenance.");
             var fallback = current?.Value ?? Off;
-            _snapshot = new Snapshot(fallback, DateTime.UtcNow);
+            _snapshots[tenantId] = new Snapshot(fallback, DateTime.UtcNow);
             return fallback;
         }
     }
 
-    public void Invalidate() => _snapshot = null;
+    public void Invalidate() => _snapshots.Clear();
 }

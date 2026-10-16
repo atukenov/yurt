@@ -130,9 +130,11 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
     - [x] Menu and locations (`Location`, `MenuCategory`, `MenuItem`, `MenuTopping`, `MenuItemVariant`, `MenuItemLocation`, `MenuToppingCategory`). New rows are stamped from `ITenantContext` on save. 
     - [x] Orders, payments, group carts, promotions and favorites (`Order`, `OrderItem`, `OrderItemTopping`, `Payment`, `PaymentWebhookLog`, `GroupCart*`, `Promotion`, `Favorite`). The startup warnings about required navigations are gone. Payment webhooks resolve the cafe by host name like any request; giving each cafe its own webhook address and credentials is part of the per-tenant credentials step.
     - [x] Users and admin data (`CustomerUser`, `PhoneVerification`, `AdminUser`, `RefreshToken`, `CustomerDeviceToken`, `AuditLog`, `DiscountCode`, `UserReport`, `AppRelease`). Phone number, discount code and release version are now unique per cafe (the same person can join two cafes); admin usernames stay globally unique. SuperAdmin accounts are visible from every cafe's host. Sign-in, refresh and checkout all find the cafe by host name, so a token from one cafe's host does not work on another's.
-  - [x] Background jobs (order timers, archival, loyalty retry, iiko order retry) run once per active cafe (`TenantJobs.ForEachTenantAsync`); a failure in one cafe does not stop the others. Module licenses and platform settings are still shared, so the loyalty and iiko on/off switches apply to all cafes until the settings step.
+  - [x] Background jobs (order timers, archival, loyalty retry, iiko order retry) run once per active cafe (`TenantJobs.ForEachTenantAsync`); a failure in one cafe does not stop the others. The loyalty and iiko on/off switches are read per cafe.
   - [ ] Put the tenant in the sign-in token and check it matches the host.
-  - [ ] Per-tenant settings and credentials: module licenses, brand and other platform settings, iiko, payments, Firebase, OTP.
+  - [ ] Per-tenant settings and credentials:
+    - [x] Module licenses, brand, maintenance mode and other platform settings are per cafe (`ModuleLicense` and `PlatformSetting` carry `TenantId`; the module and maintenance gates cache per cafe through `TenantAmbient`). The `/platform` screens act on the cafe of the host they are opened from. A new cafe starts with no rows, which means every module is on (fail-open) until the operator switches one off.
+    - [ ] Credentials: iiko, payments, Firebase, OTP (today environment variables for the whole deployment).
   - [ ] Make `TenantId` required once every table has it.
 - [ ] Per-tenant domains/subdomains and CORS.
 - [ ] Data-isolation test suite (one cafe can never read another's data).

@@ -858,6 +858,11 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -866,7 +871,9 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModuleKey")
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "ModuleKey")
                         .IsUnique();
 
                     b.ToTable("ModuleLicenses");
@@ -1293,6 +1300,11 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1303,7 +1315,9 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Key")
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Key")
                         .IsUnique();
 
                     b.ToTable("PlatformSettings");
@@ -1761,6 +1775,15 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("Topping");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.ModuleLicense", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Order", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.CustomerUser", "CustomerUser")
@@ -1862,6 +1885,15 @@ namespace Yurt.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.PhoneVerification", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.PlatformSetting", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
                         .WithMany()

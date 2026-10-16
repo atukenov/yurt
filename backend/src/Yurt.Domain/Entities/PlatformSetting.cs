@@ -3,8 +3,10 @@ using Yurt.Domain.Common;
 namespace Yurt.Domain.Entities;
 
 /// <summary>Small key/value store for platform-wide switches such as maintenance mode.</summary>
-public class PlatformSetting : BaseEntity
+public class PlatformSetting : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     public string Key { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
 }
