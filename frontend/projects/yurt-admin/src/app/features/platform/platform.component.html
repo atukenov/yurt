@@ -103,6 +103,11 @@
             <input id="brand-support" type="text" maxlength="200" [ngModel]="brand().supportContact ?? ''" (ngModelChange)="patchBrand({ supportContact: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
           </div>
+          @if (paletteWarning(); as warn) {
+            <p class="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2" role="status">
+              {{ (warn === 'tooLight' ? 'plat.brandTooLight' : 'plat.brandTooDark') | t }}
+            </p>
+          }
           <div class="flex gap-2 pt-1">
             <button (click)="saveBrand()" [disabled]="savingBrand() || !colorsValid() || !brand().name.trim()"
               class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 disabled:opacity-40">

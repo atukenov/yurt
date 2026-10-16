@@ -53,6 +53,30 @@ export function readableOn(color: Rgb): string {
   return contrastRatio(color, DARK_TEXT) >= contrastRatio(color, LIGHT_TEXT) ? toHex(DARK_TEXT) : toHex(LIGHT_TEXT);
 }
 
+/**
+ * The brand colour, lightened just enough to read on the near-black (#1c1917) buttons and panels.
+ * A bright primary comes back unchanged; a dark one (navy, forest green) is mixed towards white.
+ */
+export function readableOnDark(color: Rgb, minContrast = 4.5): string {
+  for (let t = 0; t <= 1; t += 0.05) {
+    const c = mix(color, [255, 255, 255], t);
+    if (contrastRatio(c, DARK_TEXT) >= minContrast) return toHex(c);
+  }
+  return toHex(LIGHT_TEXT);
+}
+
+/**
+ * A heads-up for primaries that make a poor palette: so light that buttons vanish on white pages
+ * and the tints collapse into white, or so dark that the shades collapse into black.
+ */
+export function paletteWarning(primaryHex: string): 'tooLight' | 'tooDark' | null {
+  const rgb = parseHex(primaryHex);
+  if (!rgb) return null;
+  const l = luminance(rgb);
+  if (contrastRatio(rgb, LIGHT_TEXT) < 1.3) return 'tooLight'; // button barely visible on a white page
+  return l < 0.01 ? 'tooDark' : null;
+}
+
 /** The whole scale as `{ '50': '#...', ..., '950': '#...' }`, or null for an invalid colour. */
 export function buildScale(primaryHex: string): Record<string, string> | null {
   const base = parseHex(primaryHex);

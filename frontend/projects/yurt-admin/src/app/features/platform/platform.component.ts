@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { YurtApiService, buildScale, parseHex, readableOn } from 'shared-api';
+import { YurtApiService, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService } from 'shared-ui';
 import { BrandConfig, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -53,6 +53,7 @@ export class PlatformComponent implements OnInit {
     vars['--p-accent'] = parseHex(b.accentColor) ? b.accentColor : PlatformComponent.DEFAULT_BRAND.accentColor;
     return vars;
   });
+  paletteWarning = computed(() => paletteWarningFor(this.brand().primaryColor));
   logoOk = computed(() => /^https:\/\//i.test(this.brand().logoUrl ?? ''));
   colorsValid = computed(() => !!parseHex(this.brand().primaryColor) && !!parseHex(this.brand().accentColor));
 

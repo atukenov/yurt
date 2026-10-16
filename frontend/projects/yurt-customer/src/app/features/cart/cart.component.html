@@ -281,7 +281,7 @@
       <button
         (click)="openConfirm()"
         [disabled]="(!selectedPaymentMethod() && !fullyCoveredByBonus()) || loading()"
-        style="width:100%;background:#1c1917;color:var(--brand-500);font-weight:800;border:none;border-radius:18px;padding:17px 22px;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 20px -6px rgba(28,25,23,.35);cursor:pointer;font-family:inherit"
+        style="width:100%;background:#1c1917;color:var(--brand-on-dark);font-weight:800;border:none;border-radius:18px;padding:17px 22px;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 20px -6px rgba(28,25,23,.35);cursor:pointer;font-family:inherit"
         class="active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
       >
         @if (loading()) {
