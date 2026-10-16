@@ -3,10 +3,12 @@ import {
   Component,
   computed,
   ElementRef,
+  inject,
   input,
   signal,
   ViewChild,
 } from '@angular/core';
+import { BrandService } from 'shared-api';
 
 @Component({
   selector: 'app-splash',
@@ -29,7 +31,7 @@ import {
         } @else {
           <!-- Fallback: amber gradient with logo if video fails to load -->
           <div class="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-brand-500 to-brand-600">
-            <img src="logo.png" alt="Yurt" class="w-28 h-28 object-contain drop-shadow-2xl" style="animation: pulse 1.2s ease-in-out infinite" />
+            <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="w-28 h-28 object-contain drop-shadow-2xl" style="animation: pulse 1.2s ease-in-out infinite" />
             <style>@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }</style>
           </div>
         }
@@ -38,6 +40,7 @@ import {
   `,
 })
 export class SplashComponent implements AfterViewInit {
+  readonly brand = inject(BrandService);
   readonly ready = input.required<boolean>();
 
   @ViewChild('introVideo') videoRef?: ElementRef<HTMLVideoElement>;

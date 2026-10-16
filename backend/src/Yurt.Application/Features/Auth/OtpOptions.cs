@@ -38,6 +38,6 @@ public class OtpOptions
     /// <summary>Maximum wrong-code attempts before the code is rejected outright.</summary>
     public int MaxAttempts { get; set; } = 5;
 
-    /// <summary><c>{code}</c> is replaced with the generated code.</summary>
-    public string MessageTemplate { get; set; } = "Your Yurt verification code: {code}";
+    /// <summary><c>{code}</c> is replaced with the generated code and <c>{brand}</c> with the cafe's brand name.</summary>
+    public string MessageTemplate { get; set; } = "Your {brand} verification code: {code}";
 }

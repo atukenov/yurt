@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { BrandService } from 'shared-api';
 import { AppUpdateService } from '../../core/app-update.service';
 import { TranslatePipe } from '../../core/translate.pipe';
 
@@ -50,7 +51,7 @@ import { TranslatePipe } from '../../core/translate.pipe';
             <span class="chip">v{{ svc.latestVersion() }}@if (svc.currentVersion()) { · {{ 'update.youHave' | t }} {{ svc.currentVersion() }} }</span>
           }
           @if (svc.updateRequired()) {
-            <p class="body">{{ 'update.body' | t }}</p>
+            <p class="body">{{ ('update.body' | t).replace('{brand}', brand.name()) }}</p>
           }
           @if (svc.notes().length) {
             <div class="whats">
@@ -81,4 +82,5 @@ import { TranslatePipe } from '../../core/translate.pipe';
 })
 export class AppUpdateGateComponent {
   readonly svc = inject(AppUpdateService);
+  readonly brand = inject(BrandService);
 }

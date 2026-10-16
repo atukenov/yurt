@@ -1,9 +1,10 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import {
   AuthStateService,
+  BrandService,
   ModuleService,
   NotificationService,
   OrderNotificationService,
@@ -29,6 +30,7 @@ import { AppUpdateService } from './core/app-update.service';
 export class App implements OnInit, OnDestroy {
   private api = inject(YurtApiService);
   private modules = inject(ModuleService);
+  private brand = inject(BrandService);
   private auth = inject(AuthStateService);
   private signalr = inject(SignalrService);
   private orderNotifications = inject(OrderNotificationService);
@@ -39,6 +41,10 @@ export class App implements OnInit, OnDestroy {
   private appUpdate = inject(AppUpdateService);
 
   readonly appReady = this.appState.refreshReady;
+
+  constructor() {
+    effect(() => { document.title = this.brand.name(); });
+  }
 
   ngOnInit(): void {
     if (Capacitor.isNativePlatform()) {

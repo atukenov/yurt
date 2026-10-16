@@ -2,7 +2,7 @@ import { Component, inject, signal, viewChild, viewChildren, ElementRef, OnDestr
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { YurtApiService, AuthStateService } from 'shared-api';
+import { YurtApiService, AuthStateService, BrandService } from 'shared-api';
 import { ButtonComponent, OtpBoxesComponent, ToastService } from 'shared-ui';
 import { TranslatePipe } from '../../../core/translate.pipe';
 
@@ -18,6 +18,7 @@ export class RegisterComponent implements OnDestroy {
   private auth = inject(AuthStateService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  readonly brand = inject(BrandService);
 
   readonly pinInputs = viewChildren<ElementRef>('pinInput');
   readonly confirmInputs = viewChildren<ElementRef>('confirmInput');
@@ -129,7 +130,7 @@ export class RegisterComponent implements OnDestroy {
               displayName: res.auth.displayName,
               userType: res.auth.userType,
             });
-            this.toast.success('Account created! Welcome to Yurt ☕');
+            this.toast.success(`Account created! Welcome to ${this.brand.name()} ☕`);
             this.router.navigate(['/locations']);
             return;
           }
@@ -166,7 +167,7 @@ export class RegisterComponent implements OnDestroy {
           displayName: res.displayName,
           userType: res.userType,
         });
-        this.toast.success('Account created! Welcome to Yurt ☕');
+        this.toast.success(`Account created! Welcome to ${this.brand.name()} ☕`);
         this.router.navigate(['/locations']);
       },
       error: (err) => {

@@ -22,11 +22,13 @@ public class WhatsAppOtpSender : IOtpSender
 
     private record SendMessageRequest(string ChatId, string Message);
 
-    public async Task SendAsync(string mobileNumber, string code, CancellationToken ct = default)
+    public async Task SendAsync(string mobileNumber, string code, string? brandName = null, CancellationToken ct = default)
     {
         var url = $"{_options.GreenApiBaseUrl.TrimEnd('/')}/waInstance{_options.IdInstance}/sendMessage/{_options.ApiTokenInstance}";
         var chatId = ToChatId(mobileNumber);
-        var message = _options.MessageTemplate.Replace("{code}", code);
+        var message = _options.MessageTemplate
+            .Replace("{code}", code)
+            .Replace("{brand}", string.IsNullOrWhiteSpace(brandName) ? "Yurt" : brandName);
 
         try
         {

@@ -4,7 +4,8 @@ namespace Yurt.Application.Common.Interfaces;
 public interface IOtpSender
 {
     /// <summary>Send the code. Throws <see cref="OtpSendException"/> when delivery fails.</summary>
-    Task SendAsync(string mobileNumber, string code, CancellationToken ct = default);
+    /// <param name="brandName">Fills the <c>{brand}</c> placeholder of the message template; null means "Yurt".</param>
+    Task SendAsync(string mobileNumber, string code, string? brandName = null, CancellationToken ct = default);
 }
 
 public class OtpSendException : Exception

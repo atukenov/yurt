@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Platform;
 using Yurt.Application.Features.Auth.DTOs;
 using Yurt.Domain;
 using Yurt.Domain.Entities;
@@ -46,6 +47,12 @@ public class AuthService
     /// </summary>
     private async Task<bool> VerificationRequiredAsync(CancellationToken ct)
         => _otpOptions.Required && await _modules.IsEnabledAsync(ModuleKeys.Verification, ct);
+
+    /// <summary>The brand name for message templates: the saved one while the branding module is on, else "Yurt".</summary>
+    private async Task<string> BrandNameAsync(CancellationToken ct)
+        => await _modules.IsEnabledAsync(ModuleKeys.Branding, ct)
+            ? (await BrandReader.ReadAsync(_db, ct)).Name
+            : BrandDto.Default.Name;
 
     /// <summary>
     /// Step 1 of registration: validate the payload, generate a 4-digit code, persist it
@@ -131,7 +138,7 @@ public class AuthService
         {
             try
             {
-                await _otpSender.SendAsync(normalizedMobile, code, ct);
+                await _otpSender.SendAsync(normalizedMobile, code, await BrandNameAsync(ct), ct);
             }
             catch (OtpSendException ex)
             {
@@ -464,7 +471,7 @@ public class AuthService
         {
             try
             {
-                await _otpSender.SendAsync(normalizedMobile, code, ct);
+                await _otpSender.SendAsync(normalizedMobile, code, await BrandNameAsync(ct), ct);
             }
             catch (OtpSendException ex)
             {

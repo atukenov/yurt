@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { YurtApiService, AuthStateService } from 'shared-api';
+import { YurtApiService, AuthStateService, BrandService } from 'shared-api';
 import { ButtonComponent, ToastService } from 'shared-ui';
 
 @Component({
@@ -15,6 +15,7 @@ import { ButtonComponent, ToastService } from 'shared-ui';
 export class AdminLoginComponent {
   private api = inject(YurtApiService);
   private auth = inject(AuthStateService);
+  readonly brand = inject(BrandService);
   private router = inject(Router);
   private toast = inject(ToastService);
 

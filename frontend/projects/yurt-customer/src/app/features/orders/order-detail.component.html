@@ -329,7 +329,7 @@
         </div>
         <div class="px-5 py-4 space-y-4">
           <div class="text-center">
-            <p class="font-bold text-stone-800 text-lg">Yurt</p>
+            <p class="font-bold text-stone-800 text-lg">{{ brand.name() }}</p>
             <p class="text-stone-500 text-xs">{{ r.locationName }}</p>
             <p class="text-stone-400 text-xs mt-1">{{ r.createdAt | date: 'MMMM d, y · h:mm a' }}</p>
             <p class="text-stone-400 text-xs mt-0.5">Order #{{ r.id.slice(-6).toUpperCase() }}</p>

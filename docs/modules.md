@@ -93,7 +93,7 @@ How a gate is built:
 - **Covers:** the saved brand (name, primary and accent colour, logo URL, support contact) in `GET /api/v1/app/config`. The apps turn the primary colour into the `--brand-*` scale and cache it, so a returning customer sees the cafe's colours on the first paint.
 - **How it switches off:** the config serves the Yurt default brand and the saved brand is kept, so switching the module back on restores it. The platform operator can still edit the brand while it is off (`GET`/`PUT /api/v1/platform/brand`, SuperAdmin only).
 - **Admin screen:** the Brand section on the Platform page (SuperAdmin) edits these values with a live preview.
-- **Not done yet:** replacing the hard-coded "Altyncup" texts with the brand name, and the few near-black buttons that use the primary colour as their text colour (they stay readable for light brand colours only).
+- **Not done yet:** the few near-black buttons that use the primary colour as their text colour (they stay readable for light brand colours only).
 - **Depends on:** nothing.
 
 ## Not gated yet
