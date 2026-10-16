@@ -46,9 +46,10 @@ public class IikoOrderSyncRetryService : BackgroundService
                     continue;
                 }
 
-                await using var scope = _services.CreateAsyncScope();
-                var sync = scope.ServiceProvider.GetRequiredService<IikoOrderSyncService>();
-                await sync.RetryPendingAsync(stoppingToken);
+                await TenantJobs.ForEachTenantAsync(
+                    _services.GetRequiredService<IServiceScopeFactory>(), _logger,
+                    (sp, ct) => sp.GetRequiredService<IikoOrderSyncService>().RetryPendingAsync(ct),
+                    stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

@@ -28,11 +28,13 @@ public class OrderTimerService : BackgroundService
         }
     }
 
-    private async Task DoWorkAsync(CancellationToken ct)
+    private Task DoWorkAsync(CancellationToken ct)
+        => TenantJobs.ForEachTenantAsync(_scopeFactory, _logger, DoWorkForTenantAsync, ct);
+
+    private async Task DoWorkForTenantAsync(IServiceProvider sp, CancellationToken ct)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
-        var hub = scope.ServiceProvider.GetRequiredService<IOrdersHubService>();
+        var db = sp.GetRequiredService<IApplicationDbContext>();
+        var hub = sp.GetRequiredService<IOrdersHubService>();
         var now = DateTime.UtcNow;
 
         // Pass 1: Accepted + Paid → Preparing after 2 min
