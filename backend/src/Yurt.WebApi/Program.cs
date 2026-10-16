@@ -147,12 +147,14 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<TenantMiddleware>();
 app.UseSerilogRequestLogging(opts =>
     opts.EnrichDiagnosticContext = (diag, ctx) =>
     {
         var userId = ctx.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId is not null) diag.Set("UserId", userId);
         if (ctx.Items["CorrelationId"] is string cid) diag.Set("CorrelationId", cid);
+        if (ctx.Items["TenantSlug"] is string tenant) diag.Set("Tenant", tenant);
     });
 
 // Security headers

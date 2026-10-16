@@ -125,7 +125,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [ ] `Tenant` table and `TenantId` on all tenant data; global query filters; per-tenant credentials (iiko, payments, Firebase, OTP).
   Approach (Lev chose shared database, step by step, 2026-10-16): each step is its own PR and the current cafe keeps working unchanged.
   - [x] `Tenant` table and one seeded default tenant (fixed id `Tenant.DefaultId`); no table is filtered yet.
-  - [ ] Request-to-tenant resolution (host name, then the signed-in user's tenant), default tenant when only one exists.
+  - [x] Request-to-tenant resolution by host name (`TenantMiddleware`, `ITenantContext`; unknown host, inactive tenant or a database error fall back to the default tenant). Still to do: the signed-in user's tenant, once users carry a `TenantId`.
   - [ ] `TenantId` (nullable, defaulting to the default tenant) plus global query filter, one table group per PR: menu and locations, then users, orders and payments, then the rest.
   - [ ] Per-tenant settings and credentials: module licenses, brand and other platform settings, iiko, payments, Firebase, OTP.
   - [ ] Make `TenantId` required once every table has it.
