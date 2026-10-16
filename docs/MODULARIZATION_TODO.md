@@ -84,7 +84,7 @@ Gating order (lowest risk first):
 - [x] `marketing` (promotions, discount codes) _(details in `docs/modules.md`)_
 - [x] `group_orders` _(details in `docs/modules.md`)_
 - [x] `engagement` (ratings, achievements, 2GIS button) _(details in `docs/modules.md`)_
-- [ ] `staff_audit`
+- [x] `staff_audit` _(details in `docs/modules.md`)_
 - [ ] `multi_location` (enforce the 1-location limit in core)
 - [ ] `push`
 - [ ] `loyalty` (+ its background jobs)

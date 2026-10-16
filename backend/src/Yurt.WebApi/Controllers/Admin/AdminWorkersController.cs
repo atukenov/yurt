@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using Yurt.Application.Features.Workers;
+using Yurt.Domain;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
@@ -10,6 +11,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/workers")]
 [Authorize(Policy = "AdminRoleAdmin")]
+[RequireModule(ModuleKeys.StaffAudit)]
 public class AdminWorkersController : ApiControllerBase
 {
     private readonly WorkerService _workers;

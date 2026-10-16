@@ -67,11 +67,13 @@ export const routes: Routes = [
       },
       {
         path: 'workers',
+        canActivate: [moduleGuard('staff_audit', '/orders')],
         loadComponent: () =>
           import('./features/workers/workers.component').then((m) => m.WorkersComponent),
       },
       {
         path: 'audit-log',
+        canActivate: [moduleGuard('staff_audit', '/orders')],
         loadComponent: () =>
           import('./features/audit-log/audit-log.component').then((m) => m.AuditLogComponent),
       },

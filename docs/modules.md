@@ -38,6 +38,12 @@ How a gate is built:
 - **Existing data:** ratings already given and each location's stored 2GIS link are kept and show again when the module is back on. The location API still accepts and returns the 2GIS link; only the UI is hidden.
 - **Depends on:** nothing.
 
+### `staff_audit` (staff accounts and the audit log)
+- **Covers:** `/api/v1/admin/workers/*` (create, edit, activate/deactivate staff accounts) and `GET /api/v1/admin/audit-log`; the admin **Staff** and **Audit log** pages and menu entries.
+- **When off:** those endpoints return `403 module_disabled`, the pages redirect to Orders and the menu entries are hidden.
+- **Keeps working:** existing staff accounts can still sign in and work orders (the module only covers managing accounts). The audit log keeps being written in the background so the history is complete when the module is switched back on; only reading it is gated.
+- **Depends on:** nothing.
+
 ## Not gated yet
-`staff_audit`, `multi_location`, `push`, `loyalty`, `iiko_sync`,
+`multi_location`, `push`, `loyalty`, `iiko_sync`,
 `online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).
