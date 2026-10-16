@@ -79,7 +79,7 @@ export class App implements OnInit, OnDestroy {
       this.appState.setReady();
     }
     this.notifications.initialize();
-    this.pushNotifications.initialize();
+    if (this.modules.isEnabled('push')) this.pushNotifications.initialize();
 
     // Initialize SignalR connection and order notifications
     this.signalr

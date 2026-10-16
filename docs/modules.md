@@ -51,6 +51,12 @@ How a gate is built:
 - **When it comes back on:** all active branches are offered again.
 - **Depends on:** nothing.
 
+### `push` (remote push notifications)
+- **Covers:** remote order-status pushes (FCM/APNs). `PushNotificationService` sends nothing while the module is off; in the customer app, push registration is not started and the notifications switch on Profile is hidden.
+- **Not an endpoint gate:** `POST /api/v1/auth/device-tokens` keeps accepting tokens (it never returns `module_disabled`), so devices that registered earlier, or an older app build, are not broken and pushes resume as soon as the module is back on. The module is an on/off for *sending*.
+- **Keeps working:** order updates for an open app over SignalR and the in-app/local notifications (core), and all ordering.
+- **Depends on:** nothing. Firebase credentials are still configured separately (`Firebase:Enabled`); the module is the commercial switch on top.
+
 ## Not gated yet
-`push`, `loyalty`, `iiko_sync`,
+`loyalty`, `iiko_sync`,
 `online_payments`, `verification`, `own_pos`, `branding` (see the gating order in the plan).
