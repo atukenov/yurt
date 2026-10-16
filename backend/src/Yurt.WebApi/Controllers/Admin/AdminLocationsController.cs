@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
+using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Locations.DTOs;
 using Yurt.Application.Features.Locations.Services;
+using Yurt.Domain;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
@@ -14,9 +16,13 @@ namespace Yurt.WebApi.Controllers.Admin;
 public class AdminLocationsController : ApiControllerBase
 {
     private readonly LocationService _locationService;
+    private readonly IModuleGate _modules;
 
-    public AdminLocationsController(LocationService locationService)
-        => _locationService = locationService;
+    public AdminLocationsController(LocationService locationService, IModuleGate modules)
+    {
+        _locationService = locationService;
+        _modules = modules;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken ct)
@@ -28,7 +34,16 @@ public class AdminLocationsController : ApiControllerBase
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateLocationDto dto, CancellationToken ct)
-        => ToResult(await _locationService.CreateAsync(dto, ct));
+    {
+        // Core includes one location; more need the multi_location module.
+        if (!await _modules.IsEnabledAsync(ModuleKeys.MultiLocation, ct)
+            && (await _locationService.GetAllLocationsAsync(ct)).Count >= 1)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden,
+                new { code = "module_disabled", module = ModuleKeys.MultiLocation });
+        }
+        return ToResult(await _locationService.CreateAsync(dto, ct));
+    }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(

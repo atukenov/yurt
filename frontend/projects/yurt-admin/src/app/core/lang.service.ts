@@ -65,7 +65,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'orders.acceptRequiresPayment': 'Confirm payment before accepting', 'orders.method': 'Payment method',
 
     // Locations
-    'locations.title': 'Locations', 'locations.add': 'Add Location',
+    'locations.title': 'Locations', 'locations.add': 'Add Location', 'locations.limit': 'Your plan includes one location',
     'locations.addTitle': 'Add Location', 'locations.editTitle': 'Edit Location',
     'locations.noLocations': 'No locations yet',
     'locations.name': 'Name *', 'locations.address': 'Address *',
@@ -236,7 +236,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'orders.acceptRequiresPayment': 'Подтвердите оплату перед принятием', 'orders.method': 'Метод оплаты',
 
     // Locations
-    'locations.title': 'Локации', 'locations.add': 'Добавить локацию',
+    'locations.title': 'Локации', 'locations.add': 'Добавить локацию', 'locations.limit': 'Ваш тариф включает одну локацию',
     'locations.addTitle': 'Добавить локацию', 'locations.editTitle': 'Изменить локацию',
     'locations.noLocations': 'Нет локаций',
     'locations.name': 'Название *', 'locations.address': 'Адрес *',
@@ -407,7 +407,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'orders.acceptRequiresPayment': 'Қабылдамас бұрын төлемді растаңыз', 'orders.method': 'Төлем әдісі',
 
     // Locations
-    'locations.title': 'Мекендер', 'locations.add': 'Мекен қосу',
+    'locations.title': 'Мекендер', 'locations.add': 'Мекен қосу', 'locations.limit': 'Тарифіңізге бір мекен кіреді',
     'locations.addTitle': 'Мекен қосу', 'locations.editTitle': 'Мекенді өзгерту',
     'locations.noLocations': 'Мекендер жоқ',
     'locations.name': 'Атауы *', 'locations.address': 'Мекенжай *',
