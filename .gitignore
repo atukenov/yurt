@@ -34,4 +34,5 @@ GoogleService-Info.plist
 
 # Per-cafe build config (injected at build time, see docs/runbook.md)
 cafes/*/secrets/
+frontend/assets/
 .local/

@@ -111,7 +111,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [x] Admin page (super admin) to edit brand values with a live preview. _(Done: a Brand section on the Platform page; the preview uses scoped variables, so the real app changes only after Save.)_
 
 **Native shells (premium own-app)**
-- [ ] Per-cafe Capacitor config: app id, app name, icons and splash generated from the logo (script). _(Partly done: `cafes/<slug>/cafe.json` plus `scripts/apply-cafe.mjs` apply app id, name and version to Android and iOS, and `capacitor.config.ts` reads it with `YURT_CAFE`; icons and splash are still to do.)_
+- [x] Per-cafe Capacitor config: app id, app name, icons and splash generated from the logo (script). _(Done: `cafes/<slug>/cafe.json` plus `scripts/apply-cafe.mjs` apply app id, name and version to Android and iOS, and `capacitor.config.ts` reads it with `YURT_CAFE`; icons and splash come from the cafe's `assets/` folder through `--generate`, which runs `@capacitor/assets`. Generating them straight from the Brand logo URL is not done: the source images are supplied per cafe.)_
 - [ ] Per-cafe secrets/config files (Firebase `google-services.json` / `GoogleService-Info.plist`, Apple merchant id) kept outside git and injected at build time. _(Partly done: the script copies the Firebase files from the git-ignored `cafes/<slug>/secrets/`; the Apple merchant id is still to do.)_
 - [ ] Build matrix in CI to produce a branded Android/iOS build for one cafe from a config folder.
 - [ ] Store-listing checklist (screenshots, privacy policy, Apple/Google accounts, review notes) and a release/versioning scheme per cafe.
