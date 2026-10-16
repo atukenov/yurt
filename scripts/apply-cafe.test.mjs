@@ -13,11 +13,12 @@ const native = [
   'frontend/ios/App/App/Info.plist',
   'frontend/ios/App/App.xcodeproj/project.pbxproj',
 ];
+const entitlements = 'frontend/ios/App/App/App.entitlements';
 
 /** A scratch copy of the native files plus a cafe, so the real working tree is never touched. */
 function scratch(cafe, withSecrets = false) {
   const root = mkdtempSync(join(tmpdir(), 'apply-cafe-'));
-  for (const f of native) {
+  for (const f of [...native, entitlements]) {
     mkdirSync(dirname(join(root, f)), { recursive: true });
     cpSync(join(repo, f), join(root, f));
   }
@@ -46,6 +47,16 @@ test('applies id, name and version to Android and iOS', () => {
   assert.match(read(root, native[2]), /<string>Brew &amp; Co<\/string>/);
   assert.equal((read(root, native[3]).match(/PRODUCT_BUNDLE_IDENTIFIER = kz\.brew\.app;/g) ?? []).length >= 2, true);
   assert.match(read(root, native[3]), /MARKETING_VERSION = 2\.1\.0;/);
+});
+
+test('sets the Apple Pay merchant id only when the cafe has one', () => {
+  const without = scratch({ appId: 'kz.brew.app', appName: 'Brew' });
+  assert.ok(!applyCafe({ root: without, slug: 'brew' }).changes.includes(entitlements));
+  const root = scratch({ appId: 'kz.brew.app', appName: 'Brew', appleMerchantId: 'merchant.kz.brew.app' });
+  assert.ok(applyCafe({ root, slug: 'brew' }).changes.includes(entitlements));
+  assert.match(read(root, entitlements), /<string>merchant\.kz\.brew\.app<\/string>/);
+  assert.match(read(root, entitlements), /aps-environment/); // the rest of the file is kept
+  assert.throws(() => readCafe(scratch({ appId: 'kz.brew.app', appName: 'Brew', appleMerchantId: 'com.brew' }), 'brew'));
 });
 
 test('is idempotent and a dry run changes nothing', () => {
