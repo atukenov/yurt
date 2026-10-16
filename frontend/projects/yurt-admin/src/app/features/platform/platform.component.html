@@ -162,11 +162,11 @@
                 <span class="font-mono text-xs text-slate-400">{{ m.key }}</span>
                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="badgeClass(m)">{{ 'sub.state.' + m.state | t }}</span>
                 @if (m.state === 'grace' && m.graceEndsAt) {
-                  <span class="text-xs text-brand-700">{{ 'sub.graceWarning' | t }} {{ m.graceEndsAt | date: 'MMM d, y' }}</span>
+                  <span class="text-xs text-brand-ink">{{ 'sub.graceWarning' | t }} {{ m.graceEndsAt | date: 'MMM d, y' }}</span>
                 }
               </div>
               @for (w of m.warnings; track w) {
-                <p class="text-xs text-brand-700 mt-1">⚠ {{ w }}</p>
+                <p class="text-xs text-brand-ink mt-1">⚠ {{ w }}</p>
               }
               @if (edits[m.key]; as e) {
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3 items-end">

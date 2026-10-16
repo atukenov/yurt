@@ -37,7 +37,7 @@
     <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto" aria-label="Main">
       <a
         routerLink="/orders"
-        routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+        routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
         ariaCurrentWhenActive="page"
         [title]="collapsed() ? ('nav.orders' | t) : ''"
         [attr.aria-label]="'nav.orders' | t"
@@ -53,7 +53,7 @@
       @if (auth.isAdmin) {
         <a
           routerLink="/menu"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.menu' | t) : ''"
           [attr.aria-label]="'nav.menu' | t"
@@ -68,7 +68,7 @@
 
         <a
           routerLink="/locations"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.locations' | t) : ''"
           [attr.aria-label]="'nav.locations' | t"
@@ -85,7 +85,7 @@
         @if (modules.isEnabled('analytics')) {
         <a
           routerLink="/analytics"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.analytics' | t) : ''"
           [attr.aria-label]="'nav.analytics' | t"
@@ -102,7 +102,7 @@
         @if (modules.isEnabled('marketing')) {
         <a
           routerLink="/promotions"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.promotions' | t) : ''"
           [attr.aria-label]="'nav.promotions' | t"
@@ -119,7 +119,7 @@
         @if (auth.isSuperAdmin) {
         <a
           routerLink="/platform"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.platform' | t) : ''"
           [attr.aria-label]="'nav.platform' | t"
@@ -135,7 +135,7 @@
 
         <a
           routerLink="/subscription"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.subscription' | t) : ''"
           [attr.aria-label]="'nav.subscription' | t"
@@ -151,7 +151,7 @@
         @if (modules.isEnabled('marketing')) {
         <a
           routerLink="/discount-codes"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.discountCodes' | t) : ''"
           [attr.aria-label]="'nav.discountCodes' | t"
@@ -167,7 +167,7 @@
 
         <a
           routerLink="/customers"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.customers' | t) : ''"
           [attr.aria-label]="'nav.customers' | t"
@@ -183,7 +183,7 @@
         @if (modules.isEnabled('staff_audit')) {
         <a
           routerLink="/workers"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.workers' | t) : ''"
           [attr.aria-label]="'nav.workers' | t"
@@ -200,7 +200,7 @@
         @if (modules.isEnabled('staff_audit')) {
         <a
           routerLink="/audit-log"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.auditLog' | t) : ''"
           [attr.aria-label]="'nav.auditLog' | t"
@@ -216,7 +216,7 @@
 
         <a
           routerLink="/reports"
-          routerLinkActive="bg-brand-50 text-brand-700 font-semibold"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
           ariaCurrentWhenActive="page"
           [title]="collapsed() ? ('nav.reports' | t) : ''"
           [attr.aria-label]="'nav.reports' | t"
@@ -242,7 +242,7 @@
               (click)="langService.setLang(l)"
               [attr.aria-pressed]="langService.lang() === l"
               [class]="langService.lang() === l
-                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-100 text-brand-700'
+                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-100 text-brand-ink'
                 : 'flex-1 py-1 text-xs rounded-lg text-slate-500 hover:bg-slate-100 transition-colors'"
             >
               {{ l.toUpperCase() }}
@@ -252,7 +252,7 @@
 
         <!-- User row -->
         <div class="flex items-center gap-2 mb-3">
-          <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-700 shrink-0">{{ initials() }}</div>
+          <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-ink shrink-0">{{ initials() }}</div>
           <div class="min-w-0">
             <p class="text-sm font-medium text-slate-800 truncate">{{ auth.currentUser?.displayName }}</p>
             <p class="text-xs text-slate-400">{{ auth.currentUser?.role }}</p>
@@ -268,7 +268,7 @@
       } @else {
         <!-- Collapsed: avatar only with logout on click -->
         <div
-          class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-700 cursor-pointer"
+          class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-ink cursor-pointer"
           role="button"
           tabindex="0"
           [title]="(auth.currentUser?.displayName ?? '') + ' · ' + ('nav.signOut' | t)"

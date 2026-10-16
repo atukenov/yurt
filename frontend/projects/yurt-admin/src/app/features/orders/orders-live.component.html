@@ -45,7 +45,7 @@
           [attr.aria-pressed]="activeTab() === tab.value"
           [class]="
             activeTab() === tab.value
-              ? 'bg-brand-100 text-brand-700 font-semibold'
+              ? 'bg-brand-100 text-brand-ink font-semibold'
               : 'text-slate-500 hover:text-slate-700'
           "
           class="flex-1 text-xs rounded-lg py-1.5 transition-colors"
@@ -95,7 +95,7 @@
                 </yurt-badge>
               </div>
             </div>
-            <p class="text-brand-600 font-bold text-sm mt-1">{{ order.total | currency2 }}</p>
+            <p class="text-brand-ink font-bold text-sm mt-1">{{ order.total | currency2 }}</p>
           </button>
         }
       }
@@ -198,7 +198,7 @@
               </button>
             </div>
             @if (!canAccept(o)) {
-              <p class="text-xs text-brand-600 font-medium mt-1">{{ 'orders.acceptRequiresPayment' | t }}</p>
+              <p class="text-xs text-brand-ink font-medium mt-1">{{ 'orders.acceptRequiresPayment' | t }}</p>
             }
           </div>
         }
@@ -270,7 +270,7 @@
                   [disabled]="paymentLoading()"
                   class="flex-1 text-xs font-semibold py-2 rounded-xl border-2 transition-all disabled:opacity-50"
                   [class]="paymentStatus === s
-                    ? (s === 'Paid' ? 'border-teal-400 bg-teal-50 text-teal-700' : s === 'Refunded' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-brand-400 bg-brand-50 text-brand-700')
+                    ? (s === 'Paid' ? 'border-teal-400 bg-teal-50 text-teal-700' : s === 'Refunded' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-brand-400 bg-brand-50 text-brand-ink')
                     : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'"
                 >
                   {{ 'orders.' + s.toLowerCase() | t }}
@@ -338,12 +338,12 @@
             }
             <div class="flex justify-between">
               <span class="font-bold text-slate-800">{{ 'orders.total' | t }}</span>
-              <span class="font-bold text-brand-600">{{ o.total | currency2 }}</span>
+              <span class="font-bold text-brand-ink">{{ o.total | currency2 }}</span>
             </div>
             @if (o.loyaltyPointsSpent) {
               <div class="flex justify-between text-sm">
-                <span class="text-brand-600">✨ {{ 'orders.bonusPaid' | t }}</span>
-                <span class="text-brand-600 font-semibold">-{{ o.loyaltyPointsSpent | currency2 }}</span>
+                <span class="text-brand-ink">✨ {{ 'orders.bonusPaid' | t }}</span>
+                <span class="text-brand-ink font-semibold">-{{ o.loyaltyPointsSpent | currency2 }}</span>
               </div>
               <div class="flex justify-between text-sm">
                 <span class="font-semibold text-slate-600">{{ 'orders.dueAtCounter' | t }}</span>
