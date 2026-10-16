@@ -10,9 +10,16 @@ namespace Yurt.Infrastructure.Services;
 
 public class JwtTokenService : ITokenService
 {
-    private readonly IConfiguration _config;
+    public const string TenantClaim = "tenant_id";
 
-    public JwtTokenService(IConfiguration config) => _config = config;
+    private readonly IConfiguration _config;
+    private readonly ITenantContext _tenant;
+
+    public JwtTokenService(IConfiguration config, ITenantContext tenant)
+    {
+        _config = config;
+        _tenant = tenant;
+    }
 
     public string GenerateCustomerToken(Guid userId, string mobileNumber)
     {
@@ -21,6 +28,7 @@ public class JwtTokenService : ITokenService
             new(ClaimTypes.NameIdentifier, userId.ToString()),
             new(ClaimTypes.Name, mobileNumber),
             new("user_type", "customer"),
+            new(TenantClaim, _tenant.TenantId.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
         return GenerateToken(claims);
@@ -34,6 +42,7 @@ public class JwtTokenService : ITokenService
             new(ClaimTypes.Name, username),
             new(ClaimTypes.Role, role),
             new("user_type", "admin"),
+            new(TenantClaim, _tenant.TenantId.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
         if (mustChangePassword)

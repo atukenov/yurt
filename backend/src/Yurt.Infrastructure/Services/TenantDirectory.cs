@@ -12,6 +12,8 @@ public class TenantDirectory(IServiceScopeFactory scopes, IMemoryCache cache) : 
     private const string CacheKey = "tenants:active";
     private static readonly TimeSpan Ttl = TimeSpan.FromSeconds(60);
 
+    public void Invalidate() => cache.Remove(CacheKey);
+
     public async Task<IReadOnlyList<Tenant>> GetActiveAsync(CancellationToken ct = default)
     {
         if (cache.TryGetValue(CacheKey, out IReadOnlyList<Tenant>? cached) && cached is not null) return cached;
