@@ -23,3 +23,20 @@ public class TenantSeedTests(YurtWebAppFactory factory)
         Assert.Null(tenant.Domain);
     }
 }
+
+[Collection("Integration")]
+public class TenantMiddlewareTests(YurtWebAppFactory factory)
+{
+    [Theory]
+    [InlineData("order.unknown-cafe.kz")]
+    [InlineData("localhost")]
+    public async Task UnknownHost_StillServesRequests_OnTheDefaultTenant(string host)
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Host = host;
+
+        var response = await client.GetAsync("/api/v1/app/config");
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+    }
+}

@@ -76,6 +76,8 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<ITenantContext, TenantContext>();
+        services.AddSingleton<ITenantDirectory, TenantDirectory>();
         services.AddScoped<IOrdersHubService, OrdersHubService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
 
