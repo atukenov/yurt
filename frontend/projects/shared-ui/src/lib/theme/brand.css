@@ -29,8 +29,8 @@
   /* Text on gradient headers that start with the primary colour: white by default, dark on a pale brand. */
   --brand-hero-text: #ffffff;
 
-  /* The primary colour as text on light surfaces (#fafaf9): a shade dark enough to read. Default keeps brand-600. */
-  --brand-ink-light: var(--brand-600);
+  /* The primary colour as text on light surfaces (#fafaf9): a shade dark enough to read. */
+  --brand-ink-light: #80680c; /* the Yurt yellow darkened to contrast 4.5, same as BrandService computes for other brands */
   --brand-ink: var(--brand-ink-light);
 
   /* The primary colour as text/icons on near-black (#1c1917) buttons: lightened for dark brands. */
