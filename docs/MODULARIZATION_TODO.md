@@ -119,7 +119,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 
 **Quality**
 - [ ] Visual regression screenshots for two sample brands (warm yellow and a dark/blue palette) on the main screens. _(Partly done: `frontend/scripts/brand-screenshots.mjs` takes login and register screenshots for three sample brands (Yurt, a blue and a dark green one) in headless Chromium, with the brand seeded through the app's own cache. It found that the gradient ends were still hard-coded orange; that is fixed with the `accent-*` tokens. Screens that need the backend (menu, cart, profile) and automatic image comparison are still to do.)_
-- [ ] Accessibility pass (contrast, tap targets) for custom palettes.
+- [ ] Accessibility pass (contrast, tap targets) for custom palettes. _(Partly done: `brand-screenshots.mjs --a11y` runs axe-core's colour-contrast rule per brand and screen. Sign-in and register now pass for the blue, green and pale sample brands: text on the pale-brand header follows `--brand-hero-text`, outline-button text uses `--brand-ink` (the primary darkened to contrast 4.5), and the grey helper text is darker. The Yurt yellow "Create account" text still fails (2.0) because it keeps the old look until you decide to darken it. Not done: the other screens (they need the backend), the ~30 other `text-brand-500/600/700` uses on light backgrounds, and tap targets.)_
 
 ## Phase 5 — Multi-tenant (only when running several cafes in one deployment)
 - [ ] `Tenant` table and `TenantId` on all tenant data; global query filters; per-tenant credentials (iiko, payments, Firebase, OTP).

@@ -94,6 +94,7 @@ How a gate is built:
 - **How it switches off:** the config serves the Yurt default brand and the saved brand is kept, so switching the module back on restores it. The platform operator can still edit the brand while it is off (`GET`/`PUT /api/v1/platform/brand`, SuperAdmin only).
 - **Admin screen:** the Brand section on the Platform page (SuperAdmin) edits these values with a live preview.
 - **Accent scale:** gradient ends and soft tints use `accent-50/400/500`, generated from the accent colour (defaults are the orange the gradients always had).
+- **Readability tokens:** `--brand-hero-text` (text on gradient headers), `--brand-ink` (brand-coloured text on light pages) and `--brand-on-dark` are computed from the primary colour; for the Yurt default they keep the old look.
 - **Readability:** text on the primary colour follows `--brand-on-primary`, and near-black buttons use `--brand-on-dark` (the primary lightened until it reads on near-black). The Brand screen warns about a primary that is too light or too dark.
 - **Not done yet:** light/dark logos (waiting for dark mode).
 - **Depends on:** nothing.
