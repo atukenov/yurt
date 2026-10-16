@@ -48,6 +48,7 @@ export const routes: Routes = [
       },
       {
         path: 'promotions',
+        canActivate: [moduleGuard('marketing', '/orders')],
         loadComponent: () =>
           import('./features/promotions/promotions-management.component').then(
             (m) => m.PromotionsManagementComponent,
@@ -98,6 +99,7 @@ export const routes: Routes = [
       },
       {
         path: 'discount-codes',
+        canActivate: [moduleGuard('marketing', '/orders')],
         loadComponent: () =>
           import('./features/discount-codes/discount-codes.component').then((m) => m.DiscountCodesComponent),
       },

@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { YurtApiService } from 'shared-api';
+import { ModuleService, YurtApiService } from 'shared-api';
 import { CustomerStats, EMPTY_CUSTOMER_STATS, LoyaltyBalance, MenuItem, Order, Promotion } from 'shared-models';
 import { StoreStatusService } from '../../core/store-status.service';
 import { CartService } from '../cart/cart.service';
@@ -22,6 +22,7 @@ import { ACHIEVEMENTS, Achievement, buildAchievementFlags } from './achievements
 })
 export class NewsComponent implements OnInit {
   private api = inject(YurtApiService);
+  private modules = inject(ModuleService);
   private cart = inject(CartService);
   private storeStatus = inject(StoreStatusService);
   private router = inject(Router);
@@ -88,7 +89,9 @@ export class NewsComponent implements OnInit {
         map((s) => ({ ...EMPTY_CUSTOMER_STATS, ...s })),
         catchError(() => of<CustomerStats>(EMPTY_CUSTOMER_STATS))
       ),
-      promotions: this.api.getActivePromotions().pipe(catchError(() => of<Promotion[]>([]))),
+      promotions: this.modules.isEnabled('marketing')
+        ? this.api.getActivePromotions().pipe(catchError(() => of<Promotion[]>([])))
+        : of<Promotion[]>([]),
       items: this.api.getMenuItems(undefined, undefined, this.lang.lang()).pipe(catchError(() => of<MenuItem[]>([]))),
       orders: this.api.getOrderHistory().pipe(catchError(() => of<Order[]>([]))),
       loyalty: this.api.getLoyaltyBalance().pipe(
