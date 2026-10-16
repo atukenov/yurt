@@ -82,5 +82,12 @@ How a gate is built:
 - **Keeps working:** the Kaspi / Halyk / Freedom bank choices in the cart are labels for paying at the counter (staff mark the order paid), so they stay in core; an Apple Pay order that was started on an older app falls back to paying at the counter, as it already does when the sheet is cancelled.
 - **Depends on:** nothing. Provider credentials are still configured separately (`FreedomPay:Enabled`, `Payment:*`).
 
+### `verification` (phone verification code at sign-up and phone change)
+- **Covers:** the one-time code sent when a customer registers or changes their phone number (`AuthService`). Verification is required only when `Otp:Required` is on **and** the module is licensed.
+- **How it switches off:** the same path as `Otp:Required=false`: registration creates the account immediately and returns the tokens (`verificationRequired: false`), and a phone change is applied immediately. Both apps already follow `verificationRequired`, so no UI change was needed. Nothing returns `module_disabled`, because sign-up is core.
+- **Caveat:** without verification anyone can register with any phone number, and loyalty is linked by phone, so a cafe running `loyalty` without `verification` can have bonus balances claimed by someone else's number. Show this in the commercial terms; the platform does not block the combination.
+- **Never strands a sign-up:** confirming a code that was already sent (`register/verify`, `me/phone/verify`) ignores the module.
+- **Depends on:** nothing technically; commercially pairs with `loyalty`. The WhatsApp / SMS provider is still configured separately (`Otp:Enabled`).
+
 ## Not gated yet
-`verification`, `own_pos`, `branding` (see the gating order in the plan).
+`own_pos`, `branding` (see the gating order in the plan).
