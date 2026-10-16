@@ -25,6 +25,7 @@ public static class DbSeeder
         await SeedAdminsAsync(db, logger);
         await SeedSuperAdminAsync(db, logger);
         await SeedModuleLicensesAsync(db, logger);
+        await SeedDefaultTenantAsync(db, logger);
     }
 
     private static async Task SeedLocationsAsync(ApplicationDbContext db, ILogger logger)
@@ -223,6 +224,16 @@ public static class DbSeeder
         });
         await db.SaveChangesAsync();
         logger.LogInformation("Admin user '{Username}' seeded (MustChangePassword=true).", username);
+    }
+
+    /// <summary>The cafe that owns all existing data. Created once; later edits (name, domain) are left alone.</summary>
+    private static async Task SeedDefaultTenantAsync(ApplicationDbContext db, ILogger logger)
+    {
+        if (await db.Tenants.AnyAsync(t => t.Id == Tenant.DefaultId)) return;
+
+        db.Tenants.Add(new Tenant { Id = Tenant.DefaultId, Slug = Tenant.DefaultSlug, Name = "Yurt" });
+        await db.SaveChangesAsync();
+        logger.LogInformation("Seeded the default tenant.");
     }
 
     /// <summary>
