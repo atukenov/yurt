@@ -118,7 +118,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [ ] Decide whether branded apps use a separate bundle id per cafe or a shared one with the cafe picker.
 
 **Quality**
-- [ ] Visual regression screenshots for two sample brands (warm yellow and a dark/blue palette) on the main screens.
+- [ ] Visual regression screenshots for two sample brands (warm yellow and a dark/blue palette) on the main screens. _(Partly done: `frontend/scripts/brand-screenshots.mjs` takes login and register screenshots for three sample brands (Yurt, a blue and a dark green one) in headless Chromium, with the brand seeded through the app's own cache. It found that the gradient ends were still hard-coded orange; that is fixed with the `accent-*` tokens. Screens that need the backend (menu, cart, profile) and automatic image comparison are still to do.)_
 - [ ] Accessibility pass (contrast, tap targets) for custom palettes.
 
 ## Phase 5 — Multi-tenant (only when running several cafes in one deployment)

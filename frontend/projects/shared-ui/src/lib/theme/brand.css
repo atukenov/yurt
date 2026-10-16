@@ -30,6 +30,11 @@
   --brand-on-dark: #ffd119;
 
   /* Secondary accent used for the end of brand gradients, and the warmer update-sheet tint. */
+  /* Gradient ends and soft tints: the accent colour scale (default: the orange the gradients always used). */
+  --accent-50:  #fff7ed;
+  --accent-400: #fb923c;
+  --accent-500: #f97316;
+
   --brand-accent: #ea580c;
   --brand-accent-soft: #ffb300;
 }
@@ -46,6 +51,9 @@
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
   --color-brand-950: var(--brand-950);
+  --color-accent-50:  var(--accent-50);
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
 }
 
 /* Text that sits on the primary colour: `text-on-brand` picks dark or white for readability. */
