@@ -33,7 +33,9 @@ public record BrandDto(
     string PrimaryColor,
     string AccentColor,
     string? LogoUrl,
-    string? SupportContact)
+    string? SupportContact,
+    string? IconUrl = null,
+    string? SplashUrl = null)
 {
     public static readonly BrandDto Default = new("Yurt", "#ffd119", "#ea580c", null, null);
 }

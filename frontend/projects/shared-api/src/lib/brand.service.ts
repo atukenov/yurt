@@ -15,6 +15,10 @@ const STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '90
  * (stale-while-revalidate), so a returning customer sees their cafe's colours on the first paint
  * instead of a flash of the default. The Yurt default brand removes every override.
  */
+function httpsOrNull(url: string | null | undefined): string | null {
+  return url && /^https:\/\//i.test(url) ? url : null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BrandService {
   /** The cafe's name, logo and support contact for headings, receipts and the like. */
@@ -22,6 +26,9 @@ export class BrandService {
   /** Absolute https URL of the cafe's logo, or null to use the bundled logo.png. */
   readonly logoUrl = signal<string | null>(null);
   readonly supportContact = signal<string | null>(null);
+  /** Absolute https URL of the splash image shown while the app loads, or null to show the logo. */
+  readonly splashUrl = signal<string | null>(null);
+  private defaultIconHref: string | null = null;
 
   constructor() {
     const cached = this.readCache();
@@ -36,11 +43,14 @@ export class BrandService {
 
   private apply(brand: BrandConfig, persist: boolean): void {
     this.name.set(brand.name?.trim() || 'Yurt');
-    this.logoUrl.set(brand.logoUrl && /^https:\/\//i.test(brand.logoUrl) ? brand.logoUrl : null);
+    this.logoUrl.set(httpsOrNull(brand.logoUrl));
     this.supportContact.set(brand.supportContact?.trim() || null);
+    this.splashUrl.set(httpsOrNull(brand.splashUrl));
 
     const root = typeof document === 'undefined' ? null : document.documentElement;
     if (!root) return;
+
+    this.applyIcon(root, httpsOrNull(brand.iconUrl));
 
     const scale = buildScale(brand.primaryColor);
     const primary = parseHex(brand.primaryColor);
@@ -60,6 +70,25 @@ export class BrandService {
     }
 
     if (persist) this.writeCache(brand);
+  }
+
+  /** Swaps the browser-tab / home-screen icon; null restores the bundled one. */
+  private applyIcon(root: HTMLElement, url: string | null): void {
+    const links = Array.from(root.ownerDocument.querySelectorAll<HTMLLinkElement>('link[rel="icon"], link[rel="apple-touch-icon"]'));
+    const main = links.find((l) => l.rel === 'icon');
+    if (main && this.defaultIconHref === null) this.defaultIconHref = main.getAttribute('href') ?? '';
+    if (url) {
+      if (main) { main.removeAttribute('type'); main.href = url; }
+      else {
+        const link = root.ownerDocument.createElement('link');
+        link.rel = 'icon';
+        link.href = url;
+        root.ownerDocument.head.appendChild(link);
+      }
+      for (const l of links) if (l.rel === 'apple-touch-icon') l.href = url;
+    } else if (main && this.defaultIconHref) {
+      main.setAttribute('href', this.defaultIconHref);
+    }
   }
 
   private clear(root: HTMLElement): void {

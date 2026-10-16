@@ -118,6 +118,8 @@ public class PlatformService
             AccentColor = (dto.AccentColor ?? string.Empty).Trim().ToLowerInvariant(),
             LogoUrl = string.IsNullOrWhiteSpace(dto.LogoUrl) ? null : dto.LogoUrl.Trim(),
             SupportContact = string.IsNullOrWhiteSpace(dto.SupportContact) ? null : dto.SupportContact.Trim(),
+            IconUrl = string.IsNullOrWhiteSpace(dto.IconUrl) ? null : dto.IconUrl.Trim(),
+            SplashUrl = string.IsNullOrWhiteSpace(dto.SplashUrl) ? null : dto.SplashUrl.Trim(),
         };
         if (ValidateBrand(brand) is { } error)
             return Result<BrandDto>.Failure(error, 400);
@@ -134,12 +136,15 @@ public class PlatformService
         if (b.Name.Length is 0 or > 60) return "Name is required (max 60 characters).";
         if (!HexColor.IsMatch(b.PrimaryColor)) return "Primary colour must look like #rrggbb.";
         if (!HexColor.IsMatch(b.AccentColor)) return "Accent colour must look like #rrggbb.";
-        if (b.LogoUrl is { } logo &&
-            (logo.Length > 500 || !Uri.TryCreate(logo, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps))
-            return "Logo must be an https URL (max 500 characters).";
+        if (b.LogoUrl is { } logo && !IsHttpsUrl(logo)) return "Logo must be an https URL (max 500 characters).";
+        if (b.IconUrl is { } icon && !IsHttpsUrl(icon)) return "Icon must be an https URL (max 500 characters).";
+        if (b.SplashUrl is { } splash && !IsHttpsUrl(splash)) return "Splash image must be an https URL (max 500 characters).";
         if (b.SupportContact is { Length: > 200 }) return "Support contact is too long (max 200 characters).";
         return null;
     }
+
+    private static bool IsHttpsUrl(string value)
+        => value.Length <= 500 && Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps;
 
     private static PlatformModuleDto ToDto(ModuleStatus s, Dictionary<string, List<string>> warnings)
         => new(s.Key, s.IsEnabled, s.State.ToString().ToLowerInvariant(), s.ValidUntil, s.GraceEndsAt,

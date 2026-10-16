@@ -40,13 +40,20 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
         var badLogo = await super.PutAsJsonAsync("/api/v1/platform/brand",
             new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", logoUrl = "http://insecure/logo.png" });
         Assert.Equal(HttpStatusCode.BadRequest, badLogo.StatusCode);
+        var badIcon = await super.PutAsJsonAsync("/api/v1/platform/brand",
+            new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", iconUrl = "http://insecure/icon.png" });
+        Assert.Equal(HttpStatusCode.BadRequest, badIcon.StatusCode);
+        var badSplash = await super.PutAsJsonAsync("/api/v1/platform/brand",
+            new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", splashUrl = "javascript:alert(1)" });
+        Assert.Equal(HttpStatusCode.BadRequest, badSplash.StatusCode);
 
         try
         {
             var ok = await super.PutAsJsonAsync("/api/v1/platform/brand", new
             {
                 name = "Blue Cafe", primaryColor = "#1D4ED8", accentColor = "#0ea5e9",
-                logoUrl = "https://cdn.example.com/logo.png", supportContact = "+7 700 000 00 00"
+                logoUrl = "https://cdn.example.com/logo.png", iconUrl = "https://cdn.example.com/icon.png",
+                splashUrl = "https://cdn.example.com/splash.png", supportContact = "+7 700 000 00 00"
             });
             Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
 
@@ -54,6 +61,8 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
             Assert.Equal("Blue Cafe", served.GetProperty("name").GetString());
             Assert.Equal("#1d4ed8", served.GetProperty("primaryColor").GetString());
             Assert.Equal("https://cdn.example.com/logo.png", served.GetProperty("logoUrl").GetString());
+            Assert.Equal("https://cdn.example.com/icon.png", served.GetProperty("iconUrl").GetString());
+            Assert.Equal("https://cdn.example.com/splash.png", served.GetProperty("splashUrl").GetString());
 
             // Branding module off: the apps get the Yurt default, the saved brand is kept
             await super.PutAsJsonAsync($"/api/v1/platform/modules/{ModuleKeys.Branding}", License(false));

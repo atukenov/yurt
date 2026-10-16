@@ -607,6 +607,8 @@ export interface BrandConfig {
   accentColor: string;
   logoUrl?: string | null;
   supportContact?: string | null;
+  iconUrl?: string | null;
+  splashUrl?: string | null;
 }
 
 export interface MaintenanceInfo {
