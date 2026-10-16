@@ -221,7 +221,7 @@
         }
         <div class="p-2 pb-1 flex flex-col flex-1">
           <h3 class="font-bold text-stone-800 text-xs leading-snug line-clamp-2">{{ item.name }}</h3>
-          <p class="text-brand-600 font-bold text-xs mt-auto pt-1">
+          <p class="text-brand-ink font-bold text-xs mt-auto pt-1">
             @if (item.variants && item.variants.length > 0) {
               from {{ item.variants[0].price | currency2 }}
             } @else {
@@ -290,10 +290,10 @@
                   <button
                     (click)="selectedVariant.set(v)"
                     class="flex flex-col items-center px-4 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all active:scale-95"
-                    [class]="sel ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-stone-200 bg-white text-stone-600'"
+                    [class]="sel ? 'border-brand-400 bg-brand-50 text-brand-ink' : 'border-stone-200 bg-white text-stone-600'"
                   >
                     <span>{{ v.label }}</span>
-                    <span class="text-xs font-bold mt-0.5" [class]="sel ? 'text-brand-600' : 'text-stone-400'">{{ v.price | currency2 }}</span>
+                    <span class="text-xs font-bold mt-0.5" [class]="sel ? 'text-brand-ink' : 'text-stone-400'">{{ v.price | currency2 }}</span>
                   </button>
                 }
               </div>
@@ -316,7 +316,7 @@
                     <button
                       (click)="toggleTopping(topping)"
                       class="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border-2 text-sm font-semibold transition-all active:scale-95"
-                      [class]="sel ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-stone-200 bg-white text-stone-600'"
+                      [class]="sel ? 'border-brand-400 bg-brand-50 text-brand-ink' : 'border-stone-200 bg-white text-stone-600'"
                     >
                       @if (sel) {
                         <svg class="w-3.5 h-3.5 text-brand-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -354,7 +354,7 @@
                         </span>
                         <span class="text-stone-800 font-medium text-sm">{{ topping.name }}</span>
                       </div>
-                      <span class="text-sm font-semibold" [class]="sel ? 'text-brand-600' : 'text-stone-400'">
+                      <span class="text-sm font-semibold" [class]="sel ? 'text-brand-ink' : 'text-stone-400'">
                         {{ topping.price === 0 ? ('menu.free' | t) : '+' + (topping.price | currency2) }}
                       </span>
                     </button>

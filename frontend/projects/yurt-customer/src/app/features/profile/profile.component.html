@@ -11,7 +11,7 @@
         @if (selectedAvatar(); as avatar) {
           <img [src]="avatar" alt="" width="56" height="56" style="width:100%;height:100%;object-fit:cover">
         } @else {
-          <span style="font-size:20px;font-weight:800;color:var(--brand-500);letter-spacing:-.02em">
+          <span style="font-size:20px;font-weight:800;color:var(--brand-on-dark);letter-spacing:-.02em">
             {{ initials || '?' }}
           </span>
         }
@@ -97,7 +97,7 @@
           text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px">{{ 'profile.bonuses' | t }}</p>
         @if (loyalty(); as l) {
           @if (l.enabled && l.available && l.balance !== null) {
-            <p style="font-size:26px;font-weight:800;color:var(--brand-500);font-variant-numeric:tabular-nums;line-height:1">
+            <p style="font-size:26px;font-weight:800;color:var(--brand-on-dark);font-variant-numeric:tabular-nums;line-height:1">
               ₸{{ l.balance | number: '1.0-2' }}
             </p>
             <p style="font-size:11px;font-weight:600;color:rgba(255,255,255,.45);margin-top:4px">
@@ -108,12 +108,12 @@
               {{ 'profile.bonusUnavailable' | t }}
             </p>
           } @else {
-            <p style="font-size:26px;font-weight:800;color:var(--brand-500);font-variant-numeric:tabular-nums;line-height:1">
+            <p style="font-size:26px;font-weight:800;color:var(--brand-on-dark);font-variant-numeric:tabular-nums;line-height:1">
               ₸0
             </p>
           }
         } @else {
-          <p style="font-size:26px;font-weight:800;color:var(--brand-500);font-variant-numeric:tabular-nums;line-height:1">
+          <p style="font-size:26px;font-weight:800;color:var(--brand-on-dark);font-variant-numeric:tabular-nums;line-height:1">
             ₸0
           </p>
         }
@@ -130,9 +130,9 @@
         </div>
       }
       <!-- KZT (tenge) icon -->
-      <div style="width:30px;height:30px;border-radius:50%;border:1.8px solid var(--brand-500);
+      <div style="width:30px;height:30px;border-radius:50%;border:1.8px solid var(--brand-on-dark);
         display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <span style="color:var(--brand-500);font-size:15px;font-weight:800;line-height:1">₸</span>
+        <span style="color:var(--brand-on-dark);font-size:15px;font-weight:800;line-height:1">₸</span>
       </div>
     </div>
   }
@@ -144,7 +144,7 @@
       class="active:scale-[0.97] transition-transform"
       style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
         display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="var(--brand-600)" stroke-width="2" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" stroke="var(--brand-ink)" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
       </svg>
@@ -158,7 +158,7 @@
       class="active:scale-[0.97] transition-transform"
       style="background:white;border:1px solid #ece9e4;border-radius:18px;padding:16px;
         display:flex;flex-direction:column;gap:8px;text-decoration:none;cursor:pointer">
-      <svg width="20" height="20" fill="none" stroke="var(--brand-600)" stroke-width="2" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" stroke="var(--brand-ink)" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
       </svg>

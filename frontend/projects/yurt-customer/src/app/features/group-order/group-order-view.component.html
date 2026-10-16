@@ -47,7 +47,7 @@
       <p class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Members ({{ c.members.length }})</p>
       <div class="flex flex-wrap gap-2">
         @for (m of c.members; track m.customerId) {
-          <span class="bg-brand-50 text-brand-700 text-xs font-semibold px-3 py-1 rounded-full">
+          <span class="bg-brand-50 text-brand-ink text-xs font-semibold px-3 py-1 rounded-full">
             {{ m.displayName }}{{ m.customerId === c.members[0].customerId ? ' 👑' : '' }}
           </span>
         }
@@ -89,7 +89,7 @@
       <div class="mx-4 mt-3">
         <button
           (click)="openAddSheet()"
-          class="w-full border-2 border-dashed border-brand-300 text-brand-600 font-semibold text-sm rounded-2xl py-4 hover:bg-brand-50 transition-colors"
+          class="w-full border-2 border-dashed border-brand-300 text-brand-ink font-semibold text-sm rounded-2xl py-4 hover:bg-brand-50 transition-colors"
         >
           + Add Item
         </button>
@@ -149,7 +149,7 @@
                 <p class="font-semibold text-stone-800 text-sm">{{ item.name }}</p>
                 <p class="text-xs text-stone-400 mt-0.5">{{ item.categoryName }}</p>
               </div>
-              <p class="text-brand-600 font-bold text-sm shrink-0">{{ item.price | currency2 }}</p>
+              <p class="text-brand-ink font-bold text-sm shrink-0">{{ item.price | currency2 }}</p>
             </button>
           }
         }
