@@ -70,6 +70,7 @@ public class ModuleGateTests
 
         var provider = Substitute.For<IServiceProvider>();
         provider.GetService(typeof(IApplicationDbContext)).Returns(db);
+        provider.GetService(typeof(ITenantContext)).Returns(Substitute.For<ITenantContext>());
         var scope = Substitute.For<IServiceScope>();
         scope.ServiceProvider.Returns(provider);
         var factory = Substitute.For<IServiceScopeFactory>();

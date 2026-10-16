@@ -342,7 +342,7 @@ public class ModuleLicenseConfiguration : IEntityTypeConfiguration<ModuleLicense
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.ModuleKey).HasMaxLength(50).IsRequired();
-        builder.HasIndex(e => e.ModuleKey).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.ModuleKey }).IsUnique();
         builder.Property(e => e.Source).HasConversion<string>().HasMaxLength(20);
         builder.Property(e => e.Notes).HasMaxLength(1000);
     }
@@ -354,7 +354,7 @@ public class PlatformSettingConfiguration : IEntityTypeConfiguration<PlatformSet
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Key).HasMaxLength(100).IsRequired();
-        builder.HasIndex(e => e.Key).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.Key }).IsUnique();
         builder.Property(e => e.Value).HasMaxLength(2000).IsRequired();
     }
 }

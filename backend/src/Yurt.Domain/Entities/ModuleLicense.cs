@@ -7,8 +7,10 @@ namespace Yurt.Domain.Entities;
 /// Whether one paid platform module is switched on for this deployment. A missing row, or an empty
 /// table, means "enabled" (fail-open): licensing must never be able to take a live cafe offline by accident.
 /// </summary>
-public class ModuleLicense : BaseEntity
+public class ModuleLicense : BaseEntity, ITenantOwned
 {
+    public Guid TenantId { get; set; }
+
     /// <summary>One of <see cref="ModuleKeys"/>.</summary>
     public string ModuleKey { get; set; } = string.Empty;
 

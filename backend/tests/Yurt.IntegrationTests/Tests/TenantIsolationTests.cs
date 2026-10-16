@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Yurt.Application.Common.Interfaces;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 using Yurt.Infrastructure.Persistence;
@@ -138,6 +139,41 @@ public class TenantIsolationTests(YurtWebAppFactory factory)
         using var __ = scopeB;
         Assert.Equal(1, await dbB.AdminUsers.CountAsync(u => u.Username == op));
         Assert.Equal(0, await dbB.AdminUsers.CountAsync(u => u.Username == admin));
+    }
+
+    [Fact]
+    public async Task ModuleLicenses_AreSwitchedPerCafe()
+    {
+        var slugA = $"a-{Guid.NewGuid():N}"[..12];
+        var slugB = $"b-{Guid.NewGuid():N}"[..12];
+        var a = await CreateTenantAsync(slugA);
+        var b = await CreateTenantAsync(slugB);
+
+        using (var dbA = DbFor(a, slugA, out var scopeA))
+        {
+            using var _ = scopeA;
+            dbA.ModuleLicenses.Add(new ModuleLicense { ModuleKey = ModuleKeys.Marketing, Enabled = false });
+            await dbA.SaveChangesAsync();
+        }
+
+        var gate = factory.Services.GetRequiredService<IModuleGate>();
+        gate.Invalidate();
+
+        using (DbFor(a, slugA, out var scopeA2))
+        {
+            using var _ = scopeA2;
+            Assert.False(await gate.IsEnabledAsync(ModuleKeys.Marketing));
+        }
+        using (DbFor(b, slugB, out var scopeB))
+        {
+            using var _ = scopeB;
+            Assert.True(await gate.IsEnabledAsync(ModuleKeys.Marketing));
+        }
+        using (DbFor(Tenant.DefaultId, Tenant.DefaultSlug, out var scopeD))
+        {
+            using var _ = scopeD;
+            Assert.True(await gate.IsEnabledAsync(ModuleKeys.Marketing));
+        }
     }
 
     [Fact]
