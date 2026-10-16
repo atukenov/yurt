@@ -596,6 +596,17 @@ export interface AppRelease {
 export interface AppConfig {
   modules: string[];
   maintenance?: MaintenanceInfo;
+  /** The cafe's brand; absent on servers that predate it (the apps then keep the Yurt default). */
+  brand?: BrandConfig;
+}
+
+/** A cafe's brand. Colours are "#rrggbb". */
+export interface BrandConfig {
+  name: string;
+  primaryColor: string;
+  accentColor: string;
+  logoUrl?: string | null;
+  supportContact?: string | null;
 }
 
 export interface MaintenanceInfo {

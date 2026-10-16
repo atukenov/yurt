@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { MaintenanceInfo } from 'shared-models';
+import { BrandService } from './brand.service';
 import { YurtApiService } from './yurt-api.service';
 
 const CACHE_KEY = 'yurt.modules';
@@ -15,6 +16,8 @@ const CACHE_KEY = 'yurt.modules';
 @Injectable({ providedIn: 'root' })
 export class ModuleService {
   private api = inject(YurtApiService);
+  // Created here so a cached brand is applied as soon as the app starts, before the first paint.
+  private brand = inject(BrandService);
 
   /** Null means "unknown": everything is treated as enabled. */
   private readonly enabledKeys = signal<ReadonlySet<string> | null>(this.readCache());
@@ -29,6 +32,7 @@ export class ModuleService {
         this.enabledKeys.set(new Set(cfg.modules));
         this.writeCache(cfg.modules);
         this.maintenance.set(cfg.maintenance?.enabled ? cfg.maintenance : null);
+        this.brand.set(cfg.brand);
       },
       error: () => { /* keep the cached/unknown state: fail-open */ },
     });

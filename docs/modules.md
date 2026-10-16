@@ -89,5 +89,11 @@ How a gate is built:
 - **Never strands a sign-up:** confirming a code that was already sent (`register/verify`, `me/phone/verify`) ignores the module.
 - **Depends on:** nothing technically; commercially pairs with `loyalty`. The WhatsApp / SMS provider is still configured separately (`Otp:Enabled`).
 
+### `branding` (white-label brand)
+- **Covers:** the saved brand (name, primary and accent colour, logo URL, support contact) in `GET /api/v1/app/config`. The apps turn the primary colour into the `--brand-*` scale and cache it, so a returning customer sees the cafe's colours on the first paint.
+- **How it switches off:** the config serves the Yurt default brand and the saved brand is kept, so switching the module back on restores it. The platform operator can still edit the brand while it is off (`GET`/`PUT /api/v1/platform/brand`, SuperAdmin only).
+- **Not done yet:** an admin screen with live preview, replacing the hard-coded "Altyncup" texts with the brand name, and text colours that follow `--brand-on-primary` (today some text on the primary colour is still fixed dark).
+- **Depends on:** nothing.
+
 ## Not gated yet
-`own_pos`, `branding` (see the gating order in the plan).
+`own_pos` (see the gating order in the plan).

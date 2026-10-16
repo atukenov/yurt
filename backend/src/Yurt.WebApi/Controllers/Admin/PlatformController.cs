@@ -41,6 +41,14 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> SetMaintenance([FromBody] MaintenanceDto dto, CancellationToken ct)
         => ToResult(await _platform.SetMaintenanceAsync(dto, ct));
 
+    [HttpGet("brand")]
+    public async Task<IActionResult> GetBrand(CancellationToken ct)
+        => Ok(await _platform.GetBrandAsync(ct));
+
+    [HttpPut("brand")]
+    public async Task<IActionResult> SetBrand([FromBody] BrandDto dto, CancellationToken ct)
+        => ToResult(await _platform.SetBrandAsync(dto, ct));
+
     /// <summary>Whether each integration has its secrets configured. Never returns the values.</summary>
     [HttpGet("integrations")]
     public IActionResult GetIntegrations()
