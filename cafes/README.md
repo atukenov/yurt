@@ -10,7 +10,8 @@ cafes/<slug>/assets/        committed: icon-only.png (1024x1024), splash.png (27
 ```
 
 `cafe.json` fields: `appId` (reverse-DNS, e.g. `kz.mycafe.app`), `appName` (shown under the icon, up to 30 characters),
-optional `versionName` (`1.2.3`) and `versionCode` (whole number, Android).
+optional `versionName` (`1.2.3`), `versionCode` (whole number, Android) and `appleMerchantId`
+(`merchant.kz.mycafe.app`, the Apple Pay merchant in the iOS entitlements; leave it out for a cafe without Apple Pay).
 
 Apply a cafe to the native projects, then build as usual:
 

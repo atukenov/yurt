@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const APP_ID = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
 const VERSION_NAME = /^\d+\.\d+\.\d+$/;
+const MERCHANT_ID = /^merchant\.[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 /** Source images @capacitor/assets understands; the first two are required for a branded build. */
 const ASSETS = ['icon-only.png', 'splash.png', 'icon-foreground.png', 'icon-background.png', 'splash-dark.png'];
@@ -27,6 +28,8 @@ export function readCafe(root, slug) {
     throw new Error('versionName must look like 1.2.3.');
   if (cafe.versionCode !== undefined && !(Number.isInteger(cafe.versionCode) && cafe.versionCode > 0))
     throw new Error('versionCode must be a positive whole number.');
+  if (cafe.appleMerchantId !== undefined && !(typeof cafe.appleMerchantId === 'string' && MERCHANT_ID.test(cafe.appleMerchantId)))
+    throw new Error('appleMerchantId must look like merchant.kz.mycafe.app.');
   return { ...cafe, appName: cafe.appName.trim() };
 }
 
@@ -69,6 +72,11 @@ export function applyCafe({ root, slug, dryRun = false }) {
     t = must(t, /PRODUCT_BUNDLE_IDENTIFIER = [^;]*;/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cafe.appId};`, 'PRODUCT_BUNDLE_IDENTIFIER');
     return cafe.versionName ? must(t, /MARKETING_VERSION = [^;]*;/g, `MARKETING_VERSION = ${cafe.versionName};`, 'MARKETING_VERSION') : t;
   });
+
+  if (cafe.appleMerchantId) {
+    edit('frontend/ios/App/App/App.entitlements', (t) =>
+      must(t, /(<key>com\.apple\.developer\.in-app-payments<\/key>\s*<array>\s*<string>)[^<]*/, `$1${cafe.appleMerchantId}`, 'in-app-payments merchant id'));
+  }
 
   const secrets = [
     ['google-services.json', 'frontend/android/app/google-services.json'],
