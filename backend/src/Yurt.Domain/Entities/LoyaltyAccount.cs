@@ -16,6 +16,9 @@ public class LoyaltyAccount : BaseEntity, ITenantOwned
     /// <summary>Set when the account joined the loyalty program; null until then.</summary>
     public Guid? WalletId { get; set; }
 
+    /// <summary>Changes on every update of the row (Postgres <c>xmin</c>); lets two simultaneous spends detect each other.</summary>
+    public uint Version { get; set; }
+
     public List<LoyaltyEntry> Entries { get; set; } = [];
 }
 

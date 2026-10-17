@@ -332,6 +332,7 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.HasIndex(e => e.Slug).IsUnique();
         builder.Property(e => e.Name).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Domain).HasMaxLength(255);
+        builder.Property(e => e.LoyaltyLedger).HasMaxLength(20);
         builder.HasIndex(e => e.Domain).IsUnique();
     }
 }
@@ -378,6 +379,7 @@ public class LoyaltyAccountConfiguration : IEntityTypeConfiguration<LoyaltyAccou
         builder.Property(e => e.Phone).HasMaxLength(20).IsRequired();
         builder.Property(e => e.Name).HasMaxLength(100);
         builder.Property(e => e.Surname).HasMaxLength(100);
+        builder.Property(e => e.Version).IsRowVersion();
         builder.HasIndex(e => new { e.TenantId, e.Phone }).IsUnique();
     }
 }

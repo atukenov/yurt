@@ -20,14 +20,16 @@ public class PlatformController : ApiControllerBase
     private readonly CafeProvisioningService _cafes;
     private readonly CafeSecretsService _secrets;
     private readonly LoyaltyImportService _loyaltyImport;
+    private readonly LoyaltyLedgerSwitchService _ledgerSwitch;
     private readonly IConfiguration _config;
 
-    public PlatformController(PlatformService platform, CafeProvisioningService cafes, CafeSecretsService secrets, LoyaltyImportService loyaltyImport, IConfiguration config)
+    public PlatformController(PlatformService platform, CafeProvisioningService cafes, CafeSecretsService secrets, LoyaltyImportService loyaltyImport, LoyaltyLedgerSwitchService ledgerSwitch, IConfiguration config)
     {
         _platform = platform;
         _cafes = cafes;
         _secrets = secrets;
         _loyaltyImport = loyaltyImport;
+        _ledgerSwitch = ledgerSwitch;
         _config = config;
     }
 
@@ -62,6 +64,14 @@ public class PlatformController : ApiControllerBase
     [HttpGet("loyalty/compare")]
     public async Task<IActionResult> CompareLoyalty(CancellationToken ct)
         => ToResult(await _loyaltyImport.CompareAsync(ct));
+
+    [HttpGet("loyalty/ledger")]
+    public async Task<IActionResult> GetLoyaltyLedger(CancellationToken ct)
+        => ToResult(await _ledgerSwitch.GetAsync(ct));
+
+    [HttpPut("loyalty/ledger")]
+    public async Task<IActionResult> SetLoyaltyLedger([FromBody] SetLoyaltyLedgerDto dto, CancellationToken ct)
+        => ToResult(await _ledgerSwitch.SetAsync(dto.Mode, ct));
 
     [HttpGet("cafes")]
     public async Task<IActionResult> GetCafes(CancellationToken ct)
