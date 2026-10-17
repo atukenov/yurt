@@ -10,14 +10,16 @@ namespace Yurt.UnitTests;
 
 public class LoyaltyModuleGateTests
 {
-    private static (LoyaltyService svc, IIikoApiClient iiko, IModuleGate gate) Build(bool moduleOn)
+    private static (LoyaltyService svc, IIikoApiClient iiko, IModuleGate gate) Build(bool moduleOn, Guid? tenantId = null)
     {
+        var tenant = Substitute.For<ITenantContext>();
+        tenant.TenantId.Returns(tenantId ?? Yurt.Domain.Entities.Tenant.DefaultId);
         var db = Substitute.For<IApplicationDbContext>();
         var iiko = Substitute.For<IIikoApiClient>();
         var gate = Substitute.For<IModuleGate>();
         gate.IsEnabledAsync(ModuleKeys.Loyalty, Arg.Any<CancellationToken>()).Returns(moduleOn);
         var svc = new LoyaltyService(db, iiko, new IikoOptions { Enabled = true, EarnPercent = 5m },
-            Substitute.For<IAuditLogService>(), Substitute.For<ILogger<LoyaltyService>>(), gate);
+            Substitute.For<IAuditLogService>(), Substitute.For<ILogger<LoyaltyService>>(), gate, tenant);
         return (svc, iiko, gate);
     }
 
@@ -64,6 +66,17 @@ public class LoyaltyModuleGateTests
         await svc.CreditForOrderAsync(order);
 
         Assert.Null(order.LoyaltyPointsEarned);
+        Assert.Empty(iiko.ReceivedCalls());
+    }
+
+    [Fact]
+    public async Task Balance_AnotherCafe_NeverCallsIiko_EvenWithModuleOn()
+    {
+        var (svc, iiko, _) = Build(moduleOn: true, tenantId: Guid.NewGuid());
+
+        var balance = await svc.GetBalanceAsync(Guid.NewGuid());
+
+        Assert.False(balance.Available);
         Assert.Empty(iiko.ReceivedCalls());
     }
 }

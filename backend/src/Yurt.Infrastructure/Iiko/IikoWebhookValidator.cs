@@ -15,11 +15,17 @@ namespace Yurt.Infrastructure.Iiko;
 public class IikoWebhookValidator : IIikoWebhookValidator
 {
     private readonly IikoOptions _options;
+    private readonly ITenantContext _tenant;
 
-    public IikoWebhookValidator(IikoOptions options) => _options = options;
+    public IikoWebhookValidator(IikoOptions options, ITenantContext tenant)
+    {
+        _options = options;
+        _tenant = tenant;
+    }
 
     public bool Validate(IReadOnlyDictionary<string, string> headers)
     {
+        if (_tenant.TenantId != Domain.Entities.Tenant.DefaultId) return false; // the token belongs to the first cafe
         if (string.IsNullOrEmpty(_options.WebhookAuthToken)) return false;
         if (!headers.TryGetValue("Authorization", out var received) || string.IsNullOrEmpty(received))
             return false;

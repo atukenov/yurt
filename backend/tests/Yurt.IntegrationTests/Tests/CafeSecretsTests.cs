@@ -43,28 +43,28 @@ public class CafeSecretsTests(YurtWebAppFactory factory)
     {
         var op = await OperatorAsync();
         var cafe = await NewCafeAsync(op);
-        const string value = "iiko-key-ABC123";
+        const string value = "firebase-json-ABC123";
 
         Assert.Equal(HttpStatusCode.OK,
-            (await op.PutAsJsonAsync($"/api/v1/platform/cafes/{cafe}/secrets/Iiko:ApiKey", new { value })).StatusCode);
+            (await op.PutAsJsonAsync($"/api/v1/platform/cafes/{cafe}/secrets/Firebase:ServiceAccountJson", new { value })).StatusCode);
 
         var listJson = await op.GetStringAsync($"/api/v1/platform/cafes/{cafe}/secrets");
         Assert.DoesNotContain(value, listJson);
         var list = JsonSerializer.Deserialize<List<JsonElement>>(listJson)!;
-        Assert.True(list.Single(s => s.GetProperty("key").GetString() == "Iiko:ApiKey").GetProperty("isSet").GetBoolean());
-        Assert.False(list.Single(s => s.GetProperty("key").GetString() == "Iiko:ClientSecret").GetProperty("isSet").GetBoolean());
+        Assert.True(list.Single(s => s.GetProperty("key").GetString() == "Firebase:ServiceAccountJson").GetProperty("isSet").GetBoolean());
+        Assert.False(list.Single(s => s.GetProperty("key").GetString() == "Otp:ApiTokenInstance").GetProperty("isSet").GetBoolean());
 
         using (var scope = factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var row = await db.TenantSecrets.IgnoreQueryFilters().SingleAsync(s => s.TenantId == cafe && s.Key == "Iiko:ApiKey");
+            var row = await db.TenantSecrets.IgnoreQueryFilters().SingleAsync(s => s.TenantId == cafe && s.Key == "Firebase:ServiceAccountJson");
             Assert.DoesNotContain(value, row.Ciphertext);
         }
 
-        Assert.Equal(value, await SecretsFor(cafe, "x", out var s1).GetAsync("Iiko:ApiKey"));
+        Assert.Equal(value, await SecretsFor(cafe, "x", out var s1).GetAsync("Firebase:ServiceAccountJson"));
         s1.Dispose();
-        // The default cafe has no stored value for this key and the test server has no Iiko:ApiKey setting.
-        Assert.Null(await SecretsFor(Tenant.DefaultId, "default", out var s2).GetAsync("Iiko:ApiKey"));
+        // The default cafe has no stored value for this key and the test server has no Firebase:ServiceAccountJson setting.
+        Assert.Null(await SecretsFor(Tenant.DefaultId, "default", out var s2).GetAsync("Firebase:ServiceAccountJson"));
         s2.Dispose();
     }
 
@@ -95,9 +95,9 @@ public class CafeSecretsTests(YurtWebAppFactory factory)
         Assert.Equal(HttpStatusCode.NotFound,
             (await op.PutAsJsonAsync($"/api/v1/platform/cafes/{cafe}/secrets/Nope:Key", new { value = "x" })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest,
-            (await op.PutAsJsonAsync($"/api/v1/platform/cafes/{cafe}/secrets/Iiko:ApiKey", new { value = "  " })).StatusCode);
+            (await op.PutAsJsonAsync($"/api/v1/platform/cafes/{cafe}/secrets/Firebase:ServiceAccountJson", new { value = "  " })).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound,
-            (await op.PutAsJsonAsync($"/api/v1/platform/cafes/{Guid.NewGuid()}/secrets/Iiko:ApiKey", new { value = "x" })).StatusCode);
+            (await op.PutAsJsonAsync($"/api/v1/platform/cafes/{Guid.NewGuid()}/secrets/Firebase:ServiceAccountJson", new { value = "x" })).StatusCode);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class CafeSecretsTests(YurtWebAppFactory factory)
         var token = await ApiHelpers.CreateAdminTokenAsync(factory.Services, factory.CreateClient());
         var client = factory.CreateClient();
         ApiHelpers.Authorize(client, token);
-        var res = await client.PutAsJsonAsync($"/api/v1/platform/cafes/{Tenant.DefaultId}/secrets/Iiko:ApiKey", new { value = "x" });
+        var res = await client.PutAsJsonAsync($"/api/v1/platform/cafes/{Tenant.DefaultId}/secrets/Firebase:ServiceAccountJson", new { value = "x" });
         Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
     }
 }

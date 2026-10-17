@@ -22,8 +22,6 @@ public static class TenantSecretKeys
 {
     public static readonly string[] All =
     [
-        "Iiko:ApiKey",
-        "Iiko:ClientSecret",
         "Payment:WebhookSecret",
         "Payment:SandboxSecret",
         "Firebase:ServiceAccountJson",

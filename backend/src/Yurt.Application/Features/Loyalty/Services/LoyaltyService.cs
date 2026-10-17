@@ -20,6 +20,7 @@ public class LoyaltyService
     private readonly IAuditLogService _audit;
     private readonly ILogger<LoyaltyService> _logger;
     private readonly IModuleGate _modules;
+    private readonly ITenantContext _tenant;
 
     public LoyaltyService(
         IApplicationDbContext db,
@@ -27,8 +28,10 @@ public class LoyaltyService
         IikoOptions options,
         IAuditLogService audit,
         ILogger<LoyaltyService> logger,
-        IModuleGate modules)
+        IModuleGate modules,
+        ITenantContext tenant)
     {
+        _tenant = tenant;
         _db = db;
         _iiko = iiko;
         _options = options;
@@ -40,8 +43,10 @@ public class LoyaltyService
     /// <summary>Loyalty is live only when iiko loyalty is configured AND the <c>loyalty</c> module is on.
     /// Used by new activity (balance, history, earning, new holds). Finalising or releasing an existing
     /// hold deliberately ignores the module, so switching it off never strands points mid-order.</summary>
+    private bool IikoOn => _options.IsEnabledFor(_tenant.TenantId);
+
     private async Task<bool> ActiveAsync(CancellationToken ct)
-        => _options.Enabled && await _modules.IsEnabledAsync(ModuleKeys.Loyalty, ct);
+        => IikoOn && await _modules.IsEnabledAsync(ModuleKeys.Loyalty, ct);
 
     public static decimal CalculatePoints(decimal orderTotal, decimal earnPercent)
         => orderTotal <= 0 || earnPercent <= 0
@@ -304,7 +309,7 @@ public class LoyaltyService
     /// </summary>
     public async Task FinalizeSpendForOrderAsync(Order order, CancellationToken ct = default)
     {
-        if (!_options.Enabled) return;
+        if (!IikoOn) return;
         if (order.LoyaltyPointsSpent is not > 0) return;
         if (order.LoyaltyHoldTransactionId == null &&
             order.LoyaltyPendingAction != LoyaltyPendingAction.ChargeOff) return; // already finalized
@@ -353,7 +358,7 @@ public class LoyaltyService
     /// </summary>
     public async Task ReleaseHoldForOrderAsync(Order order, CancellationToken ct = default)
     {
-        if (!_options.Enabled) return;
+        if (!IikoOn) return;
         if (order.LoyaltyHoldTransactionId == null) return;
 
         try
@@ -376,7 +381,7 @@ public class LoyaltyService
     /// <summary>Background retry of wallet operations that failed while iiko was down.</summary>
     public async Task RetryPendingAsync(CancellationToken ct = default)
     {
-        if (!_options.Enabled) return;
+        if (!IikoOn) return;
 
         var pending = await _db.Orders
             .Include(o => o.CustomerUser)
@@ -413,7 +418,7 @@ public class LoyaltyService
     public async Task SweepMissedCreditsAsync(
         TimeSpan? gracePeriod = null, int batchSize = 50, CancellationToken ct = default)
     {
-        if (!_options.Enabled) return;
+        if (!IikoOn) return;
 
         var cutoff = DateTime.UtcNow - (gracePeriod ?? TimeSpan.FromMinutes(10));
 
@@ -457,7 +462,7 @@ public class LoyaltyService
     /// </summary>
     public async Task RevalidateWalletLinksAsync(CancellationToken ct = default)
     {
-        if (!_options.Enabled) return;
+        if (!IikoOn) return;
 
         var linked = await _db.CustomerUsers
             .Where(u => u.IikoCustomerId != null)
