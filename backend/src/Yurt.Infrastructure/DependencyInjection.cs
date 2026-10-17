@@ -136,6 +136,7 @@ public static class DependencyInjection
         services.AddSingleton<ISecretProtector, AesGcmSecretProtector>();
         services.AddScoped<ITenantSecrets, TenantSecrets>();
         services.AddScoped<CafeSecretsService>();
+        services.AddScoped<LoyaltyImportService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

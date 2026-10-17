@@ -19,13 +19,15 @@ public class PlatformController : ApiControllerBase
     private readonly PlatformService _platform;
     private readonly CafeProvisioningService _cafes;
     private readonly CafeSecretsService _secrets;
+    private readonly LoyaltyImportService _loyaltyImport;
     private readonly IConfiguration _config;
 
-    public PlatformController(PlatformService platform, CafeProvisioningService cafes, CafeSecretsService secrets, IConfiguration config)
+    public PlatformController(PlatformService platform, CafeProvisioningService cafes, CafeSecretsService secrets, LoyaltyImportService loyaltyImport, IConfiguration config)
     {
         _platform = platform;
         _cafes = cafes;
         _secrets = secrets;
+        _loyaltyImport = loyaltyImport;
         _config = config;
     }
 
@@ -52,6 +54,14 @@ public class PlatformController : ApiControllerBase
     [HttpPut("brand")]
     public async Task<IActionResult> SetBrand([FromBody] BrandDto dto, CancellationToken ct)
         => ToResult(await _platform.SetBrandAsync(dto, ct));
+
+    [HttpPost("loyalty/import")]
+    public async Task<IActionResult> ImportLoyalty(CancellationToken ct)
+        => ToResult(await _loyaltyImport.ImportAsync(ct));
+
+    [HttpGet("loyalty/compare")]
+    public async Task<IActionResult> CompareLoyalty(CancellationToken ct)
+        => ToResult(await _loyaltyImport.CompareAsync(ct));
 
     [HttpGet("cafes")]
     public async Task<IActionResult> GetCafes(CancellationToken ct)
