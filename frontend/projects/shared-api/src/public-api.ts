@@ -10,6 +10,7 @@ export * from './lib/brand.service';
 export * from './lib/http-error.interceptor';
 export * from './lib/module.service';
 export * from './lib/notification.service';
+export * from './lib/tenant.interceptor';
 export * from './lib/theme.service';
 export * from './lib/order-notification.service';
 export * from './lib/push-notification.service';

@@ -80,11 +80,18 @@ export class YurtApiService {
   }
 
   // ── Platform operator tools (SuperAdmin only) ─────────────────────────────
+  /** Slug of the cafe the operator is managing; null means the cafe of the host the page was opened from. */
+  platformCafe: string | null = null;
+
+  private cafeOptions(): { headers?: Record<string, string> } {
+    return this.platformCafe ? { headers: { 'X-Tenant': this.platformCafe } } : {};
+  }
+
   getPlatformModules(): Observable<PlatformModule[]> {
-    return this.http.get<PlatformModule[]>(`${this.api}/platform/modules`);
+    return this.http.get<PlatformModule[]>(`${this.api}/platform/modules`, this.cafeOptions());
   }
   updatePlatformModule(key: string, req: UpdateModuleLicenseRequest): Observable<PlatformModule> {
-    return this.http.put<PlatformModule>(`${this.api}/platform/modules/${key}`, req);
+    return this.http.put<PlatformModule>(`${this.api}/platform/modules/${key}`, req, this.cafeOptions());
   }
   getCafes(): Observable<Cafe[]> {
     return this.http.get<Cafe[]>(`${this.api}/platform/cafes`);
@@ -105,20 +112,20 @@ export class YurtApiService {
     return this.http.delete<CafeSecretStatus>(`${this.api}/platform/cafes/${id}/secrets/${encodeURIComponent(key)}`);
   }
   getMaintenance(): Observable<MaintenanceInfo> {
-    return this.http.get<MaintenanceInfo>(`${this.api}/platform/maintenance`);
+    return this.http.get<MaintenanceInfo>(`${this.api}/platform/maintenance`, this.cafeOptions());
   }
   setMaintenance(req: MaintenanceInfo): Observable<MaintenanceInfo> {
-    return this.http.put<MaintenanceInfo>(`${this.api}/platform/maintenance`, req);
+    return this.http.put<MaintenanceInfo>(`${this.api}/platform/maintenance`, req, this.cafeOptions());
   }
   getIntegrationStatus(): Observable<IntegrationStatus[]> {
     return this.http.get<IntegrationStatus[]>(`${this.api}/platform/integrations`);
   }
 
   getBrand(): Observable<BrandConfig> {
-    return this.http.get<BrandConfig>(`${this.api}/platform/brand`);
+    return this.http.get<BrandConfig>(`${this.api}/platform/brand`, this.cafeOptions());
   }
   setBrand(req: BrandConfig): Observable<BrandConfig> {
-    return this.http.put<BrandConfig>(`${this.api}/platform/brand`, req);
+    return this.http.put<BrandConfig>(`${this.api}/platform/brand`, req, this.cafeOptions());
   }
 
   // App releases (what's-new popup / forced update) - operator tool under /platform

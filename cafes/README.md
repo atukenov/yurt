@@ -12,6 +12,8 @@ cafes/<slug>/assets/        committed: icon-only.png (1024x1024), splash.png (27
 `cafe.json` fields: `appId` (reverse-DNS, e.g. `kz.mycafe.app`), `appName` (shown under the icon, up to 30 characters),
 optional `versionName` (`1.2.3`), `versionCode` (whole number, Android) and `appleMerchantId`
 (`merchant.kz.mycafe.app`, the Apple Pay merchant in the iOS entitlements; leave it out for a cafe without Apple Pay).
+Optional `tenant` is the cafe's key on the platform (the slug shown in Platform > Cafes); when set, the app is built to
+send it as `X-Tenant`, so it always talks to that cafe even before the cafe has its own web address.
 
 Apply a cafe to the native projects, then build as usual:
 
