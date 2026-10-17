@@ -622,6 +622,22 @@ export interface BrandLink {
   url: string;
 }
 
+export interface Cafe {
+  id: string;
+  slug: string;
+  name: string;
+  domain: string | null;
+  isActive: boolean;
+}
+
+export interface CreateCafeRequest {
+  slug: string;
+  name: string;
+  domain: string | null;
+  adminUsername: string;
+  adminPassword: string;
+}
+
 export interface MaintenanceInfo {
   enabled: boolean;
   message: string;

@@ -124,6 +124,7 @@ public static class DependencyInjection
         services.AddSingleton<IModuleGate, ModuleGate>();
         services.AddSingleton<IMaintenanceGate, MaintenanceGate>();
         services.AddScoped<PlatformService>();
+        services.AddScoped<CafeProvisioningService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

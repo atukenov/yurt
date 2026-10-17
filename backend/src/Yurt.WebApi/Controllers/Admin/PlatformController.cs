@@ -17,11 +17,13 @@ namespace Yurt.WebApi.Controllers.Admin;
 public class PlatformController : ApiControllerBase
 {
     private readonly PlatformService _platform;
+    private readonly CafeProvisioningService _cafes;
     private readonly IConfiguration _config;
 
-    public PlatformController(PlatformService platform, IConfiguration config)
+    public PlatformController(PlatformService platform, CafeProvisioningService cafes, IConfiguration config)
     {
         _platform = platform;
+        _cafes = cafes;
         _config = config;
     }
 
@@ -48,6 +50,18 @@ public class PlatformController : ApiControllerBase
     [HttpPut("brand")]
     public async Task<IActionResult> SetBrand([FromBody] BrandDto dto, CancellationToken ct)
         => ToResult(await _platform.SetBrandAsync(dto, ct));
+
+    [HttpGet("cafes")]
+    public async Task<IActionResult> GetCafes(CancellationToken ct)
+        => Ok(await _cafes.ListAsync(ct));
+
+    [HttpPost("cafes")]
+    public async Task<IActionResult> CreateCafe([FromBody] CreateCafeDto dto, CancellationToken ct)
+        => ToResult(await _cafes.CreateAsync(dto, ct));
+
+    [HttpPut("cafes/{id:guid}/active")]
+    public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
+        => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
 
     /// <summary>Whether each integration has its secrets configured. Never returns the values.</summary>
     [HttpGet("integrations")]

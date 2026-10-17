@@ -10,6 +10,8 @@ import {
   AppConfig,
   IntegrationStatus,
   MaintenanceInfo,
+  Cafe,
+  CreateCafeRequest,
   BrandConfig,
   PlatformModule,
   UpdateModuleLicenseRequest,
@@ -82,6 +84,15 @@ export class YurtApiService {
   }
   updatePlatformModule(key: string, req: UpdateModuleLicenseRequest): Observable<PlatformModule> {
     return this.http.put<PlatformModule>(`${this.api}/platform/modules/${key}`, req);
+  }
+  getCafes(): Observable<Cafe[]> {
+    return this.http.get<Cafe[]>(`${this.api}/platform/cafes`);
+  }
+  createCafe(req: CreateCafeRequest): Observable<Cafe> {
+    return this.http.post<Cafe>(`${this.api}/platform/cafes`, req);
+  }
+  setCafeActive(id: string, isActive: boolean): Observable<Cafe> {
+    return this.http.put<Cafe>(`${this.api}/platform/cafes/${id}/active`, { isActive });
   }
   getMaintenance(): Observable<MaintenanceInfo> {
     return this.http.get<MaintenanceInfo>(`${this.api}/platform/maintenance`);

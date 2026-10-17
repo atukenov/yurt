@@ -53,3 +53,11 @@ public static class BrandChoices
 
 /// <summary>A labelled link shown in the customer app (Instagram, website, ...).</summary>
 public record BrandLink(string Label, string Url);
+
+/// <summary>A cafe as listed in the operator's /platform screen.</summary>
+public record CafeDto(Guid Id, string Slug, string Name, string? Domain, bool IsActive);
+
+/// <summary>Everything needed to open a new cafe: its key, name, optional web address and the first admin login.</summary>
+public record CreateCafeDto(string Slug, string Name, string? Domain, string AdminUsername, string AdminPassword);
+
+public record SetCafeActiveDto(bool IsActive);
