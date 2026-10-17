@@ -18,7 +18,7 @@ public class LoyaltyModuleGateTests
         var iiko = Substitute.For<IIikoApiClient>();
         var gate = Substitute.For<IModuleGate>();
         gate.IsEnabledAsync(ModuleKeys.Loyalty, Arg.Any<CancellationToken>()).Returns(moduleOn);
-        var svc = new LoyaltyService(db, iiko, new IikoOptions { Enabled = true, EarnPercent = 5m },
+        var svc = new LoyaltyService(db, new IikoLoyaltyLedger(iiko), new IikoOptions { Enabled = true, EarnPercent = 5m },
             Substitute.For<IAuditLogService>(), Substitute.For<ILogger<LoyaltyService>>(), gate, tenant);
         return (svc, iiko, gate);
     }

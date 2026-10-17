@@ -15,7 +15,7 @@ public class LoyaltyService
     private const string AppOrderCommentPrefix = "Altyncup order ";
 
     private readonly IApplicationDbContext _db;
-    private readonly IIikoApiClient _iiko;
+    private readonly ILoyaltyLedger _ledger;
     private readonly IikoOptions _options;
     private readonly IAuditLogService _audit;
     private readonly ILogger<LoyaltyService> _logger;
@@ -24,7 +24,7 @@ public class LoyaltyService
 
     public LoyaltyService(
         IApplicationDbContext db,
-        IIikoApiClient iiko,
+        ILoyaltyLedger ledger,
         IikoOptions options,
         IAuditLogService audit,
         ILogger<LoyaltyService> logger,
@@ -33,7 +33,7 @@ public class LoyaltyService
     {
         _tenant = tenant;
         _db = db;
-        _iiko = iiko;
+        _ledger = ledger;
         _options = options;
         _audit = audit;
         _logger = logger;
@@ -81,14 +81,14 @@ public class LoyaltyService
             if (user.IikoCustomerId == null)
                 return new LoyaltyBalanceDto(true, true, false, null, _options.EarnPercent);
 
-            var info = await _iiko.GetCustomerByPhoneAsync(user.MobileNumber, ct);
+            var info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
             if (info == null)
                 return new LoyaltyBalanceDto(true, true, false, null, _options.EarnPercent);
 
             await SelfHealWalletIdAsync(user, info, ct);
 
-            var balance = info.WalletBalances
-                .Where(w => user.IikoWalletId == null || w.Id == user.IikoWalletId)
+            var balance = info.Balances
+                .Where(w => user.IikoWalletId == null || w.WalletId == user.IikoWalletId)
                 .Sum(w => w.Balance);
 
             return new LoyaltyBalanceDto(true, true, true, balance, _options.EarnPercent);
@@ -134,7 +134,7 @@ public class LoyaltyService
         {
             var dateTo = DateTime.UtcNow;
             var dateFrom = dateTo.AddDays(-_options.TransactionHistoryDays);
-            var transactions = await _iiko.GetCustomerTransactionsAsync(
+            var transactions = await _ledger.GetTransactionsAsync(
                 user.IikoCustomerId.Value, dateFrom, dateTo, ct: ct);
 
             var pushedOrderIds = (await _db.Orders
@@ -213,10 +213,10 @@ public class LoyaltyService
 
             await EnsureLinkedAsync(user, ct);
 
-            var info = await _iiko.GetCustomerByPhoneAsync(user.MobileNumber, ct);
+            var info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
             if (info != null) await SelfHealWalletIdAsync(user, info, ct);
 
-            await _iiko.TopupAsync(
+            await _ledger.TopupAsync(
                 user.IikoCustomerId!.Value,
                 user.IikoWalletId!.Value,
                 points,
@@ -267,11 +267,11 @@ public class LoyaltyService
 
             await EnsureLinkedAsync(user, ct);
 
-            var info = await _iiko.GetCustomerByPhoneAsync(user.MobileNumber, ct);
+            var info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
             if (info != null) await SelfHealWalletIdAsync(user, info, ct);
 
-            var balance = info?.WalletBalances
-                .Where(w => user.IikoWalletId == null || w.Id == user.IikoWalletId)
+            var balance = info?.Balances
+                .Where(w => user.IikoWalletId == null || w.WalletId == user.IikoWalletId)
                 .Sum(w => w.Balance) ?? 0m;
 
             var applied = Math.Round(
@@ -279,7 +279,7 @@ public class LoyaltyService
                 2, MidpointRounding.ToZero);
             if (applied <= 0) return 0m;
 
-            var holdId = await _iiko.HoldAsync(
+            var holdId = await _ledger.HoldAsync(
                 user.IikoCustomerId!.Value, user.IikoWalletId!.Value, applied,
                 $"{AppOrderCommentPrefix}{order.Id}", ct);
 
@@ -322,7 +322,7 @@ public class LoyaltyService
         {
             try
             {
-                await _iiko.CancelHoldAsync(order.LoyaltyHoldTransactionId.Value, ct);
+                await _ledger.CancelHoldAsync(order.LoyaltyHoldTransactionId.Value, ct);
                 order.LoyaltyHoldTransactionId = null;
             }
             catch (Exception ex)
@@ -336,7 +336,7 @@ public class LoyaltyService
 
         try
         {
-            await _iiko.ChargeoffAsync(
+            await _ledger.ChargeoffAsync(
                 user.IikoCustomerId.Value, user.IikoWalletId.Value,
                 order.LoyaltyPointsSpent.Value, $"{AppOrderCommentPrefix}{order.Id}", ct);
             order.LoyaltyPendingAction = LoyaltyPendingAction.None;
@@ -363,7 +363,7 @@ public class LoyaltyService
 
         try
         {
-            await _iiko.CancelHoldAsync(order.LoyaltyHoldTransactionId.Value, ct);
+            await _ledger.CancelHoldAsync(order.LoyaltyHoldTransactionId.Value, ct);
             order.LoyaltyHoldTransactionId = null;
             order.LoyaltyPointsSpent = null; // nothing was spent
             order.LoyaltyPendingAction = LoyaltyPendingAction.None;
@@ -473,7 +473,7 @@ public class LoyaltyService
         {
             try
             {
-                var info = await _iiko.GetCustomerByPhoneAsync(user.MobileNumber, ct);
+                var info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
                 if (info == null) continue;
 
                 var before = user.IikoWalletId;
@@ -500,7 +500,7 @@ public class LoyaltyService
     /// </summary>
     private async Task SelfHealLinkAsync(CustomerUser user, CancellationToken ct)
     {
-        var existing = await _iiko.GetCustomerByPhoneAsync(user.MobileNumber, ct);
+        var existing = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
         if (existing == null) return; // not registered in iiko — nothing to adopt
 
         user.IikoCustomerId = existing.Id;
@@ -520,10 +520,10 @@ public class LoyaltyService
     /// userWalletId over the shared, non-balance-holding program walletId returned by
     /// program/add.
     /// </summary>
-    private async Task SelfHealWalletIdAsync(CustomerUser user, IikoCustomerInfo info, CancellationToken ct)
+    private async Task SelfHealWalletIdAsync(CustomerUser user, LedgerAccount info, CancellationToken ct)
     {
-        if (info.WalletBalances.Count == 0) return;
-        if (info.WalletBalances.Any(w => w.Id == user.IikoWalletId)) return;
+        if (info.Balances.Count == 0) return;
+        if (info.Balances.Any(w => w.WalletId == user.IikoWalletId)) return;
 
         _logger.LogInformation(
             "Repairing stale iiko wallet id for customer {CustomerId}", user.Id);
@@ -541,10 +541,10 @@ public class LoyaltyService
     /// fall back to program/add when there's no wallet yet (needs real enrollment) or
     /// genuine ambiguity between multiple wallets.
     /// </summary>
-    private async Task<Guid> ResolveWalletIdAsync(Guid iikoCustomerId, IikoCustomerInfo info, CancellationToken ct)
-        => info.WalletBalances.Count == 1
-            ? info.WalletBalances[0].Id
-            : await _iiko.AddCustomerToProgramAsync(iikoCustomerId, ct);
+    private async Task<Guid> ResolveWalletIdAsync(Guid iikoCustomerId, LedgerAccount info, CancellationToken ct)
+        => info.Balances.Count == 1
+            ? info.Balances[0].WalletId
+            : await _ledger.EnrollAsync(iikoCustomerId, ct);
 
     /// <summary>Create/enroll the customer in iiko on first use and persist the link ids.</summary>
     private async Task EnsureLinkedAsync(CustomerUser user, CancellationToken ct)
@@ -553,13 +553,13 @@ public class LoyaltyService
 
         if (user.IikoCustomerId == null)
         {
-            user.IikoCustomerId = await _iiko.CreateOrUpdateCustomerAsync(
+            user.IikoCustomerId = await _ledger.CreateOrUpdateAccountAsync(
                 user.MobileNumber, user.FirstName, user.LastName, ct);
         }
 
         if (user.IikoWalletId == null)
         {
-            user.IikoWalletId = await _iiko.AddCustomerToProgramAsync(user.IikoCustomerId.Value, ct);
+            user.IikoWalletId = await _ledger.EnrollAsync(user.IikoCustomerId.Value, ct);
         }
 
         await _db.SaveChangesAsync(ct);

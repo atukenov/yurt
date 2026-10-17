@@ -165,7 +165,7 @@ and the webhook controller), and the self-developed counterpart. Every row is it
 Steps:
 - [ ] Introduce neutral interfaces and make iiko one adapter behind them; no behavior change.
   - [x] `IPosOrderSink` (push and close an order): `OrderService` no longer knows about iiko; `IikoOrderSyncService` is the only adapter.
-  - [ ] `ILoyaltyLedger`
+  - [x] `ILoyaltyLedger` (bonus wallet: account lookup, enroll, top-up, charge-off, hold and release, history): `LoyaltyService` talks to it; `IikoLoyaltyLedger` is the iiko adapter. The wallet-link columns on the customer keep their `Iiko*` names until the native ledger replaces them.
   - [ ] `IStockService`
   - [ ] `IPaymentMethodCatalog`
 - [ ] Native loyalty ledger and migration of existing iiko balances (read-only import, then switch per cafe).
