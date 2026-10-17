@@ -34,6 +34,7 @@ public interface IApplicationDbContext
     DbSet<ModuleLicense> ModuleLicenses { get; }
     DbSet<Tenant> Tenants { get; }
     DbSet<PlatformSetting> PlatformSettings { get; }
+    DbSet<TenantSecret> TenantSecrets { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

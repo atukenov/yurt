@@ -630,6 +630,11 @@ export interface Cafe {
   isActive: boolean;
 }
 
+export interface CafeSecretStatus {
+  key: string;
+  isSet: boolean;
+}
+
 export interface CreateCafeRequest {
   slug: string;
   name: string;

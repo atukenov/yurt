@@ -45,6 +45,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ModuleLicense> ModuleLicenses => Set<ModuleLicense>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
+    public DbSet<TenantSecret> TenantSecrets => Set<TenantSecret>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

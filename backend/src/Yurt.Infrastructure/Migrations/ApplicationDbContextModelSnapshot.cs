@@ -1486,6 +1486,42 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("Tenants");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.TenantSecret", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Ciphertext")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("TenantSecrets");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.UserReport", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1912,6 +1948,15 @@ namespace Yurt.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.TenantSecret", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
                         .WithMany()

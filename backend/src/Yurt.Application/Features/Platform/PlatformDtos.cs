@@ -61,3 +61,8 @@ public record CafeDto(Guid Id, string Slug, string Name, string? Domain, bool Is
 public record CreateCafeDto(string Slug, string Name, string? Domain, string AdminUsername, string AdminPassword);
 
 public record SetCafeActiveDto(bool IsActive);
+
+/// <summary>Whether a cafe has its own value for a secret. The value itself is never returned.</summary>
+public record CafeSecretStatusDto(string Key, bool IsSet);
+
+public record SetCafeSecretDto(string? Value);

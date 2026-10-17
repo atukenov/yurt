@@ -18,12 +18,14 @@ public class PlatformController : ApiControllerBase
 {
     private readonly PlatformService _platform;
     private readonly CafeProvisioningService _cafes;
+    private readonly CafeSecretsService _secrets;
     private readonly IConfiguration _config;
 
-    public PlatformController(PlatformService platform, CafeProvisioningService cafes, IConfiguration config)
+    public PlatformController(PlatformService platform, CafeProvisioningService cafes, CafeSecretsService secrets, IConfiguration config)
     {
         _platform = platform;
         _cafes = cafes;
+        _secrets = secrets;
         _config = config;
     }
 
@@ -62,6 +64,18 @@ public class PlatformController : ApiControllerBase
     [HttpPut("cafes/{id:guid}/active")]
     public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
         => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
+
+    [HttpGet("cafes/{id:guid}/secrets")]
+    public async Task<IActionResult> GetCafeSecrets(Guid id, CancellationToken ct)
+        => ToResult(await _secrets.ListAsync(id, ct));
+
+    [HttpPut("cafes/{id:guid}/secrets/{key}")]
+    public async Task<IActionResult> SetCafeSecret(Guid id, string key, [FromBody] SetCafeSecretDto dto, CancellationToken ct)
+        => ToResult(await _secrets.SetAsync(id, key, dto.Value, ct));
+
+    [HttpDelete("cafes/{id:guid}/secrets/{key}")]
+    public async Task<IActionResult> ClearCafeSecret(Guid id, string key, CancellationToken ct)
+        => ToResult(await _secrets.ClearAsync(id, key, ct));
 
     /// <summary>Whether each integration has its secrets configured. Never returns the values.</summary>
     [HttpGet("integrations")]

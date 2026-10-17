@@ -54,6 +54,7 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
                 ["Payment:WebhookSecret"]                    = WebhookSecret,
                 ["Payment:WebhookCallbackUrl"]               = "http://test.invalid/webhook",
                 ["Payment:SandboxSecret"]                    = "test-sandbox",
+                ["Secrets:MasterKey"]                        = Convert.ToBase64String(new byte[32].Select((_, i) => (byte)(i + 1)).ToArray()),
                 // Delay so long the sandbox never fires during a test
                 ["Payment:ProcessingDelaySecondsMin"]        = "99999",
                 ["Payment:ProcessingDelaySecondsMax"]        = "99999",

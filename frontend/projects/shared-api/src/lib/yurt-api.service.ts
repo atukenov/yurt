@@ -11,6 +11,7 @@ import {
   IntegrationStatus,
   MaintenanceInfo,
   Cafe,
+  CafeSecretStatus,
   CreateCafeRequest,
   BrandConfig,
   PlatformModule,
@@ -93,6 +94,15 @@ export class YurtApiService {
   }
   setCafeActive(id: string, isActive: boolean): Observable<Cafe> {
     return this.http.put<Cafe>(`${this.api}/platform/cafes/${id}/active`, { isActive });
+  }
+  getCafeSecrets(id: string): Observable<CafeSecretStatus[]> {
+    return this.http.get<CafeSecretStatus[]>(`${this.api}/platform/cafes/${id}/secrets`);
+  }
+  setCafeSecret(id: string, key: string, value: string): Observable<CafeSecretStatus> {
+    return this.http.put<CafeSecretStatus>(`${this.api}/platform/cafes/${id}/secrets/${encodeURIComponent(key)}`, { value });
+  }
+  clearCafeSecret(id: string, key: string): Observable<CafeSecretStatus> {
+    return this.http.delete<CafeSecretStatus>(`${this.api}/platform/cafes/${id}/secrets/${encodeURIComponent(key)}`);
   }
   getMaintenance(): Observable<MaintenanceInfo> {
     return this.http.get<MaintenanceInfo>(`${this.api}/platform/maintenance`);
