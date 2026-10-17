@@ -27,6 +27,14 @@ export const routes: Routes = [
           import('./features/orders/orders-live.component').then((m) => m.OrdersLiveComponent),
       },
       {
+        path: 'kitchen',
+        canActivate: [moduleGuard('own_pos', '/orders')],
+        loadComponent: () =>
+          import('./features/kitchen/kitchen-display.component').then(
+            (m) => m.KitchenDisplayComponent,
+          ),
+      },
+      {
         path: 'menu',
         loadComponent: () =>
           import('./features/menu/menu-management.component').then(

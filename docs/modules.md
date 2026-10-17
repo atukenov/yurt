@@ -99,5 +99,9 @@ How a gate is built:
 - **Not done yet:** light/dark logos (waiting for dark mode).
 - **Depends on:** nothing.
 
-## Not gated yet
-`own_pos` (see the gating order in the plan).
+### `own_pos` (self-developed POS, shipped one feature at a time)
+Gated so far: the **Kitchen** screen only. The other `own_pos` features (stock, cashier, printers) are added here as they ship.
+- **Kitchen screen:** admin route `/kitchen` and menu entry. A tablet page per branch with three columns (New, Preparing, Ready) of the accepted orders, oldest first, with items, toppings, notes and the wait time (red when past the promised minutes). One big button per card moves it on (Start, Ready, Handed over). It uses the same order API and live events as Live Orders, so no backend gate is needed and nothing changes for customers.
+- **When off:** the route redirects to Orders and the menu entry is hidden. Live Orders keeps working.
+- **Depends on:** nothing. It works next to iiko; orders still go to iiko as before while the cafe uses it.
+- **Not done yet:** stations (Kitchen/Bar) and routing a menu item to a station; ticket printing.

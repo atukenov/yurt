@@ -172,6 +172,8 @@ Steps:
   - [x] Read-only import of each customer's iiko balance into the native wallet: operator endpoints `POST /platform/loyalty/import` and `GET /platform/loyalty/compare` act on the cafe picked with `X-Tenant`. A repeat run skips customers already imported; compare lists customers whose iiko and native balances differ. Run it when no orders are in flight (iiko reports the balance without points on hold). No Platform screen button yet.
   - [x] Per-cafe switch: `GET/PUT /platform/loyalty/ledger` (body `{ "mode": "iiko" | "native" }`) acts on the cafe picked with `X-Tenant` and is saved on the cafe (`Tenant.LoyaltyLedger`; empty means iiko, as before). A cafe with iiko can only move to `native` while the compare shows every balance matches (otherwise `409`); switching back to `iiko` is the way out. A cafe without iiko can use `native` straight away and then gets loyalty without iiko. Switch when no orders are in flight: a hold made in one wallet cannot be released in the other, and points earned in the own wallet are not copied back to iiko. The own wallet is now safe against two simultaneous spends. No Platform screen button yet.
 - [ ] Kitchen display and order-routing per branch.
+  - [x] Simple kitchen screen (`/kitchen`, gated by `own_pos`): three columns per branch, one tap per step, live updates, sound for a new accepted order. Details in `docs/modules.md`.
+  - [ ] Stations (Kitchen, Bar) and routing a menu item to a station.
 - [ ] Stock, ingredients and automatic stop-list.
 - [ ] Cashier screen, shifts, receipts and Z report.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.

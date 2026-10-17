@@ -5,6 +5,7 @@ export type AdminLang = 'en' | 'ru' | 'kk';
 const T: Record<AdminLang, Record<string, string>> = {
   en: {
     // Navigation
+    'nav.kitchen': 'Kitchen', 'kitchen.title': 'Kitchen', 'kitchen.colNew': 'New', 'kitchen.colPreparing': 'Preparing', 'kitchen.colReady': 'Ready', 'kitchen.start': 'Start', 'kitchen.ready': 'Ready', 'kitchen.handedOver': 'Handed over', 'kitchen.min': 'min', 'kitchen.eta': 'ETA', 'kitchen.empty': 'No orders right now',
     'nav.dashboard': 'Dashboard', 'nav.orders': 'Live Orders', 'nav.menu': 'Menu Management',
     'nav.locations': 'Locations', 'nav.analytics': 'Analytics', 'nav.promotions': 'Promotions',
     'nav.customers': 'Customers', 'nav.workers': 'Workers', 'nav.auditLog': 'Audit Log',
@@ -176,6 +177,7 @@ const T: Record<AdminLang, Record<string, string>> = {
 
   ru: {
     // Navigation
+    'nav.kitchen': 'Кухня', 'kitchen.title': 'Кухня', 'kitchen.colNew': 'Новые', 'kitchen.colPreparing': 'Готовятся', 'kitchen.colReady': 'Готовы', 'kitchen.start': 'Начать', 'kitchen.ready': 'Готово', 'kitchen.handedOver': 'Выдан', 'kitchen.min': 'мин', 'kitchen.eta': 'Срок', 'kitchen.empty': 'Сейчас заказов нет',
     'nav.dashboard': 'Дашборд', 'nav.orders': 'Заказы (Live)', 'nav.menu': 'Управление меню',
     'nav.locations': 'Локации', 'nav.analytics': 'Аналитика', 'nav.promotions': 'Акции',
     'nav.customers': 'Клиенты', 'nav.workers': 'Сотрудники', 'nav.auditLog': 'Журнал аудита',
@@ -348,6 +350,7 @@ const T: Record<AdminLang, Record<string, string>> = {
 
   kk: {
     // Navigation
+    'nav.kitchen': 'Ас үй', 'kitchen.title': 'Ас үй', 'kitchen.colNew': 'Жаңа', 'kitchen.colPreparing': 'Дайындалуда', 'kitchen.colReady': 'Дайын', 'kitchen.start': 'Бастау', 'kitchen.ready': 'Дайын', 'kitchen.handedOver': 'Берілді', 'kitchen.min': 'мин', 'kitchen.eta': 'Мерзімі', 'kitchen.empty': 'Қазір тапсырыс жоқ',
     'nav.dashboard': 'Дашборд', 'nav.orders': 'Тапсырыстар (Live)', 'nav.menu': 'Мәзір басқару',
     'nav.locations': 'Мекендер', 'nav.analytics': 'Аналитика', 'nav.promotions': 'Акциялар',
     'nav.customers': 'Клиенттер', 'nav.workers': 'Қызметкерлер', 'nav.auditLog': 'Аудит журналы',
