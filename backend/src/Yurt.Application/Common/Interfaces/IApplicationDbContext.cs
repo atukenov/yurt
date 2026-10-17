@@ -35,6 +35,8 @@ public interface IApplicationDbContext
     DbSet<Tenant> Tenants { get; }
     DbSet<PlatformSetting> PlatformSettings { get; }
     DbSet<TenantSecret> TenantSecrets { get; }
+    DbSet<LoyaltyAccount> LoyaltyAccounts { get; }
+    DbSet<LoyaltyEntry> LoyaltyEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
