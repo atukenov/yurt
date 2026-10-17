@@ -25,6 +25,7 @@ public class IikoOrderSyncService
     private readonly IAuditLogService _audit;
     private readonly IModuleGate _modules;
     private readonly ILogger<IikoOrderSyncService> _logger;
+    private readonly ITenantContext _tenant;
 
     public IikoOrderSyncService(
         IApplicationDbContext db,
@@ -32,8 +33,10 @@ public class IikoOrderSyncService
         IikoOptions options,
         IAuditLogService audit,
         IModuleGate modules,
-        ILogger<IikoOrderSyncService> logger)
+        ILogger<IikoOrderSyncService> logger,
+        ITenantContext tenant)
     {
+        _tenant = tenant;
         _db = db;
         _iiko = iiko;
         _options = options;
@@ -49,7 +52,7 @@ public class IikoOrderSyncService
     /// </summary>
     public async Task PushOrderAsync(Order order, CancellationToken ct = default)
     {
-        if (!_options.Enabled || !_options.PushOrdersEnabled) return;
+        if (!_options.PushOrdersEnabledFor(_tenant.TenantId)) return;
         if (order.IikoOrderSyncStatus != IikoOrderSyncStatus.NotPushed) return; // already handled
         // iiko_sync off: new orders are simply not pushed. Closing an order that was already
         // pushed (CloseOrderAsync) ignores the module so nothing is left open in iiko.
@@ -134,7 +137,7 @@ public class IikoOrderSyncService
     /// <summary>Close a previously pushed order in iiko when it completes. Fail-open; never throws.</summary>
     public async Task CloseOrderAsync(Order order, CancellationToken ct = default)
     {
-        if (!_options.Enabled || !_options.PushOrdersEnabled) return;
+        if (!_options.PushOrdersEnabledFor(_tenant.TenantId)) return;
         if (order.IikoOrderSyncStatus != IikoOrderSyncStatus.Pushed || order.IikoDeliveryOrderId == null) return;
 
         try
@@ -156,7 +159,7 @@ public class IikoOrderSyncService
     /// <summary>Background retry of push/close operations that failed while iiko was down.</summary>
     public async Task RetryPendingAsync(CancellationToken ct = default)
     {
-        if (!_options.Enabled || !_options.PushOrdersEnabled) return;
+        if (!_options.PushOrdersEnabledFor(_tenant.TenantId)) return;
 
         var pending = await _db.Orders
             .Include(o => o.Location)

@@ -20,16 +20,27 @@ namespace Yurt.WebApi.Controllers.Admin;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/iiko")]
 [Authorize(Policy = "AdminOnly")]
-public class AdminIikoController : ApiControllerBase
+public class AdminIikoController : ApiControllerBase, Microsoft.AspNetCore.Mvc.Filters.IActionFilter
 {
     private readonly IIikoApiClient _iiko;
     private readonly IikoOptions _options;
+    private readonly ITenantContext _tenant;
 
-    public AdminIikoController(IIikoApiClient iiko, IikoOptions options)
+    public AdminIikoController(IIikoApiClient iiko, IikoOptions options, ITenantContext tenant)
     {
         _iiko = iiko;
         _options = options;
+        _tenant = tenant;
     }
+
+    /// <summary>iiko is configured once for the whole server and belongs to the first cafe; no other cafe may use it.</summary>
+    public void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+    {
+        if (_tenant.TenantId != Yurt.Domain.Entities.Tenant.DefaultId)
+            context.Result = NotFound();
+    }
+
+    public void OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext context) { }
 
     [HttpGet("nomenclature")]
     public async Task<IActionResult> GetNomenclature(CancellationToken ct)

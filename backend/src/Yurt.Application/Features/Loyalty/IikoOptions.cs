@@ -9,6 +9,15 @@ public class IikoOptions
     /// <summary>Master feature flag. When false no iiko calls are made anywhere.</summary>
     public bool Enabled { get; set; } = false;
 
+    /// <summary>
+    /// The iiko settings here (key, organisation, program, payment type) belong to the first cafe. Another cafe must
+    /// never read or write that cafe's iiko data, so iiko is on only for the default cafe until per-cafe iiko
+    /// settings exist.
+    /// </summary>
+    public bool IsEnabledFor(Guid tenantId) => Enabled && tenantId == Domain.Entities.Tenant.DefaultId;
+
+    public bool PushOrdersEnabledFor(Guid tenantId) => IsEnabledFor(tenantId) && PushOrdersEnabled;
+
     public string BaseUrl { get; set; } = "https://api-ru.iiko.services";
 
     /// <summary>API key generated in iikoWeb (Integrations → API Keys). Used by /api/v2/access_token.</summary>
