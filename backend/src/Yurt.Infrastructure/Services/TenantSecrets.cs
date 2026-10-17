@@ -30,9 +30,7 @@ public class TenantSecrets : ITenantSecrets
         // Only the first cafe may use the server-wide values; another cafe without its own secret has none.
         if (tenantId != Tenant.DefaultId) return null;
         var fallback = _config[key];
-        return string.IsNullOrWhiteSpace(fallback) || fallback.StartsWith("CHANGE_THIS", StringComparison.OrdinalIgnoreCase)
-            ? null
-            : fallback;
+        return string.IsNullOrWhiteSpace(fallback) ? null : fallback;
     }
 
     public async Task<IReadOnlyList<string>> ConfiguredKeysAsync(Guid tenantId, CancellationToken ct = default)

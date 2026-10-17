@@ -3,7 +3,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Payments.DTOs;
@@ -13,44 +12,52 @@ namespace Yurt.Infrastructure.Payments;
 
 public class PaymentWebhookValidator : IPaymentWebhookValidator
 {
-  private readonly PaymentOptions _options;
+  public const string SecretKey = "Payment:WebhookSecret";
 
-  public PaymentWebhookValidator(IOptions<PaymentOptions> options)
+  private readonly ITenantSecrets _secrets;
+
+  public PaymentWebhookValidator(ITenantSecrets secrets)
   {
-    _options = options.Value;
+    _secrets = secrets;
   }
 
-  public Task<Result<ValidatedPaymentWebhook>> ValidateAsync(
+  public async Task<Result<ValidatedPaymentWebhook>> ValidateAsync(
       string rawBody,
       IReadOnlyDictionary<string, string> headers,
       CancellationToken cancellationToken = default)
   {
     if (!headers.TryGetValue("X-Kaspi-Timestamp", out var timestamp) || string.IsNullOrEmpty(timestamp))
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Missing webhook timestamp header.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Missing webhook timestamp header.", 400);
 
     if (!headers.TryGetValue("X-Kaspi-Signature", out var signature) || string.IsNullOrEmpty(signature))
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Missing webhook signature header.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Missing webhook signature header.", 400);
 
     var timestampValue = timestamp;
     var signatureValue = signature;
 
     if (!DateTimeOffset.TryParse(timestampValue, out var sentAt))
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Invalid webhook timestamp.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Invalid webhook timestamp.", 400);
 
     if (Math.Abs((DateTimeOffset.UtcNow - sentAt).TotalMinutes) > 5)
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Webhook timestamp is outside allowed window.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Webhook timestamp is outside allowed window.", 400);
 
-    var computedSignature = ComputeSignature(timestampValue, rawBody, _options.WebhookSecret);
+    // The secret belongs to the cafe this request was matched to. A cafe without one accepts no webhooks at all
+    // (an empty key would let anyone sign a payload).
+    var secret = await _secrets.GetAsync(SecretKey, cancellationToken);
+    if (string.IsNullOrEmpty(secret))
+      return Result<ValidatedPaymentWebhook>.Failure("Payment webhook secret is not configured for this cafe.", 503);
+
+    var computedSignature = ComputeSignature(timestampValue, rawBody, secret);
     try
     {
       var receivedBytes = Convert.FromBase64String(signatureValue);
       var expectedBytes = Convert.FromBase64String(computedSignature);
       if (!CryptographicOperations.FixedTimeEquals(receivedBytes, expectedBytes))
-        return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Webhook signature validation failed.", 401));
+        return Result<ValidatedPaymentWebhook>.Failure("Webhook signature validation failed.", 401);
     }
     catch (FormatException)
     {
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Invalid webhook signature format.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Invalid webhook signature format.", 400);
     }
 
     PaymentWebhookPayload? payload;
@@ -63,17 +70,17 @@ public class PaymentWebhookValidator : IPaymentWebhookValidator
     }
     catch (JsonException)
     {
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Invalid webhook payload.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Invalid webhook payload.", 400);
     }
 
     if (payload == null || string.IsNullOrWhiteSpace(payload.InvoiceId) || string.IsNullOrWhiteSpace(payload.EventType))
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Webhook payload is incomplete.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Webhook payload is incomplete.", 400);
 
     if (!Enum.TryParse<PaymentProvider>(payload.Provider, true, out var provider))
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Unsupported payment provider.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Unsupported payment provider.", 400);
 
     if (!Enum.TryParse<Currency>(payload.Currency, true, out var currency))
-      return Task.FromResult(Result<ValidatedPaymentWebhook>.Failure("Unsupported currency.", 400));
+      return Result<ValidatedPaymentWebhook>.Failure("Unsupported currency.", 400);
 
     var validated = new ValidatedPaymentWebhook(
         payload.InvoiceId,
@@ -84,7 +91,7 @@ public class PaymentWebhookValidator : IPaymentWebhookValidator
         sentAt.UtcDateTime,
         rawBody);
 
-    return Task.FromResult(Result<ValidatedPaymentWebhook>.Success(validated));
+    return Result<ValidatedPaymentWebhook>.Success(validated);
   }
 
   private static string ComputeSignature(string timestamp, string body, string secret)

@@ -1,3 +1,4 @@
+using Yurt.Application.Features.Tenants;
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -17,6 +18,8 @@ public class KaspiSandboxPaymentProvider : IPaymentProvider
   private readonly IHttpClientFactory _httpClientFactory;
   private readonly PaymentOptions _options;
   private readonly ILogger<KaspiSandboxPaymentProvider> _logger;
+  private readonly ITenantSecrets _secrets;
+  private readonly ITenantContext _tenant;
   private readonly ConcurrentDictionary<string, SandboxInvoiceState> _invoices = new();
 
   public PaymentProvider Provider => PaymentProvider.KaspiSandbox;
@@ -24,8 +27,12 @@ public class KaspiSandboxPaymentProvider : IPaymentProvider
   public KaspiSandboxPaymentProvider(
       IHttpClientFactory httpClientFactory,
       IOptions<PaymentOptions> options,
-      ILogger<KaspiSandboxPaymentProvider> logger)
+      ILogger<KaspiSandboxPaymentProvider> logger,
+      ITenantSecrets secrets,
+      ITenantContext tenant)
   {
+    _secrets = secrets;
+    _tenant = tenant;
     _httpClientFactory = httpClientFactory;
     _options = options.Value;
     _logger = logger;
@@ -53,7 +60,7 @@ public class KaspiSandboxPaymentProvider : IPaymentProvider
     return Task.FromResult(response);
   }
 
-  public Task<PaymentInvoiceResponse> CreateInvoiceAsync(CreatePaymentInvoiceRequest request, CancellationToken cancellationToken = default)
+  public async Task<PaymentInvoiceResponse> CreateInvoiceAsync(CreatePaymentInvoiceRequest request, CancellationToken cancellationToken = default)
   {
     var invoiceId = $"KS-{Guid.NewGuid():N}";
     var expiresAt = DateTime.UtcNow.AddMinutes(20);
@@ -71,12 +78,17 @@ public class KaspiSandboxPaymentProvider : IPaymentProvider
         qrCode,
         DateTime.UtcNow,
         expiresAt,
-        request.SandboxBehavior);
+        request.SandboxBehavior)
+    {
+      // The simulated webhook is sent later from a background task, so the cafe's secret and slug are read now.
+      WebhookSecret = await _secrets.GetAsync(PaymentWebhookValidator.SecretKey, cancellationToken),
+      TenantSlug = _tenant.Slug,
+    };
 
     _invoices.TryAdd(invoiceId, state);
     Task.Run(() => SimulateAsync(state), CancellationToken.None);
 
-    return Task.FromResult(new PaymentInvoiceResponse(
+    return new PaymentInvoiceResponse(
         Guid.Empty,
         invoiceId,
         paymentUrl,
@@ -87,7 +99,7 @@ public class KaspiSandboxPaymentProvider : IPaymentProvider
         PaymentRecordStatus.Pending,
         state.CreatedAt,
         expiresAt,
-        null));
+        null);
   }
 
   private async Task SimulateAsync(SandboxInvoiceState state)
@@ -153,22 +165,29 @@ public class KaspiSandboxPaymentProvider : IPaymentProvider
     {
       _logger.LogWarning("Simulating network failure for webhook invoice {InvoiceId}", state.InvoiceId);
       await Task.Delay(TimeSpan.FromSeconds(2));
-      await PostWebhookAsync(rawBody, payload);
+      await PostWebhookAsync(state, rawBody, payload);
       return;
     }
 
-    await PostWebhookAsync(rawBody, payload);
+    await PostWebhookAsync(state, rawBody, payload);
   }
 
-  private async Task PostWebhookAsync(string body, object payload)
+  private async Task PostWebhookAsync(SandboxInvoiceState state, string body, object payload)
   {
+    if (string.IsNullOrEmpty(state.WebhookSecret))
+    {
+      _logger.LogWarning("Sandbox webhook not sent for invoice {InvoiceId}: this cafe has no payment webhook secret", state.InvoiceId);
+      return;
+    }
+
     using var request = new HttpRequestMessage(HttpMethod.Post, _options.WebhookCallbackUrl)
     {
       Content = new StringContent(body, Encoding.UTF8, "application/json")
     };
 
     var timestamp = DateTime.UtcNow.ToString("o");
-    var signature = ComputeSignature(timestamp, body, _options.WebhookSecret);
+    var signature = ComputeSignature(timestamp, body, state.WebhookSecret);
+    if (!string.IsNullOrEmpty(state.TenantSlug)) request.Headers.Add(TenantResolver.HeaderName, state.TenantSlug);
     request.Headers.Add("X-Kaspi-Timestamp", timestamp);
     request.Headers.Add("X-Kaspi-Signature", signature);
 
@@ -223,6 +242,8 @@ public class KaspiSandboxPaymentProvider : IPaymentProvider
     public SandboxPaymentBehavior SandboxBehavior { get; }
     public PaymentRecordStatus Status { get; set; } = PaymentRecordStatus.Pending;
     public string? RawResponse { get; set; }
+    public string? WebhookSecret { get; init; }
+    public string? TenantSlug { get; init; }
     public DateTime? UpdatedAt { get; set; }
     public string OrderStatus { get; set; } = Yurt.Domain.Enums.OrderStatus.Created.ToString();
 

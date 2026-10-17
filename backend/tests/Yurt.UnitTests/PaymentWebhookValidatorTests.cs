@@ -1,7 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
+using NSubstitute;
+using Yurt.Application.Common.Interfaces;
 using Yurt.Infrastructure.Payments;
 
 namespace Yurt.UnitTests;
@@ -16,10 +17,11 @@ public class PaymentWebhookValidatorTests
 {
     private const string Secret = "test-webhook-secret-32-chars-ok!!";
 
-    private static PaymentWebhookValidator Build(string secret = Secret)
+    private static PaymentWebhookValidator Build(string? secret = Secret)
     {
-        var options = Options.Create(new PaymentOptions { WebhookSecret = secret });
-        return new PaymentWebhookValidator(options);
+        var secrets = Substitute.For<ITenantSecrets>();
+        secrets.GetAsync(PaymentWebhookValidator.SecretKey, Arg.Any<CancellationToken>()).Returns(secret);
+        return new PaymentWebhookValidator(secrets);
     }
 
     private static string Sign(string timestamp, string body, string secret = Secret)
@@ -219,5 +221,24 @@ public class PaymentWebhookValidatorTests
 
         Assert.False(result.Succeeded);
         Assert.Equal(400, result.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task CafeWithoutASecret_AcceptsNoWebhook_EvenWithAnEmptyKeySignature(string? secret)
+    {
+        var validator = Build(secret);
+        var body = ValidBody();
+        var timestamp = DateTimeOffset.UtcNow.ToString("o");
+
+        var result = await validator.ValidateAsync(body, new Dictionary<string, string>
+        {
+            ["X-Kaspi-Timestamp"] = timestamp,
+            ["X-Kaspi-Signature"] = Sign(timestamp, body, ""),
+        });
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(503, result.StatusCode);
     }
 }
