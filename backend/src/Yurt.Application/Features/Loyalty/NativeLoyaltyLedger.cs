@@ -62,20 +62,20 @@ public class NativeLoyaltyLedger(IApplicationDbContext db) : ILoyaltyLedger
 
     public async Task ChargeoffAsync(Guid accountId, Guid walletId, decimal sum, string? comment, CancellationToken ct = default)
     {
-        await RequireWalletAsync(accountId, walletId, ct);
+        var account = await RequireWalletAsync(accountId, walletId, ct);
         RequirePositive(sum);
         await RequireFundsAsync(accountId, sum, ct);
         Add(accountId, LoyaltyEntryKind.Chargeoff, -sum, comment);
-        await db.SaveChangesAsync(ct);
+        await SaveSpendAsync(account, ct);
     }
 
     public async Task<Guid> HoldAsync(Guid accountId, Guid walletId, decimal sum, string? comment, CancellationToken ct = default)
     {
-        await RequireWalletAsync(accountId, walletId, ct);
+        var account = await RequireWalletAsync(accountId, walletId, ct);
         RequirePositive(sum);
         await RequireFundsAsync(accountId, sum, ct);
         var hold = Add(accountId, LoyaltyEntryKind.Hold, -sum, comment);
-        await db.SaveChangesAsync(ct);
+        await SaveSpendAsync(account, ct);
         return hold.Id;
     }
 
@@ -83,10 +83,13 @@ public class NativeLoyaltyLedger(IApplicationDbContext db) : ILoyaltyLedger
     {
         var hold = await db.LoyaltyEntries.FirstOrDefaultAsync(e => e.Id == holdId && e.Kind == LoyaltyEntryKind.Hold, ct)
             ?? throw new InvalidOperationException("Hold not found.");
-        if (hold.Released) return; // releasing twice must not add points twice
 
-        hold.Released = true;
-        hold.UpdatedAt = DateTime.UtcNow;
+        // One atomic flip decides who releases: of two simultaneous calls only one sees a row change, so points come back once.
+        var flipped = await db.LoyaltyEntries
+            .Where(e => e.Id == holdId && !e.Released)
+            .ExecuteUpdateAsync(u => u.SetProperty(e => e.Released, true).SetProperty(e => e.UpdatedAt, DateTime.UtcNow), ct);
+        if (flipped == 0) return;
+
         Add(hold.AccountId, LoyaltyEntryKind.HoldRelease, -hold.Amount, hold.Comment);
         await db.SaveChangesAsync(ct);
     }
@@ -109,10 +112,25 @@ public class NativeLoyaltyLedger(IApplicationDbContext db) : ILoyaltyLedger
         => await db.LoyaltyAccounts.FirstOrDefaultAsync(a => a.Id == accountId, ct)
            ?? throw new InvalidOperationException("Loyalty account not found.");
 
-    private async Task RequireWalletAsync(Guid accountId, Guid walletId, CancellationToken ct)
+    private async Task<LoyaltyAccount> RequireWalletAsync(Guid accountId, Guid walletId, CancellationToken ct)
     {
         var account = await FindAsync(accountId, ct);
         if (account.WalletId != walletId) throw new InvalidOperationException("Wallet does not belong to this account.");
+        return account;
+    }
+
+    /// <summary>
+    /// Saves a spend. The account row is touched so its version changes: if another spend for the same account got in
+    /// between our balance check and this save, the save fails instead of letting the balance go below zero.
+    /// </summary>
+    private async Task SaveSpendAsync(LoyaltyAccount account, CancellationToken ct)
+    {
+        account.UpdatedAt = DateTime.UtcNow;
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new InvalidOperationException("The balance changed at the same moment. Please try again.");
+        }
     }
 
     private static void RequirePositive(decimal sum)

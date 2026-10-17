@@ -378,6 +378,7 @@ public class LoyaltyAccountConfiguration : IEntityTypeConfiguration<LoyaltyAccou
         builder.Property(e => e.Phone).HasMaxLength(20).IsRequired();
         builder.Property(e => e.Name).HasMaxLength(100);
         builder.Property(e => e.Surname).HasMaxLength(100);
+        builder.Property(e => e.Version).IsRowVersion();
         builder.HasIndex(e => new { e.TenantId, e.Phone }).IsUnique();
     }
 }

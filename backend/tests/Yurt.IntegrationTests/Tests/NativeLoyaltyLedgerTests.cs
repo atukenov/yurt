@@ -114,4 +114,48 @@ public class NativeLoyaltyLedgerTests(YurtWebAppFactory factory)
             Assert.Equal(0m, await BalanceAsync(second, phone));
         }
     }
+
+    [Fact]
+    public async Task SimultaneousSpends_NeverTakeTheBalanceBelowZero()
+    {
+        var ledger = LedgerFor(Tenant.DefaultId, "default", out var scope);
+        using var _ = scope;
+        var phone = NewPhone();
+        var (account, wallet) = await JoinAsync(ledger, phone);
+        await ledger.TopupAsync(account, wallet, 100m, "earn");
+
+        async Task<bool> TrySpendAsync()
+        {
+            var other = LedgerFor(Tenant.DefaultId, "default", out var s);
+            using (s)
+            {
+                try { await other.ChargeoffAsync(account, wallet, 80m, "race"); return true; }
+                catch (InvalidOperationException) { return false; }
+            }
+        }
+
+        var results = await Task.WhenAll(Enumerable.Range(0, 6).Select(_ => Task.Run(TrySpendAsync)));
+
+        Assert.Equal(1, results.Count(r => r));
+        Assert.Equal(20m, await BalanceAsync(ledger, phone));
+    }
+
+    [Fact]
+    public async Task SimultaneousReleasesOfOneHold_GiveThePointsBackOnce()
+    {
+        var ledger = LedgerFor(Tenant.DefaultId, "default", out var scope);
+        using var _ = scope;
+        var phone = NewPhone();
+        var (account, wallet) = await JoinAsync(ledger, phone);
+        await ledger.TopupAsync(account, wallet, 100m, "earn");
+        var hold = await ledger.HoldAsync(account, wallet, 40m, "hold");
+
+        await Task.WhenAll(Enumerable.Range(0, 6).Select(_ => Task.Run(async () =>
+        {
+            var other = LedgerFor(Tenant.DefaultId, "default", out var s);
+            using (s) await other.CancelHoldAsync(hold);
+        })));
+
+        Assert.Equal(100m, await BalanceAsync(ledger, phone));
+    }
 }
