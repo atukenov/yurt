@@ -23,4 +23,7 @@ public class Tenant : BaseEntity
 
     /// <summary>A switched-off tenant is skipped when a request is matched to a cafe. Data is never deleted.</summary>
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Where this cafe's bonus wallet lives: "iiko" or "native". Null keeps today's behaviour (iiko). Phase 6.</summary>
+    public string? LoyaltyLedger { get; set; }
 }

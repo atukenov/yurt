@@ -72,3 +72,8 @@ public record LoyaltyImportDto(int Customers, int Imported, int Skipped, int Fai
 public record LoyaltyMismatchDto(string Phone, decimal Iiko, decimal Native);
 
 public record LoyaltyCompareDto(int Customers, int Matching, int Mismatched, int Failed, List<LoyaltyMismatchDto> Mismatches);
+
+/// <summary>Where the cafe's bonus wallet lives ("iiko" or "native") and whether iiko is available to this cafe.</summary>
+public record LoyaltyLedgerDto(string Mode, bool IikoAvailable);
+
+public record SetLoyaltyLedgerDto(string? Mode);

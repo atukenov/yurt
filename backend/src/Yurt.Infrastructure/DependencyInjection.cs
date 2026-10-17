@@ -112,7 +112,12 @@ public static class DependencyInjection
         services.AddSingleton(configuration.GetSection("FreedomPay").Get<FreedomPayOptions>() ?? new FreedomPayOptions());
         services.AddScoped<IPaymentProvider, FreedomPayPaymentProvider>();
         services.AddHttpClient<IIikoApiClient, IikoApiClient>();
-        services.AddScoped<ILoyaltyLedger, IikoLoyaltyLedger>();
+        services.AddScoped<IikoLoyaltyLedger>();
+        services.AddScoped<NativeLoyaltyLedger>();
+        services.AddScoped<SwitchingLoyaltyLedger>();
+        services.AddScoped<ILoyaltyLedger>(sp => sp.GetRequiredService<SwitchingLoyaltyLedger>());
+        services.AddScoped<ILoyaltyLedgerChoice>(sp => sp.GetRequiredService<SwitchingLoyaltyLedger>());
+        services.AddScoped<LoyaltyLedgerSwitchService>();
         services.AddScoped<LoyaltyService>();
         services.AddScoped<IikoOrderSyncService>();
         services.AddScoped<IPosOrderSink>(sp => sp.GetRequiredService<IikoOrderSyncService>());

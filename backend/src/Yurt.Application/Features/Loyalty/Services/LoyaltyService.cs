@@ -21,6 +21,7 @@ public class LoyaltyService
     private readonly ILogger<LoyaltyService> _logger;
     private readonly IModuleGate _modules;
     private readonly ITenantContext _tenant;
+    private readonly ILoyaltyLedgerChoice? _choice;
 
     public LoyaltyService(
         IApplicationDbContext db,
@@ -29,8 +30,10 @@ public class LoyaltyService
         IAuditLogService audit,
         ILogger<LoyaltyService> logger,
         IModuleGate modules,
-        ITenantContext tenant)
+        ITenantContext tenant,
+        ILoyaltyLedgerChoice? choice = null)
     {
+        _choice = choice;
         _tenant = tenant;
         _db = db;
         _ledger = ledger;
@@ -43,7 +46,7 @@ public class LoyaltyService
     /// <summary>Loyalty is live only when iiko loyalty is configured AND the <c>loyalty</c> module is on.
     /// Used by new activity (balance, history, earning, new holds). Finalising or releasing an existing
     /// hold deliberately ignores the module, so switching it off never strands points mid-order.</summary>
-    private bool IikoOn => _options.IsEnabledFor(_tenant.TenantId);
+    private bool IikoOn => _options.IsEnabledFor(_tenant.TenantId) || (_choice?.UsesNativeLedger ?? false);
 
     private async Task<bool> ActiveAsync(CancellationToken ct)
         => IikoOn && await _modules.IsEnabledAsync(ModuleKeys.Loyalty, ct);
@@ -211,10 +214,7 @@ public class LoyaltyService
                 ?? await _db.CustomerUsers.FirstOrDefaultAsync(u => u.Id == order.CustomerUserId, ct);
             if (user == null) return;
 
-            await EnsureLinkedAsync(user, ct);
-
-            var info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
-            if (info != null) await SelfHealWalletIdAsync(user, info, ct);
+            var info = await LinkAndLoadAccountAsync(user, ct);
 
             await _ledger.TopupAsync(
                 user.IikoCustomerId!.Value,
@@ -265,10 +265,7 @@ public class LoyaltyService
                 ?? await _db.CustomerUsers.FirstOrDefaultAsync(u => u.Id == order.CustomerUserId, ct);
             if (user == null) return 0m;
 
-            await EnsureLinkedAsync(user, ct);
-
-            var info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
-            if (info != null) await SelfHealWalletIdAsync(user, info, ct);
+            var info = await LinkAndLoadAccountAsync(user, ct);
 
             var balance = info?.Balances
                 .Where(w => user.IikoWalletId == null || w.WalletId == user.IikoWalletId)
@@ -522,6 +519,14 @@ public class LoyaltyService
     /// </summary>
     private async Task SelfHealWalletIdAsync(CustomerUser user, LedgerAccount info, CancellationToken ct)
     {
+        // After a cafe switches between the iiko and the native wallet the stored ids belong to the other one:
+        // the wallet we are talking to now is the authority, found by phone.
+        if (_choice != null && info.Id != user.IikoCustomerId)
+        {
+            user.IikoCustomerId = info.Id;
+            user.IikoWalletId = info.Balances.Count > 0 ? info.Balances[0].WalletId : await _ledger.EnrollAsync(info.Id, ct);
+            await _db.SaveChangesAsync(ct);
+        }
         if (info.Balances.Count == 0) return;
         if (info.Balances.Any(w => w.WalletId == user.IikoWalletId)) return;
 
@@ -545,6 +550,25 @@ public class LoyaltyService
         => info.Balances.Count == 1
             ? info.Balances[0].WalletId
             : await _ledger.EnrollAsync(iikoCustomerId, ct);
+
+    /// <summary>
+    /// Links the customer on first use and returns their account. A customer whose stored ids point at an account the
+    /// current wallet does not have (the cafe just switched wallets) is linked again from scratch.
+    /// </summary>
+    private async Task<LedgerAccount?> LinkAndLoadAccountAsync(CustomerUser user, CancellationToken ct)
+    {
+        await EnsureLinkedAsync(user, ct);
+        var info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
+        if (info == null && _choice?.UsesNativeLedger == true)
+        {
+            user.IikoCustomerId = null;
+            user.IikoWalletId = null;
+            await EnsureLinkedAsync(user, ct);
+            info = await _ledger.GetAccountByPhoneAsync(user.MobileNumber, ct);
+        }
+        if (info != null) await SelfHealWalletIdAsync(user, info, ct);
+        return info;
+    }
 
     /// <summary>Create/enroll the customer in iiko on first use and persist the link ids.</summary>
     private async Task EnsureLinkedAsync(CustomerUser user, CancellationToken ct)
