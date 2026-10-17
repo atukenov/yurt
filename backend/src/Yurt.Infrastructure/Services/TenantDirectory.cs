@@ -14,6 +14,11 @@ public class TenantDirectory(IServiceScopeFactory scopes, IMemoryCache cache) : 
 
     public void Invalidate() => cache.Remove(CacheKey);
 
+    public IReadOnlyList<Tenant> GetActive()
+        => cache.TryGetValue(CacheKey, out IReadOnlyList<Tenant>? cached) && cached is not null
+            ? cached
+            : Task.Run(() => GetActiveAsync()).GetAwaiter().GetResult();
+
     public async Task<IReadOnlyList<Tenant>> GetActiveAsync(CancellationToken ct = default)
     {
         if (cache.TryGetValue(CacheKey, out IReadOnlyList<Tenant>? cached) && cached is not null) return cached;

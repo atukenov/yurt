@@ -50,4 +50,37 @@ public class TenantResolverTests
         var (id, _) = TenantResolver.Resolve([Default], "order.bluecafe.kz");
         Assert.Equal(Tenant.DefaultId, id);
     }
+
+    [Fact]
+    public void SlugHeader_WinsOverOriginAndHost()
+    {
+        var other = new Tenant { Slug = "red", Name = "Red", Domain = "red.example" };
+        var (id, slug) = TenantResolver.Resolve([Default, Blue, other], "red.example", "https://red.example", "BLUE");
+        Assert.Equal(Blue.Id, id);
+        Assert.Equal("blue", slug);
+    }
+
+    [Fact]
+    public void UnknownSlugHeader_FallsThroughToOrigin()
+    {
+        var (id, _) = TenantResolver.Resolve([Default, Blue], "api.shared.example", "https://order.bluecafe.kz:4300", "nope");
+        Assert.Equal(Blue.Id, id);
+    }
+
+    [Fact]
+    public void Origin_WinsOverHost()
+    {
+        var other = new Tenant { Slug = "red", Name = "Red", Domain = "api.red.example" };
+        var (id, _) = TenantResolver.Resolve([Default, Blue, other], "api.red.example", "https://order.bluecafe.kz");
+        Assert.Equal(Blue.Id, id);
+    }
+
+    [Theory]
+    [InlineData("https://order.bluecafe.kz", true)]
+    [InlineData("http://ORDER.bluecafe.kz:4300", true)]
+    [InlineData("https://evil.example", false)]
+    [InlineData("not a url", false)]
+    [InlineData(null, false)]
+    public void IsCafeOrigin_MatchesOnlyActiveCafeDomains(string? origin, bool expected)
+        => Assert.Equal(expected, TenantResolver.IsCafeOrigin([Default, Blue], origin));
 }

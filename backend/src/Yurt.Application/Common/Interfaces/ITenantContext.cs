@@ -15,6 +15,9 @@ public interface ITenantDirectory
 {
     Task<IReadOnlyList<Domain.Entities.Tenant>> GetActiveAsync(CancellationToken ct = default);
 
+    /// <summary>Same list without awaiting, for the CORS check; loads (and blocks) only when the cache is empty.</summary>
+    IReadOnlyList<Domain.Entities.Tenant> GetActive();
+
     /// <summary>Forget the cached list, for example after a cafe was created or switched off.</summary>
     void Invalidate();
 }

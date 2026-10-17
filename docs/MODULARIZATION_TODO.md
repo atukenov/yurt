@@ -136,7 +136,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
     - [x] Module licenses, brand, maintenance mode and other platform settings are per cafe (`ModuleLicense` and `PlatformSetting` carry `TenantId`; the module and maintenance gates cache per cafe through `TenantAmbient`). The `/platform` screens act on the cafe of the host they are opened from. A new cafe starts with no rows, which means every module is on (fail-open) until the operator switches one off.
     - [ ] Credentials: iiko, payments, Firebase, OTP (today environment variables for the whole deployment).
   - [ ] Make `TenantId` required once every table has it.
-- [ ] Per-tenant domains/subdomains and CORS.
+- [x] Per-tenant domains and CORS: the cafe is picked by the `X-Tenant` slug header, then the `Origin` host, then the request host (all matched to `Tenant.Domain`), then the default; CORS also allows any active cafe domain, so a new cafe needs no redeploy. Frontend sending `X-Tenant` from branded apps comes later.
 - [ ] Data-isolation test suite (one cafe can never read another's data).
 - [ ] Tenant provisioning flow in `/platform` (create cafe, seed menu, first admin).
 - [ ] Until then: one deployment per cafe is acceptable for the first customers.
