@@ -25,6 +25,8 @@ public enum LoyaltyEntryKind
     Chargeoff = 1,
     Hold = 2,
     HoldRelease = 3,
+    /// <summary>The balance copied from iiko when a cafe moved to the native wallet. At most one per account.</summary>
+    Import = 4,
 }
 
 /// <summary>One movement on a bonus wallet. <see cref="Amount"/> is signed: positive adds points, negative takes them.</summary>

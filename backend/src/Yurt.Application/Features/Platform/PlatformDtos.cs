@@ -66,3 +66,9 @@ public record SetCafeActiveDto(bool IsActive);
 public record CafeSecretStatusDto(string Key, bool IsSet);
 
 public record SetCafeSecretDto(string? Value);
+
+public record LoyaltyImportDto(int Customers, int Imported, int Skipped, int Failed, decimal PointsImported);
+
+public record LoyaltyMismatchDto(string Phone, decimal Iiko, decimal Native);
+
+public record LoyaltyCompareDto(int Customers, int Matching, int Mismatched, int Failed, List<LoyaltyMismatchDto> Mismatches);
