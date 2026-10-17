@@ -186,4 +186,21 @@ public class TenantIsolationTests(YurtWebAppFactory factory)
         Assert.True(await db.MenuItems.AnyAsync());
         Assert.Equal(await db.Locations.IgnoreQueryFilters().CountAsync(), await db.Locations.CountAsync());
     }
+
+    [Fact]
+    public void EveryTable_ExceptTenants_IsOwnedByACafe_AndFiltered()
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var unguarded = db.Model.GetEntityTypes()
+            .Where(t => t.ClrType != typeof(Tenant) && !t.IsOwned())
+            .Where(t => !typeof(Yurt.Domain.Common.ITenantOwned).IsAssignableFrom(t.ClrType)
+                        || t.GetQueryFilter() is null
+                        || t.FindProperty(nameof(Yurt.Domain.Common.ITenantOwned.TenantId))!.IsNullable)
+            .Select(t => t.ClrType.Name)
+            .ToList();
+
+        Assert.True(unguarded.Count == 0, "Tables with no cafe filter: " + string.Join(", ", unguarded));
+    }
 }
