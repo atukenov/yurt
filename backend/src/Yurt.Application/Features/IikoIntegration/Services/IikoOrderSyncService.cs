@@ -17,7 +17,7 @@ namespace Yurt.Application.Features.IikoIntegration.Services;
 /// wallet. Never drives the customer-facing <see cref="Order.Status"/> — that stays
 /// entirely owned by the admin panel's Accept/Preparing/Ready/Complete actions.
 /// </summary>
-public class IikoOrderSyncService
+public class IikoOrderSyncService : IPosOrderSink
 {
     private readonly IApplicationDbContext _db;
     private readonly IIikoApiClient _iiko;

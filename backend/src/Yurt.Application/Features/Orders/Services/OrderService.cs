@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.DiscountCodes.Services;
-using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty.Services;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Domain;
@@ -18,12 +17,12 @@ public class OrderService
     private readonly IAuditLogService _audit;
     private readonly DiscountCodeService _discountCodes;
     private readonly LoyaltyService _loyalty;
-    private readonly IikoOrderSyncService _iikoSync;
+    private readonly IPosOrderSink _pos;
     private readonly IModuleGate _modules;
 
     public OrderService(
         IApplicationDbContext db, IOrdersHubService hub, IAuditLogService audit,
-        DiscountCodeService discountCodes, LoyaltyService loyalty, IikoOrderSyncService iikoSync,
+        DiscountCodeService discountCodes, LoyaltyService loyalty, IPosOrderSink pos,
         IModuleGate modules)
     {
         _db = db;
@@ -31,7 +30,7 @@ public class OrderService
         _audit = audit;
         _discountCodes = discountCodes;
         _loyalty = loyalty;
-        _iikoSync = iikoSync;
+        _pos = pos;
         _modules = modules;
     }
 
@@ -331,7 +330,7 @@ public class OrderService
 
         // iiko order push is a reporting/kitchen-routing side-channel only — fails open,
         // never blocks acceptance, and never affects the wallet loyalty flow above.
-        await _iikoSync.PushOrderAsync(order, ct);
+        await _pos.PushOrderAsync(order, ct);
 
         return Result<OrderDto>.Success(MapToDto(order));
     }
@@ -418,7 +417,7 @@ public class OrderService
         {
             await _loyalty.FinalizeSpendForOrderAsync(order, ct);
             await _loyalty.CreditForOrderAsync(order, ct);
-            await _iikoSync.CloseOrderAsync(order, ct);
+            await _pos.CloseOrderAsync(order, ct);
         }
 
         return Result<OrderDto>.Success(MapToDto(order));
