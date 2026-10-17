@@ -46,6 +46,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<TenantSecret> TenantSecrets => Set<TenantSecret>();
+    public DbSet<LoyaltyAccount> LoyaltyAccounts => Set<LoyaltyAccount>();
+    public DbSet<LoyaltyEntry> LoyaltyEntries => Set<LoyaltyEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

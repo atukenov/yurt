@@ -167,7 +167,10 @@ Steps:
   - [x] `IPosOrderSink` (push and close an order): `OrderService` no longer knows about iiko; `IikoOrderSyncService` is the only adapter.
   - [x] `ILoyaltyLedger` (bonus wallet: account lookup, enroll, top-up, charge-off, hold and release, history): `LoyaltyService` talks to it; `IikoLoyaltyLedger` is the iiko adapter. The wallet-link columns on the customer keep their `Iiko*` names until the native ledger replaces them.
   - [x] Stock and payment methods need no interface yet: today stock is only the manual `IsAvailable` flag on menu items and toppings (no iiko stop-list call exists), and iiko payment types are only an admin lookup in `AdminIikoController`. `IStockService` arrives with the stock step and `IPaymentMethodCatalog` with the cashier step, when there is something real behind them.
-- [ ] Native loyalty ledger and migration of existing iiko balances (read-only import, then switch per cafe).
+- [ ] Native loyalty ledger and migration of existing iiko balances (read-only import, then switch per cafe). Lev chose "import, then switch" (2026-10-17).
+  - [x] Wallet tables (`LoyaltyAccount`, `LoyaltyEntry`; balance is the sum of entries) and `NativeLoyaltyLedger` behind `ILoyaltyLedger`, tested per cafe. Not used by any cafe yet.
+  - [ ] Read-only import of each customer's iiko balance into the native wallet (admin action, safe to repeat).
+  - [ ] Per-cafe switch: a cafe setting picks the iiko or the native ledger; compare balances before switching.
 - [ ] Kitchen display and order-routing per branch.
 - [ ] Stock, ingredients and automatic stop-list.
 - [ ] Cashier screen, shifts, receipts and Z report.
