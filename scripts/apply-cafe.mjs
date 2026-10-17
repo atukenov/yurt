@@ -30,6 +30,8 @@ export function readCafe(root, slug) {
     throw new Error('versionCode must be a positive whole number.');
   if (cafe.appleMerchantId !== undefined && !(typeof cafe.appleMerchantId === 'string' && MERCHANT_ID.test(cafe.appleMerchantId)))
     throw new Error('appleMerchantId must look like merchant.kz.mycafe.app.');
+  if (cafe.tenant !== undefined && !(typeof cafe.tenant === 'string' && SLUG.test(cafe.tenant)))
+    throw new Error('tenant must be the cafe key on the platform (lowercase letters, digits and dashes).');
   return { ...cafe, appName: cafe.appName.trim() };
 }
 
@@ -76,6 +78,15 @@ export function applyCafe({ root, slug, dryRun = false }) {
   if (cafe.appleMerchantId) {
     edit('frontend/ios/App/App/App.entitlements', (t) =>
       must(t, /(<key>com\.apple\.developer\.in-app-payments<\/key>\s*<array>\s*<string>)[^<]*/, `$1${cafe.appleMerchantId}`, 'in-app-payments merchant id'));
+  }
+
+  if (cafe.tenant) {
+    for (const app of ['yurt-customer', 'yurt-admin']) {
+      edit(`frontend/projects/${app}/src/environments/environment.ts`, (t) => {
+        t = t.replace(/^  tenant: '[^']*',\n/m, '');
+        return must(t, /(  apiUrl: [^\n]*\n)/, `$1  tenant: '${cafe.tenant}',\n`, 'apiUrl in environment.ts');
+      });
+    }
   }
 
   const secrets = [

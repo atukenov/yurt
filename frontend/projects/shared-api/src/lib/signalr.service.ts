@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { GroupCart, Order } from 'shared-models';
 import { AuthStateService } from './auth-state.service';
+import { TENANT_SLUG } from './tenant.interceptor';
 import { Subject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +19,7 @@ export class SignalrService {
   readonly connected = signal(false);
 
   private auth = inject(AuthStateService);
+  private tenant = inject(TENANT_SLUG);
 
   configure(baseUrl: string): void {
     this.baseUrl = baseUrl.replace(/\/$/, '');
@@ -29,6 +31,7 @@ export class SignalrService {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${this.baseUrl}/hubs/orders`, {
         accessTokenFactory: () => this.auth.token ?? '',
+        ...(this.tenant ? { headers: { 'X-Tenant': this.tenant } } : {}),
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)

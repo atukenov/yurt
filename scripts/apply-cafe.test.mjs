@@ -13,12 +13,13 @@ const native = [
   'frontend/ios/App/App/Info.plist',
   'frontend/ios/App/App.xcodeproj/project.pbxproj',
 ];
+const envFiles = ['customer', 'admin'].map((a) => `frontend/projects/yurt-${a}/src/environments/environment.ts`);
 const entitlements = 'frontend/ios/App/App/App.entitlements';
 
 /** A scratch copy of the native files plus a cafe, so the real working tree is never touched. */
 function scratch(cafe, withSecrets = false) {
   const root = mkdtempSync(join(tmpdir(), 'apply-cafe-'));
-  for (const f of [...native, entitlements]) {
+  for (const f of [...native, entitlements, ...envFiles]) {
     mkdirSync(dirname(join(root, f)), { recursive: true });
     cpSync(join(repo, f), join(root, f));
   }
@@ -102,4 +103,18 @@ test('rejects bad config', () => {
 
 test('the sample cafe in the repo is valid', () => {
   assert.equal(readCafe(repo, 'sample-cafe').appId, 'kz.samplecafe.app');
+});
+
+test('tenant is written into both apps environments, once', () => {
+  const root = scratch({ appId: 'kz.brew.app', appName: 'Brew', tenant: 'brew' });
+  applyCafe({ root, slug: 'brew' });
+  applyCafe({ root, slug: 'brew' });
+  for (const f of envFiles) {
+    const t = readFileSync(join(root, f), 'utf8');
+    assert.equal(t.match(/tenant: 'brew'/g).length, 1);
+  }
+});
+
+test('invalid tenant is rejected', () => {
+  assert.throws(() => readCafe(scratch({ appId: 'kz.brew.app', appName: 'Brew', tenant: 'Bad Slug' }), 'brew'));
 });

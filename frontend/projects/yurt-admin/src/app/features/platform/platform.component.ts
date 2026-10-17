@@ -37,6 +37,21 @@ export class PlatformComponent implements OnInit {
   readonly sources: ModuleEdit['source'][] = ['Manual', 'Trial', 'Paid'];
 
   // ── Cafes ──
+  /** Slug of the cafe the module, maintenance and brand sections act on; '' = the cafe of this address. */
+  managedCafe = '';
+
+  selectManagedCafe(slug: string): void {
+    this.managedCafe = slug;
+    this.api.platformCafe = slug || null;
+    this.loading.set(true);
+    this.api.getPlatformModules().subscribe({
+      next: (m) => { this.setModules(m); this.loading.set(false); },
+      error: () => this.loading.set(false),
+    });
+    this.api.getMaintenance().subscribe({ next: (m) => { this.maintenanceEnabled = m.enabled; this.maintenanceMessage = m.message; } });
+    this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
+  }
+
   cafes = signal<Cafe[]>([]);
   newCafe = { slug: '', name: '', domain: '', adminUsername: '', adminPassword: '' };
   creatingCafe = signal(false);
@@ -169,6 +184,7 @@ export class PlatformComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.api.platformCafe = null;
     this.api.getPlatformModules().subscribe({
       next: (m) => { this.setModules(m); this.loading.set(false); },
       error: () => this.loading.set(false),
