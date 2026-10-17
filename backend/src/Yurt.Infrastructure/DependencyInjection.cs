@@ -87,7 +87,12 @@ public static class DependencyInjection
 
         // WhatsApp OTP for customer registration (feature-flagged via Otp:Enabled; secrets via env vars)
         services.AddSingleton(configuration.GetSection("Otp").Get<OtpOptions>() ?? new OtpOptions());
-        services.AddHttpClient<IOtpSender, WhatsAppOtpSender>();
+        // Scoped, so the sender can read the current cafe's own WhatsApp credentials.
+        services.AddHttpClient("whatsapp-otp");
+        services.AddScoped<IOtpSender>(sp => new WhatsAppOtpSender(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("whatsapp-otp"),
+            sp.GetRequiredService<OtpOptions>(),
+            sp.GetRequiredService<ITenantSecrets>()));
 
         // iiko loyalty (feature-flagged via Iiko:Enabled; secrets via env vars)
         services.AddSingleton(configuration.GetSection("Iiko").Get<IikoOptions>() ?? new IikoOptions());
@@ -98,7 +103,8 @@ public static class DependencyInjection
 
         // Remote push notifications (feature-flagged via Firebase:Enabled; secrets via env vars)
         services.AddSingleton(configuration.GetSection("Firebase").Get<FirebaseOptions>() ?? new FirebaseOptions());
-        services.AddSingleton<IPushNotificationSender, FcmPushNotificationSender>();
+        services.AddSingleton<FirebaseAppCache>();
+        services.AddScoped<IPushNotificationSender, FcmPushNotificationSender>();
         services.AddScoped<PushNotificationService>();
 
         // Apple Pay via Freedom Pay (issue #49) — feature-flagged via FreedomPay:Enabled;

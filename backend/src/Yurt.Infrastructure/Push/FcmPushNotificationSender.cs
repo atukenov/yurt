@@ -1,3 +1,7 @@
+using System.Collections.Concurrent;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
@@ -7,23 +11,74 @@ using Yurt.Application.Features.Push;
 
 namespace Yurt.Infrastructure.Push;
 
-/// <summary>FCM/APNs sender backed by the Firebase Admin SDK. Registered as a singleton
-/// so the lazily-built <see cref="FirebaseApp"/> (and its credential handshake) happens
-/// at most once per process. Disabled (<see cref="FirebaseOptions.Enabled"/> = false) or
-/// missing credentials degrade to a no-op rather than throwing — this feature ships
-/// before real Firebase credentials exist.</summary>
+/// <summary>
+/// One <see cref="FirebaseApp"/> per cafe credential, built lazily and kept for the life of the process (the credential
+/// handshake happens once). The key is the cafe plus a hash of its service-account JSON, so replacing the JSON in the
+/// Platform page makes the next send use the new one.
+/// </summary>
+public class FirebaseAppCache
+{
+    private readonly ConcurrentDictionary<string, FirebaseApp?> _apps = new();
+    private readonly object _lock = new();
+
+    public FirebaseApp? GetOrCreate(Guid tenantId, string serviceAccountJson, string fallbackProjectId, ILogger logger)
+    {
+        var key = $"{tenantId:N}:{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(serviceAccountJson)))}";
+        if (_apps.TryGetValue(key, out var existing)) return existing;
+        lock (_lock)
+        {
+            if (_apps.TryGetValue(key, out existing)) return existing;
+            FirebaseApp? app = null;
+            try
+            {
+                app = FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromJson(serviceAccountJson),
+                    ProjectId = ProjectIdOf(serviceAccountJson) ?? fallbackProjectId,
+                }, name: key);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to initialize FirebaseApp for push notifications.");
+            }
+            _apps[key] = app;
+            return app;
+        }
+    }
+
+    private static string? ProjectIdOf(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("project_id", out var p) ? p.GetString() : null;
+        }
+        catch (JsonException) { return null; }
+    }
+}
+
+/// <summary>FCM/APNs sender backed by the Firebase Admin SDK, using the current cafe's own service account (the first
+/// cafe falls back to the server-wide setting). Disabled (<see cref="FirebaseOptions.Enabled"/> = false) or missing
+/// credentials degrade to a no-op rather than throwing; a cafe never sends through another cafe's Firebase project.</summary>
 public class FcmPushNotificationSender : IPushNotificationSender
 {
+    public const string SecretKey = "Firebase:ServiceAccountJson";
+
     private readonly FirebaseOptions _options;
     private readonly ILogger<FcmPushNotificationSender> _logger;
-    private readonly object _initLock = new();
-    private FirebaseApp? _app;
-    private bool _initFailed;
+    private readonly ITenantSecrets _secrets;
+    private readonly ITenantContext _tenant;
+    private readonly FirebaseAppCache _apps;
 
-    public FcmPushNotificationSender(FirebaseOptions options, ILogger<FcmPushNotificationSender> logger)
+    public FcmPushNotificationSender(
+        FirebaseOptions options, ILogger<FcmPushNotificationSender> logger,
+        ITenantSecrets secrets, ITenantContext tenant, FirebaseAppCache apps)
     {
         _options = options;
         _logger = logger;
+        _secrets = secrets;
+        _tenant = tenant;
+        _apps = apps;
     }
 
     public async Task<PushSendResult> SendAsync(
@@ -35,7 +90,7 @@ public class FcmPushNotificationSender : IPushNotificationSender
     {
         if (tokens.Count == 0) return new PushSendResult([]);
 
-        var app = GetOrCreateApp();
+        var app = await GetAppAsync(ct);
         if (app == null) return new PushSendResult([]);
 
         try
@@ -77,35 +132,14 @@ public class FcmPushNotificationSender : IPushNotificationSender
         }
     }
 
-    private FirebaseApp? GetOrCreateApp()
+    private async Task<FirebaseApp?> GetAppAsync(CancellationToken ct)
     {
-        if (_app != null) return _app;
-        if (_initFailed) return null;
-        if (!_options.Enabled || string.IsNullOrWhiteSpace(_options.ServiceAccountJson))
+        var json = _options.Enabled ? await _secrets.GetAsync(SecretKey, ct) : null;
+        if (string.IsNullOrWhiteSpace(json))
         {
-            _logger.LogInformation("Push notifications disabled or not configured — skipping FCM send.");
-            _initFailed = true;
+            _logger.LogInformation("Push notifications disabled or not configured for this cafe — skipping FCM send.");
             return null;
         }
-
-        lock (_initLock)
-        {
-            if (_app != null) return _app;
-            if (_initFailed) return null;
-            try
-            {
-                _app = FirebaseApp.Create(new AppOptions
-                {
-                    Credential = GoogleCredential.FromJson(_options.ServiceAccountJson),
-                    ProjectId = _options.ProjectId,
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to initialize FirebaseApp for push notifications.");
-                _initFailed = true;
-            }
-            return _app;
-        }
+        return _apps.GetOrCreate(_tenant.TenantId, json, _options.ProjectId, _logger);
     }
 }
