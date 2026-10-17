@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, FONT_STACKS, RADIUS_SCALE, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService } from 'shared-ui';
-import { BrandConfig, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { BrandConfig, Cafe, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 interface ModuleEdit {
@@ -35,6 +35,39 @@ export class PlatformComponent implements OnInit {
   savingMaintenance = signal(false);
 
   readonly sources: ModuleEdit['source'][] = ['Manual', 'Trial', 'Paid'];
+
+  // ── Cafes ──
+  cafes = signal<Cafe[]>([]);
+  newCafe = { slug: '', name: '', domain: '', adminUsername: '', adminPassword: '' };
+  creatingCafe = signal(false);
+
+  canCreateCafe(): boolean {
+    const c = this.newCafe;
+    return !!c.slug.trim() && !!c.name.trim() && c.adminUsername.trim().length >= 3 && c.adminPassword.length >= 8;
+  }
+
+  createCafe(): void {
+    const c = this.newCafe;
+    this.creatingCafe.set(true);
+    this.api.createCafe({
+      slug: c.slug.trim(), name: c.name.trim(), domain: c.domain.trim() || null,
+      adminUsername: c.adminUsername.trim(), adminPassword: c.adminPassword,
+    }).subscribe({
+      next: (cafe) => {
+        this.cafes.update((l) => [...l, cafe].sort((a, b) => a.name.localeCompare(b.name)));
+        this.newCafe = { slug: '', name: '', domain: '', adminUsername: '', adminPassword: '' };
+        this.creatingCafe.set(false);
+        this.toast.success('Cafe created');
+      },
+      error: () => this.creatingCafe.set(false),
+    });
+  }
+
+  toggleCafe(cafe: Cafe): void {
+    this.api.setCafeActive(cafe.id, !cafe.isActive).subscribe({
+      next: (saved) => this.cafes.update((l) => l.map((x) => (x.id === saved.id ? saved : x))),
+    });
+  }
 
   // ── Brand ──
   private static readonly DEFAULT_BRAND: BrandConfig = {
@@ -113,6 +146,7 @@ export class PlatformComponent implements OnInit {
     this.api.getMaintenance().subscribe({
       next: (m) => { this.maintenanceEnabled = m.enabled; this.maintenanceMessage = m.message; },
     });
+    this.api.getCafes().subscribe({ next: (c) => this.cafes.set(c) });
     this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }

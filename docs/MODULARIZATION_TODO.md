@@ -138,7 +138,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
   - [ ] Make `TenantId` required once every table has it.
 - [x] Per-tenant domains and CORS: the cafe is picked by the `X-Tenant` slug header, then the `Origin` host, then the request host (all matched to `Tenant.Domain`), then the default; CORS also allows any active cafe domain, so a new cafe needs no redeploy. Frontend sending `X-Tenant` from branded apps comes later.
 - [ ] Data-isolation test suite (one cafe can never read another's data).
-- [ ] Tenant provisioning flow in `/platform` (create cafe, seed menu, first admin).
+- [x] Tenant provisioning flow in `/platform`: a Cafes section lists cafes, creates one (key, name, optional web address, first admin who must change the password at first login, starting brand) and switches a cafe on or off. The default cafe cannot be switched off. Menu and locations start empty (the new admin fills them in); picking which cafe the operator screens act on is still open.
 - [ ] Until then: one deployment per cafe is acceptable for the first customers.
 
 ## Phase 6 — Own POS module (`own_pos`), replaces iiko
