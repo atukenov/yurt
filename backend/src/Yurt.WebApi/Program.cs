@@ -1,3 +1,4 @@
+using Yurt.Application.Features.Tenants;
 using Yurt.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -66,14 +67,22 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-builder.Services.AddCors(opts =>
-    opts.AddDefaultPolicy(p =>
-        p.WithOrigins(
-            builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
-                ?? ["http://localhost:4200", "http://localhost:4300"])
-         .AllowAnyHeader()
-         .AllowAnyMethod()
-         .AllowCredentials()));
+var staticOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:4200", "http://localhost:4300"];
+builder.Services.AddCors();
+builder.Services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
+    .Configure<ITenantDirectory>((opts, directory) =>
+        opts.AddDefaultPolicy(p =>
+            p.SetIsOriginAllowed(origin =>
+                {
+                    if (staticOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase)) return true;
+                    // A cafe's own web address (Tenant.Domain) may call the API too, so a new cafe needs no redeploy.
+                    try { return TenantResolver.IsCafeOrigin(directory.GetActive(), origin); }
+                    catch { return false; }
+                })
+             .AllowAnyHeader()
+             .AllowAnyMethod()
+             .AllowCredentials()));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddProblemDetails();

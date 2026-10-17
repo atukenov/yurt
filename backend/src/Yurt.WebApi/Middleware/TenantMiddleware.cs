@@ -7,7 +7,7 @@ namespace Yurt.WebApi.Middleware;
 
 /// <summary>
 /// Works out which cafe the request is for (by host name) and puts it in <see cref="ITenantContext"/>.
-/// Nothing filters by tenant yet; later Phase 5 steps read the context.
+/// The data filters, settings and tokens all read this context.
 /// </summary>
 public class TenantMiddleware(RequestDelegate next)
 {
@@ -21,7 +21,10 @@ public class TenantMiddleware(RequestDelegate next)
             logger.LogWarning(ex, "Could not load tenants, using the default tenant.");
             tenants = [];
         }
-        var (id, slug) = TenantResolver.Resolve(tenants, ctx.Request.Host.Host);
+        var (id, slug) = TenantResolver.Resolve(
+            tenants, ctx.Request.Host.Host,
+            ctx.Request.Headers.Origin.FirstOrDefault(),
+            ctx.Request.Headers[TenantResolver.HeaderName].FirstOrDefault());
         tenant.Set(id, slug);
         ctx.Items["TenantSlug"] = slug;
 
