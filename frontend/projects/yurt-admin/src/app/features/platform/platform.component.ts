@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, FONT_STACKS, RADIUS_SCALE, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService } from 'shared-ui';
-import { BrandConfig, Cafe, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 interface ModuleEdit {
@@ -61,6 +61,36 @@ export class PlatformComponent implements OnInit {
       },
       error: () => this.creatingCafe.set(false),
     });
+  }
+
+  secretsCafeId = signal<string | null>(null);
+  secrets = signal<CafeSecretStatus[]>([]);
+  secretValues: Record<string, string> = {};
+
+  openSecrets(cafe: Cafe): void {
+    if (this.secretsCafeId() === cafe.id) { this.secretsCafeId.set(null); return; }
+    this.secretValues = {};
+    this.secrets.set([]);
+    this.secretsCafeId.set(cafe.id);
+    this.api.getCafeSecrets(cafe.id).subscribe({ next: (s) => this.secrets.set(s) });
+  }
+
+  private patchSecret(saved: CafeSecretStatus): void {
+    this.secrets.update((l) => l.map((s) => (s.key === saved.key ? saved : s)));
+    this.secretValues[saved.key] = '';
+  }
+
+  saveSecret(key: string): void {
+    const id = this.secretsCafeId();
+    const value = (this.secretValues[key] ?? '').trim();
+    if (!id || !value) return;
+    this.api.setCafeSecret(id, key, value).subscribe({ next: (s) => { this.patchSecret(s); this.toast.success('Saved'); } });
+  }
+
+  clearSecret(key: string): void {
+    const id = this.secretsCafeId();
+    if (!id) return;
+    this.api.clearCafeSecret(id, key).subscribe({ next: (s) => this.patchSecret(s) });
   }
 
   toggleCafe(cafe: Cafe): void {

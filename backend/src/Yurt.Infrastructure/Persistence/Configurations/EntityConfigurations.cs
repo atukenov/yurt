@@ -358,3 +358,14 @@ public class PlatformSettingConfiguration : IEntityTypeConfiguration<PlatformSet
         builder.Property(e => e.Value).HasMaxLength(2000).IsRequired();
     }
 }
+
+public class TenantSecretConfiguration : IEntityTypeConfiguration<TenantSecret>
+{
+    public void Configure(EntityTypeBuilder<TenantSecret> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Key).HasMaxLength(100).IsRequired();
+        builder.HasIndex(e => new { e.TenantId, e.Key }).IsUnique();
+        builder.Property(e => e.Ciphertext).IsRequired();
+    }
+}

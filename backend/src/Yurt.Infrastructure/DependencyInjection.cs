@@ -125,6 +125,9 @@ public static class DependencyInjection
         services.AddSingleton<IMaintenanceGate, MaintenanceGate>();
         services.AddScoped<PlatformService>();
         services.AddScoped<CafeProvisioningService>();
+        services.AddSingleton<ISecretProtector, AesGcmSecretProtector>();
+        services.AddScoped<ITenantSecrets, TenantSecrets>();
+        services.AddScoped<CafeSecretsService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();
