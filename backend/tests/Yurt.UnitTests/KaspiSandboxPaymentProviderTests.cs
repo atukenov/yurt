@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Payments.DTOs;
 using Yurt.Domain.Enums;
 using Yurt.Infrastructure.Payments;
@@ -28,7 +29,11 @@ public class KaspiSandboxPaymentProviderTests
             ProcessingDelaySecondsMax = 99999,
         });
         var logger = Substitute.For<ILogger<KaspiSandboxPaymentProvider>>();
-        return new KaspiSandboxPaymentProvider(httpClientFactory, options, logger);
+        var secrets = Substitute.For<ITenantSecrets>();
+        secrets.GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns("secret");
+        var tenant = Substitute.For<ITenantContext>();
+        tenant.Slug.Returns("default");
+        return new KaspiSandboxPaymentProvider(httpClientFactory, options, logger, secrets, tenant);
     }
 
     private static CreatePaymentInvoiceRequest Request(
