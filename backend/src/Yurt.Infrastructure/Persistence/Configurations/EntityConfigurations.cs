@@ -369,3 +369,27 @@ public class TenantSecretConfiguration : IEntityTypeConfiguration<TenantSecret>
         builder.Property(e => e.Ciphertext).IsRequired();
     }
 }
+
+public class LoyaltyAccountConfiguration : IEntityTypeConfiguration<LoyaltyAccount>
+{
+    public void Configure(EntityTypeBuilder<LoyaltyAccount> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Phone).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Name).HasMaxLength(100);
+        builder.Property(e => e.Surname).HasMaxLength(100);
+        builder.HasIndex(e => new { e.TenantId, e.Phone }).IsUnique();
+    }
+}
+
+public class LoyaltyEntryConfiguration : IEntityTypeConfiguration<LoyaltyEntry>
+{
+    public void Configure(EntityTypeBuilder<LoyaltyEntry> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Amount).HasPrecision(18, 2);
+        builder.Property(e => e.Comment).HasMaxLength(500);
+        builder.HasOne(e => e.Account).WithMany(a => a.Entries).HasForeignKey(e => e.AccountId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(e => new { e.AccountId, e.CreatedAt });
+    }
+}
