@@ -14,4 +14,7 @@ public interface ITenantContext
 public interface ITenantDirectory
 {
     Task<IReadOnlyList<Domain.Entities.Tenant>> GetActiveAsync(CancellationToken ct = default);
+
+    /// <summary>Forget the cached list, for example after a cafe was created or switched off.</summary>
+    void Invalidate();
 }

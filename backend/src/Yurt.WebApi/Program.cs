@@ -175,6 +175,7 @@ app.Use(async (ctx, next) =>
 app.UseIpRateLimiting();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<TenantTokenMiddleware>();
 
 // Block admin routes for accounts that still have the must_change_password claim set
 app.Use(async (ctx, next) =>
