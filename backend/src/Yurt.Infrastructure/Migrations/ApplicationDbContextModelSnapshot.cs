@@ -800,6 +800,47 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("MenuItemLocations");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuItemStock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("LowStockAt")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("MenuItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("MenuItemId", "LocationId")
+                        .IsUnique();
+
+                    b.ToTable("MenuItemStocks");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.MenuItemVariant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1867,6 +1908,31 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.HasOne("Yurt.Domain.Entities.MenuItem", "MenuItem")
                         .WithMany("MenuItemLocations")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+
+                    b.Navigation("MenuItem");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuItemStock", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.MenuItem", "MenuItem")
+                        .WithMany()
                         .HasForeignKey("MenuItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

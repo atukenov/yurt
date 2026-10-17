@@ -264,6 +264,17 @@ export interface OrderItem {
   variantLabel?: string;
 }
 
+/** One menu item of a branch with its stock count (own_pos). `quantity` is null when the item is not counted. */
+export interface StockItem {
+  menuItemId: string;
+  name: string;
+  categoryName: string;
+  quantity: number | null;
+  lowStockAt: number | null;
+  isLow: boolean;
+  isSoldOut: boolean;
+}
+
 export interface Order {
   id: string;
   customerUserId: string;

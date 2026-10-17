@@ -27,6 +27,7 @@ using Yurt.Application.Features.Reports;
 using Yurt.Application.Features.AppUpdate;
 using Yurt.Application.Features.Modules;
 using Yurt.Application.Features.Platform;
+using Yurt.Application.Features.Stock;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty;
 using Yurt.Application.Features.Loyalty.Services;
@@ -142,6 +143,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantSecrets, TenantSecrets>();
         services.AddScoped<CafeSecretsService>();
         services.AddScoped<LoyaltyImportService>();
+        services.AddScoped<StockService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

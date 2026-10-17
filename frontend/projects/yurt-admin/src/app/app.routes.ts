@@ -35,6 +35,12 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'stock',
+        canActivate: [moduleGuard('own_pos', '/orders')],
+        loadComponent: () =>
+          import('./features/stock/stock-management.component').then((m) => m.StockManagementComponent),
+      },
+      {
         path: 'menu',
         loadComponent: () =>
           import('./features/menu/menu-management.component').then(

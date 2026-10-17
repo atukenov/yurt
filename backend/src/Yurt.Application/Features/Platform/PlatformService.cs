@@ -18,9 +18,13 @@ public class PlatformService
     private readonly IAuditLogService _audit;
     private readonly IModuleGate _modules;
     private readonly IMaintenanceGate _maintenance;
+    private readonly IMenuCacheService? _menuCache;
 
-    public PlatformService(IApplicationDbContext db, IAuditLogService audit, IModuleGate modules, IMaintenanceGate maintenance)
+    public PlatformService(
+        IApplicationDbContext db, IAuditLogService audit, IModuleGate modules, IMaintenanceGate maintenance,
+        IMenuCacheService? menuCache = null)
     {
+        _menuCache = menuCache;
         _db = db;
         _audit = audit;
         _modules = modules;
@@ -61,6 +65,8 @@ public class PlatformService
         license.Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim();
         await _db.SaveChangesAsync(ct);
         _modules.Invalidate();
+        // Stock counting hides sold-out items from the cached menu only while own_pos is on.
+        if (key == ModuleKeys.OwnPos && _menuCache != null) await _menuCache.InvalidateAllMenuAsync();
 
         await _audit.LogAsync("ModuleLicenseUpdated", "ModuleLicense", key,
             $"enabled={license.Enabled}; validUntil={license.ValidUntil:O}; source={license.Source}", ct);

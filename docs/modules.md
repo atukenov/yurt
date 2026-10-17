@@ -100,8 +100,14 @@ How a gate is built:
 - **Depends on:** nothing.
 
 ### `own_pos` (self-developed POS, shipped one feature at a time)
-Gated so far: the **Kitchen** screen only. The other `own_pos` features (stock, cashier, printers) are added here as they ship.
+Gated so far: the **Kitchen** screen and **Stock**. The other `own_pos` features (cashier, printers) are added here as they ship.
 - **Kitchen screen:** admin route `/kitchen` and menu entry. A tablet page per branch with three columns (New, Preparing, Ready) of the accepted orders, oldest first, with items, toppings, notes and the wait time (red when past the promised minutes). One big button per card moves it on (Start, Ready, Handed over). It uses the same order API and live events as Live Orders, so no backend gate is needed and nothing changes for customers.
 - **When off:** the route redirects to Orders and the menu entry is hidden. Live Orders keeps working.
 - **Depends on:** nothing. It works next to iiko; orders still go to iiko as before while the cafe uses it.
-- **Not done yet:** stations (Kitchen/Bar) and routing a menu item to a station; ticket printing.
+- **Not done yet (kitchen):** stations (Kitchen/Bar) and routing a menu item to a station; ticket printing.
+
+#### Stock and the automatic stop-list (per product, per branch)
+- **Covers:** `GET /api/v1/admin/stock?locationId=` and `PUT /api/v1/admin/stock/{menuItemId}/{locationId}` (body `{ quantity, lowStockAt }`; a null `quantity` stops counting the item); the admin **Stock** page and menu entry.
+- **How it works:** an item with a count is limited to what is left in that branch. An order for more than is left is refused with a plain message ("Only 2 left of ..." or "... is sold out"). Accepting an order lowers the count (never below zero, safe when two orders are accepted together). At zero the item disappears from that branch's customer menu by itself; setting a number again or clearing the count brings it back. Items without a count are unlimited, as before. The admin list marks items at or below their warning number as running low.
+- **When off:** the Stock endpoints return `403 module_disabled`, the page redirects to Orders and the menu entry is hidden. Counts are **not enforced** while the module is off (menu and orders ignore them), so nothing can stay stuck at zero without a way to fix it. The counts are kept and apply again when the module is back on.
+- **Not done yet:** ingredients and recipes (a latte uses 200 ml milk), stock for toppings, low-stock push alerts, restocking history.

@@ -3,6 +3,7 @@ using Yurt.Application.Common.Helpers;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Menu.DTOs;
+using Yurt.Application.Features.Stock;
 using Yurt.Domain.Entities;
 
 namespace Yurt.Application.Features.Menu.Services;
@@ -12,9 +13,11 @@ public class MenuService
     private readonly IApplicationDbContext _db;
     private readonly IAuditLogService _audit;
     private readonly IMenuCacheService _menuCache;
+    private readonly StockService? _stock;
 
-    public MenuService(IApplicationDbContext db, IAuditLogService audit, IMenuCacheService menuCache)
+    public MenuService(IApplicationDbContext db, IAuditLogService audit, IMenuCacheService menuCache, StockService? stock = null)
     {
+        _stock = stock;
         _db = db;
         _audit = audit;
         _menuCache = menuCache;
@@ -33,8 +36,9 @@ public class MenuService
 
         if (locationId.HasValue)
         {
+            var soldOut = await SoldOutAsync(locationId, ct);
             query = query.Where(c => c.Items.Any(i =>
-                i.IsAvailable &&
+                i.IsAvailable && !soldOut.Contains(i.Id) &&
                 (!i.MenuItemLocations.Any() || i.MenuItemLocations.Any(l => l.LocationId == locationId.Value))));
         }
 
@@ -85,9 +89,13 @@ public class MenuService
         }
 
         if (locationId.HasValue)
+        {
+            var soldOut = await SoldOutAsync(locationId, ct);
             query = query.Where(i =>
-                !i.MenuItemLocations.Any() ||
-                i.MenuItemLocations.Any(l => l.LocationId == locationId.Value));
+                !soldOut.Contains(i.Id) &&
+                (!i.MenuItemLocations.Any() ||
+                i.MenuItemLocations.Any(l => l.LocationId == locationId.Value)));
+        }
 
         var items = await query
             .OrderBy(i => i.Category.SortOrder).ThenBy(i => i.SortOrder).ThenBy(i => i.Name)
@@ -499,6 +507,10 @@ public class MenuService
         }
         return result;
     }
+
+    /// <summary>Items at zero stock in the branch (the automatic stop-list); empty without stock counting.</summary>
+    private async Task<List<Guid>> SoldOutAsync(Guid? locationId, CancellationToken ct)
+        => _stock is null || locationId is null ? [] : await _stock.SoldOutItemIdsAsync(locationId.Value, ct);
 
     private static MenuItemDto MapItemToDto(MenuItem i, string lang, List<MenuToppingDto>? toppings = null)
     {

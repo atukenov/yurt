@@ -256,6 +256,17 @@ public class MenuItemLocationConfiguration : IEntityTypeConfiguration<MenuItemLo
     }
 }
 
+public class MenuItemStockConfiguration : IEntityTypeConfiguration<MenuItemStock>
+{
+    public void Configure(EntityTypeBuilder<MenuItemStock> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasOne(e => e.MenuItem).WithMany().HasForeignKey(e => e.MenuItemId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.MenuItemId, e.LocationId }).IsUnique();
+    }
+}
+
 public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
 {
     public void Configure(EntityTypeBuilder<AuditLog> builder)
