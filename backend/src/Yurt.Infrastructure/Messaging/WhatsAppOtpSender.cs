@@ -12,11 +12,13 @@ public class WhatsAppOtpSender : IOtpSender
 {
     private readonly HttpClient _http;
     private readonly OtpOptions _options;
+    private readonly ITenantSecrets _secrets;
 
-    public WhatsAppOtpSender(HttpClient http, OtpOptions options)
+    public WhatsAppOtpSender(HttpClient http, OtpOptions options, ITenantSecrets secrets)
     {
         _http = http;
         _options = options;
+        _secrets = secrets;
         _http.Timeout = TimeSpan.FromSeconds(15);
     }
 
@@ -24,7 +26,13 @@ public class WhatsAppOtpSender : IOtpSender
 
     public async Task SendAsync(string mobileNumber, string code, string? brandName = null, CancellationToken ct = default)
     {
-        var url = $"{_options.GreenApiBaseUrl.TrimEnd('/')}/waInstance{_options.IdInstance}/sendMessage/{_options.ApiTokenInstance}";
+        // Each cafe sends from its own WhatsApp instance; a cafe without one cannot send codes (it never borrows another cafe's).
+        var idInstance = await _secrets.GetAsync("Otp:IdInstance", ct);
+        var apiToken = await _secrets.GetAsync("Otp:ApiTokenInstance", ct);
+        if (string.IsNullOrWhiteSpace(idInstance) || string.IsNullOrWhiteSpace(apiToken))
+            throw new OtpSendException("WhatsApp is not configured for this cafe.");
+
+        var url = $"{_options.GreenApiBaseUrl.TrimEnd('/')}/waInstance{idInstance}/sendMessage/{apiToken}";
         var chatId = ToChatId(mobileNumber);
         var message = _options.MessageTemplate
             .Replace("{code}", code)
