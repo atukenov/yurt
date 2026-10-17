@@ -114,6 +114,7 @@ public static class DependencyInjection
         services.AddHttpClient<IIikoApiClient, IikoApiClient>();
         services.AddScoped<LoyaltyService>();
         services.AddScoped<IikoOrderSyncService>();
+        services.AddScoped<IPosOrderSink>(sp => sp.GetRequiredService<IikoOrderSyncService>());
         services.AddScoped<IIikoWebhookValidator, IikoWebhookValidator>();
         services.AddScoped<IPaymentProvider, KaspiSandboxPaymentProvider>();
         services.AddScoped<IPaymentProviderFactory, PaymentProviderFactory>();

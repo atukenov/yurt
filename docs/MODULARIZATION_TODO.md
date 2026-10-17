@@ -163,7 +163,11 @@ and the webhook controller), and the self-developed counterpart. Every row is it
 | Reports from the POS | Sales, product mix, staff and shift reports from our own data (extends the analytics module) |
 
 Steps:
-- [ ] Introduce neutral interfaces (`IPosOrderSink`, `ILoyaltyLedger`, `IStockService`, `IPaymentMethodCatalog`) and make iiko one adapter behind them; no behavior change.
+- [ ] Introduce neutral interfaces and make iiko one adapter behind them; no behavior change.
+  - [x] `IPosOrderSink` (push and close an order): `OrderService` no longer knows about iiko; `IikoOrderSyncService` is the only adapter.
+  - [ ] `ILoyaltyLedger`
+  - [ ] `IStockService`
+  - [ ] `IPaymentMethodCatalog`
 - [ ] Native loyalty ledger and migration of existing iiko balances (read-only import, then switch per cafe).
 - [ ] Kitchen display and order-routing per branch.
 - [ ] Stock, ingredients and automatic stop-list.
