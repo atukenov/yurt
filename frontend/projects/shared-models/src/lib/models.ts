@@ -296,6 +296,46 @@ export interface RecipeLine {
   quantity: number;
 }
 
+export interface Shift {
+  id: string;
+  locationId: string;
+  locationName: string;
+  openedAt: string;
+  openedBy: string;
+  openingCash: number;
+  closedAt?: string | null;
+  closedBy?: string | null;
+  countedCash?: number | null;
+  note?: string | null;
+}
+
+export interface CashMovement {
+  id: string;
+  amount: number;
+  isOut: boolean;
+  reason: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+/** X report while the shift is open, Z report once it is closed. */
+export interface ShiftReport {
+  shift: Shift;
+  ordersCompleted: number;
+  ordersDeclined: number;
+  subtotal: number;
+  discounts: number;
+  pointsSpent: number;
+  takings: number;
+  byMethod: { method: string; orders: number; amount: number }[];
+  cashSales: number;
+  cashIn: number;
+  cashOut: number;
+  expectedCash: number;
+  difference?: number | null;
+  movements: CashMovement[];
+}
+
 export interface Order {
   id: string;
   customerUserId: string;

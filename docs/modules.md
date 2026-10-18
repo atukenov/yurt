@@ -112,6 +112,12 @@ Gated so far: the **Kitchen** screen and **Stock**. The other `own_pos` features
 - **When off:** the Stock endpoints return `403 module_disabled`, the page redirects to Orders and the menu entry is hidden. Counts are **not enforced** while the module is off (menu and orders ignore them), so nothing can stay stuck at zero without a way to fix it. The counts are kept and apply again when the module is back on.
 - **Not done yet:** stock for toppings, low-stock push alerts, restocking history.
 
+#### Cashier, shifts and the Z report (per branch)
+- **Covers:** `GET shifts/current?locationId=` (empty body when none is open), `GET shifts?locationId=`, `POST shifts/open` (`{ locationId, openingCash }`), `POST shifts/{id}/cash` (`{ amount, isOut, reason }`), `POST shifts/{id}/close` (`{ countedCash, note }`, returns the Z report), `GET shifts/{id}/report`, all under `/api/v1/admin/`. The admin **Cashier** page and menu entry. Workers can use it, not only admins.
+- **How it works:** one open shift per branch (the database enforces it). The report counts the orders completed at that branch between opening and closing: orders, declined, before discounts, discounts, points spent, takings in money (total minus points), takings by payment method. The drawer should hold: opening cash + cash sales + cash put in − cash taken out; closing with the cash counted shows the difference. While the shift is open the same numbers are the X report. Orders with no payment method recorded count as cash. The Z report can be printed from the browser.
+- **When off:** endpoints return `403 module_disabled`, the page redirects to Orders and the menu entry is hidden. Shifts are kept.
+- **Not done yet:** receipts per order, per-branch payment method list, split payments, printers.
+
 #### Ingredients and recipes (per ingredient, per branch)
 - **Covers:** `GET/POST /api/v1/admin/ingredients`, `PUT/DELETE .../{id}`, `PUT .../{id}/stock/{locationId}` (null `quantity` stops counting), `GET/PUT .../recipes/{menuItemId}` (saving replaces the whole recipe). The **Ingredients** and **Recipes** tabs on the Stock page.
 - **How it works:** a recipe line says how much of an ingredient one portion uses, for every size or one size. A dish leaves the customer menu when an every-size line needs more than the branch has. An order is refused when any line (size-specific ones included) cannot be covered. Accepting an order lowers the ingredient counts, never below zero.

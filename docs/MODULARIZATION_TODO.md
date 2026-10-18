@@ -179,6 +179,8 @@ Steps:
   - [x] Ingredients and recipes: ingredient counts per branch, a recipe per dish (optionally per size), dishes leave the menu when an ingredient runs out, accepting an order lowers the counts. Details in `docs/modules.md`.
   - [ ] Stock for toppings, low-stock alerts.
 - [ ] Cashier screen, shifts, receipts and Z report.
+  - [x] Cashier page: open and close a shift with the cash counted, cash in/out, X report while open, Z report on close with the cash difference, earlier shifts, print. Details in `docs/modules.md`.
+  - [ ] Receipts per order, per-branch payment method list, split payments.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter.
 
