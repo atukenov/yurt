@@ -41,6 +41,9 @@ import {
   MenuTopping,
   Order,
   StockItem,
+  Shift,
+  ShiftReport,
+  CashMovement,
   Ingredient,
   RecipeLine,
   OrderStatus,
@@ -453,6 +456,39 @@ export class YurtApiService {
     body: { quantity: number | null; lowStockAt: number | null },
   ): Observable<StockItem> {
     return this.http.put<StockItem>(`${this.api}/admin/stock/${menuItemId}/${locationId}`, body);
+  }
+
+  /** Null when no shift is open at the branch (the body is empty). */
+  getCurrentShift(locationId: string): Observable<Shift | null> {
+    return this.http.get<Shift | null>(`${this.api}/admin/shifts/current`, {
+      params: { locationId },
+    });
+  }
+
+  getShifts(locationId: string): Observable<Shift[]> {
+    return this.http.get<Shift[]>(`${this.api}/admin/shifts`, { params: { locationId } });
+  }
+
+  openShift(locationId: string, openingCash: number): Observable<Shift> {
+    return this.http.post<Shift>(`${this.api}/admin/shifts/open`, { locationId, openingCash });
+  }
+
+  addCashMovement(
+    shiftId: string,
+    body: { amount: number; isOut: boolean; reason: string },
+  ): Observable<CashMovement> {
+    return this.http.post<CashMovement>(`${this.api}/admin/shifts/${shiftId}/cash`, body);
+  }
+
+  closeShift(
+    shiftId: string,
+    body: { countedCash: number; note?: string },
+  ): Observable<ShiftReport> {
+    return this.http.post<ShiftReport>(`${this.api}/admin/shifts/${shiftId}/close`, body);
+  }
+
+  getShiftReport(shiftId: string): Observable<ShiftReport> {
+    return this.http.get<ShiftReport>(`${this.api}/admin/shifts/${shiftId}/report`);
   }
 
   getIngredients(locationId: string): Observable<Ingredient[]> {

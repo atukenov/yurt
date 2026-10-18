@@ -35,6 +35,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'cashier',
+        canActivate: [moduleGuard('own_pos', '/orders')],
+        loadComponent: () => import('./features/cashier/cashier.component').then((m) => m.CashierComponent),
+      },
+      {
         path: 'stock',
         canActivate: [moduleGuard('own_pos', '/orders')],
         loadComponent: () =>

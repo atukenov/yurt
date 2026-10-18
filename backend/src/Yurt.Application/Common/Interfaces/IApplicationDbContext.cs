@@ -28,6 +28,8 @@ public interface IApplicationDbContext
     DbSet<DiscountCode> DiscountCodes { get; }
     DbSet<MenuItemLocation> MenuItemLocations { get; }
     DbSet<MenuItemStock> MenuItemStocks { get; }
+    DbSet<Shift> Shifts { get; }
+    DbSet<CashMovement> CashMovements { get; }
     DbSet<Ingredient> Ingredients { get; }
     DbSet<IngredientStock> IngredientStocks { get; }
     DbSet<RecipeLine> RecipeLines { get; }

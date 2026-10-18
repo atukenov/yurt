@@ -267,6 +267,35 @@ public class MenuItemStockConfiguration : IEntityTypeConfiguration<MenuItemStock
     }
 }
 
+public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
+{
+    public void Configure(EntityTypeBuilder<Shift> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.OpenedBy).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.ClosedBy).HasMaxLength(100);
+        builder.Property(e => e.Note).HasMaxLength(500);
+        builder.Property(e => e.OpeningCash).HasPrecision(18, 2);
+        builder.Property(e => e.CountedCash).HasPrecision(18, 2);
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        // One open shift per branch, enforced by the database too.
+        builder.HasIndex(e => new { e.TenantId, e.LocationId }).IsUnique().HasFilter("\"ClosedAt\" IS NULL");
+        builder.HasIndex(e => new { e.LocationId, e.OpenedAt });
+    }
+}
+
+public class CashMovementConfiguration : IEntityTypeConfiguration<CashMovement>
+{
+    public void Configure(EntityTypeBuilder<CashMovement> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Amount).HasPrecision(18, 2);
+        builder.Property(e => e.Reason).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+        builder.HasOne(e => e.Shift).WithMany(s => s.Movements).HasForeignKey(e => e.ShiftId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)
