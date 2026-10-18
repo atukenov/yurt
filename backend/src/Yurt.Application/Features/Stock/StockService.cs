@@ -81,10 +81,66 @@ public class StockService(
     public async Task<List<Guid>> SoldOutItemIdsAsync(Guid locationId, CancellationToken ct = default)
     {
         if (!await IsActiveAsync(ct)) return [];
-        return await db.MenuItemStocks
+        var byProduct = await db.MenuItemStocks
             .Where(s => s.LocationId == locationId && s.Quantity <= 0)
             .Select(s => s.MenuItemId)
             .ToListAsync(ct);
+
+        // An item whose every-size recipe needs more of a counted ingredient than the branch has left cannot be made.
+        var byIngredient = await (
+            from r in db.RecipeLines
+            join s in db.IngredientStocks on r.IngredientId equals s.IngredientId
+            where r.VariantId == null && s.LocationId == locationId && s.Quantity < r.Quantity
+            select r.MenuItemId).Distinct().ToListAsync(ct);
+
+        return byProduct.Union(byIngredient).ToList();
+    }
+
+    /// <summary>
+    /// Checks whether the ingredients left in the branch cover an order's recipes. Returns a customer-facing message for
+    /// the first item that cannot be made, or null when everything is covered (or the ingredients are not counted).
+    /// </summary>
+    public async Task<string?> FindIngredientShortageAsync(
+        Guid locationId, IReadOnlyList<(Guid MenuItemId, Guid? VariantId, int Quantity)> lines,
+        IReadOnlyDictionary<Guid, string> names, CancellationToken ct = default)
+    {
+        if (lines.Count == 0 || !await IsActiveAsync(ct)) return null;
+
+        var recipes = await RecipesForAsync(lines, ct);
+        if (recipes.Count == 0) return null;
+        var needs = NeedsOf(lines, recipes);
+        var ids = needs.Keys.ToList();
+        var left = await db.IngredientStocks
+            .Where(s => s.LocationId == locationId && ids.Contains(s.IngredientId))
+            .ToDictionaryAsync(s => s.IngredientId, s => s.Quantity, ct);
+
+        foreach (var (ingredientId, need) in needs)
+        {
+            if (!left.TryGetValue(ingredientId, out var have) || need <= have) continue;
+            var culprit = lines.First(l => recipes.Any(r => r.IngredientId == ingredientId && Uses(r, l)));
+            return $"'{names.GetValueOrDefault(culprit.MenuItemId, "An item")}' is not available in that amount right now.";
+        }
+        return null;
+    }
+
+    private async Task<List<RecipeLine>> RecipesForAsync(
+        IReadOnlyList<(Guid MenuItemId, Guid? VariantId, int Quantity)> lines, CancellationToken ct)
+    {
+        var itemIds = lines.Select(l => l.MenuItemId).Distinct().ToList();
+        return await db.RecipeLines.Where(r => itemIds.Contains(r.MenuItemId)).ToListAsync(ct);
+    }
+
+    private static bool Uses(RecipeLine r, (Guid MenuItemId, Guid? VariantId, int Quantity) line)
+        => r.MenuItemId == line.MenuItemId && (r.VariantId == null || r.VariantId == line.VariantId);
+
+    private static Dictionary<Guid, decimal> NeedsOf(
+        IReadOnlyList<(Guid MenuItemId, Guid? VariantId, int Quantity)> lines, List<RecipeLine> recipes)
+    {
+        var needs = new Dictionary<Guid, decimal>();
+        foreach (var line in lines)
+            foreach (var r in recipes.Where(r => Uses(r, line)))
+                needs[r.IngredientId] = needs.GetValueOrDefault(r.IngredientId) + r.Quantity * line.Quantity;
+        return needs;
     }
 
     /// <summary>
@@ -127,6 +183,19 @@ public class StockService(
                     .SetProperty(s => s.UpdatedAt, now), ct);
             touched |= changed > 0;
         }
+
+        var orderLines = order.Items.Select(i => (i.MenuItemId, i.VariantId, i.Quantity)).ToList();
+        var recipes = await RecipesForAsync(orderLines, ct);
+        foreach (var (ingredientId, need) in NeedsOf(orderLines, recipes))
+        {
+            var changed = await db.IngredientStocks
+                .Where(s => s.IngredientId == ingredientId && s.LocationId == order.LocationId)
+                .ExecuteUpdateAsync(u => u
+                    .SetProperty(s => s.Quantity, s => s.Quantity > need ? s.Quantity - need : 0m)
+                    .SetProperty(s => s.UpdatedAt, now), ct);
+            touched |= changed > 0;
+        }
+
         // The customer menu is cached; an item that just sold out must disappear from it.
         if (touched) await menuCache.InvalidateAllMenuAsync();
     }

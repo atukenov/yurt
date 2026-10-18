@@ -267,6 +267,44 @@ public class MenuItemStockConfiguration : IEntityTypeConfiguration<MenuItemStock
     }
 }
 
+public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
+{
+    public void Configure(EntityTypeBuilder<Ingredient> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.Unit).HasMaxLength(20).IsRequired();
+        builder.HasIndex(e => new { e.TenantId, e.Name }).IsUnique();
+    }
+}
+
+public class IngredientStockConfiguration : IEntityTypeConfiguration<IngredientStock>
+{
+    public void Configure(EntityTypeBuilder<IngredientStock> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Quantity).HasPrecision(18, 3);
+        builder.Property(e => e.LowStockAt).HasPrecision(18, 3);
+        builder.HasOne(e => e.Ingredient).WithMany().HasForeignKey(e => e.IngredientId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.IngredientId, e.LocationId }).IsUnique();
+    }
+}
+
+public class RecipeLineConfiguration : IEntityTypeConfiguration<RecipeLine>
+{
+    public void Configure(EntityTypeBuilder<RecipeLine> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Quantity).HasPrecision(18, 3);
+        builder.HasOne(e => e.MenuItem).WithMany().HasForeignKey(e => e.MenuItemId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Variant).WithMany().HasForeignKey(e => e.VariantId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Ingredient).WithMany().HasForeignKey(e => e.IngredientId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => e.MenuItemId);
+        builder.HasIndex(e => e.IngredientId);
+    }
+}
+
 public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
 {
     public void Configure(EntityTypeBuilder<AuditLog> builder)

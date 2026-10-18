@@ -6,3 +6,18 @@ public record StockItemDto(
 
 /// <summary>A null <c>Quantity</c> stops counting the item (it becomes unlimited again).</summary>
 public record SetStockDto(int? Quantity, int? LowStockAt);
+
+/// <summary>An ingredient with its count in one branch. <c>Quantity</c> is null when the branch does not count it.</summary>
+public record IngredientDto(
+    Guid Id, string Name, string Unit, decimal? Quantity, decimal? LowStockAt, bool IsLow, bool IsOut, int UsedInItems);
+
+public record SaveIngredientDto(string Name, string? Unit);
+
+public record SetIngredientStockDto(decimal? Quantity, decimal? LowStockAt);
+
+/// <summary>One recipe line as shown to staff. A null <c>VariantId</c> means every size.</summary>
+public record RecipeLineDto(Guid IngredientId, string IngredientName, string Unit, Guid? VariantId, decimal Quantity);
+
+public record SaveRecipeLineDto(Guid IngredientId, Guid? VariantId, decimal Quantity);
+
+public record SaveRecipeDto(List<SaveRecipeLineDto> Lines);

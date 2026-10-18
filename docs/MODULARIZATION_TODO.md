@@ -176,7 +176,8 @@ Steps:
   - [ ] Stations (Kitchen, Bar) and routing a menu item to a station.
 - [ ] Stock, ingredients and automatic stop-list.
   - [x] Stock per product per branch with the automatic stop-list (admin Stock page, orders limited to what is left, accept lowers the count, sold-out items leave the customer menu). Details in `docs/modules.md`. Also fixed the customer menu cache so it is kept per cafe.
-  - [ ] Ingredients and recipes, stock for toppings, low-stock alerts.
+  - [x] Ingredients and recipes: ingredient counts per branch, a recipe per dish (optionally per size), dishes leave the menu when an ingredient runs out, accepting an order lowers the counts. Details in `docs/modules.md`.
+  - [ ] Stock for toppings, low-stock alerts.
 - [ ] Cashier screen, shifts, receipts and Z report.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter.

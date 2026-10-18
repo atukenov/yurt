@@ -88,6 +88,11 @@ public class OrderService
             var shortage = await _stock.FindShortageAsync(
                 dto.LocationId, wanted, menuItems.ToDictionary(m => m.Id, m => m.Name), ct);
             if (shortage != null) return Result<OrderDto>.Failure(shortage, 400);
+
+            var lines = dto.Items.Select(i => (i.MenuItemId, i.VariantId, i.Quantity)).ToList();
+            shortage = await _stock.FindIngredientShortageAsync(
+                dto.LocationId, lines, menuItems.ToDictionary(m => m.Id, m => m.Name), ct);
+            if (shortage != null) return Result<OrderDto>.Failure(shortage, 400);
         }
 
         // Build order

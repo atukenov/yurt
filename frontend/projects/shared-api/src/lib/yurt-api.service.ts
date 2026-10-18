@@ -41,6 +41,8 @@ import {
   MenuTopping,
   Order,
   StockItem,
+  Ingredient,
+  RecipeLine,
   OrderStatus,
   PaymentInvoiceResponse,
   PaymentStatusResponse,
@@ -92,7 +94,11 @@ export class YurtApiService {
     return this.http.get<PlatformModule[]>(`${this.api}/platform/modules`, this.cafeOptions());
   }
   updatePlatformModule(key: string, req: UpdateModuleLicenseRequest): Observable<PlatformModule> {
-    return this.http.put<PlatformModule>(`${this.api}/platform/modules/${key}`, req, this.cafeOptions());
+    return this.http.put<PlatformModule>(
+      `${this.api}/platform/modules/${key}`,
+      req,
+      this.cafeOptions(),
+    );
   }
   getCafes(): Observable<Cafe[]> {
     return this.http.get<Cafe[]>(`${this.api}/platform/cafes`);
@@ -107,16 +113,25 @@ export class YurtApiService {
     return this.http.get<CafeSecretStatus[]>(`${this.api}/platform/cafes/${id}/secrets`);
   }
   setCafeSecret(id: string, key: string, value: string): Observable<CafeSecretStatus> {
-    return this.http.put<CafeSecretStatus>(`${this.api}/platform/cafes/${id}/secrets/${encodeURIComponent(key)}`, { value });
+    return this.http.put<CafeSecretStatus>(
+      `${this.api}/platform/cafes/${id}/secrets/${encodeURIComponent(key)}`,
+      { value },
+    );
   }
   clearCafeSecret(id: string, key: string): Observable<CafeSecretStatus> {
-    return this.http.delete<CafeSecretStatus>(`${this.api}/platform/cafes/${id}/secrets/${encodeURIComponent(key)}`);
+    return this.http.delete<CafeSecretStatus>(
+      `${this.api}/platform/cafes/${id}/secrets/${encodeURIComponent(key)}`,
+    );
   }
   getMaintenance(): Observable<MaintenanceInfo> {
     return this.http.get<MaintenanceInfo>(`${this.api}/platform/maintenance`, this.cafeOptions());
   }
   setMaintenance(req: MaintenanceInfo): Observable<MaintenanceInfo> {
-    return this.http.put<MaintenanceInfo>(`${this.api}/platform/maintenance`, req, this.cafeOptions());
+    return this.http.put<MaintenanceInfo>(
+      `${this.api}/platform/maintenance`,
+      req,
+      this.cafeOptions(),
+    );
   }
   getIntegrationStatus(): Observable<IntegrationStatus[]> {
     return this.http.get<IntegrationStatus[]>(`${this.api}/platform/integrations`);
@@ -182,11 +197,16 @@ export class YurtApiService {
   }
 
   changeMobileNumberStart(mobileNumber: string): Observable<RegistrationStartResponse> {
-    return this.http.post<RegistrationStartResponse>(`${this.api}/auth/me/phone/start`, { mobileNumber });
+    return this.http.post<RegistrationStartResponse>(`${this.api}/auth/me/phone/start`, {
+      mobileNumber,
+    });
   }
 
   changeMobileNumberVerify(mobileNumber: string, code: string): Observable<CustomerProfile> {
-    return this.http.post<CustomerProfile>(`${this.api}/auth/me/phone/verify`, { mobileNumber, code });
+    return this.http.post<CustomerProfile>(`${this.api}/auth/me/phone/verify`, {
+      mobileNumber,
+      code,
+    });
   }
 
   refreshToken(refreshToken: string): Observable<AuthResponse> {
@@ -249,7 +269,12 @@ export class YurtApiService {
     return this.http.get<MenuCategory[]>(`${this.api}/menu/categories`, { params });
   }
 
-  getMenuItems(categoryId?: string, search?: string, lang?: string, locationId?: string): Observable<MenuItem[]> {
+  getMenuItems(
+    categoryId?: string,
+    search?: string,
+    lang?: string,
+    locationId?: string,
+  ): Observable<MenuItem[]> {
     let params = new HttpParams();
     if (categoryId) params = params.set('categoryId', categoryId);
     if (search) params = params.set('search', search);
@@ -283,7 +308,10 @@ export class YurtApiService {
   }
 
   adminReorderMenuItems(categoryId: string, orderedIds: string[]): Observable<void> {
-    return this.http.patch<void>(`${this.api}/admin/menu/items/reorder`, { categoryId, orderedIds });
+    return this.http.patch<void>(`${this.api}/admin/menu/items/reorder`, {
+      categoryId,
+      orderedIds,
+    });
   }
 
   adminGetCategories(): Observable<MenuCategory[]> {
@@ -390,12 +418,21 @@ export class YurtApiService {
   }
 
   // Admin orders
-  getAdminOrders(status?: OrderStatus, locationId?: string, search?: string, page = 1, pageSize = 100): Observable<{ total: number; page: number; pageSize: number; items: Order[] }> {
+  getAdminOrders(
+    status?: OrderStatus,
+    locationId?: string,
+    search?: string,
+    page = 1,
+    pageSize = 100,
+  ): Observable<{ total: number; page: number; pageSize: number; items: Order[] }> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (status) params = params.set('status', status);
     if (locationId) params = params.set('locationId', locationId);
     if (search) params = params.set('search', search);
-    return this.http.get<{ total: number; page: number; pageSize: number; items: Order[] }>(`${this.api}/admin/orders`, { params });
+    return this.http.get<{ total: number; page: number; pageSize: number; items: Order[] }>(
+      `${this.api}/admin/orders`,
+      { params },
+    );
   }
 
   acceptOrder(id: string, req: AcceptOrderRequest): Observable<Order> {
@@ -418,6 +455,44 @@ export class YurtApiService {
     return this.http.put<StockItem>(`${this.api}/admin/stock/${menuItemId}/${locationId}`, body);
   }
 
+  getIngredients(locationId: string): Observable<Ingredient[]> {
+    return this.http.get<Ingredient[]>(`${this.api}/admin/ingredients`, { params: { locationId } });
+  }
+
+  createIngredient(body: { name: string; unit: string }): Observable<Ingredient> {
+    return this.http.post<Ingredient>(`${this.api}/admin/ingredients`, body);
+  }
+
+  deleteIngredient(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/ingredients/${id}`);
+  }
+
+  setIngredientStock(
+    id: string,
+    locationId: string,
+    body: { quantity: number | null; lowStockAt: number | null },
+  ): Observable<Ingredient> {
+    return this.http.put<Ingredient>(
+      `${this.api}/admin/ingredients/${id}/stock/${locationId}`,
+      body,
+    );
+  }
+
+  getRecipe(menuItemId: string): Observable<RecipeLine[]> {
+    return this.http.get<RecipeLine[]>(`${this.api}/admin/ingredients/recipes/${menuItemId}`);
+  }
+
+  saveRecipe(menuItemId: string, lines: RecipeLine[]): Observable<RecipeLine[]> {
+    const body = {
+      lines: lines.map((l) => ({
+        ingredientId: l.ingredientId,
+        variantId: l.variantId,
+        quantity: l.quantity,
+      })),
+    };
+    return this.http.put<RecipeLine[]>(`${this.api}/admin/ingredients/recipes/${menuItemId}`, body);
+  }
+
   updateOrderStatus(id: string, req: UpdateStatusRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/orders/${id}/status`, req);
   }
@@ -432,10 +507,19 @@ export class YurtApiService {
   }
 
   // ── Customers (admin) ──────────────────────────────────────────────────────
-  getAdminCustomers(phone?: string, page = 1, pageSize = 50): Observable<{ total: number; page: number; pageSize: number; items: CustomerSummary[] }> {
+  getAdminCustomers(
+    phone?: string,
+    page = 1,
+    pageSize = 50,
+  ): Observable<{ total: number; page: number; pageSize: number; items: CustomerSummary[] }> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (phone) params = params.set('phone', phone);
-    return this.http.get<{ total: number; page: number; pageSize: number; items: CustomerSummary[] }>(`${this.api}/admin/customers`, { params });
+    return this.http.get<{
+      total: number;
+      page: number;
+      pageSize: number;
+      items: CustomerSummary[];
+    }>(`${this.api}/admin/customers`, { params });
   }
 
   getAdminCustomer(id: string): Observable<CustomerDetail> {
@@ -443,7 +527,9 @@ export class YurtApiService {
   }
 
   setCustomerActive(id: string, isActive: boolean): Observable<CustomerDetail> {
-    return this.http.patch<CustomerDetail>(`${this.api}/admin/customers/${id}/active`, { isActive });
+    return this.http.patch<CustomerDetail>(`${this.api}/admin/customers/${id}/active`, {
+      isActive,
+    });
   }
 
   // ── Workers ────────────────────────────────────────────────────────────────
@@ -455,7 +541,10 @@ export class YurtApiService {
     return this.http.post<WorkerAccount>(`${this.api}/admin/workers`, data);
   }
 
-  updateWorker(id: string, data: { username: string; isActive: boolean }): Observable<WorkerAccount> {
+  updateWorker(
+    id: string,
+    data: { username: string; isActive: boolean },
+  ): Observable<WorkerAccount> {
     return this.http.put<WorkerAccount>(`${this.api}/admin/workers/${id}`, data);
   }
 
@@ -464,7 +553,9 @@ export class YurtApiService {
   }
 
   resetWorkerPassword(id: string, newPassword: string): Observable<WorkerAccount> {
-    return this.http.post<WorkerAccount>(`${this.api}/admin/workers/${id}/reset-password`, { newPassword });
+    return this.http.post<WorkerAccount>(`${this.api}/admin/workers/${id}/reset-password`, {
+      newPassword,
+    });
   }
 
   // ── Customer account ────────────────────────────────────────────────────────
@@ -546,7 +637,10 @@ export class YurtApiService {
   }
 
   validateDiscountCode(code: string, subtotal: number): Observable<ValidateDiscountCodeResponse> {
-    return this.http.post<ValidateDiscountCodeResponse>(`${this.api}/discount-codes/validate`, { code, subtotal });
+    return this.http.post<ValidateDiscountCodeResponse>(`${this.api}/discount-codes/validate`, {
+      code,
+      subtotal,
+    });
   }
 
   // ── Audit Log ───────────────────────────────────────────────────────────────
@@ -566,7 +660,9 @@ export class YurtApiService {
     if (params.page) httpParams = httpParams.set('page', params.page);
     if (params.pageSize) httpParams = httpParams.set('pageSize', params.pageSize);
     return this.http.get<{ total: number; page: number; pageSize: number; items: AuditLogEntry[] }>(
-      `${this.api}/admin/audit-log`, { params: httpParams });
+      `${this.api}/admin/audit-log`,
+      { params: httpParams },
+    );
   }
 
   // ── Group Orders ────────────────────────────────────────────────────────────

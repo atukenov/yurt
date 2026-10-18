@@ -4,6 +4,8 @@ import { YurtApiService } from 'shared-api';
 import { Location, StockItem } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { IngredientsPanelComponent } from './ingredients-panel.component';
+import { RecipesPanelComponent } from './recipes-panel.component';
 
 interface StockRow extends StockItem {
   /** What the staff typed, kept apart from the saved value until they press Save. */
@@ -19,7 +21,7 @@ interface StockRow extends StockItem {
 @Component({
   selector: 'app-stock-management',
   standalone: true,
-  imports: [FormsModule, AdminTranslatePipe],
+  imports: [FormsModule, AdminTranslatePipe, IngredientsPanelComponent, RecipesPanelComponent],
   templateUrl: './stock-management.component.html',
 })
 export class StockManagementComponent implements OnInit {
@@ -32,6 +34,8 @@ export class StockManagementComponent implements OnInit {
   rows = signal<StockRow[]>([]);
   loading = signal(true);
   selectedLocationId = '';
+  tab = signal<'products' | 'ingredients' | 'recipes'>('products');
+  readonly tabs = ['products', 'ingredients', 'recipes'] as const;
 
   ngOnInit(): void {
     this.api.getAdminLocations().subscribe((locs) => {
@@ -69,7 +73,9 @@ export class StockManagementComponent implements OnInit {
       })
       .subscribe({
         next: (saved) => {
-          this.rows.update((list) => list.map((r) => (r.menuItemId === saved.menuItemId ? this.toRow(saved) : r)));
+          this.rows.update((list) =>
+            list.map((r) => (r.menuItemId === saved.menuItemId ? this.toRow(saved) : r)),
+          );
           this.toast.success('Saved');
         },
         error: () => {
@@ -87,7 +93,9 @@ export class StockManagementComponent implements OnInit {
   }
 
   isDirty(row: StockRow): boolean {
-    return this.asCount(row.qtyInput) !== row.quantity || this.asCount(row.lowInput) !== row.lowStockAt;
+    return (
+      this.asCount(row.qtyInput) !== row.quantity || this.asCount(row.lowInput) !== row.lowStockAt
+    );
   }
 
   private asCount(value: number | null | undefined): number | null {
