@@ -39,6 +39,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<DiscountCode> DiscountCodes => Set<DiscountCode>();
     public DbSet<MenuItemLocation> MenuItemLocations => Set<MenuItemLocation>();
     public DbSet<MenuItemStock> MenuItemStocks => Set<MenuItemStock>();
+    public DbSet<Ingredient> Ingredients => Set<Ingredient>();
+    public DbSet<IngredientStock> IngredientStocks => Set<IngredientStock>();
+    public DbSet<RecipeLine> RecipeLines => Set<RecipeLine>();
     public DbSet<MenuItemVariant> MenuItemVariants => Set<MenuItemVariant>();
     public DbSet<UserReport> UserReports => Set<UserReport>();
     public DbSet<AppRelease> AppReleases => Set<AppRelease>();

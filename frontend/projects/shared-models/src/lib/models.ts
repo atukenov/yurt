@@ -275,6 +275,27 @@ export interface StockItem {
   isSoldOut: boolean;
 }
 
+/** An ingredient with its count in one branch (own_pos). `quantity` is null when the branch does not count it. */
+export interface Ingredient {
+  id: string;
+  name: string;
+  unit: string;
+  quantity: number | null;
+  lowStockAt: number | null;
+  isLow: boolean;
+  isOut: boolean;
+  usedInItems: number;
+}
+
+/** How much of an ingredient one portion uses. A null `variantId` means every size. */
+export interface RecipeLine {
+  ingredientId: string;
+  ingredientName?: string;
+  unit?: string;
+  variantId: string | null;
+  quantity: number;
+}
+
 export interface Order {
   id: string;
   customerUserId: string;
@@ -736,7 +757,6 @@ export interface Promotion {
   expiresAt?: string;
   createdAt: string;
 }
-
 
 export interface AuditLogEntry {
   id: string;

@@ -515,6 +515,86 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("GroupCartMembers");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.Ingredient", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Ingredients");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.IngredientStock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("LowStockAt")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("IngredientId", "LocationId")
+                        .IsUnique();
+
+                    b.ToTable("IngredientStocks");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Location", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1522,6 +1602,49 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("Promotions");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.RecipeLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MenuItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VariantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("MenuItemId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("VariantId");
+
+                    b.ToTable("RecipeLines");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1837,6 +1960,40 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("GroupCart");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.Ingredient", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.IngredientStock", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Location");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Location", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
@@ -2133,6 +2290,38 @@ namespace Yurt.Infrastructure.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.RecipeLine", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.MenuItem", "MenuItem")
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.MenuItemVariant", "Variant")
+                        .WithMany()
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("MenuItem");
+
+                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.RefreshToken", b =>

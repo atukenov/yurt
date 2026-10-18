@@ -1,0 +1,88 @@
+<p class="mb-3 text-sm text-slate-500">{{ 'rec.hint' | t }}</p>
+
+<select
+  [(ngModel)]="menuItemId"
+  (ngModelChange)="pick()"
+  [attr.aria-label]="'rec.pickItem' | t"
+  class="mb-4 w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+>
+  <option value="">{{ 'rec.pickItem' | t }}</option>
+  @for (item of items(); track item.id) {
+    <option [value]="item.id">{{ item.name }}</option>
+  }
+</select>
+
+@if (menuItemId) {
+  <div class="space-y-2">
+    @for (line of lines(); track $index) {
+      <div
+        class="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-surface p-3"
+      >
+        <select
+          [(ngModel)]="line.ingredientId"
+          (ngModelChange)="dirty = true"
+          [attr.aria-label]="'rec.ingredient' | t"
+          class="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+        >
+          @for (ing of ingredients(); track ing.id) {
+            <option [value]="ing.id">{{ ing.name }}</option>
+          }
+        </select>
+        <input
+          type="number"
+          min="0"
+          step="any"
+          [(ngModel)]="line.quantity"
+          (ngModelChange)="dirty = true"
+          [attr.aria-label]="'rec.amount' | t"
+          class="w-24 rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+        />
+        <span class="text-sm text-slate-500">{{ unitOf(line.ingredientId) }}</span>
+        @if (variants.length) {
+          <select
+            [(ngModel)]="line.variantId"
+            (ngModelChange)="dirty = true"
+            [attr.aria-label]="'rec.size' | t"
+            class="rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+          >
+            <option [ngValue]="null">{{ 'rec.allSizes' | t }}</option>
+            @for (v of variants; track v.id) {
+              <option [ngValue]="v.id">{{ v.label }}</option>
+            }
+          </select>
+        }
+        <button
+          type="button"
+          (click)="removeLine($index)"
+          class="ml-auto text-sm text-red-500 hover:text-red-700"
+        >
+          {{ 'ing.delete' | t }}
+        </button>
+      </div>
+    } @empty {
+      <p class="text-sm text-slate-400">{{ 'rec.noLines' | t }}</p>
+    }
+  </div>
+
+  <div class="mt-4 flex gap-2">
+    <button
+      type="button"
+      (click)="addLine()"
+      [disabled]="!ingredients().length"
+      class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+    >
+      {{ 'rec.addLine' | t }}
+    </button>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving() || !dirty"
+      class="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-40"
+    >
+      {{ 'stock.save' | t }}
+    </button>
+  </div>
+  @if (!ingredients().length) {
+    <p class="mt-2 text-sm text-slate-400">{{ 'rec.needIngredients' | t }}</p>
+  }
+}

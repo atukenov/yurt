@@ -110,4 +110,10 @@ Gated so far: the **Kitchen** screen and **Stock**. The other `own_pos` features
 - **Covers:** `GET /api/v1/admin/stock?locationId=` and `PUT /api/v1/admin/stock/{menuItemId}/{locationId}` (body `{ quantity, lowStockAt }`; a null `quantity` stops counting the item); the admin **Stock** page and menu entry.
 - **How it works:** an item with a count is limited to what is left in that branch. An order for more than is left is refused with a plain message ("Only 2 left of ..." or "... is sold out"). Accepting an order lowers the count (never below zero, safe when two orders are accepted together). At zero the item disappears from that branch's customer menu by itself; setting a number again or clearing the count brings it back. Items without a count are unlimited, as before. The admin list marks items at or below their warning number as running low.
 - **When off:** the Stock endpoints return `403 module_disabled`, the page redirects to Orders and the menu entry is hidden. Counts are **not enforced** while the module is off (menu and orders ignore them), so nothing can stay stuck at zero without a way to fix it. The counts are kept and apply again when the module is back on.
-- **Not done yet:** ingredients and recipes (a latte uses 200 ml milk), stock for toppings, low-stock push alerts, restocking history.
+- **Not done yet:** stock for toppings, low-stock push alerts, restocking history.
+
+#### Ingredients and recipes (per ingredient, per branch)
+- **Covers:** `GET/POST /api/v1/admin/ingredients`, `PUT/DELETE .../{id}`, `PUT .../{id}/stock/{locationId}` (null `quantity` stops counting), `GET/PUT .../recipes/{menuItemId}` (saving replaces the whole recipe). The **Ingredients** and **Recipes** tabs on the Stock page.
+- **How it works:** a recipe line says how much of an ingredient one portion uses, for every size or one size. A dish leaves the customer menu when an every-size line needs more than the branch has. An order is refused when any line (size-specific ones included) cannot be covered. Accepting an order lowers the ingredient counts, never below zero.
+- **When off:** same as Stock: endpoints return `403 module_disabled`, counts are not enforced.
+- **Limit:** toppings (for example oat milk) are not linked to ingredients yet.
