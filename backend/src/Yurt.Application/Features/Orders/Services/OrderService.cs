@@ -4,6 +4,7 @@ using Yurt.Application.Common.Models;
 using Yurt.Application.Features.DiscountCodes.Services;
 using Yurt.Application.Features.Loyalty.Services;
 using Yurt.Application.Features.Orders.DTOs;
+using Yurt.Application.Features.Stock;
 using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
@@ -19,12 +20,14 @@ public class OrderService
     private readonly LoyaltyService _loyalty;
     private readonly IPosOrderSink _pos;
     private readonly IModuleGate _modules;
+    private readonly StockService? _stock;
 
     public OrderService(
         IApplicationDbContext db, IOrdersHubService hub, IAuditLogService audit,
         DiscountCodeService discountCodes, LoyaltyService loyalty, IPosOrderSink pos,
-        IModuleGate modules)
+        IModuleGate modules, StockService? stock = null)
     {
+        _stock = stock;
         _db = db;
         _hub = hub;
         _audit = audit;
@@ -78,6 +81,14 @@ public class OrderService
         foreach (var item in menuItems)
             if (item.MenuItemLocations.Any() && !item.MenuItemLocations.Any(l => l.LocationId == dto.LocationId))
                 return Result<OrderDto>.Failure($"'{item.Name}' is not available at this location.", 400);
+
+        if (_stock is not null)
+        {
+            var wanted = dto.Items.GroupBy(i => i.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+            var shortage = await _stock.FindShortageAsync(
+                dto.LocationId, wanted, menuItems.ToDictionary(m => m.Id, m => m.Name), ct);
+            if (shortage != null) return Result<OrderDto>.Failure(shortage, 400);
+        }
 
         // Build order
         var order = new Order
@@ -327,6 +338,8 @@ public class OrderService
 
         await _hub.NotifyOrderUpdatedAsync(order, ct);
         await _audit.LogAsync("OrderAccepted", "Order", orderId.ToString(), $"ETA: {dto.EtaMinutes} min", ct);
+
+        if (_stock is not null) await _stock.ConsumeForOrderAsync(order, ct);
 
         // iiko order push is a reporting/kitchen-routing side-channel only — fails open,
         // never blocks acceptance, and never affects the wallet loyalty flow above.

@@ -68,6 +68,23 @@
         </a>
         }
 
+        @if (modules.isEnabled('own_pos')) {
+        <a
+          routerLink="/stock"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
+          ariaCurrentWhenActive="page"
+          [title]="collapsed() ? ('nav.stock' | t) : ''"
+          [attr.aria-label]="'nav.stock' | t"
+          [class]="collapsed() ? 'justify-center px-0' : 'px-3'"
+          class="flex items-center gap-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors text-sm"
+        >
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          @if (!collapsed()) { <span class="truncate">{{ 'nav.stock' | t }}</span> }
+        </a>
+        }
+
         <a
           routerLink="/menu"
           routerLinkActive="bg-brand-50 text-brand-ink font-semibold"

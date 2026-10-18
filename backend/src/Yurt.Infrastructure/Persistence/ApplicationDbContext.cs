@@ -38,6 +38,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<DiscountCode> DiscountCodes => Set<DiscountCode>();
     public DbSet<MenuItemLocation> MenuItemLocations => Set<MenuItemLocation>();
+    public DbSet<MenuItemStock> MenuItemStocks => Set<MenuItemStock>();
     public DbSet<MenuItemVariant> MenuItemVariants => Set<MenuItemVariant>();
     public DbSet<UserReport> UserReports => Set<UserReport>();
     public DbSet<AppRelease> AppReleases => Set<AppRelease>();

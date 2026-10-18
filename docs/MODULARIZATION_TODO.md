@@ -175,6 +175,8 @@ Steps:
   - [x] Simple kitchen screen (`/kitchen`, gated by `own_pos`): three columns per branch, one tap per step, live updates, sound for a new accepted order. Details in `docs/modules.md`.
   - [ ] Stations (Kitchen, Bar) and routing a menu item to a station.
 - [ ] Stock, ingredients and automatic stop-list.
+  - [x] Stock per product per branch with the automatic stop-list (admin Stock page, orders limited to what is left, accept lowers the count, sold-out items leave the customer menu). Details in `docs/modules.md`. Also fixed the customer menu cache so it is kept per cafe.
+  - [ ] Ingredients and recipes, stock for toppings, low-stock alerts.
 - [ ] Cashier screen, shifts, receipts and Z report.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter.

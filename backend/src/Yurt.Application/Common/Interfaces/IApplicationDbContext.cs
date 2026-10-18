@@ -27,6 +27,7 @@ public interface IApplicationDbContext
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<DiscountCode> DiscountCodes { get; }
     DbSet<MenuItemLocation> MenuItemLocations { get; }
+    DbSet<MenuItemStock> MenuItemStocks { get; }
     DbSet<MenuItemVariant> MenuItemVariants { get; }
     DbSet<UserReport> UserReports { get; }
     DbSet<AppRelease> AppReleases { get; }

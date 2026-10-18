@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
+using Yurt.Application.Common;
 using Yurt.Application.Common.Interfaces;
+using Yurt.Domain.Entities;
 
 namespace Yurt.Infrastructure.Services;
 
@@ -11,7 +13,8 @@ public sealed class MemoryMenuCacheService : IMenuCacheService
 
     public MemoryMenuCacheService(IMemoryCache cache) => _cache = cache;
 
-    private string Key(string raw) => $"menu:v{_version}:{raw}";
+    // The cache is shared by every cafe, so a cafe's menu must never be served to another one.
+    private string Key(string raw) => $"menu:v{_version}:{TenantAmbient.Current ?? Tenant.DefaultId}:{raw}";
 
     public Task<T?> GetAsync<T>(string key) where T : class
     {

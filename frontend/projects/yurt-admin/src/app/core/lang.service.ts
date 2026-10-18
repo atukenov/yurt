@@ -5,6 +5,7 @@ export type AdminLang = 'en' | 'ru' | 'kk';
 const T: Record<AdminLang, Record<string, string>> = {
   en: {
     // Navigation
+    'nav.stock': 'Stock', 'stock.title': 'Stock', 'stock.hint': 'Items with a number hide themselves from the customer menu at zero. Items without a number are unlimited.', 'stock.branch': 'Branch', 'stock.item': 'Item', 'stock.left': 'Left', 'stock.warnAt': 'Warn at', 'stock.notCounted': 'Not counted', 'stock.soldOut': 'Sold out', 'stock.low': 'Running low', 'stock.save': 'Save', 'stock.stopCounting': 'Stop counting', 'stock.empty': 'No menu items for this branch',
     'nav.kitchen': 'Kitchen', 'kitchen.title': 'Kitchen', 'kitchen.colNew': 'New', 'kitchen.colPreparing': 'Preparing', 'kitchen.colReady': 'Ready', 'kitchen.start': 'Start', 'kitchen.ready': 'Ready', 'kitchen.handedOver': 'Handed over', 'kitchen.min': 'min', 'kitchen.eta': 'ETA', 'kitchen.empty': 'No orders right now',
     'nav.dashboard': 'Dashboard', 'nav.orders': 'Live Orders', 'nav.menu': 'Menu Management',
     'nav.locations': 'Locations', 'nav.analytics': 'Analytics', 'nav.promotions': 'Promotions',
@@ -177,6 +178,7 @@ const T: Record<AdminLang, Record<string, string>> = {
 
   ru: {
     // Navigation
+    'nav.stock': 'Остатки', 'stock.title': 'Остатки', 'stock.hint': 'Блюда с числом сами пропадают из меню клиента на нуле. Блюда без числа не ограничены.', 'stock.branch': 'Филиал', 'stock.item': 'Позиция', 'stock.left': 'Осталось', 'stock.warnAt': 'Предупредить при', 'stock.notCounted': 'Не считается', 'stock.soldOut': 'Нет в наличии', 'stock.low': 'Заканчивается', 'stock.save': 'Сохранить', 'stock.stopCounting': 'Не считать', 'stock.empty': 'Нет позиций меню для этого филиала',
     'nav.kitchen': 'Кухня', 'kitchen.title': 'Кухня', 'kitchen.colNew': 'Новые', 'kitchen.colPreparing': 'Готовятся', 'kitchen.colReady': 'Готовы', 'kitchen.start': 'Начать', 'kitchen.ready': 'Готово', 'kitchen.handedOver': 'Выдан', 'kitchen.min': 'мин', 'kitchen.eta': 'Срок', 'kitchen.empty': 'Сейчас заказов нет',
     'nav.dashboard': 'Дашборд', 'nav.orders': 'Заказы (Live)', 'nav.menu': 'Управление меню',
     'nav.locations': 'Локации', 'nav.analytics': 'Аналитика', 'nav.promotions': 'Акции',
@@ -350,6 +352,7 @@ const T: Record<AdminLang, Record<string, string>> = {
 
   kk: {
     // Navigation
+    'nav.stock': 'Қалдық', 'stock.title': 'Қалдық', 'stock.hint': 'Саны бар тағамдар нөлге жеткенде клиент мәзірінен өздігінен жасырылады. Саны жоқ тағамдар шектелмейді.', 'stock.branch': 'Филиал', 'stock.item': 'Тағам', 'stock.left': 'Қалды', 'stock.warnAt': 'Ескерту деңгейі', 'stock.notCounted': 'Есептелмейді', 'stock.soldOut': 'Таусылды', 'stock.low': 'Таусылып барады', 'stock.save': 'Сақтау', 'stock.stopCounting': 'Есептеуді тоқтату', 'stock.empty': 'Бұл филиалға мәзір тағамдары жоқ',
     'nav.kitchen': 'Ас үй', 'kitchen.title': 'Ас үй', 'kitchen.colNew': 'Жаңа', 'kitchen.colPreparing': 'Дайындалуда', 'kitchen.colReady': 'Дайын', 'kitchen.start': 'Бастау', 'kitchen.ready': 'Дайын', 'kitchen.handedOver': 'Берілді', 'kitchen.min': 'мин', 'kitchen.eta': 'Мерзімі', 'kitchen.empty': 'Қазір тапсырыс жоқ',
     'nav.dashboard': 'Дашборд', 'nav.orders': 'Тапсырыстар (Live)', 'nav.menu': 'Мәзір басқару',
     'nav.locations': 'Мекендер', 'nav.analytics': 'Аналитика', 'nav.promotions': 'Акциялар',

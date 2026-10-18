@@ -40,6 +40,7 @@ import {
   MenuItem,
   MenuTopping,
   Order,
+  StockItem,
   OrderStatus,
   PaymentInvoiceResponse,
   PaymentStatusResponse,
@@ -403,6 +404,18 @@ export class YurtApiService {
 
   declineOrder(id: string, req: DeclineOrderRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/orders/${id}/decline`, req);
+  }
+
+  getAdminStock(locationId: string): Observable<StockItem[]> {
+    return this.http.get<StockItem[]>(`${this.api}/admin/stock`, { params: { locationId } });
+  }
+
+  setAdminStock(
+    menuItemId: string,
+    locationId: string,
+    body: { quantity: number | null; lowStockAt: number | null },
+  ): Observable<StockItem> {
+    return this.http.put<StockItem>(`${this.api}/admin/stock/${menuItemId}/${locationId}`, body);
   }
 
   updateOrderStatus(id: string, req: UpdateStatusRequest): Observable<Order> {
