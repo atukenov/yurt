@@ -180,7 +180,8 @@ Steps:
   - [ ] Stock for toppings, low-stock alerts.
 - [ ] Cashier screen, shifts, receipts and Z report.
   - [x] Cashier page: open and close a shift with the cash counted, cash in/out, X report while open, Z report on close with the cash difference, earlier shifts, print. Details in `docs/modules.md`.
-  - [ ] Receipts per order, per-branch payment method list, split payments.
+  - [x] Print a receipt per order from the order details (browser print, 80 mm layout).
+  - [ ] Per-branch payment method list, split payments.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter.
 
