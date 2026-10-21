@@ -24,6 +24,11 @@ public class AdminStockController(StockService stock) : ApiControllerBase
     public async Task<IActionResult> Alerts([FromQuery] Guid? locationId, CancellationToken ct)
         => Ok(await stock.AlertsAsync(locationId, ct));
 
+    /// <summary>Hand changes to dish and ingredient counts in a branch, newest first: who changed what and when.</summary>
+    [HttpGet("history")]
+    public async Task<IActionResult> History([FromQuery] Guid locationId, [FromQuery] int take = 100, CancellationToken ct = default)
+        => ToResult(await stock.HistoryAsync(locationId, take, ct));
+
     [HttpPut("{menuItemId:guid}/{locationId:guid}")]
     public async Task<IActionResult> Set(Guid menuItemId, Guid locationId, [FromBody] SetStockDto dto, CancellationToken ct)
         => ToResult(await stock.SetAsync(menuItemId, locationId, dto, ct));

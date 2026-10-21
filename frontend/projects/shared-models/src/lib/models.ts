@@ -369,6 +369,23 @@ export interface StockAlert {
   isOut: boolean;
 }
 
+/**
+ * One hand change to a count at a branch (own_pos): a restock, a recount or stop-counting.
+ * A missing or null quantity means "not counted"; `change` is the difference when both are numbers.
+ */
+export interface StockChange {
+  id: string;
+  kind: 'dish' | 'ingredient';
+  itemId: string;
+  itemName: string;
+  unit?: string | null;
+  oldQuantity?: number | null;
+  newQuantity?: number | null;
+  change?: number | null;
+  changedBy: string;
+  changedAt: string;
+}
+
 export interface StockAlerts {
   low: number;
   out: number;

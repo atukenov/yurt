@@ -27,6 +27,13 @@ public record StockAlertDto(string Kind, Guid Id, string Name, Guid LocationId, 
 
 public record StockAlertsDto(int Low, int Out, List<StockAlertDto> Items);
 
+/// <summary>
+/// One hand change to a count. A null quantity means "not counted"; <c>Change</c> is the difference when both are numbers.
+/// </summary>
+public record StockChangeDto(
+    Guid Id, string Kind, Guid ItemId, string ItemName, string? Unit,
+    decimal? OldQuantity, decimal? NewQuantity, decimal? Change, string ChangedBy, DateTime ChangedAt);
+
 /// <summary>A phone that gets low-stock pushes. <c>HasApp</c> is true when a cafe-app account with this number has a
 /// device registered for pushes, so the alert can actually arrive.</summary>
 public record StockAlertPhoneDto(string Phone, bool HasApp);

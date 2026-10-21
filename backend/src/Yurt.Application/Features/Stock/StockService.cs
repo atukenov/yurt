@@ -16,8 +16,10 @@ public record StockLine(Guid MenuItemId, Guid? VariantId, int Quantity, IReadOnl
 /// </summary>
 public class StockService(
     IApplicationDbContext db, IAuditLogService audit, IMenuCacheService menuCache, IModuleGate modules,
-    StockAlertPushService alerts)
+    StockAlertPushService alerts, ICurrentUserService user)
 {
+    private const int MaxHistory = 500;
+
     public Task<bool> IsActiveAsync(CancellationToken ct = default) => modules.IsEnabledAsync(ModuleKeys.OwnPos, ct);
 
     /// <summary>The branch's menu items with their counts, for the admin Stock page.</summary>
@@ -54,6 +56,7 @@ public class StockService(
             return Result<StockItemDto>.Failure("Location not found.", 404);
 
         var row = await db.MenuItemStocks.FirstOrDefaultAsync(s => s.MenuItemId == menuItemId && s.LocationId == locationId, ct);
+        LogChange(db, user, locationId, "dish", item.Id, item.Name, null, row?.Quantity, dto.Quantity);
         if (dto.Quantity is null)
         {
             if (row is not null) db.MenuItemStocks.Remove(row);
@@ -79,6 +82,35 @@ public class StockService(
             item.Id, item.Name, item.Category.Name, row?.Quantity, row?.LowStockAt,
             IsLow: row is { LowStockAt: not null } && row.Quantity <= row.LowStockAt && row.Quantity > 0,
             IsSoldOut: row is { Quantity: <= 0 }));
+    }
+
+    /// <summary>Hand changes to counts in a branch, newest first: restocks, recounts and stop-counting, with who and when.</summary>
+    public async Task<Result<List<StockChangeDto>>> HistoryAsync(Guid locationId, int take, CancellationToken ct = default)
+    {
+        if (!await db.Locations.AnyAsync(l => l.Id == locationId, ct))
+            return Result<List<StockChangeDto>>.Failure("Location not found.", 404);
+
+        var rows = await db.StockChanges
+            .Where(c => c.LocationId == locationId)
+            .OrderByDescending(c => c.CreatedAt)
+            .Take(Math.Clamp(take, 1, MaxHistory))
+            .Select(c => new StockChangeDto(c.Id, c.Kind, c.ItemId, c.ItemName, c.Unit, c.OldQuantity, c.NewQuantity,
+                c.OldQuantity != null && c.NewQuantity != null ? c.NewQuantity - c.OldQuantity : null, c.ChangedBy, c.CreatedAt))
+            .ToListAsync(ct);
+        return Result<List<StockChangeDto>>.Success(rows);
+    }
+
+    /// <summary>Adds a history row when a hand change moves the count. Saved with the caller's own SaveChanges.</summary>
+    internal static void LogChange(
+        IApplicationDbContext db, ICurrentUserService user, Guid locationId, string kind, Guid itemId, string name,
+        string? unit, decimal? before, decimal? after)
+    {
+        if (before == after) return; // only the warn-at number changed
+        db.StockChanges.Add(new StockChange
+        {
+            LocationId = locationId, Kind = kind, ItemId = itemId, ItemName = name, Unit = unit,
+            OldQuantity = before, NewQuantity = after, ChangedBy = user.Username ?? "unknown",
+        });
     }
 
     /// <summary>

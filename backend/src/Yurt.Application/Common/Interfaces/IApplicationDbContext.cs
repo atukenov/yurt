@@ -36,6 +36,7 @@ public interface IApplicationDbContext
     DbSet<CashMovement> CashMovements { get; }
     DbSet<Ingredient> Ingredients { get; }
     DbSet<IngredientStock> IngredientStocks { get; }
+    DbSet<StockChange> StockChanges { get; }
     DbSet<RecipeLine> RecipeLines { get; }
     DbSet<MenuItemVariant> MenuItemVariants { get; }
     DbSet<UserReport> UserReports { get; }

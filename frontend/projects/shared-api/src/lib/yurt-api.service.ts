@@ -43,6 +43,7 @@ import {
   StockItem,
   StockAlertPhone,
   StockAlerts,
+  StockChange,
   Station,
   StationRouting,
   CategoryRouting,
@@ -541,6 +542,13 @@ export class YurtApiService {
   getStockAlerts(locationId?: string): Observable<StockAlerts> {
     return this.http.get<StockAlerts>(`${this.api}/admin/stock/alerts`, {
       params: locationId ? { locationId } : {},
+    });
+  }
+
+  /** Hand changes to dish and ingredient counts at a branch, newest first. */
+  getStockHistory(locationId: string, take = 100): Observable<StockChange[]> {
+    return this.http.get<StockChange[]>(`${this.api}/admin/stock/history`, {
+      params: { locationId, take },
     });
   }
 

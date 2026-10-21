@@ -62,6 +62,9 @@
   @if (tab() === 'recipes') {
     <app-recipes-panel />
   }
+  @if (tab() === 'history') {
+    <app-stock-history-panel [locationId]="selectedLocationId" />
+  }
 
   @if (tab() === 'products') {
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-surface">
