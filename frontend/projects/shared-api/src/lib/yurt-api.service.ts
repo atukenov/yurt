@@ -46,6 +46,10 @@ import {
   StockChange,
   Station,
   StationRouting,
+  Printer,
+  SavePrinter,
+  PrintJob,
+  PrintQueued,
   CategoryRouting,
   Shift,
   ShiftReport,
@@ -583,6 +587,42 @@ export class YurtApiService {
   setStationReady(orderId: string, stationId: string, ready: boolean): Observable<Order> {
     const url = `${this.api}/admin/orders/${orderId}/stations/${stationId}/ready`;
     return ready ? this.http.post<Order>(url, {}) : this.http.delete<Order>(url);
+  }
+
+  getPrinters(): Observable<Printer[]> {
+    return this.http.get<Printer[]>(`${this.api}/admin/printers`);
+  }
+
+  createPrinter(body: SavePrinter): Observable<Printer> {
+    return this.http.post<Printer>(`${this.api}/admin/printers`, body);
+  }
+
+  updatePrinter(id: string, body: SavePrinter): Observable<Printer> {
+    return this.http.put<Printer>(`${this.api}/admin/printers/${id}`, body);
+  }
+
+  deletePrinter(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/printers/${id}`);
+  }
+
+  /** Prints a test page right away; fails with the reason when the printer cannot be reached. */
+  testPrinter(id: string): Observable<boolean> {
+    return this.http.post<boolean>(`${this.api}/admin/printers/${id}/test`, {});
+  }
+
+  getPrintJobs(limit = 30): Observable<PrintJob[]> {
+    return this.http.get<PrintJob[]>(`${this.api}/admin/printers/jobs`, { params: { limit } });
+  }
+
+  /** Sends a kitchen ticket to the branch's printers (one station's, or every kitchen printer). */
+  printOrderTicket(orderId: string, stationId?: string): Observable<PrintQueued> {
+    return this.http.post<PrintQueued>(`${this.api}/admin/orders/${orderId}/print/ticket`, {}, {
+      params: stationId ? { stationId } : {},
+    });
+  }
+
+  printOrderReceipt(orderId: string): Observable<PrintQueued> {
+    return this.http.post<PrintQueued>(`${this.api}/admin/orders/${orderId}/print/receipt`, {});
   }
 
   getToppingUses(toppingId: string): Observable<RecipeLine[]> {

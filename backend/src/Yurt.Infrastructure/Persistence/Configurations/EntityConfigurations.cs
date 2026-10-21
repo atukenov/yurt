@@ -344,6 +344,34 @@ public class OrderStationReadyConfiguration : IEntityTypeConfiguration<OrderStat
     }
 }
 
+public class PrinterConfiguration : IEntityTypeConfiguration<Printer>
+{
+    public void Configure(EntityTypeBuilder<Printer> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
+        builder.Property(e => e.Kind).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Host).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.Language).HasMaxLength(5).IsRequired();
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        // Deleting a station turns its printer into an every-item printer rather than losing the printer.
+        builder.HasOne<Station>().WithMany().HasForeignKey(e => e.StationId).OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+public class PrintJobConfiguration : IEntityTypeConfiguration<PrintJob>
+{
+    public void Configure(EntityTypeBuilder<PrintJob> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Kind).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Status).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.LastError).HasMaxLength(300);
+        builder.HasOne(e => e.Printer).WithMany().HasForeignKey(e => e.PrinterId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.Status, e.CreatedAt });
+    }
+}
+
 public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)
