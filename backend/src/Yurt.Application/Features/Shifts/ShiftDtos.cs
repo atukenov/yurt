@@ -28,3 +28,7 @@ public record ShiftReportDto(
     decimal ExpectedCash,
     decimal? Difference,
     List<CashMovementDto> Movements);
+
+public record SplitPaymentLineDto(string Method, decimal Amount);
+public record SplitPaymentInputDto(List<SplitPaymentLineDto> Lines);
+public record SplitPaymentDto(Guid OrderId, decimal ToPay, List<SplitPaymentLineDto> Lines);

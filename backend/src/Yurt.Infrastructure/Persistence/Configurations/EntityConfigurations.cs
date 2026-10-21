@@ -320,6 +320,18 @@ public class CashMovementConfiguration : IEntityTypeConfiguration<CashMovement>
     }
 }
 
+public class OrderPaymentConfiguration : IEntityTypeConfiguration<OrderPayment>
+{
+    public void Configure(EntityTypeBuilder<OrderPayment> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Method).HasConversion<string>().HasMaxLength(20);
+        builder.Property(e => e.Amount).HasPrecision(18, 2);
+        builder.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => e.OrderId);
+    }
+}
+
 public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)

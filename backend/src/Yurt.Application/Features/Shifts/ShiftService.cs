@@ -85,15 +85,19 @@ public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IA
         var orders = await db.Orders
             .Where(o => o.LocationId == shift.LocationId && o.CompletedAt != null
                 && o.CompletedAt >= shift.OpenedAt && o.CompletedAt <= to && o.Status == OrderStatus.Completed)
-            .Select(o => new { o.Subtotal, o.DiscountAmount, o.Total, o.LoyaltyPointsSpent, o.PaymentMethod })
+            .Select(o => new { o.Id, o.Subtotal, o.DiscountAmount, o.Total, o.LoyaltyPointsSpent, o.PaymentMethod })
             .ToListAsync(ct);
+        // Orders the cashier paid in parts: each part counts under its own method.
+        var orderIds = orders.Select(o => o.Id).ToList();
+        var splits = (await db.OrderPayments.Where(p => orderIds.Contains(p.OrderId)).ToListAsync(ct))
+            .GroupBy(p => p.OrderId).ToDictionary(g => g.Key, g => g.ToList());
         var declined = await db.Orders.CountAsync(o => o.LocationId == shift.LocationId && o.Status == OrderStatus.Declined
             && o.UpdatedAt >= shift.OpenedAt && o.UpdatedAt <= to, ct);
 
         // What the guest pays in money: the total less points. A cash order with no method recorded counts as cash.
-        var lines = orders.Select(o => (
-            Method: o.PaymentMethod ?? PaymentMethod.Cash,
-            Paid: Math.Max(0m, o.Total - (o.LoyaltyPointsSpent ?? 0m)))).ToList();
+        var lines = orders.SelectMany(o => splits.TryGetValue(o.Id, out var parts)
+            ? parts.Select(p => (Method: p.Method, Paid: p.Amount))
+            : [(Method: o.PaymentMethod ?? PaymentMethod.Cash, Paid: Math.Max(0m, o.Total - (o.LoyaltyPointsSpent ?? 0m)))]).ToList();
         var byMethod = lines.GroupBy(l => l.Method)
             .Select(g => new PaymentMethodTotalDto(g.Key.ToString(), g.Count(), g.Sum(x => x.Paid)))
             .OrderByDescending(x => x.Amount).ToList();
