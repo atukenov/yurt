@@ -212,6 +212,13 @@
               >
                 {{ col.actionKey | t }}
               </button>
+              <button
+                type="button"
+                (click)="printTicket(order)"
+                class="mt-2 w-full rounded-xl border border-slate-200 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                {{ 'kitchen.printTicket' | t }}
+              </button>
             </article>
           } @empty {
             <p class="px-2 py-6 text-center text-sm text-slate-400">
