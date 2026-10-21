@@ -34,6 +34,11 @@ export class CartComponent implements OnInit {
   loading = signal(false);
   selectedPaymentMethod = signal<PaymentMethod | null>(null);
   applePayAvailable = signal(false);
+  /** Whether the chosen branch offers a payment method (all of them unless the cafe narrowed it). */
+  offers = (method: PaymentMethod): boolean => {
+    const list = this.locationSvc.paymentMethods();
+    return !list || list.includes(method);
+  };
   private checkoutKey: string | null = null;
 
   // iiko loyalty — pay with bonus points
@@ -61,6 +66,11 @@ export class CartComponent implements OnInit {
     // A code applied before the marketing module went off no longer counts at checkout.
     effect(() => {
       if (!this.modules.isEnabled('marketing') && this.cart.appliedDiscount()) this.cart.clearDiscount();
+    });
+    // A method the branch stopped offering cannot stay selected.
+    effect(() => {
+      const picked = this.selectedPaymentMethod();
+      if (picked && !this.offers(picked)) this.selectedPaymentMethod.set(null);
     });
     effect(() => {
       const value = this.payableTotal();

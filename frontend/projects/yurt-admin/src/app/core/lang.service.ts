@@ -72,7 +72,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'locations.addTitle': 'Add Location', 'locations.editTitle': 'Edit Location',
     'locations.noLocations': 'No locations yet',
     'locations.name': 'Name *', 'locations.address': 'Address *',
-    'locations.twoGis': '2GIS link (optional)', 'locations.twoGisHint': 'Customers get a “Get directions” button to this place once their order is accepted.', 'locations.workingHours': 'Working Hours', 'locations.contactPhone': 'Contact Phone',
+    'locations.payMethods': 'Payment methods this branch offers', 'locations.payMethodsHint': 'Tick none to offer every method. The customer app shows only the ticked ones. Cash is taken at the till and is not shown in the app.', 'locations.twoGis': '2GIS link (optional)', 'locations.twoGisHint': 'Customers get a “Get directions” button to this place once their order is accepted.', 'locations.workingHours': 'Working Hours', 'locations.contactPhone': 'Contact Phone',
     'locations.active': 'Active', 'locations.inactive': 'Inactive',
     'locations.nameRu': 'Name (RU)', 'locations.nameKk': 'Name (KZ)',
 
@@ -246,7 +246,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'locations.addTitle': 'Добавить локацию', 'locations.editTitle': 'Изменить локацию',
     'locations.noLocations': 'Нет локаций',
     'locations.name': 'Название *', 'locations.address': 'Адрес *',
-    'locations.twoGis': 'Ссылка на 2ГИС (необязательно)', 'locations.twoGisHint': 'Клиент увидит кнопку «Построить маршрут» к этому месту, когда заказ будет принят.', 'locations.workingHours': 'Часы работы', 'locations.contactPhone': 'Контактный телефон',
+    'locations.payMethods': 'Способы оплаты в этом филиале', 'locations.payMethodsHint': 'Если ничего не отмечено, доступны все способы. Приложение клиента показывает только отмеченные. Наличные принимаются на кассе и в приложении не показываются.', 'locations.twoGis': 'Ссылка на 2ГИС (необязательно)', 'locations.twoGisHint': 'Клиент увидит кнопку «Построить маршрут» к этому месту, когда заказ будет принят.', 'locations.workingHours': 'Часы работы', 'locations.contactPhone': 'Контактный телефон',
     'locations.active': 'Активна', 'locations.inactive': 'Неактивна',
     'locations.nameRu': 'Название (RU)', 'locations.nameKk': 'Название (KZ)',
 
@@ -420,7 +420,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'locations.addTitle': 'Мекен қосу', 'locations.editTitle': 'Мекенді өзгерту',
     'locations.noLocations': 'Мекендер жоқ',
     'locations.name': 'Атауы *', 'locations.address': 'Мекенжай *',
-    'locations.twoGis': '2GIS сілтемесі (міндетті емес)', 'locations.twoGisHint': 'Тапсырыс қабылданғаннан кейін клиент осы жерге «Бағыт салу» түймесін көреді.', 'locations.workingHours': 'Жұмыс уақыты', 'locations.contactPhone': 'Байланыс телефоны',
+    'locations.payMethods': 'Бұл филиалдағы төлем тәсілдері', 'locations.payMethodsHint': 'Ештеңе белгіленбесе, барлық тәсіл қолжетімді. Клиент қолданбасы тек белгіленгендерін көрсетеді. Қолма-қол ақша кассада алынады, қолданбада көрсетілмейді.', 'locations.twoGis': '2GIS сілтемесі (міндетті емес)', 'locations.twoGisHint': 'Тапсырыс қабылданғаннан кейін клиент осы жерге «Бағыт салу» түймесін көреді.', 'locations.workingHours': 'Жұмыс уақыты', 'locations.contactPhone': 'Байланыс телефоны',
     'locations.active': 'Белсенді', 'locations.inactive': 'Белсенді емес',
     'locations.nameRu': 'Атауы (RU)', 'locations.nameKk': 'Атауы (KZ)',
 

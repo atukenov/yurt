@@ -51,6 +51,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(e => e.WorkingHours).HasColumnType("text").IsRequired();
         builder.Property(e => e.ContactPhone).HasMaxLength(30).IsRequired();
         builder.Property(e => e.TwoGisUrl).HasMaxLength(1000);
+        builder.Property(e => e.PaymentMethods).HasMaxLength(200);
     }
 }
 

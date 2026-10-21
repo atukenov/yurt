@@ -95,6 +95,8 @@ export interface Location {
   isActive: boolean;
   iikoTerminalGroupId?: string | null;
   twoGisUrl?: string | null;
+  /** Payment methods this branch offers; missing or null = all. */
+  paymentMethods?: string[] | null;
 }
 
 // ── Menu ──────────────────────────────────────────────────────────────────────

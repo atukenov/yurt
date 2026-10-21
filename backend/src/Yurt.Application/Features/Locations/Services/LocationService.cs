@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Locations.DTOs;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
+using Yurt.Domain.Enums;
 
 namespace Yurt.Application.Features.Locations.Services;
 
@@ -10,30 +12,55 @@ public class LocationService
 {
     private readonly IApplicationDbContext _db;
     private readonly IAuditLogService _audit;
+    private readonly IModuleGate? _modules;
 
-    public LocationService(IApplicationDbContext db, IAuditLogService audit)
+    public LocationService(IApplicationDbContext db, IAuditLogService audit, IModuleGate? modules = null)
     {
         _db = db;
         _audit = audit;
+        _modules = modules;
     }
 
+    /// <summary>Stored value for a list of method names: only known names, none when it means "all".</summary>
+    public static string? NormalizePaymentMethods(IEnumerable<string>? names)
+    {
+        var all = Enum.GetValues<PaymentMethod>();
+        var picked = (names ?? []).Select(n => Enum.TryParse<PaymentMethod>(n, true, out var m) && Enum.IsDefined(m) ? (PaymentMethod?)m : null)
+            .Where(m => m != null).Select(m => m!.Value).Distinct().OrderBy(m => (int)m).ToList();
+        return picked.Count == 0 || picked.Count == all.Length ? null : string.Join(',', picked);
+    }
+
+    /// <summary>The methods a branch offers, or null when it offers all.</summary>
+    public static List<PaymentMethod>? OfferedMethods(string? stored)
+    {
+        if (string.IsNullOrWhiteSpace(stored)) return null;
+        var list = stored.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(n => Enum.TryParse<PaymentMethod>(n, true, out var m) ? (PaymentMethod?)m : null)
+            .Where(m => m != null).Select(m => m!.Value).ToList();
+        return list.Count == 0 ? null : list;
+    }
+
+    private static List<string>? ToNames(string? stored) => OfferedMethods(stored)?.Select(m => m.ToString()).ToList();
+
     public async Task<List<LocationDto>> GetActiveLocationsAsync(CancellationToken ct = default)
-        => await _db.Locations
+    {
+        // Customers only see a restricted list while the own POS module is on.
+        var restrict = _modules is null || await _modules.IsEnabledAsync(ModuleKeys.OwnPos, ct);
+        var rows = await _db.Locations
             .Where(l => l.IsActive)
             .OrderBy(l => l.Name)
-            .Select(l => new LocationDto(
-                l.Id,
-                l.Name,
-                l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.TwoGisUrl))
+            .Select(l => new { l.Id, l.Name, l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.TwoGisUrl, l.PaymentMethods })
             .ToListAsync(ct);
+        return rows.Select(l => new LocationDto(
+            l.Id, l.Name, l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.TwoGisUrl,
+            restrict ? ToNames(l.PaymentMethods) : null)).ToList();
+    }
 
     public async Task<List<AdminLocationDto>> GetAllLocationsAsync(CancellationToken ct = default)
-        => await _db.Locations
-            .OrderBy(l => l.Name)
-            .Select(l => new AdminLocationDto(
-                l.Id, l.Name,
-                l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.IikoTerminalGroupId, l.TwoGisUrl))
-            .ToListAsync(ct);
+    {
+        var locs = await _db.Locations.OrderBy(l => l.Name).ToListAsync(ct);
+        return locs.Select(MapToAdminDto).ToList();
+    }
 
     public async Task<Result<AdminLocationDto>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
@@ -54,7 +81,8 @@ public class LocationService
             WorkingHours = dto.WorkingHours,
             ContactPhone = dto.ContactPhone,
             IikoTerminalGroupId = dto.IikoTerminalGroupId,
-            TwoGisUrl = twoGisUrl
+            TwoGisUrl = twoGisUrl,
+            PaymentMethods = NormalizePaymentMethods(dto.PaymentMethods)
         };
         _db.Locations.Add(loc);
         await _db.SaveChangesAsync(ct);
@@ -77,6 +105,8 @@ public class LocationService
         loc.IsActive = dto.IsActive;
         loc.IikoTerminalGroupId = dto.IikoTerminalGroupId;
         loc.TwoGisUrl = twoGisUrl;
+        // Absent = leave as is (older admin apps do not send it); an empty list means "all".
+        if (dto.PaymentMethods is not null) loc.PaymentMethods = NormalizePaymentMethods(dto.PaymentMethods);
         loc.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
@@ -115,5 +145,5 @@ public class LocationService
     }
 
     private static AdminLocationDto MapToAdminDto(Location l)
-        => new(l.Id, l.Name, l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.IikoTerminalGroupId, l.TwoGisUrl);
+        => new(l.Id, l.Name, l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.IikoTerminalGroupId, l.TwoGisUrl, ToNames(l.PaymentMethods));
 }
