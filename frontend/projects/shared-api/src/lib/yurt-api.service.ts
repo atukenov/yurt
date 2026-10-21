@@ -47,6 +47,9 @@ import {
   CategoryRouting,
   Shift,
   ShiftReport,
+  LoyaltyCompareResult,
+  LoyaltyImportResult,
+  LoyaltyLedgerInfo,
   SplitPayment,
   SplitPaymentLine,
   CashMovement,
@@ -144,6 +147,19 @@ export class YurtApiService {
   }
   getIntegrationStatus(): Observable<IntegrationStatus[]> {
     return this.http.get<IntegrationStatus[]>(`${this.api}/platform/integrations`);
+  }
+
+  importLoyalty(): Observable<LoyaltyImportResult> {
+    return this.http.post<LoyaltyImportResult>(`${this.api}/platform/loyalty/import`, {}, this.cafeOptions());
+  }
+  compareLoyalty(): Observable<LoyaltyCompareResult> {
+    return this.http.get<LoyaltyCompareResult>(`${this.api}/platform/loyalty/compare`, this.cafeOptions());
+  }
+  getLoyaltyLedger(): Observable<LoyaltyLedgerInfo> {
+    return this.http.get<LoyaltyLedgerInfo>(`${this.api}/platform/loyalty/ledger`, this.cafeOptions());
+  }
+  setLoyaltyLedger(mode: 'iiko' | 'native'): Observable<LoyaltyLedgerInfo> {
+    return this.http.put<LoyaltyLedgerInfo>(`${this.api}/platform/loyalty/ledger`, { mode }, this.cafeOptions());
   }
 
   getBrand(): Observable<BrandConfig> {

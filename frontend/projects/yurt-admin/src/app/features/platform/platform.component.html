@@ -302,6 +302,66 @@
       }
     </section>
 
+    <!-- Loyalty wallet -->
+    @if (ledger(); as l) {
+      <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
+        <h2 class="font-semibold text-slate-800">{{ 'plat.loyalty.title' | t }}</h2>
+        <p class="text-sm text-slate-500 mt-1">{{ 'plat.loyalty.hint' | t }}</p>
+        <p class="mt-3 text-sm">
+          {{ 'plat.loyalty.current' | t }}:
+          <span class="font-semibold px-2 py-0.5 rounded-full"
+            [class]="l.mode === 'native' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'">
+            {{ (l.mode === 'native' ? 'plat.loyalty.native' : 'plat.loyalty.iiko') | t }}
+          </span>
+        </p>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          @if (l.iikoAvailable) {
+            <button type="button" (click)="importLoyalty()" [disabled]="loyaltyBusy()"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+              1. {{ 'plat.loyalty.import' | t }}
+            </button>
+            <button type="button" (click)="compareLoyalty()" [disabled]="loyaltyBusy()"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+              2. {{ 'plat.loyalty.compare' | t }}
+            </button>
+          }
+          @if (l.mode === 'iiko') {
+            <button type="button" (click)="switchLedger('native')" [disabled]="loyaltyBusy()"
+              class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-bold disabled:opacity-50">
+              {{ l.iikoAvailable ? '3. ' : '' }}{{ 'plat.loyalty.switchNative' | t }}
+            </button>
+          } @else {
+            <button type="button" (click)="switchLedger('iiko')" [disabled]="loyaltyBusy() || !l.iikoAvailable"
+              class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+              {{ 'plat.loyalty.switchIiko' | t }}
+            </button>
+          }
+        </div>
+
+        @if (importResult(); as r) {
+          <p class="mt-3 text-sm text-slate-600">
+            {{ 'plat.loyalty.imported' | t }}: {{ r.imported }} / {{ r.customers }},
+            {{ 'plat.loyalty.skipped' | t }}: {{ r.skipped }}, {{ 'plat.loyalty.failed' | t }}: {{ r.failed }},
+            {{ 'plat.loyalty.points' | t }}: {{ r.pointsImported }}
+          </p>
+        }
+        @if (compareResult(); as c) {
+          <p class="mt-3 text-sm" [class]="c.mismatched === 0 && c.failed === 0 ? 'text-emerald-700' : 'text-red-600'">
+            {{ 'plat.loyalty.matching' | t }}: {{ c.matching }} / {{ c.customers }},
+            {{ 'plat.loyalty.different' | t }}: {{ c.mismatched }}, {{ 'plat.loyalty.failed' | t }}: {{ c.failed }}
+          </p>
+          @if (c.mismatches.length) {
+            <ul class="mt-2 text-xs text-slate-600 space-y-0.5">
+              @for (m of c.mismatches.slice(0, 10); track m.phone) {
+                <li>{{ m.phone }}: iiko {{ m.iiko }} / {{ 'plat.loyalty.ownWallet' | t }} {{ m.native }}</li>
+              }
+            </ul>
+          }
+        }
+      </section>
+    }
+
     <!-- Integrations -->
     <section>
       <h2 class="font-semibold text-slate-800">{{ 'plat.integrations' | t }}</h2>

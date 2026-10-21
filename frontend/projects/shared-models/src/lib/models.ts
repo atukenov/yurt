@@ -871,3 +871,32 @@ export interface SplitPayment {
   toPay: number;
   lines: SplitPaymentLine[];
 }
+
+// ── Loyalty wallet switch (platform operator) ─────────────────────────────────
+
+export interface LoyaltyImportResult {
+  customers: number;
+  imported: number;
+  skipped: number;
+  failed: number;
+  pointsImported: number;
+}
+
+export interface LoyaltyMismatch {
+  phone: string;
+  iiko: number;
+  native: number;
+}
+
+export interface LoyaltyCompareResult {
+  customers: number;
+  matching: number;
+  mismatched: number;
+  failed: number;
+  mismatches: LoyaltyMismatch[];
+}
+
+export interface LoyaltyLedgerInfo {
+  mode: 'iiko' | 'native';
+  iikoAvailable: boolean;
+}
