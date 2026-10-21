@@ -52,6 +52,9 @@ import {
   LoyaltyCompareResult,
   LoyaltyImportResult,
   LoyaltyLedgerInfo,
+  FiscalReceipt,
+  FiscalSettings,
+  SaveFiscalSettings,
   SplitPayment,
   SplitPaymentLine,
   CashMovement,
@@ -149,6 +152,13 @@ export class YurtApiService {
   }
   getIntegrationStatus(): Observable<IntegrationStatus[]> {
     return this.http.get<IntegrationStatus[]>(`${this.api}/platform/integrations`);
+  }
+
+  getFiscalSettings(): Observable<FiscalSettings> {
+    return this.http.get<FiscalSettings>(`${this.api}/platform/fiscal`, this.cafeOptions());
+  }
+  setFiscalSettings(req: SaveFiscalSettings): Observable<FiscalSettings> {
+    return this.http.put<FiscalSettings>(`${this.api}/platform/fiscal`, req, this.cafeOptions());
   }
 
   importLoyalty(): Observable<LoyaltyImportResult> {
@@ -506,9 +516,25 @@ export class YurtApiService {
 
   closeShift(
     shiftId: string,
-    body: { countedCash: number; note?: string },
+    body: { countedCash: number; note?: string; closeWithWaitingReceipts?: boolean },
   ): Observable<ShiftReport> {
     return this.http.post<ShiftReport>(`${this.api}/admin/shifts/${shiftId}/close`, body);
+  }
+
+  retryFiscalZReport(shiftId: string): Observable<{ shiftId: string; fiscalZReportAt?: string | null; fiscalZReportError?: string | null }> {
+    return this.http.post<{ shiftId: string; fiscalZReportAt?: string | null; fiscalZReportError?: string | null }>(
+      `${this.api}/admin/shifts/${shiftId}/fiscal-z-report`, {});
+  }
+
+  /** Tax receipts not sent to the cash register yet. No branch = all branches. */
+  getWaitingFiscalReceipts(locationId?: string): Observable<FiscalReceipt[]> {
+    return this.http.get<FiscalReceipt[]>(`${this.api}/admin/fiscal/waiting`, locationId ? { params: { locationId } } : {});
+  }
+  getOrderFiscalReceipts(orderId: string): Observable<FiscalReceipt[]> {
+    return this.http.get<FiscalReceipt[]>(`${this.api}/admin/fiscal/orders/${orderId}`);
+  }
+  retryFiscalReceipt(id: string): Observable<FiscalReceipt> {
+    return this.http.post<FiscalReceipt>(`${this.api}/admin/fiscal/receipts/${id}/retry`, {});
   }
 
   getShiftReport(shiftId: string): Observable<ShiftReport> {

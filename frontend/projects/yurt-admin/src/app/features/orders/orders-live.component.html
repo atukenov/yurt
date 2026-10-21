@@ -99,10 +99,13 @@
                   {{ order.createdAt | date: 'HH:mm' }} · {{ totalQty(order) }} item(s)
                 </p>
               </div>
-              <div class="flex-shrink-0">
+              <div class="flex-shrink-0 flex flex-col items-end gap-1">
                 <yurt-badge [variant]="order.status | orderStatusColor" class="text-xs">
                   {{ 'order.status.' + order.status | t }}
                 </yurt-badge>
+                @if (fiscalWaiting().has(order.id)) {
+                  <yurt-badge variant="amber" class="text-xs">{{ 'fiscal.notFiscalized' | t }}</yurt-badge>
+                }
               </div>
             </div>
             <p class="text-brand-ink font-bold text-sm mt-1">{{ order.total | currency2 }}</p>
@@ -148,6 +151,28 @@
             </yurt-badge>
             @if (modules.isEnabled('iiko_sync') && iikoSyncBadge(o.iikoOrderSyncStatus); as sync) {
               <yurt-badge [variant]="sync.variant" class="text-xs">{{ sync.label }}</yurt-badge>
+            }
+            @for (f of orderFiscal(); track f.id) {
+              @if (f.status === 'Pending') {
+                <span class="flex items-center gap-1.5">
+                  <yurt-badge variant="amber" class="text-xs" [attr.title]="f.lastError">
+                    {{ (f.kind === 'Return' ? 'fiscal.returnNotFiscalized' : 'fiscal.notFiscalized') | t }}
+                  </yurt-badge>
+                  <button type="button" (click)="retryFiscal(f)" class="text-xs font-semibold text-brand-ink hover:underline">
+                    {{ 'cash.fiscal.retry' | t }}
+                  </button>
+                </span>
+              } @else if (f.status === 'Sent') {
+                @if (f.ticketUrl) {
+                  <a [href]="f.ticketUrl" target="_blank" rel="noopener" class="text-xs font-semibold text-green-700 hover:underline">
+                    ✓ {{ (f.kind === 'Return' ? 'fiscal.returnSent' : 'fiscal.sent') | t }}
+                  </a>
+                } @else {
+                  <yurt-badge variant="green" class="text-xs">✓ {{ (f.kind === 'Return' ? 'fiscal.returnSent' : 'fiscal.sent') | t }}</yurt-badge>
+                }
+              } @else {
+                <yurt-badge variant="slate" class="text-xs" [attr.title]="f.lastError">{{ 'fiscal.skipped' | t }}</yurt-badge>
+              }
             }
           </div>
         </div>

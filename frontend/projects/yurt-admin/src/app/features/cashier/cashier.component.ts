@@ -2,9 +2,10 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
-import { Location, Shift, ShiftReport } from 'shared-models';
+import { FiscalReceipt, Location, Shift, ShiftReport } from 'shared-models';
 import { Currency2Pipe, ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 /**
  * Cashier screen (Phase 6, `own_pos`): open a shift with the cash in the drawer, record cash in/out, see the running
@@ -19,6 +20,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 export class CashierComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   private readonly LOC_KEY = 'yurt_stock_location';
 
@@ -38,6 +40,8 @@ export class CashierComponent implements OnInit {
   moveReason = '';
   countedCash: number | null = null;
   closeNote = '';
+  /** Official tax receipts of this branch not sent to the cash register yet (empty while fiscal receipts are off). */
+  waitingReceipts = signal<FiscalReceipt[]>([]);
 
   ngOnInit(): void {
     this.api.getAdminLocations().subscribe((locs) => {
@@ -68,6 +72,41 @@ export class CashierComponent implements OnInit {
     this.api
       .getShifts(this.locationId)
       .subscribe((list) => this.history.set(list.filter((s) => s.closedAt)));
+    this.loadWaitingReceipts();
+  }
+
+  loadWaitingReceipts(): void {
+    if (!this.locationId) return;
+    this.api.getWaitingFiscalReceipts(this.locationId).subscribe({
+      next: (list) => this.waitingReceipts.set(list),
+      error: () => this.waitingReceipts.set([]),
+    });
+  }
+
+  retryReceipt(r: FiscalReceipt): void {
+    this.busy.set(true);
+    this.api.retryFiscalReceipt(r.id).subscribe({
+      next: (saved) => {
+        this.busy.set(false);
+        if (saved.status === 'Pending') this.toast.error(saved.lastError || 'Not sent');
+        this.loadWaitingReceipts();
+      },
+      error: () => this.busy.set(false),
+    });
+  }
+
+  retryZReport(shiftId: string): void {
+    this.busy.set(true);
+    this.api.retryFiscalZReport(shiftId).subscribe({
+      next: (z) => {
+        this.busy.set(false);
+        const r = this.report();
+        if (r && r.shift.id === shiftId)
+          this.report.set({ ...r, shift: { ...r.shift, fiscalZReportAt: z.fiscalZReportAt, fiscalZReportError: z.fiscalZReportError } });
+        if (z.fiscalZReportError) this.toast.error(z.fiscalZReportError);
+      },
+      error: () => this.busy.set(false),
+    });
   }
 
   refreshReport(): void {
@@ -113,15 +152,16 @@ export class CashierComponent implements OnInit {
       });
   }
 
-  close(): void {
+  close(closeWithWaitingReceipts = false): void {
     const s = this.shift();
     if (!s || this.countedCash === null || `${this.countedCash}` === '') return;
-    if (!confirm('Close the shift? This cannot be undone.')) return;
+    if (!closeWithWaitingReceipts && !confirm('Close the shift? This cannot be undone.')) return;
     this.busy.set(true);
     this.api
       .closeShift(s.id, {
         countedCash: Math.max(0, Number(this.countedCash)),
         note: this.closeNote.trim() || undefined,
+        closeWithWaitingReceipts,
       })
       .subscribe({
         next: (r) => {
@@ -135,8 +175,14 @@ export class CashierComponent implements OnInit {
             .getShifts(this.locationId)
             .subscribe((list) => this.history.set(list.filter((x) => x.closedAt)));
         },
-        error: () => {
+        error: (err) => {
           this.busy.set(false);
+          // 409 with receipts still waiting: the cashier may close anyway; they stay queued and are sent later.
+          if (err?.status === 409 && !closeWithWaitingReceipts && /receipt/i.test(err?.error?.title ?? '')) {
+            this.loadWaitingReceipts();
+            if (confirm(this.lang.t('cash.fiscal.closeAnyway'))) this.close(true);
+            return;
+          }
           this.toast.error('Could not close the shift');
         },
       });
