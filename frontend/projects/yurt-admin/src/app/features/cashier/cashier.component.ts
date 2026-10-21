@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
 import { FiscalReceipt, Location, Shift, ShiftReport } from 'shared-models';
 import { Currency2Pipe, ToastService } from 'shared-ui';
-import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 
