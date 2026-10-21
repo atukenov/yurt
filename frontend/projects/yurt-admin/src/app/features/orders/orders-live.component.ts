@@ -50,7 +50,12 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   private receipts = inject(ReceiptService);
 
   printReceipt(order: Order): void {
-    this.receipts.print(order);
+    if (!this.modules.isEnabled('own_pos')) return this.receipts.print(order);
+    // Parts of a split payment go on the receipt; if they cannot be loaded the receipt still prints.
+    this.api.getSplitPayment(order.id).subscribe({
+      next: (p) => this.receipts.print(order, p.lines),
+      error: () => this.receipts.print(order),
+    });
   }
 
   readonly OrderStatus = OrderStatus;
