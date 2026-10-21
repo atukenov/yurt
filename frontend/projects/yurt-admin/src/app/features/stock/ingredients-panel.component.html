@@ -42,7 +42,7 @@
         <tr class="border-t border-slate-100">
           <td class="px-4 py-2">
             <p class="font-medium text-slate-800">{{ row.name }}</p>
-            <p class="text-xs text-slate-400">
+            <p class="text-xs text-slate-500">
               {{ row.unit }} · {{ 'ing.usedIn' | t }} {{ row.usedInItems }}
             </p>
           </td>
@@ -56,7 +56,7 @@
               [attr.aria-label]="('stock.left' | t) + ' ' + row.name"
               class="w-28 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
             />
-            <span class="ml-1 text-xs text-slate-400">{{ row.unit }}</span>
+            <span class="ml-1 text-xs text-slate-500">{{ row.unit }}</span>
             @if (row.isOut) {
               <span
                 class="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700"
@@ -101,7 +101,7 @@
             <button
               type="button"
               (click)="remove(row)"
-              class="ml-2 text-sm text-red-500 hover:text-red-700"
+              class="ml-2 text-sm text-tone-red hover:text-red-700"
             >
               {{ 'ing.delete' | t }}
             </button>
@@ -109,7 +109,7 @@
         </tr>
       } @empty {
         <tr>
-          <td colspan="4" class="px-4 py-8 text-center text-slate-400">
+          <td colspan="4" class="px-4 py-8 text-center text-slate-500">
             {{ loading() ? ('label.loading' | t) : ('ing.empty' | t) }}
           </td>
         </tr>

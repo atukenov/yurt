@@ -44,7 +44,7 @@
           }
         } @else if (entries().length === 0) {
           <tr>
-            <td colspan="5" class="px-4 py-10 text-center text-slate-400">{{ 'auditLog.noRecords' | t }}</td>
+            <td colspan="5" class="px-4 py-10 text-center text-slate-500">{{ 'auditLog.noRecords' | t }}</td>
           </tr>
         } @else {
           @for (entry of entries(); track entry.id) {
@@ -59,7 +59,7 @@
               <td class="px-4 py-3 text-slate-600">
                 <span class="font-medium">{{ entry.entityType }}</span>
                 @if (entry.entityId) {
-                  <span class="text-slate-400 text-xs ml-1">#{{ entry.entityId.slice(0, 8) }}</span>
+                  <span class="text-slate-500 text-xs ml-1">#{{ entry.entityId.slice(0, 8) }}</span>
                 }
               </td>
               <td class="px-4 py-3 text-slate-500 text-xs max-w-xs truncate">{{ entry.details ?? '—' }}</td>

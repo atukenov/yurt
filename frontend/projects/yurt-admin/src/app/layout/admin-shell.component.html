@@ -12,7 +12,7 @@
           <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" [class.logo-for-dark]="brand.darkLogoShowing()" class="brand-logo w-8 h-8 object-contain shrink-0" />
           <div class="min-w-0">
             <h1 class="text-sm font-bold text-stone-800 truncate">{{ brand.name() }} Admin</h1>
-            <p class="text-xs text-slate-400 truncate">{{ 'nav.console' | t }}</p>
+            <p class="text-xs text-slate-500 truncate">{{ 'nav.console' | t }}</p>
           </div>
         </div>
       } @else {
@@ -22,7 +22,7 @@
       <button
         (click)="toggleSidebar()"
         [class]="collapsed() ? 'absolute left-2 top-14.5' : ''"
-        class="w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
+        class="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
         [title]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
         [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
       >
@@ -317,7 +317,7 @@
               (click)="langService.setLang(l)"
               [attr.aria-pressed]="langService.lang() === l"
               [class]="langService.lang() === l
-                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-100 text-brand-ink'
+                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-50 text-brand-ink'
                 : 'flex-1 py-1 text-xs rounded-lg text-slate-500 hover:bg-slate-100 transition-colors'"
             >
               {{ l.toUpperCase() }}
@@ -332,7 +332,7 @@
               (click)="theme.set(m)"
               [attr.aria-pressed]="theme.mode() === m"
               [class]="theme.mode() === m
-                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-100 text-brand-ink'
+                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-50 text-brand-ink'
                 : 'flex-1 py-1 text-xs rounded-lg text-slate-500 hover:bg-slate-100 transition-colors'"
             >
               {{ 'theme.' + m | t }}
@@ -342,23 +342,23 @@
 
         <!-- User row -->
         <div class="flex items-center gap-2 mb-3">
-          <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-ink shrink-0">{{ initials() }}</div>
+          <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center text-sm font-bold text-brand-ink shrink-0">{{ initials() }}</div>
           <div class="min-w-0">
             <p class="text-sm font-medium text-slate-800 truncate">{{ auth.currentUser?.displayName }}</p>
-            <p class="text-xs text-slate-400">{{ auth.currentUser?.role }}</p>
+            <p class="text-xs text-slate-500">{{ auth.currentUser?.role }}</p>
           </div>
         </div>
 
         <button
           (click)="logout()"
-          class="w-full text-left text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+          class="w-full text-left text-xs text-tone-red hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
         >
           {{ 'nav.signOut' | t }}
         </button>
       } @else {
         <!-- Collapsed: avatar only with logout on click -->
         <div
-          class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-ink cursor-pointer"
+          class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center text-sm font-bold text-brand-ink cursor-pointer"
           role="button"
           tabindex="0"
           [title]="(auth.currentUser?.displayName ?? '') + ' · ' + ('nav.signOut' | t)"

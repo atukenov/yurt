@@ -17,9 +17,9 @@
 
     <!-- Table -->
     @if (loading()) {
-      <p class="text-slate-400 text-sm">{{ 'label.loading' | t }}</p>
+      <p class="text-slate-500 text-sm">{{ 'label.loading' | t }}</p>
     } @else if (!codes().length) {
-      <div class="text-center py-16 text-slate-400">
+      <div class="text-center py-16 text-slate-500">
         <div class="text-4xl mb-3">🏷️</div>
         <p class="font-medium">{{ 'discountCodes.noCodes' | t }}</p>
         <p class="text-sm mt-1">{{ 'discountCodes.noCodesHint' | t }}</p>
@@ -52,7 +52,7 @@
                     <span class="text-brand-ink font-semibold">{{ code.discountValue | number:'1.0-0' }} ₸</span>
                   }
                   @if (code.minOrderAmount) {
-                    <span class="text-xs text-slate-400 ml-1">(min {{ code.minOrderAmount | number:'1.0-0' }} ₸)</span>
+                    <span class="text-xs text-slate-500 ml-1">(min {{ code.minOrderAmount | number:'1.0-0' }} ₸)</span>
                   }
                 </td>
                 <td class="px-4 py-3 text-slate-600">
@@ -65,7 +65,7 @@
                   @if (!code.isActive) {
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{{ 'label.inactive' | t }}</span>
                   } @else if (isExpired(code)) {
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">{{ 'discountCodes.expired' | t }}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-tone-red">{{ 'discountCodes.expired' | t }}</span>
                   } @else if (code.maxUses && code.usedCount >= code.maxUses) {
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">{{ 'discountCodes.limitReached' | t }}</span>
                   } @else {

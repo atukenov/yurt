@@ -38,7 +38,7 @@
         <button
           type="button"
           (click)="remove($index)"
-          class="text-red-500 hover:text-red-700"
+          class="text-tone-red hover:text-red-700"
           [attr.aria-label]="'ing.delete' | t"
         >
           ×
@@ -54,7 +54,7 @@
       >
         + {{ 'split.add' | t }}
       </button>
-      <span class="text-xs" [class]="left() === 0 ? 'text-teal-700' : 'text-red-600'">
+      <span class="text-xs" [class]="left() === 0 ? 'text-teal-700' : 'text-tone-red'">
         {{ 'split.left' | t }}: ₸{{ left() }}
       </span>
     </div>

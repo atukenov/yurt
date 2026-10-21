@@ -1,28 +1,27 @@
 #!/usr/bin/env node
-// Screenshots the customer app's screens for a few sample brands, to eyeball white-label changes.
+// Screenshots the customer or admin app's screens for a few sample brands, to eyeball white-label changes.
 // The brand is seeded through the same localStorage cache the app uses (key "yurt.brand"), so no backend is needed:
-// the menu, cart and order status screens get a signed-in user, a cart and fake API answers (MOCK_API below).
+// the signed-in screens get a signed-in user, a cart and fake API answers (APPS below).
 //   cd frontend && npx ng build yurt-customer --configuration production
-//   node scripts/brand-screenshots.mjs [outDir] [--a11y] [--dark] [--fail]
+//   node scripts/brand-screenshots.mjs [outDir] [--app=admin] [--a11y] [--dark] [--fail]
+// --app=admin checks the admin app instead (build it with `ng build yurt-admin`), on a tablet-sized screen; file names start with "admin-".
 // --dark seeds the dark theme (localStorage key "yurt.theme") and adds "-dark" to the file names.
 // --a11y also runs axe-core's colour-contrast and target-size (24px) rules on every screen and prints the failures (needs `axe-core`
 // resolvable like playwright, e.g. NODE_PATH to a folder that has both).
 // --fail exits with code 1 when any a11y failure was found (CI runs it this way).
+// LOG_API=1 prints the API calls that have no fake answer, to find what a new screen needs.
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
-const root = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'dist', 'yurt-customer', 'browser');
 const args = process.argv.slice(2);
+const appName = args.find((a) => a.startsWith('--app='))?.slice(6) ?? 'customer';
 const a11y = args.includes('--a11y');
 const dark = args.includes('--dark');
 const failOnIssues = args.includes('--fail');
 const out = args.find((a) => !a.startsWith('--')) ?? join(process.cwd(), 'brand-screenshots');
-/** Public screens open signed out; the others need the signed-in user and fake API below. */
-const PUBLIC_SCREENS = ['/auth/login', '/auth/register'];
-const SIGNED_IN_SCREENS = ['/menu', '/cart', '/orders/o-1', '/orders/o-2'];
 let failures = 0;
 
 const LOCATION = { id: 'loc-1', name: 'Main Street', address: '1 Main Street', workingHours: '', contactPhone: '+7 700 000 00 01', isActive: true };
@@ -43,6 +42,11 @@ const MOCK_API = {
   '/favorites': [],
   '/promotions/active': [],
   '/loyalty/me': { enabled: true, available: true, linked: true, balance: 350, earnPercent: 5 },
+  '/auth/me': { id: 'u-1', mobileNumber: '+77001234567', firstName: 'Aru', lastName: 'Sadykova', createdAt: '2026-01-15T10:00:00Z', dateOfBirth: '1997-05-04' },
+  '/auth/me/stats': {
+    totalOrders: 24, totalSpent: 52800, totalDrinks: 31, distinctLocations: 2, redeemedOrders: 3, earlyOrders: 5, lateOrders: 1,
+    maxDailyDrinks: 3, maxDailyStreak: 4, maxWeeklyStreak: 3, maxWeekendStreak: 2, maxRepeatItemCount: 9,
+  },
   '/orders/o-1': {
     id: 'o-1', customerUserId: 'u-1', customerName: 'Aru', locationId: 'loc-1', locationName: 'Main Street',
     status: 'Preparing', etaMinutes: 10, createdAt: '2026-10-21T09:00:00Z', acceptedAt: '2026-10-21T09:01:00Z',
@@ -68,6 +72,79 @@ const SIGNED_IN_STORAGE = {
     { menuItemId: 'm-4', name: 'Croissant', price: 900, quantity: 1, notes: 'Warm it up' },
   ]),
 };
+
+/** Fake answers for the admin screens, keyed like MOCK_API. */
+const ADMIN_ORDER = (id, status, extra = {}) => ({
+  ...MOCK_API['/orders/o-1'], id, status, customerPhone: '+77001234567', createdAt: '2026-10-21T09:00:00Z', ...extra,
+});
+const SHIFT = { id: 's-1', locationId: 'loc-1', locationName: 'Main Street', openedAt: '2026-10-21T08:00:00Z', openedBy: 'Dana', openingCash: 20000 };
+const ADMIN_MOCK_API = {
+  '/admin/locations': [LOCATION, { ...LOCATION, id: 'loc-2', name: 'Riverside', address: '5 River Road' }],
+  '/admin/orders': {
+    total: 4, page: 1, pageSize: 50, items: [
+      ADMIN_ORDER('o-11', 'Created', { paymentStatus: 'Unpaid', etaMinutes: undefined, acceptedAt: undefined }),
+      ADMIN_ORDER('o-12', 'Preparing', { items: [{ ...MOCK_API['/orders/o-1'].items[0], notes: 'Oat milk' }] }),
+      ADMIN_ORDER('o-13', 'Ready', { readyStationIds: ['st-1'] }),
+      ADMIN_ORDER('o-14', 'Completed', { completedAt: '2026-10-21T09:20:00Z' }),
+    ],
+  },
+  '/admin/menu/categories': MOCK_API['/menu/categories'],
+  '/admin/menu/items': MOCK_API['/menu'].map((m) => ({ ...m, locationIds: ['loc-1'] })),
+  '/admin/menu/toppings': [{ id: 't-1', name: 'Oat milk', price: 300, isAvailable: true, categoryIds: ['cat-1'], group: 'Milk' }],
+  '/admin/stations/routing': {
+    stations: [{ id: 'st-1', name: 'Bar', categories: 1 }, { id: 'st-2', name: 'Kitchen', categories: 1 }],
+    categories: [], itemStations: {},
+  },
+  '/admin/stock': [
+    { menuItemId: 'm-1', name: 'Cappuccino', categoryName: 'Coffee', quantity: 40, lowStockAt: 10, isLow: false, isSoldOut: false },
+    { menuItemId: 'm-2', name: 'Flat white', categoryName: 'Coffee', quantity: 6, lowStockAt: 10, isLow: true, isSoldOut: false },
+    { menuItemId: 'm-4', name: 'Croissant', categoryName: 'Bakery', quantity: 0, lowStockAt: 5, isLow: true, isSoldOut: true },
+    { menuItemId: 'm-3', name: 'Raf', categoryName: 'Coffee', quantity: null, lowStockAt: null, isLow: false, isSoldOut: false },
+  ],
+  '/admin/stock/alerts': {
+    low: 1, out: 1, items: [
+      { kind: 'dish', id: 'm-2', name: 'Flat white', locationId: 'loc-1', locationName: 'Main Street', quantity: 6, isOut: false },
+      { kind: 'dish', id: 'm-4', name: 'Croissant', locationId: 'loc-1', locationName: 'Main Street', quantity: 0, isOut: true },
+    ],
+  },
+  '/admin/stock/alert-phones': [{ phone: '+77001234567', hasApp: true }],
+  '/admin/shifts/current': SHIFT,
+  '/admin/shifts': [SHIFT, { ...SHIFT, id: 's-0', openedAt: '2026-10-20T08:00:00Z', closedAt: '2026-10-20T20:00:00Z', closedBy: 'Dana', countedCash: 41000 }],
+  '/admin/shifts/s-1/report': {
+    shift: SHIFT, ordersCompleted: 12, ordersDeclined: 1, subtotal: 43000, discounts: 1200, pointsSpent: 300, takings: 41500,
+    byMethod: [{ method: 'Cash', orders: 5, amount: 15000 }, { method: 'Card', orders: 7, amount: 26500 }],
+    cashSales: 15000, cashIn: 0, cashOut: 2000, expectedCash: 33000, difference: null, movements: [],
+  },
+  '/admin/iiko/nomenclature': [],
+  '/admin/customers': {
+    total: 2, page: 1, pageSize: 50, items: [
+      { id: 'u-1', phone: '+77001234567', displayName: 'Aru Sadykova', registeredAt: '2026-01-15T10:00:00Z', orderCount: 24, totalSpent: 52800 },
+      { id: 'u-2', phone: '+77007654321', displayName: '', registeredAt: '2026-09-02T10:00:00Z', orderCount: 1, totalSpent: 1200 },
+    ],
+  },
+};
+const ADMIN_STORAGE = {
+  yurt_user: JSON.stringify({ accessToken: 'a11y', refreshToken: '', userId: 'a-1', displayName: 'Dana', userType: 'admin', role: 'Admin' }),
+};
+
+/** Per app: where the build is, which screens to open signed out and signed in, the fake API and the screen size. */
+const APPS = {
+  customer: {
+    project: 'yurt-customer', prefix: '', viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
+    publicScreens: ['/auth/login', '/auth/register'],
+    signedInScreens: ['/menu', '/cart', '/orders/o-1', '/orders/o-2', '/profile'],
+    api: MOCK_API, storage: SIGNED_IN_STORAGE,
+  },
+  admin: {
+    project: 'yurt-admin', prefix: 'admin-', viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1,
+    publicScreens: ['/auth/login'],
+    signedInScreens: ['/orders', '/kitchen', '/cashier', '/menu', '/stock', '/customers'],
+    api: ADMIN_MOCK_API, storage: ADMIN_STORAGE,
+  },
+};
+const app = APPS[appName];
+if (!app) throw new Error(`Unknown --app=${appName}; use one of: ${Object.keys(APPS).join(', ')}.`);
+const root = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'dist', app.project, 'browser');
 
 /** Sample brands: the Yurt default, a deep blue, a dark green with a long name, links and a welcome line, and a pale one. */
 export const BRANDS = {
@@ -147,7 +224,7 @@ async function checkHeroText(page, label, isDefaultBrand) {
 }
 
 async function main() {
-  if (!existsSync(join(root, 'index.html'))) throw new Error(`Build first: ${root} not found (ng build yurt-customer --configuration production).`);
+  if (!existsSync(join(root, 'index.html'))) throw new Error(`Build first: ${root} not found (ng build ${app.project} --configuration production).`);
   const { chromium } = createRequire(import.meta.url)('playwright');
   mkdirSync(out, { recursive: true });
   const server = await serve();
@@ -156,29 +233,30 @@ async function main() {
   try {
     for (const [slug, brand] of Object.entries(BRANDS)) {
       for (const signedIn of [false, true]) {
-        const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+        const context = await browser.newContext({ viewport: app.viewport, deviceScaleFactor: app.deviceScaleFactor });
         await context.addInitScript(([b, theme, extra]) => {
           localStorage.setItem('yurt.brand', JSON.stringify(b));
           localStorage.setItem('yurt_lang', 'en');
           localStorage.setItem('yurt.theme', theme);
           for (const [k, v] of Object.entries(extra)) localStorage.setItem(k, v);
-        }, [brand, dark ? 'dark' : 'light', signedIn ? SIGNED_IN_STORAGE : {}]);
+        }, [brand, dark ? 'dark' : 'light', signedIn ? app.storage : {}]);
         const page = await context.newPage();
         // Backend is not running: answer the known calls with fake data and fail the rest fast instead of waiting.
         await page.route('**/api/**', (r) => {
           const path = new URL(r.request().url()).pathname.replace(/^.*\/api\/v1/, '');
-          const body = r.request().method() === 'GET' ? MOCK_API[path] : undefined;
+          const body = r.request().method() === 'GET' ? app.api[path] : undefined;
+          if (body === undefined && process.env.LOG_API) console.log(`    unmocked ${r.request().method()} ${path}`);
           return body === undefined ? r.abort() : r.fulfill({ json: body });
         });
-        for (const screen of signedIn ? SIGNED_IN_SCREENS : PUBLIC_SCREENS) {
+        for (const screen of signedIn ? app.signedInScreens : app.publicScreens) {
           await page.goto(base + screen, { waitUntil: 'load' });
           await page.waitForTimeout(2500); // intro video falls back, splash dismisses
-          const file = join(out, `${slug}${screen.replace(/\//g, '-')}${dark ? '-dark' : ''}.png`);
+          const file = join(out, `${app.prefix}${slug}${screen.replace(/\//g, '-')}${dark ? '-dark' : ''}.png`);
           await page.screenshot({ path: file, fullPage: true });
           console.log(file);
           if (a11y) {
-            await checkContrast(page, `${slug}${screen}`);
-            await checkHeroText(page, `${slug}${screen}`, slug === 'yurt');
+            await checkContrast(page, `${app.prefix}${slug}${screen}`);
+            await checkHeroText(page, `${app.prefix}${slug}${screen}`, slug === 'yurt');
           }
         }
         await context.close();
