@@ -105,7 +105,8 @@ Gated so far: the **Kitchen** screen and **Stock**. The other `own_pos` features
 - **When off:** the route redirects to Orders and the menu entry is hidden. Live Orders keeps working.
 - **Depends on:** nothing. It works next to iiko; orders still go to iiko as before while the cafe uses it.
 - **Stations:** the **Stations** button on the kitchen screen opens a setup panel to add stations (for example Kitchen and Bar, up to 10) and choose a station for each menu category (`GET admin/stations/routing`, `POST admin/stations`, `DELETE admin/stations/{id}`, `PUT admin/stations/categories/{categoryId}`, gated by `own_pos`). Once stations exist, tabs appear on the kitchen screen: **All** or one station. A screen set to one station shows only the items made there, and an order with none of its items there is left out. Categories with no station show on every screen so nothing is missed. The choice is remembered per tablet. Deleting a station only un-routes its categories. An order still has one status for the whole order (not one per station); whoever moves it on moves it for everyone.
-- **Not done yet (kitchen):** a separate status per station; ticket printing.
+- **Kitchen ticket:** each kitchen card has a **Print ticket** button. It prints a narrow 80 mm slip through the browser (order number, station, time, customer, the items to make with sizes, toppings and notes, no prices). With a station chosen it lists only that station's items. No backend change.
+- **Not done yet (kitchen):** a separate status per station; sending tickets straight to a network printer.
 
 #### Stock and the automatic stop-list (per product, per branch)
 - **Covers:** `GET /api/v1/admin/stock?locationId=` and `PUT /api/v1/admin/stock/{menuItemId}/{locationId}` (body `{ quantity, lowStockAt }`; a null `quantity` stops counting the item); the admin **Stock** page and menu entry.
@@ -119,7 +120,7 @@ Gated so far: the **Kitchen** screen and **Stock**. The other `own_pos` features
 - **How it works:** one open shift per branch (the database enforces it). The report counts the orders completed at that branch between opening and closing: orders, declined, before discounts, discounts, points spent, takings in money (total minus points), takings by payment method. The drawer should hold: opening cash + cash sales + cash put in − cash taken out; closing with the cash counted shows the difference. While the shift is open the same numbers are the X report. Orders with no payment method recorded count as cash. The Z report can be printed from the browser.
 - **When off:** endpoints return `403 module_disabled`, the page redirects to Orders and the menu entry is hidden. Shifts are kept.
 - **Receipts:** the order details in Orders have a **Print receipt** button (only while `own_pos` is on). It prints a narrow 80 mm receipt (cafe name, branch, date, short order number, items with sizes and toppings, discount, points, total, payment method) through the browser print dialog, so any printer the computer can print to works. It is built in the browser from the order already on screen; there is no backend change.
-- **Not done yet:** per-branch payment method list, split payments, direct thermal-printer support and kitchen tickets.
+- **Not done yet:** per-branch payment method list, split payments, direct thermal-printer support (the browser print dialog works today).
 
 #### Ingredients and recipes (per ingredient, per branch)
 - **Covers:** `GET/POST /api/v1/admin/ingredients`, `PUT/DELETE .../{id}`, `PUT .../{id}/stock/{locationId}` (null `quantity` stops counting), `GET/PUT .../recipes/{menuItemId}` (saving replaces the whole recipe). The **Ingredients** and **Recipes** tabs on the Stock page.

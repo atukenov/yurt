@@ -7,6 +7,7 @@ import { ToastService } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { SoundService } from '../../core/sound.service';
+import { ReceiptService } from '../../core/receipt.service';
 
 interface KitchenColumn {
   status: OrderStatus;
@@ -30,6 +31,7 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
   private sound = inject(SoundService);
+  private receipts = inject(ReceiptService);
 
   private readonly LOC_KEY = 'yurt_kitchen_location';
   private readonly STATION_KEY = 'yurt_kitchen_station';
@@ -130,6 +132,11 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
     if (!station) return order.items;
     const map = this.routing().itemStations;
     return order.items.filter((i) => !map[i.menuItemId] || map[i.menuItemId] === station);
+  }
+
+  printTicket(order: Order): void {
+    const station = this.routing().stations.find((s) => s.id === this.stationFilter());
+    this.receipts.printTicket(order, this.itemsOf(order), station?.name);
   }
 
   pickStation(id: string): void {
