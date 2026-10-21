@@ -185,7 +185,7 @@ Steps:
   - [ ] Per-branch payment method list, split payments.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
   - [x] Kitchen ticket: a "Print ticket" button on each kitchen card (80 mm browser print, only the items of the chosen station, notes in bold, no prices). Direct network/Bluetooth printing is still to do.
-- [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter.
+- [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter. _(Checklist written: `docs/cutover-from-iiko.md`. Using it on the first cafe is Lev's call.)_
 
 ## Open items
 - [ ] Final prices and bundle contents.
