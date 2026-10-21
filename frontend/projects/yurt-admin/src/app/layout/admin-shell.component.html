@@ -9,14 +9,14 @@
          [class]="collapsed() ? 'px-0 py-4 justify-center' : 'px-4 py-4 justify-between'">
       @if (!collapsed()) {
         <div class="flex items-center gap-2 min-w-0">
-          <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="brand-logo w-8 h-8 object-contain shrink-0" />
+          <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" [class.logo-for-dark]="brand.darkLogoShowing()" class="brand-logo w-8 h-8 object-contain shrink-0" />
           <div class="min-w-0">
             <h1 class="text-sm font-bold text-stone-800 truncate">{{ brand.name() }} Admin</h1>
             <p class="text-xs text-slate-400 truncate">{{ 'nav.console' | t }}</p>
           </div>
         </div>
       } @else {
-        <img [src]="brand.logoUrl() ?? 'logo.png'" [alt]="brand.name()" class="brand-logo w-8 h-8 object-contain" />
+        <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" [class.logo-for-dark]="brand.darkLogoShowing()" class="brand-logo w-8 h-8 object-contain" />
       }
 
       <button

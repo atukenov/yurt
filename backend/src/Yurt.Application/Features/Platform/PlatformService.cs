@@ -123,6 +123,7 @@ public class PlatformService
             PrimaryColor = (dto.PrimaryColor ?? string.Empty).Trim().ToLowerInvariant(),
             AccentColor = (dto.AccentColor ?? string.Empty).Trim().ToLowerInvariant(),
             LogoUrl = string.IsNullOrWhiteSpace(dto.LogoUrl) ? null : dto.LogoUrl.Trim(),
+            LogoDarkUrl = string.IsNullOrWhiteSpace(dto.LogoDarkUrl) ? null : dto.LogoDarkUrl.Trim(),
             SupportContact = string.IsNullOrWhiteSpace(dto.SupportContact) ? null : dto.SupportContact.Trim(),
             IconUrl = string.IsNullOrWhiteSpace(dto.IconUrl) ? null : dto.IconUrl.Trim(),
             SplashUrl = string.IsNullOrWhiteSpace(dto.SplashUrl) ? null : dto.SplashUrl.Trim(),
@@ -150,6 +151,7 @@ public class PlatformService
         if (!HexColor.IsMatch(b.PrimaryColor)) return "Primary colour must look like #rrggbb.";
         if (!HexColor.IsMatch(b.AccentColor)) return "Accent colour must look like #rrggbb.";
         if (b.LogoUrl is { } logo && !IsHttpsUrl(logo)) return "Logo must be an https URL (max 500 characters).";
+        if (b.LogoDarkUrl is { } logoDark && !IsHttpsUrl(logoDark)) return "Dark mode logo must be an https URL (max 500 characters).";
         if (b.IconUrl is { } icon && !IsHttpsUrl(icon)) return "Icon must be an https URL (max 500 characters).";
         if (b.SplashUrl is { } splash && !IsHttpsUrl(splash)) return "Splash image must be an https URL (max 500 characters).";
         if (b.WelcomeText is { Length: > 120 }) return "Welcome text is too long (max 120 characters).";
