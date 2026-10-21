@@ -31,6 +31,7 @@ public interface IApplicationDbContext
     DbSet<Shift> Shifts { get; }
     DbSet<OrderPayment> OrderPayments { get; }
     DbSet<Station> Stations { get; }
+    DbSet<OrderStationReady> OrderStationReadies { get; }
     DbSet<ToppingUse> ToppingUses { get; }
     DbSet<CashMovement> CashMovements { get; }
     DbSet<Ingredient> Ingredients { get; }

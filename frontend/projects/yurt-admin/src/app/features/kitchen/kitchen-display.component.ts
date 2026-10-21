@@ -2,7 +2,7 @@ import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SignalrService, YurtApiService } from 'shared-api';
-import { Location, Order, OrderItem, OrderStatus, StationRouting } from 'shared-models';
+import { Location, Order, OrderItem, OrderStatus, Station, StationRouting } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -37,6 +37,8 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
   private readonly STATION_KEY = 'yurt_kitchen_station';
   private subs: Subscription[] = [];
   private clock: ReturnType<typeof setInterval> | null = null;
+
+  readonly Status = OrderStatus;
 
   readonly columns: KitchenColumn[] = [
     {
@@ -132,6 +134,41 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
     if (!station) return order.items;
     const map = this.routing().itemStations;
     return order.items.filter((i) => !map[i.menuItemId] || map[i.menuItemId] === station);
+  }
+
+  /** The stations that have items in this order, in screen order. Items with no station belong to none. */
+  stationsOf(order: Order): Station[] {
+    const map = this.routing().itemStations;
+    const ids = new Set(order.items.map((i) => map[i.menuItemId]).filter(Boolean));
+    return this.routing().stations.filter((s) => ids.has(s.id));
+  }
+
+  isPartReady(order: Order, stationId: string): boolean {
+    return order.readyStationIds?.includes(stationId) ?? false;
+  }
+
+  /**
+   * True when this screen is one station and the order has items made here: the screen then marks only its own part
+   * ready, and the order becomes Ready once every station's part is.
+   */
+  ownsPart(order: Order): boolean {
+    const station = this.stationFilter();
+    return !!station && this.stationsOf(order).some((s) => s.id === station);
+  }
+
+  togglePart(order: Order): void {
+    const station = this.stationFilter();
+    this.busyId.set(order.id);
+    this.api.setStationReady(order.id, station, !this.isPartReady(order, station)).subscribe({
+      next: (o) => {
+        this.upsert(o);
+        this.busyId.set(null);
+      },
+      error: () => {
+        this.busyId.set(null);
+        this.toast.error('Could not update the order');
+      },
+    });
   }
 
   printTicket(order: Order): void {

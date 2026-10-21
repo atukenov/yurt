@@ -333,6 +333,17 @@ public class OrderPaymentConfiguration : IEntityTypeConfiguration<OrderPayment>
     }
 }
 
+public class OrderStationReadyConfiguration : IEntityTypeConfiguration<OrderStationReady>
+{
+    public void Configure(EntityTypeBuilder<OrderStationReady> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasOne(e => e.Order).WithMany(o => o.ReadyStations).HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<Station>().WithMany().HasForeignKey(e => e.StationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.OrderId, e.StationId }).IsUnique();
+    }
+}
+
 public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)

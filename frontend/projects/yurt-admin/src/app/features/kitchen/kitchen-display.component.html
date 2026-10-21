@@ -204,14 +204,50 @@
                 }
               </ul>
 
-              <button
-                type="button"
-                (click)="move(order, col)"
-                [disabled]="busyId() === order.id"
-                class="mt-4 w-full rounded-xl bg-brand-500 py-3 text-base font-bold text-on-brand transition-colors hover:bg-brand-600 disabled:opacity-50"
-              >
-                {{ col.actionKey | t }}
-              </button>
+              @if (col.status !== Status.Ready && stationsOf(order).length > 1) {
+                <ul class="mt-3 flex flex-wrap gap-1.5" [attr.aria-label]="'kitchen.stations' | t">
+                  @for (s of stationsOf(order); track s.id) {
+                    <li
+                      class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                      [class]="
+                        isPartReady(order, s.id)
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-slate-100 text-slate-600'
+                      "
+                    >
+                      {{ isPartReady(order, s.id) ? '✓' : '…' }} {{ s.name }}
+                    </li>
+                  }
+                </ul>
+              }
+
+              @if (col.status === Status.Preparing && ownsPart(order)) {
+                <button
+                  type="button"
+                  (click)="togglePart(order)"
+                  [disabled]="busyId() === order.id"
+                  [class]="
+                    isPartReady(order, stationFilter())
+                      ? 'border border-green-300 bg-green-50 text-green-800 hover:bg-green-100'
+                      : 'bg-brand-500 text-on-brand hover:bg-brand-600'
+                  "
+                  class="mt-4 w-full rounded-xl py-3 text-base font-bold transition-colors disabled:opacity-50"
+                >
+                  {{
+                    (isPartReady(order, stationFilter()) ? 'kitchen.partUndo' : 'kitchen.partReady')
+                      | t
+                  }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="move(order, col)"
+                  [disabled]="busyId() === order.id"
+                  class="mt-4 w-full rounded-xl bg-brand-500 py-3 text-base font-bold text-on-brand transition-colors hover:bg-brand-600 disabled:opacity-50"
+                >
+                  {{ col.actionKey | t }}
+                </button>
+              }
               <button
                 type="button"
                 (click)="printTicket(order)"

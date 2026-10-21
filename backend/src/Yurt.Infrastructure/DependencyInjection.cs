@@ -150,6 +150,7 @@ public static class DependencyInjection
         services.AddScoped<ShiftService>();
         services.AddScoped<SplitPaymentService>();
         services.AddScoped<StationService>();
+        services.AddScoped<StationReadyService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

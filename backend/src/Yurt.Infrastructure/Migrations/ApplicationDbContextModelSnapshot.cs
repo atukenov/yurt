@@ -1413,6 +1413,41 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("OrderPayments");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderStationReady", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StationId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("OrderId", "StationId")
+                        .IsUnique();
+
+                    b.ToTable("OrderStationReadies");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2564,6 +2599,29 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderStationReady", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Order", "Order")
+                        .WithMany("ReadyStations")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Station", null)
+                        .WithMany()
+                        .HasForeignKey("StationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Payment", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Order", "Order")
@@ -2809,6 +2867,8 @@ namespace Yurt.Infrastructure.Migrations
             modelBuilder.Entity("Yurt.Domain.Entities.Order", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("ReadyStations");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItem", b =>

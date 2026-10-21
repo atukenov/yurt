@@ -61,4 +61,7 @@ public class Order : BaseEntity, ITenantOwned
     public CustomerUser CustomerUser { get; set; } = null!;
     public Location Location { get; set; } = null!;
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+
+    // Stations that have finished their part of this order (own_pos). Empty when stations are not used.
+    public ICollection<OrderStationReady> ReadyStations { get; set; } = new List<OrderStationReady>();
 }
