@@ -27,6 +27,12 @@ public record StockAlertDto(string Kind, Guid Id, string Name, Guid LocationId, 
 
 public record StockAlertsDto(int Low, int Out, List<StockAlertDto> Items);
 
+/// <summary>A phone that gets low-stock pushes. <c>HasApp</c> is true when a cafe-app account with this number has a
+/// device registered for pushes, so the alert can actually arrive.</summary>
+public record StockAlertPhoneDto(string Phone, bool HasApp);
+
+public record SaveStockAlertPhonesDto(List<string>? Phones);
+
 public record ToppingUseDto(Guid IngredientId, string IngredientName, string Unit, decimal Quantity);
 
 public record SaveToppingUseDto(Guid IngredientId, decimal Quantity);
