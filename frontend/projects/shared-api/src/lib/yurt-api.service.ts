@@ -514,6 +514,17 @@ export class YurtApiService {
     );
   }
 
+  getToppingUses(toppingId: string): Observable<RecipeLine[]> {
+    return this.http.get<RecipeLine[]>(`${this.api}/admin/ingredients/toppings/${toppingId}`);
+  }
+
+  saveToppingUses(toppingId: string, lines: RecipeLine[]): Observable<RecipeLine[]> {
+    const body = {
+      lines: lines.map((l) => ({ ingredientId: l.ingredientId, quantity: l.quantity })),
+    };
+    return this.http.put<RecipeLine[]>(`${this.api}/admin/ingredients/toppings/${toppingId}`, body);
+  }
+
   getRecipe(menuItemId: string): Observable<RecipeLine[]> {
     return this.http.get<RecipeLine[]>(`${this.api}/admin/ingredients/recipes/${menuItemId}`);
   }

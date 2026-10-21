@@ -120,4 +120,79 @@ public class IngredientTests(YurtWebAppFactory factory)
         Assert.Equal(HttpStatusCode.OK, (await admin.DeleteAsync($"/api/v1/admin/ingredients/{beans}")).StatusCode);
         Assert.Empty((await admin.GetFromJsonAsync<List<JsonElement>>($"/api/v1/admin/ingredients/recipes/{itemId}"))!);
     }
+
+    [Fact]
+    public async Task ToppingUse_LimitsOrders_AcceptLowersIngredient_AndRunningOutHidesTheTopping()
+    {
+        var itemId = await NewItemAsync($"Tea test {Guid.NewGuid():N}"[..24]);
+        Guid toppingId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var categoryId = (await db.MenuItems.FirstAsync(m => m.Id == itemId)).CategoryId;
+            var topping = new MenuTopping { Name = $"Oat {Guid.NewGuid():N}"[..12], Price = 1m, IsAvailable = true };
+            db.MenuToppings.Add(topping);
+            await db.SaveChangesAsync();
+            db.MenuToppingCategories.Add(new MenuToppingCategory { ToppingId = topping.Id, CategoryId = categoryId });
+            await db.SaveChangesAsync();
+            toppingId = topping.Id;
+            await scope.ServiceProvider.GetRequiredService<IMenuCacheService>().InvalidateAllMenuAsync();
+        }
+        var admin = factory.CreateClient();
+        admin.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin));
+        var customer = factory.CreateClient();
+        var (token, _) = await ApiHelpers.CreateCustomerAsync(customer, "+77002990202");
+        ApiHelpers.Authorize(customer, token);
+
+        var oat = (await (await admin.PostAsJsonAsync("/api/v1/admin/ingredients", new { name = $"Oat milk {Guid.NewGuid():N}"[..20], unit = "ml" }))
+            .Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync($"/api/v1/admin/ingredients/toppings/{toppingId}",
+            new { lines = new[] { new { ingredientId = oat, quantity = 0m } } })).StatusCode);
+        (await admin.PutAsJsonAsync($"/api/v1/admin/ingredients/toppings/{toppingId}",
+            new { lines = new[] { new { ingredientId = oat, quantity = 200m } } })).EnsureSuccessStatusCode();
+        Assert.Single((await admin.GetFromJsonAsync<List<JsonElement>>($"/api/v1/admin/ingredients/toppings/{toppingId}"))!);
+        (await admin.PutAsJsonAsync($"/api/v1/admin/ingredients/{oat}/stock/{LocationId}", new { quantity = 300m, lowStockAt = (decimal?)null }))
+            .EnsureSuccessStatusCode();
+
+        Task<HttpResponseMessage> Order(int quantity) => customer.PostAsJsonAsync("/api/v1/orders", new
+        {
+            locationId = LocationId, paymentMethod = "Cash",
+            items = new[]
+            {
+                new { menuItemId = itemId, quantity, toppings = new[] { new { toppingId, toppingName = "Oat", price = 1m } } },
+            },
+        });
+        async Task<bool> ToppingOnMenuAsync()
+        {
+            var json = await customer.GetFromJsonAsync<JsonElement>($"/api/v1/menu?locationId={LocationId}");
+            var items = json.ValueKind == JsonValueKind.Array ? json : json.GetProperty("items");
+            var item = items.EnumerateArray().First(i => i.GetProperty("id").GetGuid() == itemId);
+            return item.TryGetProperty("availableToppings", out var tops) && tops.ValueKind == JsonValueKind.Array
+                && tops.EnumerateArray().Any(t => t.GetProperty("id").GetGuid() == toppingId);
+        }
+
+        Assert.True(await ToppingOnMenuAsync());
+        Assert.Equal(HttpStatusCode.BadRequest, (await Order(2)).StatusCode); // 400 ml needed, 300 left
+        var placed = await Order(1);
+        Assert.Equal(HttpStatusCode.Created, placed.StatusCode);
+        var order = await placed.Content.ReadFromJsonAsync<ApiHelpers.OrderResult>(ApiHelpers.JsonOpts);
+        (await admin.PostAsJsonAsync($"/api/v1/admin/orders/{order!.Id}/payment", new { paymentStatus = "Paid", paymentMethod = "Cash" }))
+            .EnsureSuccessStatusCode();
+        (await admin.PostAsJsonAsync($"/api/v1/admin/orders/{order.Id}/accept", new { etaMinutes = 5 })).EnsureSuccessStatusCode();
+
+        var row = (await admin.GetFromJsonAsync<List<JsonElement>>($"/api/v1/admin/ingredients?locationId={LocationId}"))!
+            .Single(r => r.GetProperty("id").GetGuid() == oat);
+        Assert.Equal(100m, row.GetProperty("quantity").GetDecimal());
+        Assert.False(await ToppingOnMenuAsync()); // 100 ml left, one topping needs 200
+
+        (await admin.PutAsJsonAsync($"/api/v1/admin/ingredients/{oat}/stock/{LocationId}", new { quantity = 1000m, lowStockAt = (decimal?)null }))
+            .EnsureSuccessStatusCode();
+        Assert.True(await ToppingOnMenuAsync());
+
+        // No longer counted: unlimited again.
+        (await admin.PutAsJsonAsync($"/api/v1/admin/ingredients/{oat}/stock/{LocationId}", new { quantity = (decimal?)null, lowStockAt = (decimal?)null }))
+            .EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, (await Order(50)).StatusCode);
+    }
 }

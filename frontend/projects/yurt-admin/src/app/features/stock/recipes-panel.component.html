@@ -1,4 +1,5 @@
 <p class="mb-3 text-sm text-slate-500">{{ 'rec.hint' | t }}</p>
+<p class="mb-3 text-sm text-slate-500">{{ 'rec.toppingHint' | t }}</p>
 
 <select
   [(ngModel)]="menuItemId"
@@ -7,8 +8,17 @@
   class="mb-4 w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-400"
 >
   <option value="">{{ 'rec.pickItem' | t }}</option>
-  @for (item of items(); track item.id) {
-    <option [value]="item.id">{{ item.name }}</option>
+  <optgroup [label]="'rec.dishes' | t">
+    @for (item of items(); track item.id) {
+      <option [value]="item.id">{{ item.name }}</option>
+    }
+  </optgroup>
+  @if (toppings().length) {
+    <optgroup [label]="'rec.toppings' | t">
+      @for (tp of toppings(); track tp.id) {
+        <option [value]="'t:' + tp.id">{{ tp.name }}</option>
+      }
+    </optgroup>
   }
 </select>
 

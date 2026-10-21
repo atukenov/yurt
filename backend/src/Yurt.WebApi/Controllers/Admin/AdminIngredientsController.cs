@@ -42,4 +42,12 @@ public class AdminIngredientsController(IngredientService ingredients) : ApiCont
     [HttpPut("recipes/{menuItemId:guid}")]
     public async Task<IActionResult> SaveRecipe(Guid menuItemId, [FromBody] SaveRecipeDto dto, CancellationToken ct)
         => ToResult(await ingredients.SaveRecipeAsync(menuItemId, dto, ct));
+
+    [HttpGet("toppings/{toppingId:guid}")]
+    public async Task<IActionResult> GetToppingUses(Guid toppingId, CancellationToken ct)
+        => ToResult(await ingredients.GetToppingUsesAsync(toppingId, ct));
+
+    [HttpPut("toppings/{toppingId:guid}")]
+    public async Task<IActionResult> SaveToppingUses(Guid toppingId, [FromBody] SaveToppingUsesDto dto, CancellationToken ct)
+        => ToResult(await ingredients.SaveToppingUsesAsync(toppingId, dto, ct));
 }

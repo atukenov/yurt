@@ -267,6 +267,18 @@ public class MenuItemStockConfiguration : IEntityTypeConfiguration<MenuItemStock
     }
 }
 
+public class ToppingUseConfiguration : IEntityTypeConfiguration<ToppingUse>
+{
+    public void Configure(EntityTypeBuilder<ToppingUse> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Quantity).HasPrecision(18, 3);
+        builder.HasOne(e => e.Topping).WithMany().HasForeignKey(e => e.ToppingId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Ingredient).WithMany().HasForeignKey(e => e.IngredientId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.ToppingId, e.IngredientId }).IsUnique();
+    }
+}
+
 public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
 {
     public void Configure(EntityTypeBuilder<Shift> builder)

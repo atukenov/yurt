@@ -6,6 +6,9 @@ using Yurt.Domain.Entities;
 
 namespace Yurt.Application.Features.Stock;
 
+/// <summary>One ordered item as the stock checks see it: which dish, which size, how many, and the toppings on each.</summary>
+public record StockLine(Guid MenuItemId, Guid? VariantId, int Quantity, IReadOnlyList<Guid> ToppingIds);
+
 /// <summary>
 /// Per-branch stock counts and the automatic stop-list (Phase 6, <c>own_pos</c>). An item with a count is hidden from the
 /// customer menu of that branch at zero and cannot be ordered beyond what is left; an accepted order lowers the count.
@@ -96,19 +99,31 @@ public class StockService(
         return byProduct.Union(byIngredient).ToList();
     }
 
+    /// <summary>Toppings whose ingredient is not enough for one portion in this branch. Empty while the module is off.</summary>
+    public async Task<List<Guid>> SoldOutToppingIdsAsync(Guid locationId, CancellationToken ct = default)
+    {
+        if (!await IsActiveAsync(ct)) return [];
+        return await (
+            from u in db.ToppingUses
+            join s in db.IngredientStocks on u.IngredientId equals s.IngredientId
+            where s.LocationId == locationId && s.Quantity < u.Quantity
+            select u.ToppingId).Distinct().ToListAsync(ct);
+    }
+
     /// <summary>
     /// Checks whether the ingredients left in the branch cover an order's recipes. Returns a customer-facing message for
     /// the first item that cannot be made, or null when everything is covered (or the ingredients are not counted).
     /// </summary>
     public async Task<string?> FindIngredientShortageAsync(
-        Guid locationId, IReadOnlyList<(Guid MenuItemId, Guid? VariantId, int Quantity)> lines,
+        Guid locationId, IReadOnlyList<StockLine> lines,
         IReadOnlyDictionary<Guid, string> names, CancellationToken ct = default)
     {
         if (lines.Count == 0 || !await IsActiveAsync(ct)) return null;
 
         var recipes = await RecipesForAsync(lines, ct);
-        if (recipes.Count == 0) return null;
-        var needs = NeedsOf(lines, recipes);
+        var toppingUses = await ToppingUsesForAsync(lines, ct);
+        if (recipes.Count == 0 && toppingUses.Count == 0) return null;
+        var needs = NeedsOf(lines, recipes, toppingUses);
         var ids = needs.Keys.ToList();
         var left = await db.IngredientStocks
             .Where(s => s.LocationId == locationId && ids.Contains(s.IngredientId))
@@ -117,29 +132,44 @@ public class StockService(
         foreach (var (ingredientId, need) in needs)
         {
             if (!left.TryGetValue(ingredientId, out var have) || need <= have) continue;
-            var culprit = lines.First(l => recipes.Any(r => r.IngredientId == ingredientId && Uses(r, l)));
+            var culprit = lines.First(l =>
+                recipes.Any(r => r.IngredientId == ingredientId && Uses(r, l)) ||
+                toppingUses.Any(u => u.IngredientId == ingredientId && l.ToppingIds.Contains(u.ToppingId)));
             return $"'{names.GetValueOrDefault(culprit.MenuItemId, "An item")}' is not available in that amount right now.";
         }
         return null;
     }
 
     private async Task<List<RecipeLine>> RecipesForAsync(
-        IReadOnlyList<(Guid MenuItemId, Guid? VariantId, int Quantity)> lines, CancellationToken ct)
+        IReadOnlyList<StockLine> lines, CancellationToken ct)
     {
         var itemIds = lines.Select(l => l.MenuItemId).Distinct().ToList();
         return await db.RecipeLines.Where(r => itemIds.Contains(r.MenuItemId)).ToListAsync(ct);
     }
 
-    private static bool Uses(RecipeLine r, (Guid MenuItemId, Guid? VariantId, int Quantity) line)
+    private async Task<List<ToppingUse>> ToppingUsesForAsync(IReadOnlyList<StockLine> lines, CancellationToken ct)
+    {
+        var toppingIds = lines.SelectMany(l => l.ToppingIds).Distinct().ToList();
+        if (toppingIds.Count == 0) return [];
+        return await db.ToppingUses.Where(u => toppingIds.Contains(u.ToppingId)).ToListAsync(ct);
+    }
+
+    private static bool Uses(RecipeLine r, StockLine line)
         => r.MenuItemId == line.MenuItemId && (r.VariantId == null || r.VariantId == line.VariantId);
 
     private static Dictionary<Guid, decimal> NeedsOf(
-        IReadOnlyList<(Guid MenuItemId, Guid? VariantId, int Quantity)> lines, List<RecipeLine> recipes)
+        IReadOnlyList<StockLine> lines, List<RecipeLine> recipes, List<ToppingUse> toppingUses)
     {
         var needs = new Dictionary<Guid, decimal>();
         foreach (var line in lines)
+        {
             foreach (var r in recipes.Where(r => Uses(r, line)))
                 needs[r.IngredientId] = needs.GetValueOrDefault(r.IngredientId) + r.Quantity * line.Quantity;
+            // Each topping on the item is used once per portion ordered.
+            foreach (var topping in line.ToppingIds)
+                foreach (var u in toppingUses.Where(u => u.ToppingId == topping))
+                    needs[u.IngredientId] = needs.GetValueOrDefault(u.IngredientId) + u.Quantity * line.Quantity;
+        }
         return needs;
     }
 
@@ -184,9 +214,12 @@ public class StockService(
             touched |= changed > 0;
         }
 
-        var orderLines = order.Items.Select(i => (i.MenuItemId, i.VariantId, i.Quantity)).ToList();
+        var orderLines = order.Items
+            .Select(i => new StockLine(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings.Select(t => t.ToppingId).ToList()))
+            .ToList();
         var recipes = await RecipesForAsync(orderLines, ct);
-        foreach (var (ingredientId, need) in NeedsOf(orderLines, recipes))
+        var toppingUses = await ToppingUsesForAsync(orderLines, ct);
+        foreach (var (ingredientId, need) in NeedsOf(orderLines, recipes, toppingUses))
         {
             var changed = await db.IngredientStocks
                 .Where(s => s.IngredientId == ingredientId && s.LocationId == order.LocationId)
