@@ -27,6 +27,7 @@ public record IntegrationStatusDto(string Key, bool Configured, bool Enabled);
 /// A cafe's brand as served to the apps (Phase 4 white-label). Colours are "#rrggbb".
 /// <see cref="PrimaryColor"/> is the main colour (the 500 step of the generated scale),
 /// <see cref="AccentColor"/> the secondary one used for gradient ends.
+/// <see cref="LogoDarkUrl"/> is an optional logo for dark mode; the apps fall back to <see cref="LogoUrl"/> without it.
 /// </summary>
 public record BrandDto(
     string Name,
@@ -39,7 +40,8 @@ public record BrandDto(
     string? WelcomeText = null,
     IReadOnlyList<BrandLink>? Links = null,
     string? Radius = null,
-    string? Font = null)
+    string? Font = null,
+    string? LogoDarkUrl = null)
 {
     public static readonly BrandDto Default = new("Yurt", "#ffd119", "#ea580c", null, null);
 }

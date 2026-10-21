@@ -778,6 +778,8 @@ export interface BrandConfig {
   primaryColor: string;
   accentColor: string;
   logoUrl?: string | null;
+  /** Logo for dark mode; the apps fall back to logoUrl when it is empty. */
+  logoDarkUrl?: string | null;
   supportContact?: string | null;
   iconUrl?: string | null;
   splashUrl?: string | null;

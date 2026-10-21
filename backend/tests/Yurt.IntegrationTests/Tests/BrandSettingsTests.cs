@@ -40,6 +40,9 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
         var badLogo = await super.PutAsJsonAsync("/api/v1/platform/brand",
             new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", logoUrl = "http://insecure/logo.png" });
         Assert.Equal(HttpStatusCode.BadRequest, badLogo.StatusCode);
+        var badDarkLogo = await super.PutAsJsonAsync("/api/v1/platform/brand",
+            new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", logoDarkUrl = "http://insecure/logo-dark.png" });
+        Assert.Equal(HttpStatusCode.BadRequest, badDarkLogo.StatusCode);
         var badIcon = await super.PutAsJsonAsync("/api/v1/platform/brand",
             new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", iconUrl = "http://insecure/icon.png" });
         Assert.Equal(HttpStatusCode.BadRequest, badIcon.StatusCode);
@@ -70,7 +73,7 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
             var ok = await super.PutAsJsonAsync("/api/v1/platform/brand", new
             {
                 name = "Blue Cafe", primaryColor = "#1D4ED8", accentColor = "#0ea5e9",
-                logoUrl = "https://cdn.example.com/logo.png", iconUrl = "https://cdn.example.com/icon.png",
+                logoUrl = "https://cdn.example.com/logo.png", logoDarkUrl = "https://cdn.example.com/logo-dark.png", iconUrl = "https://cdn.example.com/icon.png",
                 splashUrl = "https://cdn.example.com/splash.png", welcomeText = "Fresh coffee, every day",
                 links = new[] { new { label = "Instagram", url = "https://instagram.com/bluecafe" }, new { label = "", url = "" } }, supportContact = "+7 700 000 00 00",
                 radius = "round", font = "serif"
@@ -81,6 +84,7 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
             Assert.Equal("Blue Cafe", served.GetProperty("name").GetString());
             Assert.Equal("#1d4ed8", served.GetProperty("primaryColor").GetString());
             Assert.Equal("https://cdn.example.com/logo.png", served.GetProperty("logoUrl").GetString());
+            Assert.Equal("https://cdn.example.com/logo-dark.png", served.GetProperty("logoDarkUrl").GetString());
             Assert.Equal("https://cdn.example.com/icon.png", served.GetProperty("iconUrl").GetString());
             Assert.Equal("https://cdn.example.com/splash.png", served.GetProperty("splashUrl").GetString());
             Assert.Equal("Fresh coffee, every day", served.GetProperty("welcomeText").GetString());

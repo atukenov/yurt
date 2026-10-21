@@ -12,15 +12,17 @@ const STORAGE_KEY = 'yurt.theme';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   readonly mode = signal<ThemeMode>('light');
+  /** True while the dark colours are showing; follows the device in Auto mode. */
+  readonly dark = signal(false);
   private media: MediaQueryList | null = null;
 
   constructor() {
     this.mode.set(this.read());
-    this.apply();
     if (typeof matchMedia === 'function') {
       this.media = matchMedia('(prefers-color-scheme: dark)');
       this.media.addEventListener?.('change', () => this.apply());
     }
+    this.apply();
   }
 
   set(mode: ThemeMode): void {
@@ -36,6 +38,7 @@ export class ThemeService {
   }
 
   private apply(): void {
+    this.dark.set(this.isDark());
     if (typeof document === 'undefined') return;
     document.documentElement.setAttribute('data-theme', this.isDark() ? 'dark' : 'light');
   }

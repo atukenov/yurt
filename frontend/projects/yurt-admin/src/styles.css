@@ -23,8 +23,9 @@
   }
 }
 
-/* The logo artwork has dark lettering, so on dark pages it sits on a light tile. */
-:root[data-theme='dark'] .brand-logo {
+/* The logo artwork has dark lettering, so on dark pages it sits on a light tile,
+   unless the cafe set a logo made for dark mode. */
+:root[data-theme='dark'] .brand-logo:not(.logo-for-dark) {
   background: #fff;
   border-radius: 0.5rem;
   padding: 2px;
