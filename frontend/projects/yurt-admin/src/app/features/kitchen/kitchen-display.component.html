@@ -87,7 +87,7 @@
             <button
               type="button"
               (click)="removeStation(s.id)"
-              class="text-red-500 hover:text-red-700"
+              class="text-tone-red hover:text-red-700"
               [attr.aria-label]="'ing.delete' | t"
             >
               ×
@@ -166,12 +166,12 @@
                 <div class="text-right">
                   <p
                     class="text-lg font-bold"
-                    [class]="isLate(order) ? 'text-red-600' : 'text-slate-700'"
+                    [class]="isLate(order) ? 'text-tone-red' : 'text-slate-700'"
                   >
                     {{ waitMinutes(order) }} {{ 'kitchen.min' | t }}
                   </p>
                   @if (order.etaMinutes != null) {
-                    <p class="text-xs text-slate-400">
+                    <p class="text-xs text-slate-500">
                       {{ 'kitchen.eta' | t }} {{ order.etaMinutes }}
                     </p>
                   }
@@ -257,7 +257,7 @@
               </button>
             </article>
           } @empty {
-            <p class="px-2 py-6 text-center text-sm text-slate-400">
+            <p class="px-2 py-6 text-center text-sm text-slate-500">
               {{ loading() ? ('label.loading' | t) : ('kitchen.empty' | t) }}
             </p>
           }

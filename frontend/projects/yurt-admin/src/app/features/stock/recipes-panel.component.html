@@ -64,13 +64,13 @@
         <button
           type="button"
           (click)="removeLine($index)"
-          class="ml-auto text-sm text-red-500 hover:text-red-700"
+          class="ml-auto text-sm text-tone-red hover:text-red-700"
         >
           {{ 'ing.delete' | t }}
         </button>
       </div>
     } @empty {
-      <p class="text-sm text-slate-400">{{ 'rec.noLines' | t }}</p>
+      <p class="text-sm text-slate-500">{{ 'rec.noLines' | t }}</p>
     }
   </div>
 
@@ -93,6 +93,6 @@
     </button>
   </div>
   @if (!ingredients().length) {
-    <p class="mt-2 text-sm text-slate-400">{{ 'rec.needIngredients' | t }}</p>
+    <p class="mt-2 text-sm text-slate-500">{{ 'rec.needIngredients' | t }}</p>
   }
 }

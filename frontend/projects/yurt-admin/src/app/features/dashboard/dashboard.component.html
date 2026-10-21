@@ -2,7 +2,7 @@
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">{{ 'dashboard.title' | t }}</h1>
-      <p class="text-slate-400 text-sm mt-0.5">{{ 'dashboard.overview' | t }}</p>
+      <p class="text-slate-500 text-sm mt-0.5">{{ 'dashboard.overview' | t }}</p>
     </div>
     <button
       (click)="load()"
@@ -24,7 +24,7 @@
     <div class="h-56 bg-slate-100 rounded-2xl animate-pulse"></div>
   } @else if (error()) {
     <div class="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
-      <p class="text-red-600 font-semibold mb-1">{{ 'dashboard.failedLoad' | t }}</p>
+      <p class="text-tone-red font-semibold mb-1">{{ 'dashboard.failedLoad' | t }}</p>
       <p class="text-red-400 text-sm mb-4">Check your connection or try again</p>
       <button
         (click)="load()"
@@ -39,19 +39,19 @@
     <!-- KPI Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
-        <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.ordersToday' | t }}</p>
+        <p class="text-slate-500 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.ordersToday' | t }}</p>
         <p class="text-3xl font-bold text-slate-800 mt-2">{{ d.ordersToday }}</p>
       </div>
       <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
-        <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.revenueToday' | t }}</p>
+        <p class="text-slate-500 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.revenueToday' | t }}</p>
         <p class="text-3xl font-bold text-brand-ink mt-2">{{ d.revenueToday | currency2 }}</p>
       </div>
       <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
-        <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.avgOrderValue' | t }}</p>
+        <p class="text-slate-500 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.avgOrderValue' | t }}</p>
         <p class="text-3xl font-bold text-slate-800 mt-2">{{ d.avgOrderValue | currency2 }}</p>
       </div>
       <div class="bg-surface rounded-2xl border border-slate-100 p-5 shadow-sm">
-        <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.pendingOrders' | t }}</p>
+        <p class="text-slate-500 text-xs font-medium uppercase tracking-wide">{{ 'dashboard.pendingOrders' | t }}</p>
         <p class="text-3xl font-bold mt-2" [class]="d.pendingCount > 0 ? 'text-brand-500' : 'text-slate-800'">{{ d.pendingCount }}</p>
       </div>
     </div>
@@ -81,7 +81,7 @@
           }
         </div>
       } @else {
-        <div class="h-36 flex items-center justify-center text-slate-400 text-sm">
+        <div class="h-36 flex items-center justify-center text-slate-500 text-sm">
           {{ 'dashboard.noData' | t }}
         </div>
       }

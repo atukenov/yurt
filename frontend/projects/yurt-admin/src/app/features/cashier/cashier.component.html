@@ -17,7 +17,7 @@
   </div>
 
   @if (loading()) {
-    <p class="text-slate-400">{{ 'label.loading' | t }}</p>
+    <p class="text-slate-500">{{ 'label.loading' | t }}</p>
   } @else {
     @if (!shift() && !viewingClosed()) {
       <div class="mb-6 rounded-2xl border border-slate-200 bg-surface p-5 print:hidden">
@@ -148,7 +148,7 @@
             </tr>
             <tr
               class="font-semibold"
-              [class]="(r.difference ?? 0) === 0 ? 'text-green-700' : 'text-red-600'"
+              [class]="(r.difference ?? 0) === 0 ? 'text-green-700' : 'text-tone-red'"
             >
               <td class="py-1">{{ 'cash.difference' | t }}</td>
               <td class="py-1 text-right">
@@ -168,9 +168,9 @@
               <li class="flex justify-between border-t border-slate-100 py-1.5">
                 <span
                   >{{ m.createdAt | date: 'HH:mm' }} · {{ m.reason }}
-                  <span class="text-slate-400">({{ m.createdBy }})</span></span
+                  <span class="text-slate-500">({{ m.createdBy }})</span></span
                 >
-                <span [class]="m.isOut ? 'text-red-600' : 'text-green-700'"
+                <span [class]="m.isOut ? 'text-tone-red' : 'text-green-700'"
                   >{{ m.isOut ? '−' : '+' }}{{ m.amount | currency2 }}</span
                 >
               </li>

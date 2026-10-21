@@ -2,7 +2,7 @@
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">{{ 'workers.title' | t }}</h1>
-      <p class="text-slate-400 text-sm mt-0.5">{{ 'workers.manageStaff' | t }}</p>
+      <p class="text-slate-500 text-sm mt-0.5">{{ 'workers.manageStaff' | t }}</p>
     </div>
     <button
       (click)="openCreate()"
@@ -19,13 +19,13 @@
       }
     </div>
   } @else if (!workers().length) {
-    <div class="text-center py-20 text-slate-400">{{ 'workers.noFound' | t }}</div>
+    <div class="text-center py-20 text-slate-500">{{ 'workers.noFound' | t }}</div>
   } @else {
     <!-- Desktop table -->
     <div class="hidden md:block bg-surface rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
-          <tr class="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wide">
+          <tr class="border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wide">
             <th class="text-left px-5 py-3">{{ 'workers.username' | t }}</th>
             <th class="text-left px-5 py-3">{{ 'workers.role' | t }}</th>
             <th class="text-left px-5 py-3">{{ 'workers.statusCol' | t }}</th>
@@ -39,24 +39,24 @@
               <td class="px-5 py-3 font-medium text-slate-800">{{ w.username }}</td>
               <td class="px-5 py-3">
                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
-                  [class]="w.role === 'Admin' ? 'bg-brand-100 text-brand-ink' : 'bg-slate-100 text-slate-600'">
+                  [class]="w.role === 'Admin' ? 'bg-brand-50 text-brand-ink' : 'bg-slate-100 text-slate-600'">
                   {{ w.role }}
                 </span>
               </td>
               <td class="px-5 py-3">
                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
-                  [class]="w.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'">
+                  [class]="w.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-tone-red'">
                   {{ w.isActive ? ('workers.active' | t) : ('workers.inactive' | t) }}
                 </span>
               </td>
-              <td class="px-5 py-3 text-slate-400">{{ w.createdAt | date: 'MMM d, y' }}</td>
+              <td class="px-5 py-3 text-slate-500">{{ w.createdAt | date: 'MMM d, y' }}</td>
               <td class="px-5 py-3 text-right">
                 <div class="flex justify-end gap-2">
                   <button
                     (click)="toggleActive(w)"
                     class="text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors"
                     [class]="w.isActive
-                      ? 'text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100'
+                      ? 'text-tone-red hover:text-red-700 bg-red-50 hover:bg-red-100'
                       : 'text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100'"
                   >
                     {{ w.isActive ? ('workers.deactivate' | t) : ('workers.activate' | t) }}
@@ -88,15 +88,15 @@
           <div class="flex items-start justify-between mb-3">
             <div>
               <p class="font-semibold text-slate-800">{{ w.username }}</p>
-              <p class="text-xs text-slate-400 mt-0.5">{{ w.createdAt | date: 'MMM d, y' }}</p>
+              <p class="text-xs text-slate-500 mt-0.5">{{ w.createdAt | date: 'MMM d, y' }}</p>
             </div>
             <div class="flex gap-1.5">
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
-                [class]="w.role === 'Admin' ? 'bg-brand-100 text-brand-ink' : 'bg-slate-100 text-slate-600'">
+                [class]="w.role === 'Admin' ? 'bg-brand-50 text-brand-ink' : 'bg-slate-100 text-slate-600'">
                 {{ w.role }}
               </span>
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
-                [class]="w.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'">
+                [class]="w.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-tone-red'">
                 {{ w.isActive ? ('workers.active' | t) : ('workers.inactive' | t) }}
               </span>
             </div>
@@ -106,14 +106,14 @@
               (click)="toggleActive(w)"
               class="flex-1 text-xs font-semibold rounded-lg px-3 py-2 transition-colors"
               [class]="w.isActive
-                ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                ? 'text-tone-red bg-red-50 hover:bg-red-100'
                 : 'text-green-600 bg-green-50 hover:bg-green-100'"
             >
               {{ w.isActive ? ('workers.deactivate' | t) : ('workers.activate' | t) }}
             </button>
             <button
               (click)="openEdit(w)"
-              class="flex-1 text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-2 transition-colors"
+              class="flex-1 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg px-3 py-2 transition-colors"
             >
               {{ 'action.edit' | t }}
             </button>
@@ -176,7 +176,7 @@
   <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" (click)="resetWorker.set(null)" (keydown.escape)="resetWorker.set(null)">
     <div class="bg-surface rounded-2xl p-6 w-full max-w-sm shadow-xl" role="dialog" aria-modal="true" aria-labelledby="worker-reset-title" (click)="$event.stopPropagation()">
       <h2 id="worker-reset-title" class="text-lg font-bold text-slate-800 mb-1">{{ 'workers.resetTitle' | t }}</h2>
-      <p class="text-sm text-slate-400 mb-4">{{ resetWorker()!.username }}</p>
+      <p class="text-sm text-slate-500 mb-4">{{ resetWorker()!.username }}</p>
       <input [(ngModel)]="resetPassword" type="password" [placeholder]="'workers.newPw' | t" [attr.aria-label]="'workers.newPw' | t" class="w-full text-sm border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300" />
       <div class="flex gap-3 mt-5">
         <button (click)="resetWorker.set(null)" class="flex-1 border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">{{ 'action.cancel' | t }}</button>

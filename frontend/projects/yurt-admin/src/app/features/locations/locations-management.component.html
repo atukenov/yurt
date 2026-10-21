@@ -11,12 +11,12 @@
       <span class="text-base leading-none font-bold">+</span> {{ 'locations.add' | t }}
     </button>
     } @else {
-      <span class="text-xs text-slate-400">{{ 'locations.limit' | t }}</span>
+      <span class="text-xs text-slate-500">{{ 'locations.limit' | t }}</span>
     }
   </div>
 
   @if (loading()) {
-    <div class="p-8 text-center text-slate-400 animate-pulse">{{ 'label.loading' | t }}</div>
+    <div class="p-8 text-center text-slate-500 animate-pulse">{{ 'label.loading' | t }}</div>
   } @else {
     <div class="p-6 grid gap-4 max-w-3xl">
       @for (loc of locations(); track loc.id) {
@@ -33,14 +33,14 @@
               <h3 class="font-semibold text-slate-800">{{ loc.name }}</h3>
               <span
                 [class]="
-                  loc.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'
+                  loc.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
                 "
                 class="text-xs px-2 py-0.5 rounded-full"
                 >{{ loc.isActive ? ('locations.active' | t) : ('locations.inactive' | t) }}</span
               >
             </div>
             <p class="text-slate-500 text-sm mt-0.5">{{ loc.address }}</p>
-            <p class="text-slate-400 text-xs mt-1">
+            <p class="text-slate-500 text-xs mt-1">
               🕐 {{ formatHours(loc.workingHours) }} · {{ loc.contactPhone }}
             </p>
           </div>
@@ -53,7 +53,7 @@
             </button>
             <button
               (click)="deleteLocation(loc)"
-              class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+              class="text-xs text-tone-red hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
             >
               {{ 'action.delete' | t }}
             </button>
@@ -61,7 +61,7 @@
         </div>
       }
       @if (!locations().length) {
-        <div class="py-12 text-center text-slate-400 text-sm">{{ 'locations.noLocations' | t }}</div>
+        <div class="py-12 text-center text-slate-500 text-sm">{{ 'locations.noLocations' | t }}</div>
       }
     </div>
   }
@@ -118,7 +118,7 @@
             (ngModelChange)="patch('twoGisUrl', $event)"
             class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
           />
-          <p class="text-xs text-slate-400 mt-1">{{ 'locations.twoGisHint' | t }}</p>
+          <p class="text-xs text-slate-500 mt-1">{{ 'locations.twoGisHint' | t }}</p>
         </div>
         }
 
@@ -138,7 +138,7 @@
               </label>
             }
           </div>
-          <p class="text-xs text-slate-400 mt-1">{{ 'locations.payMethodsHint' | t }}</p>
+          <p class="text-xs text-slate-500 mt-1">{{ 'locations.payMethodsHint' | t }}</p>
         </div>
         }
 
@@ -169,7 +169,7 @@
                 <!-- Day label -->
                 <span
                   class="w-7 text-[11px] font-bold uppercase tracking-wide shrink-0 select-none"
-                  [class]="slot.enabled ? 'text-slate-700' : 'text-slate-400'"
+                  [class]="slot.enabled ? 'text-slate-700' : 'text-slate-500'"
                 >
                   {{ DAY_NAMES[slot.day - 1] }}
                 </span>
@@ -183,7 +183,7 @@
                     [attr.aria-label]="DAY_NAMES[slot.day - 1] + ' opening time'"
                     class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-surface"
                   />
-                  <span class="text-slate-400 text-xs shrink-0 font-medium">–</span>
+                  <span class="text-slate-500 text-xs shrink-0 font-medium">–</span>
                   <input
                     type="time"
                     [ngModel]="slot.to"
@@ -192,7 +192,7 @@
                     class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-surface"
                   />
                 } @else {
-                  <span class="flex-1 text-xs text-slate-400 italic">Closed</span>
+                  <span class="flex-1 text-xs text-slate-500 italic">Closed</span>
                 }
               </div>
             }
@@ -227,7 +227,7 @@
           <!-- iiko terminal group (order-push routing, optional) -->
           <div>
             <label for="location-iiko-terminal-group" class="block text-xs font-medium text-slate-600 mb-1">iiko terminal group (optional)</label>
-            <p class="text-xs text-slate-400 mb-2">Which iiko POS/KDS receives orders pushed from this location. Leave unmapped to skip iiko order-push for this location.</p>
+            <p class="text-xs text-slate-500 mb-2">Which iiko POS/KDS receives orders pushed from this location. Leave unmapped to skip iiko order-push for this location.</p>
             <select
               id="location-iiko-terminal-group"
               [ngModel]="form().iikoTerminalGroupId"

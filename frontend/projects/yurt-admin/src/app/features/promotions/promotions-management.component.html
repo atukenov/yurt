@@ -4,7 +4,7 @@
   >
     <div>
       <h2 class="text-lg font-bold text-slate-800">{{ 'promotions.title' | t }}</h2>
-      <p class="text-xs text-slate-400">{{ 'promotions.subtitle' | t }}</p>
+      <p class="text-xs text-slate-500">{{ 'promotions.subtitle' | t }}</p>
     </div>
     <button
       (click)="openDialog()"
@@ -15,12 +15,12 @@
   </div>
 
   @if (loading()) {
-    <div class="p-8 text-center text-slate-400 animate-pulse">{{ 'label.loading' | t }}</div>
+    <div class="p-8 text-center text-slate-500 animate-pulse">{{ 'label.loading' | t }}</div>
   } @else if (promotions().length === 0) {
     <div class="p-12 text-center">
       <div class="text-4xl mb-3">📢</div>
       <p class="text-slate-500 font-medium">{{ 'promotions.noPromotions' | t }}</p>
-      <p class="text-slate-400 text-sm mt-1">{{ 'promotions.createFirst' | t }}</p>
+      <p class="text-slate-500 text-sm mt-1">{{ 'promotions.createFirst' | t }}</p>
     </div>
   } @else {
     <div class="p-6 grid gap-4 max-w-3xl">
@@ -41,18 +41,18 @@
                   {{ 'promotions.active' | t }}
                 </span>
               } @else if (isExpired(promo)) {
-                <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-tone-red">
                   {{ 'promotions.expired' | t }}
                 </span>
               } @else {
-                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
                   {{ 'promotions.inactive' | t }}
                 </span>
               }
             </div>
             <p class="text-slate-500 text-sm mt-0.5 line-clamp-2">{{ promo.description }}</p>
             @if (promo.expiresAt) {
-              <p class="text-slate-400 text-xs mt-1">
+              <p class="text-slate-500 text-xs mt-1">
                 {{ 'promotions.expires' | t }} {{ promo.expiresAt | date: 'medium' }}
               </p>
             }
@@ -66,7 +66,7 @@
             </button>
             <button
               (click)="deletePromotion(promo)"
-              class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+              class="text-xs text-tone-red hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
             >
               {{ 'action.delete' | t }}
             </button>
@@ -97,7 +97,7 @@
           <button
             (click)="showDialog.set(false)"
             aria-label="Close"
-            class="text-slate-400 hover:text-slate-600 text-xl leading-none"
+            class="text-slate-500 hover:text-slate-600 text-xl leading-none"
           >
             ✕
           </button>

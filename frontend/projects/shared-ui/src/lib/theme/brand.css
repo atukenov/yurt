@@ -180,17 +180,18 @@
   --surface-page: #0c0a09;
   --surface-card: #1c1917;
   --surface-warm: #0c0a09;
+  /* Like the ink scale above, 400 and up skip one step so grey text (mostly slate-500) stays readable on dark cards. */
   --slate-50: #020617;
   --slate-100: #0f172a;
   --slate-200: #1e293b;
   --slate-300: #334155;
-  --slate-400: #475569;
-  --slate-500: #64748b;
-  --slate-600: #94a3b8;
-  --slate-700: #cbd5e1;
-  --slate-800: #e2e8f0;
-  --slate-900: #f1f5f9;
-  --slate-950: #f8fafc;
+  --slate-400: #64748b;
+  --slate-500: #94a3b8;
+  --slate-600: #cbd5e1;
+  --slate-700: #e2e8f0;
+  --slate-800: #f1f5f9;
+  --slate-900: #f8fafc;
+  --slate-950: #ffffff;
   --surface-dark: #2f2a27;
   --text-body: #fafaf9;
   --tone-green: #34d399;

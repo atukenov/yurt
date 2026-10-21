@@ -108,7 +108,8 @@ jobs:
         working-directory: frontend
         run: npx ng build yurt-admin --configuration production
 
-      # Colour contrast and tap-target size on sign-in, menu, cart and order status, for every sample brand, light and dark.
+      # Colour contrast and tap-target size on the customer screens (sign-in, menu, cart, order status, profile) and the main
+      # admin screens (sign-in, orders, kitchen, cashier, menu, stock, customers), for every sample brand, light and dark.
       - name: Install accessibility check tools
         run: |
           mkdir -p "$RUNNER_TEMP/a11y" && cd "$RUNNER_TEMP/a11y"
@@ -127,6 +128,18 @@ jobs:
         env:
           NODE_PATH: ${{ runner.temp }}/a11y/node_modules
         run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/brand-screenshots" --a11y --dark --fail
+
+      - name: Admin accessibility checks (light)
+        working-directory: frontend
+        env:
+          NODE_PATH: ${{ runner.temp }}/a11y/node_modules
+        run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/brand-screenshots" --app=admin --a11y --fail
+
+      - name: Admin accessibility checks (dark)
+        working-directory: frontend
+        env:
+          NODE_PATH: ${{ runner.temp }}/a11y/node_modules
+        run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/brand-screenshots" --app=admin --a11y --dark --fail
 
       - name: Upload brand screenshots
         uses: actions/upload-artifact@v4
