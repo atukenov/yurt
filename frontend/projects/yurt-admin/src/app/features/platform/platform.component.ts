@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, FONT_STACKS, RADIUS_SCALE, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService } from 'shared-ui';
-import { BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 interface ModuleEdit {
   enabled: boolean;
@@ -23,6 +24,7 @@ interface ModuleEdit {
 export class PlatformComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   modules = signal<PlatformModule[]>([]);
   integrations = signal<IntegrationStatus[]>([]);
@@ -50,6 +52,41 @@ export class PlatformComponent implements OnInit {
     });
     this.api.getMaintenance().subscribe({ next: (m) => { this.maintenanceEnabled = m.enabled; this.maintenanceMessage = m.message; } });
     this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
+    this.loadLedger();
+  }
+
+  // ── Loyalty wallet (iiko → own wallet) ──
+  ledger = signal<LoyaltyLedgerInfo | null>(null);
+  importResult = signal<LoyaltyImportResult | null>(null);
+  compareResult = signal<LoyaltyCompareResult | null>(null);
+  loyaltyBusy = signal(false);
+
+  private loadLedger(): void {
+    this.importResult.set(null);
+    this.compareResult.set(null);
+    this.api.getLoyaltyLedger().subscribe({ next: (l) => this.ledger.set(l), error: () => this.ledger.set(null) });
+  }
+
+  private loyaltyCall<T>(call: () => import('rxjs').Observable<T>, done: (r: T) => void): void {
+    this.loyaltyBusy.set(true);
+    call().subscribe({
+      next: (r) => { done(r); this.loyaltyBusy.set(false); },
+      error: () => this.loyaltyBusy.set(false),
+    });
+  }
+
+  importLoyalty(): void {
+    if (!confirm(this.lang.t('plat.loyalty.confirmImport'))) return;
+    this.loyaltyCall(() => this.api.importLoyalty(), (r) => this.importResult.set(r));
+  }
+
+  compareLoyalty(): void {
+    this.loyaltyCall(() => this.api.compareLoyalty(), (r) => this.compareResult.set(r));
+  }
+
+  switchLedger(mode: 'iiko' | 'native'): void {
+    if (!confirm(this.lang.t(mode === 'native' ? 'plat.loyalty.confirmNative' : 'plat.loyalty.confirmIiko'))) return;
+    this.loyaltyCall(() => this.api.setLoyaltyLedger(mode), (l) => { this.ledger.set(l); this.toast.success('Saved'); });
   }
 
   cafes = signal<Cafe[]>([]);
@@ -194,6 +231,7 @@ export class PlatformComponent implements OnInit {
     });
     this.api.getCafes().subscribe({ next: (c) => this.cafes.set(c) });
     this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
+    this.loadLedger();
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }
 
