@@ -491,6 +491,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'promotions.expires': 'Мерзімі:', 'promotions.imageUrlOpt': 'Сурет URL (міндетті емес)',
     'promotions.expiresOpt': 'Мерзімі (міндетті емес)', 'promotions.saving': 'Сақталуда…',
     'promotions.createFirst': 'Клиенттерге поп-ап көрсету үшін алғашқы акцияны жасаңыз.',
+    'promotions.buttonLabel': 'Түйме мәтіні (міндетті емес)', 'promotions.buttonUrl': 'Түйме сілтемесі (міндетті емес)',
 
     // Customers
     'customers.title': 'Клиенттер', 'customers.noCustomers': 'Клиенттер жоқ',

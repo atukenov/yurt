@@ -30,14 +30,14 @@
         placeholder="+7 (777) 123-4567"
         autocomplete="tel"
         class="w-full px-4 py-3.5 rounded-2xl border-2 border-stone-200 bg-surface text-stone-900 placeholder-stone-400 text-base outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-100 transition-all"
-        aria-label="Mobile number"
+        [attr.aria-label]="'auth.mobileNumber' | t"
       />
     </div>
 
     <!-- PIN Input -->
     <div class="mb-7">
       <label class="block text-sm font-semibold text-stone-600 mb-2">{{ 'auth.pin' | t }}</label>
-      <div class="flex gap-3 justify-center" role="group" aria-label="PIN entry">
+      <div class="flex gap-3 justify-center" role="group" [attr.aria-label]="'a11y.pinEntry' | t">
         @for (i of [0, 1, 2, 3]; track i) {
           <input
             #pinInput

@@ -46,7 +46,7 @@
       (click)="$event.stopPropagation(); closeAll()"
       class="absolute right-4 text-white active:opacity-70 transition-opacity"
       style="top: calc(env(safe-area-inset-top) + 24px)"
-      aria-label="Close"
+      [attr.aria-label]="'a11y.close' | t"
     >
       <svg
         class="w-7 h-7"

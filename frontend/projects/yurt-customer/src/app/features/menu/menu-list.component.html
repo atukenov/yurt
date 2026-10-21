@@ -29,7 +29,7 @@
           <a
             routerLink="/favorites"
             class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-brand-hero hover:bg-white/30 transition-colors active:scale-95"
-            aria-label="Favorites"
+            [attr.aria-label]="'nav.saved' | t"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -38,7 +38,7 @@
           <button
             (click)="focusSearch()"
             class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-brand-hero hover:bg-white/30 transition-colors active:scale-95"
-            aria-label="Search"
+            [attr.aria-label]="'a11y.search' | t"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -72,7 +72,7 @@
           <button
             (click)="collapseSearch()"
             class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xl leading-none active:scale-90 transition-all"
-            aria-label="Close search"
+            [attr.aria-label]="'a11y.closeSearch' | t"
           >×</button>
           @if (showHistory() && !search && searchHistory().length) {
             <div class="absolute left-0 right-0 top-full mt-1 bg-surface rounded-2xl shadow-xl z-20 overflow-hidden border border-stone-100">
@@ -244,7 +244,7 @@
         class="absolute top-1.5 left-1.5 p-1.5 rounded-full bg-black/30 backdrop-blur-sm transition-all active:scale-95"
         [class.text-red-400]="isFav(item.id)"
         [class.text-white]="!isFav(item.id)"
-        aria-label="Toggle favorite"
+        [attr.aria-label]="'a11y.toggleFavorite' | t"
       >
         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
           <path
@@ -382,7 +382,7 @@
       routerLink="/cart"
       class="cart-fly-target fixed right-4 z-30 w-14 h-14 bg-brand-500 hover:bg-brand-600 active:scale-95 rounded-full shadow-xl shadow-brand-300/60 flex items-center justify-center transition-all focus:outline-none"
       style="bottom: calc(5rem + env(safe-area-inset-bottom))"
-      aria-label="View cart"
+      [attr.aria-label]="'menu.viewCart' | t"
     >
       <svg
         class="w-6 h-6 text-white"

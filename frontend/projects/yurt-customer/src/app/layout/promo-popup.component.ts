@@ -4,11 +4,12 @@ import { ModuleService, YurtApiService } from 'shared-api';
 import { Promotion } from 'shared-models';
 import { environment } from '../../environments/environment';
 import { PromoViewerService } from '../core/promo-viewer.service';
+import { TranslatePipe } from '../core/translate.pipe';
 
 @Component({
   selector: 'app-promo-popup',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './promo-popup.component.html',
   styleUrl: './promo-popup.component.css',
 })

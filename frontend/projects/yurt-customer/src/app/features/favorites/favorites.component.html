@@ -64,7 +64,7 @@
           <button
             (click)="removeFavorite(item)"
             class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm shadow-sm text-stone-500 hover:text-red-500 hover:bg-red-50 transition-all active:scale-95 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold leading-none"
-            aria-label="Remove from favorites"
+            [attr.aria-label]="'a11y.removeFavorite' | t"
           >×</button>
           <div class="px-3 pb-3">
             <button
