@@ -6,6 +6,7 @@ import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { IngredientsPanelComponent } from './ingredients-panel.component';
 import { RecipesPanelComponent } from './recipes-panel.component';
+import { StockHistoryPanelComponent } from './stock-history-panel.component';
 
 interface StockRow extends StockItem {
   /** What the staff typed, kept apart from the saved value until they press Save. */
@@ -21,7 +22,13 @@ interface StockRow extends StockItem {
 @Component({
   selector: 'app-stock-management',
   standalone: true,
-  imports: [FormsModule, AdminTranslatePipe, IngredientsPanelComponent, RecipesPanelComponent],
+  imports: [
+    FormsModule,
+    AdminTranslatePipe,
+    IngredientsPanelComponent,
+    RecipesPanelComponent,
+    StockHistoryPanelComponent,
+  ],
   templateUrl: './stock-management.component.html',
 })
 export class StockManagementComponent implements OnInit {
@@ -35,8 +42,8 @@ export class StockManagementComponent implements OnInit {
   loading = signal(true);
   selectedLocationId = '';
   alerts = signal<StockAlerts>({ low: 0, out: 0, items: [] });
-  tab = signal<'products' | 'ingredients' | 'recipes'>('products');
-  readonly tabs = ['products', 'ingredients', 'recipes'] as const;
+  tab = signal<'products' | 'ingredients' | 'recipes' | 'history'>('products');
+  readonly tabs = ['products', 'ingredients', 'recipes', 'history'] as const;
 
   ngOnInit(): void {
     this.api.getAdminLocations().subscribe((locs) => {

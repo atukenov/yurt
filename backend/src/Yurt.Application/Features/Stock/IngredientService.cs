@@ -6,7 +6,8 @@ using Yurt.Domain.Entities;
 namespace Yurt.Application.Features.Stock;
 
 /// <summary>Staff-facing ingredients, their counts per branch and the recipe of each menu item (Phase 6, <c>own_pos</c>).</summary>
-public class IngredientService(IApplicationDbContext db, IAuditLogService audit, IMenuCacheService menuCache)
+public class IngredientService(
+    IApplicationDbContext db, IAuditLogService audit, IMenuCacheService menuCache, ICurrentUserService user)
 {
     private const int MaxName = 100, MaxUnit = 20, MaxRecipeLines = 50;
 
@@ -83,6 +84,7 @@ public class IngredientService(IApplicationDbContext db, IAuditLogService audit,
             return Result<IngredientDto>.Failure("Location not found.", 404);
 
         var row = await db.IngredientStocks.FirstOrDefaultAsync(s => s.IngredientId == id && s.LocationId == locationId, ct);
+        StockService.LogChange(db, user, locationId, "ingredient", id, ingredient.Name, ingredient.Unit, row?.Quantity, dto.Quantity);
         if (dto.Quantity is null)
         {
             if (row != null) db.IngredientStocks.Remove(row);

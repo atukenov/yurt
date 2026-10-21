@@ -27,6 +27,13 @@ public record StockAlertDto(string Kind, Guid Id, string Name, Guid LocationId, 
 
 public record StockAlertsDto(int Low, int Out, List<StockAlertDto> Items);
 
+/// <summary>
+/// One hand change to a count. A null quantity means "not counted"; <c>Change</c> is the difference when both are numbers.
+/// </summary>
+public record StockChangeDto(
+    Guid Id, string Kind, Guid ItemId, string ItemName, string? Unit,
+    decimal? OldQuantity, decimal? NewQuantity, decimal? Change, string ChangedBy, DateTime ChangedAt);
+
 public record ToppingUseDto(Guid IngredientId, string IngredientName, string Unit, decimal Quantity);
 
 public record SaveToppingUseDto(Guid IngredientId, decimal Quantity);

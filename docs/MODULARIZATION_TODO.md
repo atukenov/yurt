@@ -179,6 +179,7 @@ Steps:
   - [x] Ingredients and recipes: ingredient counts per branch, a recipe per dish (optionally per size), dishes leave the menu when an ingredient runs out, accepting an order lowers the counts. Details in `docs/modules.md`.
   - [x] Toppings can use ingredients (hidden from a branch's menu and refused when short, lowered on accept).
   - [x] Low-stock alerts: a badge on the Stock menu entry and a summary on the Stock page (push or phone alerts later).
+  - [x] Restocking history: a History tab on the Stock page lists each hand change to a count (before, after, who, when).
 - [ ] Cashier screen, shifts, receipts and Z report.
   - [x] Cashier page: open and close a shift with the cash counted, cash in/out, X report while open, Z report on close with the cash difference, earlier shifts, print. Details in `docs/modules.md`.
   - [x] Print a receipt per order from the order details (browser print, 80 mm layout).

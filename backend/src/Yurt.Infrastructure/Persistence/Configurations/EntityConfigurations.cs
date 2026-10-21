@@ -357,6 +357,22 @@ public class IngredientStockConfiguration : IEntityTypeConfiguration<IngredientS
     }
 }
 
+public class StockChangeConfiguration : IEntityTypeConfiguration<StockChange>
+{
+    public void Configure(EntityTypeBuilder<StockChange> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Kind).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.ItemName).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.Unit).HasMaxLength(20);
+        builder.Property(e => e.ChangedBy).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.OldQuantity).HasPrecision(18, 3);
+        builder.Property(e => e.NewQuantity).HasPrecision(18, 3);
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.LocationId, e.CreatedAt });
+    }
+}
+
 public class RecipeLineConfiguration : IEntityTypeConfiguration<RecipeLine>
 {
     public void Configure(EntityTypeBuilder<RecipeLine> builder)
