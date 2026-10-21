@@ -65,3 +65,25 @@ public class LocationServiceTests
         await db.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }
+
+public class LocationPaymentMethodsTests
+{
+    [Fact]
+    public void Normalize_KeepsKnownNamesOnce_AndTreatsEmptyOrEverythingAsAll()
+    {
+        Assert.Equal("Cash,Card", LocationService.NormalizePaymentMethods(["Card", "cash", "Card", "Gold"]));
+        Assert.Null(LocationService.NormalizePaymentMethods(null));
+        Assert.Null(LocationService.NormalizePaymentMethods([]));
+        Assert.Null(LocationService.NormalizePaymentMethods(["Gold"]));
+        var all = Enum.GetNames<Yurt.Domain.Enums.PaymentMethod>();
+        Assert.Null(LocationService.NormalizePaymentMethods(all));
+    }
+
+    [Fact]
+    public void OfferedMethods_ReadsTheStoredList_AndNullMeansAll()
+    {
+        Assert.Null(LocationService.OfferedMethods(null));
+        Assert.Null(LocationService.OfferedMethods(""));
+        Assert.Equal([Yurt.Domain.Enums.PaymentMethod.Cash, Yurt.Domain.Enums.PaymentMethod.Card], LocationService.OfferedMethods("Cash,Card"));
+    }
+}

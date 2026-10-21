@@ -68,6 +68,13 @@ public class OrderService
         if (dto.Items == null || dto.Items.Count == 0)
             return Result<OrderDto>.Failure("Order must have at least one item.", 400);
 
+        // A branch can offer only some payment methods (own POS). "Other" is the group-order placeholder.
+        if (dto.PaymentMethod is { } wantedMethod && wantedMethod != PaymentMethod.Other
+            && Yurt.Application.Features.Locations.Services.LocationService.OfferedMethods(location.PaymentMethods) is { } offered
+            && !offered.Contains(wantedMethod)
+            && await _modules.IsEnabledAsync(ModuleKeys.OwnPos, ct))
+            return Result<OrderDto>.Failure("This branch does not accept that payment method.", 422);
+
         // Load menu items
         var itemIds = dto.Items.Select(i => i.MenuItemId).ToList();
         var menuItems = await _db.MenuItems

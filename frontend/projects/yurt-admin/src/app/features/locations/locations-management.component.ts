@@ -23,6 +23,8 @@ interface LocationForm {
   isActive: boolean;
   iikoTerminalGroupId: string;
   twoGisUrl: string;
+  /** Payment methods the branch offers; empty = all. */
+  paymentMethods: string[];
 }
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -69,6 +71,7 @@ export class LocationsManagementComponent implements OnInit {
     isActive: true,
     iikoTerminalGroupId: '',
     twoGisUrl: '',
+    paymentMethods: [],
   });
 
   // iiko terminal groups for the routing picker (Phase 3 order-push feature).
@@ -97,11 +100,23 @@ export class LocationsManagementComponent implements OnInit {
       isActive: loc?.isActive ?? true,
       iikoTerminalGroupId: loc?.iikoTerminalGroupId ?? '',
       twoGisUrl: loc?.twoGisUrl ?? '',
+      paymentMethods: loc?.paymentMethods ?? [],
     });
     this.showDialog.set(true);
   }
 
-  patch(field: keyof Omit<LocationForm, 'workingSlots'>, value: unknown): void {
+  readonly paymentMethodOptions = ['Cash', 'Card', 'KaspiBank', 'HalykBank', 'FreedomBank', 'ApplePay', 'Other'];
+
+  toggleMethod(method: string): void {
+    this.form.update((f) => ({
+      ...f,
+      paymentMethods: f.paymentMethods.includes(method)
+        ? f.paymentMethods.filter((m) => m !== method)
+        : [...f.paymentMethods, method],
+    }));
+  }
+
+  patch(field: keyof Omit<LocationForm, 'workingSlots' | 'paymentMethods'>, value: unknown): void {
     this.form.update((f) => ({ ...f, [field]: value }));
   }
 
@@ -154,6 +169,7 @@ export class LocationsManagementComponent implements OnInit {
       isActive: f.isActive,
       iikoTerminalGroupId: f.iikoTerminalGroupId || null,
       twoGisUrl: f.twoGisUrl.trim() || null,
+      paymentMethods: f.paymentMethods,
     };
     const obs = f.id
       ? this.api.updateLocation(f.id, payload)

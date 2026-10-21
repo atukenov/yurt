@@ -8,7 +8,8 @@ public record LocationDto(
     string WorkingHours,
     string ContactPhone,
     bool IsActive,
-    string? TwoGisUrl = null);
+    string? TwoGisUrl = null,
+    List<string>? PaymentMethods = null);
 
 // Admin-facing
 public record AdminLocationDto(
@@ -19,7 +20,8 @@ public record AdminLocationDto(
     string ContactPhone,
     bool IsActive,
     Guid? IikoTerminalGroupId = null,
-    string? TwoGisUrl = null);
+    string? TwoGisUrl = null,
+    List<string>? PaymentMethods = null);
 
 public record CreateLocationDto
 {
@@ -29,6 +31,8 @@ public record CreateLocationDto
     public string ContactPhone { get; init; } = string.Empty;
     public Guid? IikoTerminalGroupId { get; init; }
     public string? TwoGisUrl { get; init; }
+    /// <summary>Methods this branch offers; null or empty = all.</summary>
+    public List<string>? PaymentMethods { get; init; }
 }
 
 public record UpdateLocationDto
@@ -40,4 +44,6 @@ public record UpdateLocationDto
     public bool IsActive { get; init; }
     public Guid? IikoTerminalGroupId { get; init; }
     public string? TwoGisUrl { get; init; }
+    /// <summary>Methods this branch offers; null or empty = all.</summary>
+    public List<string>? PaymentMethods { get; init; }
 }

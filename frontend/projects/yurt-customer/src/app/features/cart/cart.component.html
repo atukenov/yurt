@@ -235,7 +235,7 @@
       } @else {
         <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.12em">{{ 'cart.payHow' | t }}</p>
         <div class="grid grid-cols-3 gap-2">
-          @if (applePayAvailable()) {
+          @if (applePayAvailable() && offers(PaymentMethod.ApplePay)) {
             <!-- Apple's branding guidelines require this mark to render unmodified —
                  no border/background/selection styling on the button itself. The ring
                  wrapper shows selection instead, without touching the mark. -->
@@ -256,6 +256,7 @@
             { method: PaymentMethod.HalykBank, logo: 'halyk.png', label: 'cart.halykBank' },
             { method: PaymentMethod.FreedomBank, logo: 'freedom.png', label: 'cart.freedomBank' }
           ]; track bank.method) {
+            @if (offers(bank.method)) {
             <button
               (click)="selectedPaymentMethod.set(bank.method)"
               class="flex flex-col items-center justify-center gap-2 py-3 px-2 rounded-2xl border-2 font-semibold text-xs transition-all active:scale-95"
@@ -265,6 +266,7 @@
             >
               <img [src]="bank.logo" [alt]="bank.label | t" class="h-8 w-auto object-contain" loading="lazy" />
             </button>
+            }
           }
         </div>
       }

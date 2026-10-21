@@ -19,5 +19,9 @@ public class Location : BaseEntity, ITenantOwned
     // orders for this location (fail closed, same principle as an unmapped menu item).
     public Guid? IikoTerminalGroupId { get; set; }
 
+    // Payment methods this branch offers (Phase 6, own_pos), as comma-separated PaymentMethod names.
+    // Null/empty = every method (the default, and what a branch gets while own_pos is off).
+    public string? PaymentMethods { get; set; }
+
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }
