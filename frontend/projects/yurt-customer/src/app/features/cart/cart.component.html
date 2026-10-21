@@ -2,7 +2,7 @@
   <div style="padding:14px 20px 16px;text-align:center">
     <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:var(--ink-900);letter-spacing:-.01em">{{ 'cart.title' | t }}</h1>
     @if (locationName()) {
-      <span style="font-size:12px;font-weight:600;color:var(--ink-500);display:inline-flex;align-items:center;gap:5px">
+      <span style="font-size:12px;font-weight:600;color:var(--ink-600);display:inline-flex;align-items:center;gap:5px">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand-ink)" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
           <circle cx="12" cy="11" r="3"></circle>
@@ -41,7 +41,7 @@
         </svg>
       </span>
       <h3 style="margin:18px 0 0;font-size:19px;font-weight:800;color:var(--ink-900)">{{ 'empty.cartTitle' | t }}</h3>
-      <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:var(--ink-500);line-height:1.55">{{ 'empty.cartHint' | t }}</p>
+      <p style="margin:8px 0 0;font-size:13.5px;font-weight:500;color:var(--ink-600);line-height:1.55">{{ 'empty.cartHint' | t }}</p>
       <button (click)="goToMenu()"
         style="margin-top:22px;background:var(--brand-500);border:none;border-radius:999px;padding:15px 32px;font-size:14.5px;font-weight:800;color:var(--brand-on-primary);cursor:pointer;font-family:inherit;box-shadow:0 10px 20px -6px rgba(217,175,0,.45)"
         class="active:scale-[0.97] transition-transform">
@@ -61,12 +61,12 @@
                    : langService.lang() === 'kk' && item.nameKk ? item.nameKk
                    : item.name }}
                   @if (item.variantLabel) {
-                    <span style="font-weight:400;color:var(--ink-400)"> · {{ item.variantLabel }}</span>
+                    <span style="font-weight:400;color:var(--ink-500)"> · {{ item.variantLabel }}</span>
                   }
                   <span style="font-size:10px;color:var(--ink-300)">{{ isItemExpanded(cart.itemKey(item)) ? '▴' : '▾' }}</span>
                 </p>
                 @if (item.selectedToppings?.length) {
-                  <p style="margin:2px 0 0;font-size:11.5px;color:var(--ink-400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                  <p style="margin:2px 0 0;font-size:11.5px;color:var(--ink-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                     {{ item.selectedToppings!.map(t => t.toppingName).join(', ') }}
                   </p>
                 }
@@ -92,7 +92,7 @@
 
             @if (isItemExpanded(cart.itemKey(item))) {
               <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--ink-50)" (click)="$event.stopPropagation()">
-                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-400)">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-500)">
                   <span>
                     {{ langService.lang() === 'ru' && item.nameRu ? item.nameRu
                      : langService.lang() === 'kk' && item.nameKk ? item.nameKk
@@ -113,7 +113,7 @@
             <div style="margin-top:6px" (click)="$event.stopPropagation()">
               <button
                 (click)="toggleNote(cart.itemKey(item))"
-                style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:var(--ink-400);cursor:pointer;font-family:inherit"
+                style="background:none;border:none;padding:0;font-size:11px;font-weight:600;color:var(--ink-500);cursor:pointer;font-family:inherit"
               >
                 {{ isNoteExpanded(cart.itemKey(item)) ? ('cart.hideNote' | t) : ('cart.addNote' | t) }}
               </button>
@@ -134,11 +134,11 @@
         @if (!modules.isEnabled('marketing')) {
         } @else if (cart.appliedDiscount(); as discount) {
           <div style="display:flex;align-items:center;gap:8px;padding:13px 0 4px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" style="flex:none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tone-green)" stroke-width="2" style="flex:none">
               <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a2 2 0 011.4.6l7 7a2 2 0 010 2.8l-5 5a2 2 0 01-2.8 0l-7-7A2 2 0 015 10V5a2 2 0 012-2z"></path>
             </svg>
-            <span style="flex:1;font-size:12.5px;font-weight:700;color:#10b981">{{ discount.code }}</span>
-            <span style="font-size:12.5px;font-weight:800;color:#10b981;font-variant-numeric:tabular-nums">− {{ discount.discountAmount | currency2 }}</span>
+            <span style="flex:1;font-size:12.5px;font-weight:700;color:var(--tone-green)">{{ discount.code }}</span>
+            <span style="font-size:12.5px;font-weight:800;color:var(--tone-green);font-variant-numeric:tabular-nums">− {{ discount.discountAmount | currency2 }}</span>
             <button (click)="removePromoCode()" style="background:none;border:none;padding:0 0 0 4px;font-size:12px;color:var(--ink-300);cursor:pointer;font-family:inherit" [attr.aria-label]="'cart.removePromo' | t">✕</button>
           </div>
         } @else {
@@ -175,7 +175,7 @@
             <span style="width:30px;height:30px;border-radius:999px;background:var(--brand-50);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none">🎁</span>
             <span style="flex:1;min-width:0">
               <span style="display:block;font-size:13px;font-weight:700;color:var(--ink-900)">{{ 'cart.bonuses' | t }}</span>
-              <span style="display:block;font-size:11.5px;font-weight:600;color:var(--ink-400)">{{ 'cart.bonusAvailable' | t }} {{ fullBonusBalance() | currency2 }}</span>
+              <span style="display:block;font-size:11.5px;font-weight:600;color:var(--ink-500)">{{ 'cart.bonusAvailable' | t }} {{ fullBonusBalance() | currency2 }}</span>
             </span>
             <button
               (click)="appliedBonus() > 0 ? bonusInput.set(0) : useAllBonus()"
@@ -194,7 +194,7 @@
               <span>{{ 'cart.bonusApplied' | t }}</span>
               <span style="font-variant-numeric:tabular-nums">− {{ appliedBonus() | currency2 }}</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-400);padding:2px 0 0 40px">
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--ink-500);padding:2px 0 0 40px">
               <span>{{ 'cart.bonusRemaining' | t }}</span>
               <span style="font-variant-numeric:tabular-nums">{{ remainingBonus() | currency2 }}</span>
             </div>
@@ -209,9 +209,9 @@
 
         <!-- Savings banner -->
         @if (cart.appliedDiscount() || appliedBonus() > 0) {
-          <div style="display:flex;justify-content:space-between;align-items:center;background:#ecfdf5;border-radius:12px;padding:8px 12px;margin-bottom:10px">
-            <span style="font-size:12px;font-weight:700;color:#059669">{{ 'cart.youSave' | t }}</span>
-            <span style="font-size:14px;font-weight:800;color:#059669;font-variant-numeric:tabular-nums">
+          <div style="display:flex;justify-content:space-between;align-items:center;background:var(--tone-green-soft);border-radius:12px;padding:8px 12px;margin-bottom:10px">
+            <span style="font-size:12px;font-weight:700;color:var(--tone-green)">{{ 'cart.youSave' | t }}</span>
+            <span style="font-size:14px;font-weight:800;color:var(--tone-green);font-variant-numeric:tabular-nums">
               {{ (cart.appliedDiscount()?.discountAmount ?? 0) + appliedBonus() | currency2 }}
             </span>
           </div>
@@ -229,11 +229,11 @@
 
       <!-- Payment method selection — not needed when bonuses cover the full total -->
       @if (fullyCoveredByBonus()) {
-        <div style="margin-top:18px;background:#ecfdf5;border:1px solid #d1fae5;border-radius:16px;padding:16px;text-align:center">
-          <p style="margin:0;font-size:13.5px;font-weight:700;color:#059669">{{ 'cart.fullyCoveredByBonus' | t }}</p>
+        <div style="margin-top:18px;background:var(--tone-green-soft);border:1px solid var(--tone-green-soft);border-radius:16px;padding:16px;text-align:center">
+          <p style="margin:0;font-size:13.5px;font-weight:700;color:var(--tone-green)">{{ 'cart.fullyCoveredByBonus' | t }}</p>
         </div>
       } @else {
-        <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:.12em">{{ 'cart.payHow' | t }}</p>
+        <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.12em">{{ 'cart.payHow' | t }}</p>
         <div class="grid grid-cols-3 gap-2">
           @if (applePayAvailable() && offers(PaymentMethod.ApplePay)) {
             <!-- Apple's branding guidelines require this mark to render unmodified —
