@@ -197,5 +197,5 @@ Steps:
 - [x] How SuperAdmin accounts are created: environment variable seed (done in Phase 2).
 - [ ] Data export format for departing cafes.
 - [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).
-- [ ] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan.
+- [x] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan. _(Researched: `docs/fiscal-receipts-kz.md`. Plan: cloud cash register via provider API, Webkassa first. Building it is still to do.)_
 - [ ] Terms of service / data ownership wording.
