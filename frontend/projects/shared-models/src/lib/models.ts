@@ -789,6 +789,8 @@ export interface BrandConfig {
   radius?: string | null;
   /** Font: 'system' | 'serif'; null or 'default' keeps Inter. */
   font?: string | null;
+  /** https link to the cafe's own font file (woff2, woff, ttf, otf); `font` is the fallback. */
+  fontUrl?: string | null;
 }
 
 export interface BrandLink {

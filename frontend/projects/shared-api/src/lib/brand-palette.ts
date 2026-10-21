@@ -108,3 +108,47 @@ export const FONT_STACKS: Record<string, string> = {
   system: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
   serif: "Georgia, 'Times New Roman', serif",
 };
+
+/** The bundled default, matching `--brand-font` in shared-ui theme/brand.css. */
+const DEFAULT_FONT_STACK = "'Inter', system-ui, sans-serif";
+
+/** Font family name a cafe's own font file is registered under. */
+export const CAFE_FONT_FAMILY = 'Yurt Cafe Font';
+
+/** An https link to a .woff2, .woff, .ttf or .otf file (query string ignored), else null. */
+export function fontFileUrl(url: string | null | undefined): string | null {
+  const value = url?.trim();
+  if (!value || !/^https:\/\//i.test(value)) return null;
+  return /\.(woff2?|ttf|otf)$/i.test(value.split(/[?#]/)[0]) ? value : null;
+}
+
+/**
+ * The font stack for a brand: the cafe's own font file first (when given), then the chosen preset,
+ * then the default. Returns null when nothing differs from the default.
+ */
+export function brandFontStack(font: string | null | undefined, fontUrl: string | null | undefined, family = CAFE_FONT_FAMILY): string | null {
+  const preset = FONT_STACKS[font ?? ''] ?? null;
+  if (!fontFileUrl(fontUrl)) return preset;
+  return `'${family}', ${preset ?? DEFAULT_FONT_STACK}`;
+}
+
+/**
+ * Registers (or replaces, or with a null url removes) an @font-face rule in a <style> tag with the
+ * given id. `font-display: swap` shows the fallback font until the file arrives, and keeps it if
+ * the file never loads.
+ */
+export function setFontFace(doc: Document, styleId: string, family: string, url: string | null | undefined): void {
+  const safe = fontFileUrl(url);
+  let style = doc.getElementById(styleId) as HTMLStyleElement | null;
+  if (!safe) {
+    style?.remove();
+    return;
+  }
+  if (!style) {
+    style = doc.createElement('style');
+    style.id = styleId;
+    doc.head.appendChild(style);
+  }
+  const src = safe.replace(/["\\\s]/g, (c) => encodeURIComponent(c));
+  style.textContent = `@font-face { font-family: '${family}'; src: url("${src}"); font-display: swap; }`;
+}

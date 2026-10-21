@@ -188,6 +188,15 @@
             </div>
           </div>
           <div>
+            <label for="brand-font-url" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandFontUrl' | t }}</label>
+            <input id="brand-font-url" type="url" maxlength="500" placeholder="https://.../font.woff2" [ngModel]="brand().fontUrl ?? ''" (ngModelChange)="patchBrand({ fontUrl: $event })"
+              [attr.aria-invalid]="fontUrlInvalid()" aria-describedby="brand-font-url-hint"
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <p id="brand-font-url-hint" class="mt-1 text-xs" [class.text-red-600]="fontUrlInvalid()" [class.text-slate-400]="!fontUrlInvalid()">
+              {{ (fontUrlInvalid() ? 'plat.brandFontUrlInvalid' : 'plat.brandFontUrlHint') | t }}
+            </p>
+          </div>
+          <div>
             <p class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLinks' | t }}</p>
             <div class="space-y-2">
               @for (link of brand().links ?? []; track $index) {
@@ -216,7 +225,7 @@
             </p>
           }
           <div class="flex gap-2 pt-1">
-            <button (click)="saveBrand()" [disabled]="savingBrand() || !colorsValid() || !brand().name.trim()"
+            <button (click)="saveBrand()" [disabled]="savingBrand() || !colorsValid() || !brand().name.trim() || fontUrlInvalid()"
               class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 disabled:opacity-40">
               {{ 'action.save' | t }}
             </button>

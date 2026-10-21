@@ -67,6 +67,12 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
         var badFont = await super.PutAsJsonAsync("/api/v1/platform/brand",
             new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", font = "Comic Sans" });
         Assert.Equal(HttpStatusCode.BadRequest, badFont.StatusCode);
+        foreach (var badFontUrl in new[] { "http://cdn.example.com/brand.woff2", "https://cdn.example.com/brand.png", "not a url" })
+        {
+            var res = await super.PutAsJsonAsync("/api/v1/platform/brand",
+                new { name = "Blue Cafe", primaryColor = "#1d4ed8", accentColor = "#0ea5e9", fontUrl = badFontUrl });
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
 
         try
         {
@@ -76,7 +82,7 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
                 logoUrl = "https://cdn.example.com/logo.png", logoDarkUrl = "https://cdn.example.com/logo-dark.png", iconUrl = "https://cdn.example.com/icon.png",
                 splashUrl = "https://cdn.example.com/splash.png", welcomeText = "Fresh coffee, every day",
                 links = new[] { new { label = "Instagram", url = "https://instagram.com/bluecafe" }, new { label = "", url = "" } }, supportContact = "+7 700 000 00 00",
-                radius = "round", font = "serif"
+                radius = "round", font = "serif", fontUrl = " https://cdn.example.com/fonts/Brand.WOFF2?v=2 "
             });
             Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
 
@@ -90,6 +96,7 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
             Assert.Equal("Fresh coffee, every day", served.GetProperty("welcomeText").GetString());
             Assert.Equal("round", served.GetProperty("radius").GetString());
             Assert.Equal("serif", served.GetProperty("font").GetString());
+            Assert.Equal("https://cdn.example.com/fonts/Brand.WOFF2?v=2", served.GetProperty("fontUrl").GetString());
             var links = served.GetProperty("links");
             Assert.Equal(1, links.GetArrayLength()); // the blank row is dropped
             Assert.Equal("Instagram", links[0].GetProperty("label").GetString());
