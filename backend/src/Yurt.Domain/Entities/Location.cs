@@ -23,5 +23,9 @@ public class Location : BaseEntity, ITenantOwned
     // Null/empty = every method (the default, and what a branch gets while own_pos is off).
     public string? PaymentMethods { get; set; }
 
+    // This branch's cloud cash register at the fiscal provider (Webkassa calls it the cashbox unique number, for
+    // example SWK00012345). Null = receipts for this branch wait in the queue until it is set.
+    public string? FiscalRegisterNumber { get; set; }
+
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

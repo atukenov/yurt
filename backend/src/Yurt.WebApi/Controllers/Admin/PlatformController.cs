@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Platform;
 using Yurt.WebApi.Common;
 
@@ -72,6 +73,15 @@ public class PlatformController : ApiControllerBase
     [HttpPut("loyalty/ledger")]
     public async Task<IActionResult> SetLoyaltyLedger([FromBody] SetLoyaltyLedgerDto dto, CancellationToken ct)
         => ToResult(await _ledgerSwitch.SetAsync(dto.Mode, ct));
+
+    /// <summary>Official tax receipts of the chosen cafe: provider, skipped methods, VAT, register number per branch.</summary>
+    [HttpGet("fiscal")]
+    public async Task<IActionResult> GetFiscal([FromServices] FiscalSettingsService fiscal, CancellationToken ct)
+        => ToResult(await fiscal.GetAsync(ct));
+
+    [HttpPut("fiscal")]
+    public async Task<IActionResult> SetFiscal([FromServices] FiscalSettingsService fiscal, [FromBody] SaveFiscalSettingsDto dto, CancellationToken ct)
+        => ToResult(await fiscal.SaveAsync(dto, ct));
 
     [HttpGet("cafes")]
     public async Task<IActionResult> GetCafes(CancellationToken ct)

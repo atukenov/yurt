@@ -26,4 +26,17 @@ public class Tenant : BaseEntity
 
     /// <summary>Where this cafe's bonus wallet lives: "iiko" or "native". Null keeps today's behaviour (iiko). Phase 6.</summary>
     public string? LoyaltyLedger { get; set; }
+
+    /// <summary>Cloud cash register that gets this cafe's official tax receipts: "webkassa". Null = off (the default). Phase 6.</summary>
+    public string? FiscalProvider { get; set; }
+
+    /// <summary>Only orders placed from this time on get a receipt, so sales from before the switch are never sent.</summary>
+    public DateTime? FiscalSince { get; set; }
+
+    /// <summary>Payment methods that never get a receipt from Yurt (comma-separated PaymentMethod names), for example
+    /// KaspiBank when Kaspi Kassa already makes the receipt for Kaspi payments.</summary>
+    public string? FiscalSkipMethods { get; set; }
+
+    /// <summary>VAT rate printed on receipts (for example 16). Null = the cafe does not pay VAT.</summary>
+    public int? FiscalVatPercent { get; set; }
 }

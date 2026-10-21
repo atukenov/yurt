@@ -23,6 +23,12 @@ public class Shift : BaseEntity, ITenantOwned
     public decimal? CountedCash { get; set; }
     public string? Note { get; set; }
 
+    /// <summary>When the fiscal shift at the cloud cash register was closed (fiscal Z report). Null = not done or fiscal receipts are off.</summary>
+    public DateTime? FiscalZReportAt { get; set; }
+
+    /// <summary>Why closing the fiscal shift failed; cleared when it succeeds.</summary>
+    public string? FiscalZReportError { get; set; }
+
     public ICollection<CashMovement> Movements { get; set; } = new List<CashMovement>();
 }
 

@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Fiscal;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
 namespace Yurt.Application.Features.Shifts;
 
 /// <summary>Cashier shifts, cash in/out and the X/Z report (Phase 6, <c>own_pos</c>).</summary>
-public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IAuditLogService audit)
+public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IAuditLogService audit, FiscalReceiptService fiscal)
 {
     private string Who => user.Username ?? "unknown";
 
@@ -65,6 +66,11 @@ public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IA
         var shift = await db.Shifts.FirstOrDefaultAsync(s => s.Id == shiftId, ct);
         if (shift is null) return Result<ShiftReportDto>.Failure("Shift not found.", 404);
         if (shift.ClosedAt is not null) return Result<ShiftReportDto>.Failure("This shift is already closed.", 409);
+        // Official tax receipts still in the queue would land in the next fiscal shift; let the cashier decide.
+        var waiting = await fiscal.WaitingCountAsync(shift.LocationId, ct);
+        if (waiting > 0 && !dto.CloseWithWaitingReceipts)
+            return Result<ShiftReportDto>.Failure(
+                $"{waiting} tax receipt(s) of this branch are still waiting to be sent to the cash register. Try sending them again, or close anyway.", 409);
 
         shift.ClosedAt = DateTime.UtcNow;
         shift.ClosedBy = Who;
@@ -72,7 +78,30 @@ public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IA
         shift.Note = string.IsNullOrWhiteSpace(dto.Note) ? null : dto.Note.Trim()[..Math.Min(dto.Note.Trim().Length, 500)];
         await db.SaveChangesAsync(ct);
         await audit.LogAsync("ShiftClose", "Shift", shift.Id.ToString(), $"counted {dto.CountedCash}", ct);
+        await CloseFiscalShiftAsync(shift, ct);
         return await ReportAsync(shiftId, ct);
+    }
+
+    /// <summary>Tries the fiscal Z report again for a closed shift whose fiscal shift did not close.</summary>
+    public async Task<Result<FiscalZReportDto>> RetryFiscalZReportAsync(Guid shiftId, CancellationToken ct = default)
+    {
+        var shift = await db.Shifts.FirstOrDefaultAsync(s => s.Id == shiftId, ct);
+        if (shift is null) return Result<FiscalZReportDto>.Failure("Shift not found.", 404);
+        if (shift.ClosedAt is null) return Result<FiscalZReportDto>.Failure("Close the shift first.", 409);
+        if (shift.FiscalZReportAt is null) await CloseFiscalShiftAsync(shift, ct);
+        return Result<FiscalZReportDto>.Success(new FiscalZReportDto(shift.Id, shift.FiscalZReportAt, shift.FiscalZReportError));
+    }
+
+    // Closing the Yurt shift also closes the fiscal shift at the cloud cash register. A failure never undoes the
+    // Yurt close; it is saved on the shift so the cashier sees it and can try again.
+    private async Task CloseFiscalShiftAsync(Shift shift, CancellationToken ct)
+    {
+        var result = await fiscal.CloseShiftAsync(shift.LocationId, ct);
+        if (result is null) return; // fiscal receipts are off
+        shift.FiscalZReportAt = result.Succeeded ? DateTime.UtcNow : null;
+        shift.FiscalZReportError = result.Succeeded ? null : result.Error?[..Math.Min(result.Error.Length, 500)];
+        await db.SaveChangesAsync(ct);
+        await audit.LogAsync(result.Succeeded ? "FiscalZReport" : "FiscalZReportFailed", "Shift", shift.Id.ToString(), result.Error, ct);
     }
 
     public async Task<Result<ShiftReportDto>> ReportAsync(Guid shiftId, CancellationToken ct = default)
@@ -116,7 +145,7 @@ public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IA
     }
 
     private static ShiftDto ToDto(Shift s) => new(s.Id, s.LocationId, s.Location?.Name ?? "", s.OpenedAt, s.OpenedBy,
-        s.OpeningCash, s.ClosedAt, s.ClosedBy, s.CountedCash, s.Note);
+        s.OpeningCash, s.ClosedAt, s.ClosedBy, s.CountedCash, s.Note, s.FiscalZReportAt, s.FiscalZReportError);
 
     private static CashMovementDto ToDto(CashMovement m) => new(m.Id, m.Amount, m.IsOut, m.Reason, m.CreatedBy, m.CreatedAt);
 }

@@ -52,6 +52,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(e => e.ContactPhone).HasMaxLength(30).IsRequired();
         builder.Property(e => e.TwoGisUrl).HasMaxLength(1000);
         builder.Property(e => e.PaymentMethods).HasMaxLength(200);
+        builder.Property(e => e.FiscalRegisterNumber).HasMaxLength(50);
     }
 }
 
@@ -300,6 +301,7 @@ public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
         builder.Property(e => e.OpenedBy).HasMaxLength(100).IsRequired();
         builder.Property(e => e.ClosedBy).HasMaxLength(100);
         builder.Property(e => e.Note).HasMaxLength(500);
+        builder.Property(e => e.FiscalZReportError).HasMaxLength(500);
         builder.Property(e => e.OpeningCash).HasPrecision(18, 2);
         builder.Property(e => e.CountedCash).HasPrecision(18, 2);
         builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
@@ -330,6 +332,27 @@ public class OrderPaymentConfiguration : IEntityTypeConfiguration<OrderPayment>
         builder.Property(e => e.Amount).HasPrecision(18, 2);
         builder.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(e => e.OrderId);
+    }
+}
+
+public class FiscalReceiptConfiguration : IEntityTypeConfiguration<FiscalReceipt>
+{
+    public void Configure(EntityTypeBuilder<FiscalReceipt> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Kind).HasConversion<string>().HasMaxLength(10);
+        builder.Property(e => e.Status).HasConversion<string>().HasMaxLength(10);
+        builder.Property(e => e.Amount).HasPrecision(18, 2);
+        builder.Property(e => e.Provider).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.LastError).HasMaxLength(500);
+        builder.Property(e => e.RegisterNumber).HasMaxLength(50);
+        builder.Property(e => e.CheckNumber).HasMaxLength(100);
+        builder.Property(e => e.TicketUrl).HasMaxLength(1000);
+        builder.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Cascade);
+        // At most one sale and one return receipt per order, enforced by the database too.
+        builder.HasIndex(e => new { e.OrderId, e.Kind }).IsUnique();
+        builder.HasIndex(e => new { e.Status, e.NextAttemptAt });
+        builder.HasIndex(e => new { e.LocationId, e.Status });
     }
 }
 
@@ -475,6 +498,8 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.Property(e => e.Name).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Domain).HasMaxLength(255);
         builder.Property(e => e.LoyaltyLedger).HasMaxLength(20);
+        builder.Property(e => e.FiscalProvider).HasMaxLength(20);
+        builder.Property(e => e.FiscalSkipMethods).HasMaxLength(200);
         builder.HasIndex(e => e.Domain).IsUnique();
     }
 }

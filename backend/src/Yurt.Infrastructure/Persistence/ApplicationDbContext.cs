@@ -41,6 +41,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<MenuItemStock> MenuItemStocks => Set<MenuItemStock>();
     public DbSet<Shift> Shifts => Set<Shift>();
     public DbSet<OrderPayment> OrderPayments => Set<OrderPayment>();
+    public DbSet<FiscalReceipt> FiscalReceipts => Set<FiscalReceipt>();
     public DbSet<Station> Stations => Set<Station>();
     public DbSet<OrderStationReady> OrderStationReadies => Set<OrderStationReady>();
     public DbSet<ToppingUse> ToppingUses => Set<ToppingUse>();

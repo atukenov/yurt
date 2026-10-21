@@ -27,6 +27,7 @@ using Yurt.Application.Features.Reports;
 using Yurt.Application.Features.AppUpdate;
 using Yurt.Application.Features.Modules;
 using Yurt.Application.Features.Platform;
+using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Shifts;
 using Yurt.Application.Features.Stations;
 using Yurt.Application.Features.Stock;
@@ -35,6 +36,7 @@ using Yurt.Application.Features.Loyalty;
 using Yurt.Application.Features.Loyalty.Services;
 using Yurt.Application.Features.Push;
 using Yurt.Application.Features.Push.Services;
+using Yurt.Infrastructure.Fiscal;
 using Yurt.Infrastructure.Health;
 using Yurt.Infrastructure.Hubs;
 using Yurt.Infrastructure.Iiko;
@@ -150,6 +152,14 @@ public static class DependencyInjection
         services.AddScoped<IngredientService>();
         services.AddScoped<ShiftService>();
         services.AddScoped<SplitPaymentService>();
+
+        // Official tax receipts through a cloud cash register (own_pos; off per cafe until a provider is set)
+        services.AddSingleton(configuration.GetSection("Webkassa").Get<WebkassaOptions>() ?? new WebkassaOptions());
+        services.AddSingleton<WebkassaTokenCache>();
+        services.AddHttpClient<WebkassaFiscalRegistrar>();
+        services.AddScoped<IFiscalRegistrar>(sp => sp.GetRequiredService<WebkassaFiscalRegistrar>());
+        services.AddScoped<FiscalReceiptService>();
+        services.AddScoped<FiscalSettingsService>();
         services.AddScoped<StationService>();
         services.AddScoped<StationReadyService>();
         services.AddScoped<MenuService>();
@@ -168,6 +178,7 @@ public static class DependencyInjection
         services.AddHostedService<OrderTimerService>();
         services.AddHostedService<LoyaltyRetryService>();
         services.AddHostedService<IikoOrderSyncRetryService>();
+        services.AddHostedService<FiscalReceiptJob>();
 
         // JWT Auth — fail-fast secret validation
         var jwtSecret = configuration["Jwt:Secret"];
