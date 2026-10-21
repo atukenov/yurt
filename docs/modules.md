@@ -96,6 +96,7 @@ How a gate is built:
 - **Accent scale:** gradient ends and soft tints use `accent-50/400/500`, generated from the accent colour (defaults are the orange the gradients always had).
 - **Readability tokens:** `--brand-hero-text` (text on gradient headers), `--brand-ink` (brand-coloured text on light pages) and `--brand-on-dark` are computed from the primary colour; for the Yurt default they keep the old look.
 - **Readability:** text on the primary colour follows `--brand-on-primary`, and near-black buttons use `--brand-on-dark` (the primary lightened until it reads on near-black). The Brand screen warns about a primary that is too light or too dark.
+- **Font:** a preset (`font`: Inter, system or serif, no download) and an optional own font file (`fontUrl`: an https link ending in .woff2, .woff, .ttf or .otf). The apps register the file as an `@font-face` with `font-display: swap` and put it first in `--brand-font`, so the preset shows while it loads and stays if it fails. The file's host must send CORS headers (`Access-Control-Allow-Origin`), or browsers refuse the font.
 - **Not done yet:** light/dark logos (waiting for dark mode).
 - **Depends on:** nothing.
 

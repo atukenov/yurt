@@ -1,8 +1,8 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { YurtApiService, FONT_STACKS, RADIUS_SCALE, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
+import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService } from 'shared-ui';
 import { LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -153,10 +153,16 @@ export class PlatformComponent implements OnInit {
 
   // ── Brand ──
   private static readonly DEFAULT_BRAND: BrandConfig = {
-    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null, iconUrl: null, splashUrl: null, welcomeText: null, links: [], radius: null, font: null,
+    name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, supportContact: null, iconUrl: null, splashUrl: null, welcomeText: null, links: [], radius: null, font: null, fontUrl: null,
   };
   brand = signal<BrandConfig>({ ...PlatformComponent.DEFAULT_BRAND });
   savingBrand = signal(false);
+  /** The preview loads the typed font file under its own name, so the live admin font is untouched until saved. */
+  private static readonly PREVIEW_FONT = 'Yurt Brand Preview';
+  private readonly previewFontFace = effect((onCleanup) => {
+    setFontFace(document, 'brand-preview-font-face', PlatformComponent.PREVIEW_FONT, this.brand().fontUrl);
+    onCleanup(() => document.getElementById('brand-preview-font-face')?.remove());
+  });
 
   /** Scoped CSS variables for the preview only; the real app is not touched until the brand is saved. */
   previewVars = computed(() => {
@@ -168,10 +174,12 @@ export class PlatformComponent implements OnInit {
     vars['--p-accent'] = parseHex(b.accentColor) ? b.accentColor : PlatformComponent.DEFAULT_BRAND.accentColor;
     const scale2 = RADIUS_SCALE[b.radius ?? ''] ?? 1;
     for (const [name, rem] of [['lg', 0.5], ['xl', 0.75], ['2xl', 1], ['3xl', 1.5]] as const) vars[`--radius-${name}`] = `${rem * scale2}rem`;
-    vars['font-family'] = FONT_STACKS[b.font ?? ''] ?? 'var(--brand-font)';
+    vars['font-family'] = brandFontStack(b.font, b.fontUrl, PlatformComponent.PREVIEW_FONT) ?? "'Inter', system-ui, sans-serif";
     return vars;
   });
   paletteWarning = computed(() => paletteWarningFor(this.brand().primaryColor));
+  /** True when the font file box has text that is not a usable https font link. */
+  fontUrlInvalid = computed(() => !!this.brand().fontUrl?.trim() && !fontFileUrl(this.brand().fontUrl));
   logoOk = computed(() => /^https:\/\//i.test(this.brand().logoUrl ?? ''));
   colorsValid = computed(() => !!parseHex(this.brand().primaryColor) && !!parseHex(this.brand().accentColor));
 
@@ -209,6 +217,7 @@ export class PlatformComponent implements OnInit {
       welcomeText: b.welcomeText?.trim() || null,
       radius: b.radius || null,
       font: b.font || null,
+      fontUrl: b.fontUrl?.trim() || null,
       links: (b.links ?? []).filter((l) => l.label.trim() || l.url.trim()).map((l) => ({ label: l.label.trim(), url: l.url.trim() })),
     }).subscribe({
       next: (saved) => {
