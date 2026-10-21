@@ -15,6 +15,7 @@ import { environment } from '../../../environments/environment';
 import { Subscription } from 'rxjs';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { SoundService } from '../../core/sound.service';
+import { ReceiptService } from '../../core/receipt.service';
 
 @Component({
   selector: 'app-orders-live',
@@ -37,6 +38,11 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   readonly modules = inject(ModuleService);
   private toast = inject(ToastService);
   private sound = inject(SoundService);
+  private receipts = inject(ReceiptService);
+
+  printReceipt(order: Order): void {
+    this.receipts.print(order);
+  }
 
   readonly OrderStatus = OrderStatus;
 

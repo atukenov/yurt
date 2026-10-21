@@ -298,7 +298,14 @@
 
         <!-- Items -->
         <div class="bg-surface rounded-2xl border border-slate-100 p-4 shadow-sm">
-          <h3 class="text-sm font-semibold text-slate-700 mb-3">{{ 'orders.items' | t }}</h3>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-slate-700">{{ 'orders.items' | t }}</h3>
+            @if (modules.isEnabled('own_pos')) {
+              <button type="button" (click)="printReceipt(o)" class="text-xs font-semibold text-brand-ink hover:underline">
+                🖨 {{ 'receipt.print' | t }}
+              </button>
+            }
+          </div>
           @for (item of o.items; track item.id) {
             <div class="flex justify-between py-2 border-b border-slate-50 last:border-0">
               <div class="min-w-0 flex-1 pr-3">
