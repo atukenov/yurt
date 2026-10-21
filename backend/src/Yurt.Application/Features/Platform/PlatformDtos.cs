@@ -27,6 +27,9 @@ public record IntegrationStatusDto(string Key, bool Configured, bool Enabled);
 /// A cafe's brand as served to the apps (Phase 4 white-label). Colours are "#rrggbb".
 /// <see cref="PrimaryColor"/> is the main colour (the 500 step of the generated scale),
 /// <see cref="AccentColor"/> the secondary one used for gradient ends.
+/// <see cref="LogoDarkUrl"/> is an optional logo for dark mode; the apps fall back to <see cref="LogoUrl"/> without it.
+/// <see cref="FontUrl"/> is an optional https link to the cafe's own font file (woff2, woff, ttf or otf);
+/// the apps load it and fall back to <see cref="Font"/> while it loads or when it cannot be loaded.
 /// </summary>
 public record BrandDto(
     string Name,
@@ -39,7 +42,9 @@ public record BrandDto(
     string? WelcomeText = null,
     IReadOnlyList<BrandLink>? Links = null,
     string? Radius = null,
-    string? Font = null)
+    string? Font = null,
+    string? LogoDarkUrl = null,
+    string? FontUrl = null)
 {
     public static readonly BrandDto Default = new("Yurt", "#ffd119", "#ea580c", null, null);
 }
@@ -49,6 +54,7 @@ public static class BrandChoices
 {
     public static readonly string[] Radius = ["square", "default", "round"];
     public static readonly string[] Font = ["default", "system", "serif"];
+    public static readonly string[] FontFileExtensions = [".woff2", ".woff", ".ttf", ".otf"];
 }
 
 /// <summary>A labelled link shown in the customer app (Instagram, website, ...).</summary>

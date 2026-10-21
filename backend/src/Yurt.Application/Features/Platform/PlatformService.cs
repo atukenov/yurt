@@ -123,12 +123,14 @@ public class PlatformService
             PrimaryColor = (dto.PrimaryColor ?? string.Empty).Trim().ToLowerInvariant(),
             AccentColor = (dto.AccentColor ?? string.Empty).Trim().ToLowerInvariant(),
             LogoUrl = string.IsNullOrWhiteSpace(dto.LogoUrl) ? null : dto.LogoUrl.Trim(),
+            LogoDarkUrl = string.IsNullOrWhiteSpace(dto.LogoDarkUrl) ? null : dto.LogoDarkUrl.Trim(),
             SupportContact = string.IsNullOrWhiteSpace(dto.SupportContact) ? null : dto.SupportContact.Trim(),
             IconUrl = string.IsNullOrWhiteSpace(dto.IconUrl) ? null : dto.IconUrl.Trim(),
             SplashUrl = string.IsNullOrWhiteSpace(dto.SplashUrl) ? null : dto.SplashUrl.Trim(),
             WelcomeText = string.IsNullOrWhiteSpace(dto.WelcomeText) ? null : dto.WelcomeText.Trim(),
             Radius = NormalizeChoice(dto.Radius),
             Font = NormalizeChoice(dto.Font),
+            FontUrl = string.IsNullOrWhiteSpace(dto.FontUrl) ? null : dto.FontUrl.Trim(),
             Links = dto.Links?
                 .Where(l => !string.IsNullOrWhiteSpace(l.Label) || !string.IsNullOrWhiteSpace(l.Url))
                 .Select(l => new BrandLink((l.Label ?? string.Empty).Trim(), (l.Url ?? string.Empty).Trim()))
@@ -150,11 +152,14 @@ public class PlatformService
         if (!HexColor.IsMatch(b.PrimaryColor)) return "Primary colour must look like #rrggbb.";
         if (!HexColor.IsMatch(b.AccentColor)) return "Accent colour must look like #rrggbb.";
         if (b.LogoUrl is { } logo && !IsHttpsUrl(logo)) return "Logo must be an https URL (max 500 characters).";
+        if (b.LogoDarkUrl is { } logoDark && !IsHttpsUrl(logoDark)) return "Dark mode logo must be an https URL (max 500 characters).";
         if (b.IconUrl is { } icon && !IsHttpsUrl(icon)) return "Icon must be an https URL (max 500 characters).";
         if (b.SplashUrl is { } splash && !IsHttpsUrl(splash)) return "Splash image must be an https URL (max 500 characters).";
         if (b.WelcomeText is { Length: > 120 }) return "Welcome text is too long (max 120 characters).";
         if (b.Radius is { } radius && !BrandChoices.Radius.Contains(radius)) return "Corner style must be square, default or round.";
         if (b.Font is { } font && !BrandChoices.Font.Contains(font)) return "Font must be default, system or serif.";
+        if (b.FontUrl is { } fontUrl && !IsFontFileUrl(fontUrl))
+            return "Font file must be an https URL ending in .woff2, .woff, .ttf or .otf (max 500 characters).";
         if (b.Links is { } links)
         {
             if (links.Count > 6) return "At most 6 links.";
@@ -172,6 +177,11 @@ public class PlatformService
 
     private static bool IsHttpsUrl(string value)
         => value.Length <= 500 && Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps;
+
+    /// <summary>An https link whose path ends in a web font extension; the query string is ignored.</summary>
+    private static bool IsFontFileUrl(string value)
+        => IsHttpsUrl(value) && Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            && BrandChoices.FontFileExtensions.Any(ext => uri.AbsolutePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
 
     private static PlatformModuleDto ToDto(ModuleStatus s, Dictionary<string, List<string>> warnings)
         => new(s.Key, s.IsEnabled, s.State.ToString().ToLowerInvariant(), s.ValidUntil, s.GraceEndsAt,

@@ -108,6 +108,33 @@ jobs:
         working-directory: frontend
         run: npx ng build yurt-admin --configuration production
 
+      # Colour contrast and tap-target size on sign-in, menu, cart and order status, for every sample brand, light and dark.
+      - name: Install accessibility check tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/a11y" && cd "$RUNNER_TEMP/a11y"
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund playwright@1.56.1 axe-core@4.14.0
+          npx playwright install --with-deps chromium
+
+      - name: Accessibility checks (light)
+        working-directory: frontend
+        env:
+          NODE_PATH: ${{ runner.temp }}/a11y/node_modules
+        run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/brand-screenshots" --a11y --fail
+
+      - name: Accessibility checks (dark)
+        working-directory: frontend
+        env:
+          NODE_PATH: ${{ runner.temp }}/a11y/node_modules
+        run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/brand-screenshots" --a11y --dark --fail
+
+      - name: Upload brand screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: brand-screenshots
+          path: ${{ runner.temp }}/brand-screenshots
+
       - name: Audit dependencies (non-blocking)
         working-directory: frontend
         run: npm audit --audit-level=high 2>&1 || true

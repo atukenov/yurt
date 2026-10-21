@@ -4,6 +4,7 @@ using Yurt.Application.Common.Models;
 using Yurt.Application.Features.DiscountCodes.Services;
 using Yurt.Application.Features.Loyalty.Services;
 using Yurt.Application.Features.Orders.DTOs;
+using Yurt.Application.Features.Printing;
 using Yurt.Application.Features.Stock;
 using Yurt.Domain;
 using Yurt.Domain.Entities;
@@ -21,13 +22,15 @@ public class OrderService
     private readonly IPosOrderSink _pos;
     private readonly IModuleGate _modules;
     private readonly StockService? _stock;
+    private readonly PrintService? _print;
 
     public OrderService(
         IApplicationDbContext db, IOrdersHubService hub, IAuditLogService audit,
         DiscountCodeService discountCodes, LoyaltyService loyalty, IPosOrderSink pos,
-        IModuleGate modules, StockService? stock = null)
+        IModuleGate modules, StockService? stock = null, PrintService? print = null)
     {
         _stock = stock;
+        _print = print;
         _db = db;
         _hub = hub;
         _audit = audit;
@@ -359,6 +362,10 @@ public class OrderService
         // iiko order push is a reporting/kitchen-routing side-channel only — fails open,
         // never blocks acceptance, and never affects the wallet loyalty flow above.
         await _pos.PushOrderAsync(order, ct);
+
+        // Kitchen tickets and the receipt go to the branch's network printers (own_pos). Fails open like the push above.
+        if (_print is not null && await _modules.IsEnabledAsync(ModuleKeys.OwnPos, ct))
+            await _print.QueueForAcceptedOrderAsync(order, ct);
 
         return Result<OrderDto>.Success(MapToDto(order));
     }

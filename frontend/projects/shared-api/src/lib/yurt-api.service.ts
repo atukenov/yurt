@@ -46,6 +46,11 @@ import {
   StockChange,
   Station,
   StationRouting,
+  Printer,
+  SavePrinter,
+  PrintJob,
+  PrintQueued,
+  PrintAgent,
   CategoryRouting,
   Shift,
   ShiftReport,
@@ -609,6 +614,58 @@ export class YurtApiService {
   setStationReady(orderId: string, stationId: string, ready: boolean): Observable<Order> {
     const url = `${this.api}/admin/orders/${orderId}/stations/${stationId}/ready`;
     return ready ? this.http.post<Order>(url, {}) : this.http.delete<Order>(url);
+  }
+
+  getPrinters(): Observable<Printer[]> {
+    return this.http.get<Printer[]>(`${this.api}/admin/printers`);
+  }
+
+  createPrinter(body: SavePrinter): Observable<Printer> {
+    return this.http.post<Printer>(`${this.api}/admin/printers`, body);
+  }
+
+  updatePrinter(id: string, body: SavePrinter): Observable<Printer> {
+    return this.http.put<Printer>(`${this.api}/admin/printers/${id}`, body);
+  }
+
+  deletePrinter(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/printers/${id}`);
+  }
+
+  /**
+   * Prints a test page right away; fails with the reason when the printer cannot be reached. For a printer behind the
+   * print agent the page is queued instead (`printed: false`).
+   */
+  testPrinter(id: string): Observable<{ printed: boolean }> {
+    return this.http.post<{ printed: boolean }>(`${this.api}/admin/printers/${id}/test`, {});
+  }
+
+  getPrintAgents(): Observable<PrintAgent[]> {
+    return this.http.get<PrintAgent[]>(`${this.api}/admin/printers/agents`);
+  }
+
+  /** Makes a new key for a branch's print agent. The key is shown only this once; an older key stops working. */
+  createPrintAgentKey(locationId: string): Observable<{ locationId: string; key: string }> {
+    return this.http.post<{ locationId: string; key: string }>(`${this.api}/admin/printers/agents/${locationId}`, {});
+  }
+
+  deletePrintAgentKey(locationId: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/printers/agents/${locationId}`);
+  }
+
+  getPrintJobs(limit = 30): Observable<PrintJob[]> {
+    return this.http.get<PrintJob[]>(`${this.api}/admin/printers/jobs`, { params: { limit } });
+  }
+
+  /** Sends a kitchen ticket to the branch's printers (one station's, or every kitchen printer). */
+  printOrderTicket(orderId: string, stationId?: string): Observable<PrintQueued> {
+    return this.http.post<PrintQueued>(`${this.api}/admin/orders/${orderId}/print/ticket`, {}, {
+      params: stationId ? { stationId } : {},
+    });
+  }
+
+  printOrderReceipt(orderId: string): Observable<PrintQueued> {
+    return this.http.post<PrintQueued>(`${this.api}/admin/orders/${orderId}/print/receipt`, {});
   }
 
   getToppingUses(toppingId: string): Observable<RecipeLine[]> {

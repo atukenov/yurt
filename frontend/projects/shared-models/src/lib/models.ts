@@ -360,6 +360,51 @@ export interface StationRouting {
   itemStations: Record<string, string>;
 }
 
+/** A network printer at a branch (own_pos). Kitchen printers print one station's items (or all with no station). */
+export interface Printer {
+  id: string;
+  locationId: string;
+  name: string;
+  kind: 'Kitchen' | 'Receipt';
+  stationId?: string | null;
+  host: string;
+  port: number;
+  lineWidth: number;
+  codeTable: number;
+  language: 'ru' | 'kk' | 'en';
+  autoPrint: boolean;
+  /** Sent through the branch's print agent (a printer on the cafe network that the server cannot reach). */
+  viaAgent: boolean;
+}
+
+export type SavePrinter = Omit<Printer, 'id'>;
+
+/** One ticket or receipt sent (or waiting to be sent) to a printer. */
+export interface PrintJob {
+  id: string;
+  printerId: string;
+  printerName: string;
+  orderId?: string | null;
+  kind: 'Ticket' | 'Receipt' | 'Test';
+  status: 'Pending' | 'Sending' | 'Printed' | 'Failed';
+  attempts: number;
+  lastError?: string | null;
+  createdAt: string;
+  printedAt?: string | null;
+}
+
+/** The print agent of a branch: a small program in the cafe that passes jobs to printers on the cafe network. */
+export interface PrintAgent {
+  locationId: string;
+  hasKey: boolean;
+  lastSeenAt?: string | null;
+}
+
+/** How many printers got the job; 0 means the branch has none for it, so print in the browser instead. */
+export interface PrintQueued {
+  printers: number;
+}
+
 /** Something running low or out at a branch (own_pos). `kind` is "dish" or "ingredient". */
 export interface StockAlert {
   kind: 'dish' | 'ingredient';
@@ -745,6 +790,8 @@ export interface BrandConfig {
   primaryColor: string;
   accentColor: string;
   logoUrl?: string | null;
+  /** Logo for dark mode; the apps fall back to logoUrl when it is empty. */
+  logoDarkUrl?: string | null;
   supportContact?: string | null;
   iconUrl?: string | null;
   splashUrl?: string | null;
@@ -754,6 +801,8 @@ export interface BrandConfig {
   radius?: string | null;
   /** Font: 'system' | 'serif'; null or 'default' keeps Inter. */
   font?: string | null;
+  /** https link to the cafe's own font file (woff2, woff, ttf, otf); `font` is the fallback. */
+  fontUrl?: string | null;
 }
 
 export interface BrandLink {

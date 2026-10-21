@@ -25,6 +25,7 @@ import { Subscription } from 'rxjs';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { SoundService } from '../../core/sound.service';
 import { ReceiptService } from '../../core/receipt.service';
+import { AdminLangService } from '../../core/lang.service';
 
 @Component({
   selector: 'app-orders-live',
@@ -49,9 +50,18 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private sound = inject(SoundService);
   private receipts = inject(ReceiptService);
+  private lang = inject(AdminLangService);
 
   printReceipt(order: Order): void {
     if (!this.modules.isEnabled('own_pos')) return this.receipts.print(order);
+    // A receipt printer at the branch prints it directly; without one, the browser prints it as before.
+    this.api.printOrderReceipt(order.id).subscribe({
+      next: (r) => (r.printers > 0 ? this.toast.success(this.lang.t('printers.sent')) : this.browserReceipt(order)),
+      error: () => this.browserReceipt(order),
+    });
+  }
+
+  private browserReceipt(order: Order): void {
     // Parts of a split payment go on the receipt; if they cannot be loaded the receipt still prints.
     this.api.getSplitPayment(order.id).subscribe({
       next: (p) => this.receipts.print(order, p.lines),

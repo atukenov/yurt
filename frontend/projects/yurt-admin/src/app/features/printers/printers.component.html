@@ -1,0 +1,339 @@
+<div class="mx-auto max-w-4xl p-6">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">{{ 'printers.title' | t }}</h1>
+      <p class="text-sm text-slate-500">{{ 'printers.hint' | t }}</p>
+    </div>
+    <button
+      type="button"
+      (click)="add()"
+      class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600"
+    >
+      {{ 'printers.add' | t }}
+    </button>
+  </div>
+
+  @if (editingId() !== null) {
+    <form
+      (ngSubmit)="save()"
+      class="mb-6 grid gap-3 rounded-2xl border border-slate-200 bg-surface p-5 sm:grid-cols-2"
+    >
+      <label class="text-sm text-slate-600">
+        {{ 'label.name' | t }}
+        <input
+          name="name"
+          required
+          maxlength="50"
+          [(ngModel)]="form.name"
+          [placeholder]="'printers.namePlaceholder' | t"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'stock.branch' | t }}
+        <select
+          name="locationId"
+          [(ngModel)]="form.locationId"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        >
+          @for (loc of locations(); track loc.id) {
+            <option [value]="loc.id">{{ loc.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'printers.kind' | t }}
+        <select
+          name="kind"
+          [(ngModel)]="form.kind"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        >
+          <option value="Kitchen">{{ 'printers.kitchen' | t }}</option>
+          <option value="Receipt">{{ 'printers.receipt' | t }}</option>
+        </select>
+      </label>
+      @if (form.kind === 'Kitchen') {
+        <label class="text-sm text-slate-600">
+          {{ 'printers.station' | t }}
+          <select
+            name="stationId"
+            [(ngModel)]="form.stationId"
+            class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+          >
+            <option [ngValue]="null">{{ 'printers.allItems' | t }}</option>
+            @for (s of stations(); track s.id) {
+              <option [ngValue]="s.id">{{ s.name }}</option>
+            }
+          </select>
+        </label>
+      } @else {
+        <span></span>
+      }
+      <label class="text-sm text-slate-600">
+        {{ 'printers.address' | t }}
+        <input
+          name="host"
+          required
+          maxlength="100"
+          [(ngModel)]="form.host"
+          placeholder="192.168.1.50"
+          inputmode="decimal"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 font-mono outline-none focus:ring-2 focus:ring-brand-400"
+        />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'printers.port' | t }}
+        <input
+          name="port"
+          type="number"
+          min="9100"
+          max="9109"
+          [(ngModel)]="form.port"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'printers.paper' | t }}
+        <select
+          name="lineWidth"
+          [(ngModel)]="form.lineWidth"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        >
+          <option [ngValue]="48">80 mm (48)</option>
+          <option [ngValue]="42">80 mm (42)</option>
+          <option [ngValue]="32">58 mm (32)</option>
+        </select>
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'printers.language' | t }}
+        <select
+          name="language"
+          [(ngModel)]="form.language"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        >
+          <option value="ru">Русский</option>
+          <option value="kk">Қазақша</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'printers.codeTable' | t }}
+        <input
+          name="codeTable"
+          type="number"
+          min="0"
+          max="255"
+          [(ngModel)]="form.codeTable"
+          class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        />
+        <span class="text-xs text-slate-400">{{ 'printers.codeTableHint' | t }}</span>
+      </label>
+      <label class="flex items-center gap-2 self-center text-sm text-slate-600">
+        <input name="autoPrint" type="checkbox" [(ngModel)]="form.autoPrint" class="h-4 w-4" />
+        {{ 'printers.autoPrint' | t }}
+      </label>
+      <label class="flex items-start gap-2 text-sm text-slate-600 sm:col-span-2">
+        <input name="viaAgent" type="checkbox" [(ngModel)]="form.viaAgent" class="mt-0.5 h-4 w-4" />
+        <span>
+          {{ 'printers.viaAgent' | t }}
+          <span class="block text-xs text-slate-400">{{ 'printers.viaAgentHint' | t }}</span>
+        </span>
+      </label>
+      <div class="flex gap-2 sm:col-span-2">
+        <button
+          type="submit"
+          [disabled]="busyId() === 'form' || !form.name.trim() || !form.host.trim() || !form.locationId"
+          class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-40"
+        >
+          {{ 'action.save' | t }}
+        </button>
+        <button
+          type="button"
+          (click)="editingId.set(null)"
+          class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+        >
+          {{ 'action.cancel' | t }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (loading()) {
+    <p class="text-slate-400">{{ 'label.loading' | t }}</p>
+  } @else if (!printers().length) {
+    <p class="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+      {{ 'printers.empty' | t }}
+    </p>
+  } @else {
+    @for (group of byLocation(); track group.location.id) {
+      <h2 class="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        {{ group.location.name }}
+      </h2>
+      <ul class="space-y-2">
+        @for (p of group.printers; track p.id) {
+          <li
+            class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-surface p-4"
+          >
+            <div class="min-w-0">
+              <p class="font-semibold text-slate-800">{{ p.name }}</p>
+              <p class="text-sm text-slate-500">
+                {{ (p.kind === 'Kitchen' ? 'printers.kitchen' : 'printers.receipt') | t }}
+                @if (p.kind === 'Kitchen') {
+                  · {{ stationName(p.stationId) }}
+                }
+                · <span class="font-mono">{{ p.host }}:{{ p.port }}</span>
+                @if (!p.autoPrint) {
+                  · {{ 'printers.manualOnly' | t }}
+                }
+                @if (p.viaAgent) {
+                  · {{ 'printers.agent.via' | t }}
+                }
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="test(p)"
+                [disabled]="busyId() === p.id"
+                class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                {{ 'printers.test' | t }}
+              </button>
+              <button
+                type="button"
+                (click)="edit(p)"
+                class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                {{ 'action.edit' | t }}
+              </button>
+              <button
+                type="button"
+                (click)="remove(p)"
+                class="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+              >
+                {{ 'action.delete' | t }}
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  <h2 class="mb-1 mt-8 text-lg font-bold text-slate-800">{{ 'printers.agent.title' | t }}</h2>
+  <p class="mb-3 text-sm text-slate-500">{{ 'printers.agent.hint' | t }}</p>
+  @if (newKey(); as k) {
+    <div class="mb-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+      <p class="mb-2 font-semibold">{{ 'printers.agent.keyOnce' | t }}</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <code class="break-all rounded bg-surface px-2 py-1 font-mono text-xs text-slate-800">{{ k.key }}</code>
+        <button
+          type="button"
+          (click)="copyKey()"
+          class="rounded-lg border border-amber-300 px-3 py-1 text-xs font-semibold hover:bg-amber-100"
+        >
+          {{ 'printers.agent.copy' | t }}
+        </button>
+      </div>
+      <p class="mb-1 mt-3">{{ 'printers.agent.run' | t }}</p>
+      <code class="block break-all rounded bg-surface px-2 py-1 font-mono text-xs text-slate-800"
+        >node print-agent.mjs --api {{ apiUrl }} --key {{ k.key }}</code
+      >
+      <button
+        type="button"
+        (click)="newKey.set(null)"
+        class="mt-3 rounded-lg border border-amber-300 px-3 py-1 text-xs font-semibold hover:bg-amber-100"
+      >
+        {{ 'action.close' | t }}
+      </button>
+    </div>
+  }
+  <ul class="space-y-2">
+    @for (loc of locations(); track loc.id) {
+      <li
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-surface p-4"
+      >
+        <div>
+          <p class="font-semibold text-slate-800">{{ loc.name }}</p>
+          @if (agentOf(loc.id); as a) {
+            <p class="text-sm" [class]="agentOnline(a) ? 'text-green-700' : 'text-slate-500'">
+              @if (agentOnline(a)) {
+                {{ 'printers.agent.online' | t }}
+              } @else if (a.lastSeenAt) {
+                {{ 'printers.agent.lastSeen' | t }} {{ a.lastSeenAt | date: 'dd.MM HH:mm' }}
+              } @else {
+                {{ 'printers.agent.never' | t }}
+              }
+            </p>
+          } @else {
+            <p class="text-sm text-slate-400">{{ 'printers.agent.noKey' | t }}</p>
+          }
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            (click)="createKey(loc.id)"
+            class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+          >
+            {{ (agentOf(loc.id) ? 'printers.agent.newKey' : 'printers.agent.makeKey') | t }}
+          </button>
+          @if (agentOf(loc.id)) {
+            <button
+              type="button"
+              (click)="removeKey(loc.id)"
+              class="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+            >
+              {{ 'action.delete' | t }}
+            </button>
+          }
+        </div>
+      </li>
+    }
+  </ul>
+
+  <div class="mb-2 mt-8 flex items-center justify-between">
+    <h2 class="text-lg font-bold text-slate-800">{{ 'printers.jobs' | t }}</h2>
+    <button
+      type="button"
+      (click)="loadJobs()"
+      class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+    >
+      {{ 'action.refresh' | t }}
+    </button>
+  </div>
+  @if (!jobs().length) {
+    <p class="text-sm text-slate-400">{{ 'printers.noJobs' | t }}</p>
+  } @else {
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-surface">
+      <table class="w-full text-sm">
+        <tbody>
+          @for (j of jobs(); track j.id) {
+            <tr class="border-b border-slate-100 last:border-0">
+              <td class="whitespace-nowrap px-3 py-2 text-slate-500">{{ j.createdAt | date: 'dd.MM HH:mm:ss' }}</td>
+              <td class="px-3 py-2">{{ j.printerName }}</td>
+              <td class="px-3 py-2 text-slate-500">
+                {{ 'printers.job.' + j.kind | t }} {{ jobOrder(j) }}
+              </td>
+              <td class="px-3 py-2">
+                <span
+                  class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                  [class]="
+                    j.status === 'Printed'
+                      ? 'bg-green-100 text-green-800'
+                      : j.status === 'Failed'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-slate-100 text-slate-600'
+                  "
+                  >{{ 'printers.status.' + j.status | t }}</span
+                >
+                @if (j.lastError) {
+                  <p class="mt-1 text-xs text-red-600">{{ j.lastError }}</p>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

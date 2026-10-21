@@ -30,6 +30,8 @@ using Yurt.Application.Features.Platform;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Shifts;
 using Yurt.Application.Features.Stations;
+using Yurt.Application.Features.Printing;
+using Yurt.Infrastructure.Printing;
 using Yurt.Application.Features.Stock;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty;
@@ -162,6 +164,11 @@ public static class DependencyInjection
         services.AddScoped<FiscalSettingsService>();
         services.AddScoped<StationService>();
         services.AddScoped<StationReadyService>();
+        services.AddSingleton<PrintQueueSignal>();
+        services.AddSingleton<IPrinterTransport, TcpPrinterTransport>();
+        services.AddScoped<PrinterService>();
+        services.AddScoped<PrintService>();
+        services.AddScoped<PrintAgentService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();
@@ -179,6 +186,7 @@ public static class DependencyInjection
         services.AddHostedService<LoyaltyRetryService>();
         services.AddHostedService<IikoOrderSyncRetryService>();
         services.AddHostedService<FiscalReceiptJob>();
+        services.AddHostedService<PrintJobService>();
 
         // JWT Auth — fail-fast secret validation
         var jwtSecret = configuration["Jwt:Secret"];

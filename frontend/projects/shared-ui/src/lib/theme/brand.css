@@ -75,6 +75,13 @@
   --surface-dark: #1c1917;
   color-scheme: light;
 
+  /* Status text (discounts, paid, bonuses, waiting) at contrast 4.5 on cards and pages; dark mode lightens them. */
+  --tone-green: #047857;
+  --tone-green-soft: #ecfdf5;
+  --tone-teal: #0f766e;
+  --tone-amber: #b45309;
+  --tone-red: #dc2626;
+
   /* Page background and body text. The admin app overrides --surface-page (slate instead of stone). */
   --surface-page: #fafaf9;
   --text-body: #1c1917;
@@ -108,6 +115,10 @@
   --color-on-brand: var(--brand-on-primary);
   --color-brand-ink: var(--brand-ink);
   --color-brand-hero: var(--brand-hero-text);
+  --color-tone-green: var(--tone-green);
+  --color-tone-teal: var(--tone-teal);
+  --color-tone-amber: var(--tone-amber);
+  --color-tone-red: var(--tone-red);
 }
 
 /* Typography and corner radius follow the tokens above. Defaults equal Tailwind's own values. */
@@ -182,6 +193,11 @@
   --slate-950: #f8fafc;
   --surface-dark: #2f2a27;
   --text-body: #fafaf9;
+  --tone-green: #34d399;
+  --tone-green-soft: #022c22;
+  --tone-teal: #2dd4bf;
+  --tone-amber: #fbbf24;
+  --tone-red: #f87171;
   --brand-50:  color-mix(in srgb, var(--brand-500) 13%, #0c0a09) !important;
   --brand-100: color-mix(in srgb, var(--brand-500) 22%, #0c0a09) !important;
   --brand-200: color-mix(in srgb, var(--brand-500) 34%, #0c0a09) !important;
