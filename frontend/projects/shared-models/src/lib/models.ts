@@ -336,6 +336,25 @@ export interface ShiftReport {
   movements: CashMovement[];
 }
 
+export interface Station {
+  id: string;
+  name: string;
+  categories: number;
+}
+
+export interface CategoryRouting {
+  categoryId: string;
+  categoryName: string;
+  stationId?: string | null;
+}
+
+/** The stations and the station of every menu item (own_pos). Items of a category with no station are left out. */
+export interface StationRouting {
+  stations: Station[];
+  categories: CategoryRouting[];
+  itemStations: Record<string, string>;
+}
+
 export interface Order {
   id: string;
   customerUserId: string;

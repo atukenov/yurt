@@ -28,6 +28,7 @@ using Yurt.Application.Features.AppUpdate;
 using Yurt.Application.Features.Modules;
 using Yurt.Application.Features.Platform;
 using Yurt.Application.Features.Shifts;
+using Yurt.Application.Features.Stations;
 using Yurt.Application.Features.Stock;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty;
@@ -147,6 +148,7 @@ public static class DependencyInjection
         services.AddScoped<StockService>();
         services.AddScoped<IngredientService>();
         services.AddScoped<ShiftService>();
+        services.AddScoped<StationService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

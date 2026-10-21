@@ -40,6 +40,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<MenuItemLocation> MenuItemLocations => Set<MenuItemLocation>();
     public DbSet<MenuItemStock> MenuItemStocks => Set<MenuItemStock>();
     public DbSet<Shift> Shifts => Set<Shift>();
+    public DbSet<Station> Stations => Set<Station>();
     public DbSet<ToppingUse> ToppingUses => Set<ToppingUse>();
     public DbSet<CashMovement> CashMovements => Set<CashMovement>();
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();
