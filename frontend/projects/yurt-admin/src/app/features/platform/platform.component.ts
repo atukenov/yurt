@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService } from 'shared-ui';
-import { LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { FiscalSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 
@@ -53,6 +53,7 @@ export class PlatformComponent implements OnInit {
     this.api.getMaintenance().subscribe({ next: (m) => { this.maintenanceEnabled = m.enabled; this.maintenanceMessage = m.message; } });
     this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
     this.loadLedger();
+    this.loadFiscal();
   }
 
   // ── Loyalty wallet (iiko → own wallet) ──
@@ -87,6 +88,45 @@ export class PlatformComponent implements OnInit {
   switchLedger(mode: 'iiko' | 'native'): void {
     if (!confirm(this.lang.t(mode === 'native' ? 'plat.loyalty.confirmNative' : 'plat.loyalty.confirmIiko'))) return;
     this.loyaltyCall(() => this.api.setLoyaltyLedger(mode), (l) => { this.ledger.set(l); this.toast.success('Saved'); });
+  }
+
+  // ── Official tax receipts (cloud cash register) ──
+  fiscal = signal<FiscalSettings | null>(null);
+  fiscalProvider = '';
+  fiscalVat: number | null = null;
+  fiscalSkip: Record<string, boolean> = {};
+  fiscalRegisters: Record<string, string> = {};
+  savingFiscal = signal(false);
+  readonly fiscalMethods = ['Cash', 'Card', 'KaspiBank', 'HalykBank', 'FreedomBank', 'ApplePay', 'Other'];
+
+  private loadFiscal(): void {
+    this.fiscal.set(null);
+    this.api.getFiscalSettings().subscribe({ next: (f) => this.setFiscal(f), error: () => this.fiscal.set(null) });
+  }
+
+  private setFiscal(f: FiscalSettings): void {
+    this.fiscal.set(f);
+    this.fiscalProvider = f.provider ?? '';
+    this.fiscalVat = f.vatPercent ?? null;
+    this.fiscalSkip = Object.fromEntries(this.fiscalMethods.map((m) => [m, f.skipMethods.includes(m)]));
+    this.fiscalRegisters = Object.fromEntries(f.branches.map((b) => [b.locationId, b.registerNumber ?? '']));
+  }
+
+  saveFiscal(): void {
+    const f = this.fiscal();
+    if (!f) return;
+    // Turning receipts on is the cut-over step: iiko or the old register must stop making them the same day.
+    if (!f.provider && this.fiscalProvider && !confirm(this.lang.t('plat.fiscal.confirmOn'))) return;
+    this.savingFiscal.set(true);
+    this.api.setFiscalSettings({
+      provider: this.fiscalProvider || null,
+      skipMethods: this.fiscalMethods.filter((m) => this.fiscalSkip[m]),
+      vatPercent: this.fiscalVat === null || (this.fiscalVat as unknown) === '' ? null : Number(this.fiscalVat),
+      branches: f.branches.map((b) => ({ locationId: b.locationId, registerNumber: (this.fiscalRegisters[b.locationId] ?? '').trim() || null })),
+    }).subscribe({
+      next: (saved) => { this.setFiscal(saved); this.savingFiscal.set(false); this.toast.success('Saved'); },
+      error: () => this.savingFiscal.set(false),
+    });
   }
 
   cafes = signal<Cafe[]>([]);
@@ -242,6 +282,7 @@ export class PlatformComponent implements OnInit {
     this.api.getCafes().subscribe({ next: (c) => this.cafes.set(c) });
     this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
     this.loadLedger();
+    this.loadFiscal();
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }
 

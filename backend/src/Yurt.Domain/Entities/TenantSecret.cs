@@ -27,5 +27,8 @@ public static class TenantSecretKeys
         "Firebase:ServiceAccountJson",
         "Otp:IdInstance",
         "Otp:ApiTokenInstance",
+        "Fiscal:Login",
+        "Fiscal:Password",
+        "Fiscal:ApiKey",
     ];
 }

@@ -1,12 +1,14 @@
 namespace Yurt.Application.Features.Shifts;
 
 public record OpenShiftDto(Guid LocationId, decimal OpeningCash);
-public record CloseShiftDto(decimal CountedCash, string? Note);
+/// <param name="CloseWithWaitingReceipts">Close even though some official tax receipts of the branch are still waiting to be sent.</param>
+public record CloseShiftDto(decimal CountedCash, string? Note, bool CloseWithWaitingReceipts = false);
 public record CashMovementInputDto(decimal Amount, bool IsOut, string Reason);
 
 public record ShiftDto(
     Guid Id, Guid LocationId, string LocationName, DateTime OpenedAt, string OpenedBy, decimal OpeningCash,
-    DateTime? ClosedAt, string? ClosedBy, decimal? CountedCash, string? Note);
+    DateTime? ClosedAt, string? ClosedBy, decimal? CountedCash, string? Note,
+    DateTime? FiscalZReportAt = null, string? FiscalZReportError = null);
 
 public record CashMovementDto(Guid Id, decimal Amount, bool IsOut, string Reason, string CreatedBy, DateTime CreatedAt);
 

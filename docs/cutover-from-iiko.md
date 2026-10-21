@@ -33,6 +33,7 @@ Only when the week of comparing showed no unexplained differences.
 - [ ] Turn off the `iiko_sync` module for the cafe (Platform page). Orders no longer go to iiko.
 - [ ] **Official tax receipts:** iiko (or the cafe's old cash register) stops printing them now. Make sure the cafe has its own cloud cash register ready the same day, or keeps a separate one, so no sale goes without a receipt. See `docs/fiscal-receipts-kz.md`.
 - [ ] Watch the first day: orders arrive in Kitchen, Cashier totals look right, no errors in the logs.
+- [ ] If Yurt sends the tax receipts: the same day, on the Platform page set **Official tax receipts** to Webkassa, enter each branch's register number and the login in Secrets. The next orders show "Tax receipt"; any "Not fiscalized" badge says why.
 - [ ] Keep the iiko account for a few weeks as a safety net before cancelling it. Turning `iiko_sync` back on is the way back.
 
 ## Known limits today

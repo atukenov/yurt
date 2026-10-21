@@ -30,6 +30,7 @@ public interface IApplicationDbContext
     DbSet<MenuItemStock> MenuItemStocks { get; }
     DbSet<Shift> Shifts { get; }
     DbSet<OrderPayment> OrderPayments { get; }
+    DbSet<FiscalReceipt> FiscalReceipts { get; }
     DbSet<Station> Stations { get; }
     DbSet<OrderStationReady> OrderStationReadies { get; }
     DbSet<Printer> Printers { get; }

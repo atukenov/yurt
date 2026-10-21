@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModuleService, YurtApiService, SignalrService } from 'shared-api';
 import {
+  FiscalReceipt,
   Order,
   OrderStatus,
   Location,
@@ -90,10 +91,48 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   paymentLoading = signal(false);
   showDecline = signal(false);
 
+  /** Ids of orders whose official tax receipt is not sent yet ("not fiscalized"); empty while fiscal receipts are off. */
+  fiscalWaiting = signal<Set<string>>(new Set());
+  /** Tax receipts of the order on screen. */
+  orderFiscal = signal<FiscalReceipt[]>([]);
+  private fiscalOrderId: string | null = null;
+
   constructor() {
     effect(() => {
       const o = this.selectedOrder();
       if (o) this.paymentStatus = o.paymentStatus;
+      if ((o?.id ?? null) !== this.fiscalOrderId) {
+        this.fiscalOrderId = o?.id ?? null;
+        this.loadOrderFiscal();
+      }
+    });
+  }
+
+  private loadFiscalWaiting(): void {
+    if (!this.modules.isEnabled('own_pos')) return;
+    this.api.getWaitingFiscalReceipts(this.selectedLocationId || undefined).subscribe({
+      next: (list) => this.fiscalWaiting.set(new Set(list.map((r) => r.orderId))),
+      error: () => this.fiscalWaiting.set(new Set()),
+    });
+  }
+
+  private loadOrderFiscal(): void {
+    this.orderFiscal.set([]);
+    const id = this.fiscalOrderId;
+    if (!id || !this.modules.isEnabled('own_pos')) return;
+    this.api.getOrderFiscalReceipts(id).subscribe({
+      next: (list) => { if (this.fiscalOrderId === id) this.orderFiscal.set(list); },
+      error: () => {},
+    });
+  }
+
+  retryFiscal(r: FiscalReceipt): void {
+    this.api.retryFiscalReceipt(r.id).subscribe({
+      next: (saved) => {
+        if (saved.status === 'Pending') this.toast.error(saved.lastError || 'Not sent');
+        this.loadOrderFiscal();
+        this.loadFiscalWaiting();
+      },
     });
   }
 
@@ -187,6 +226,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
         const items = Array.isArray(res) ? (res as unknown as Order[]) : (res.items ?? []);
         this.orders.set(items);
         this.loading.set(false);
+        this.loadFiscalWaiting();
       },
       error: () => this.loading.set(false),
     });

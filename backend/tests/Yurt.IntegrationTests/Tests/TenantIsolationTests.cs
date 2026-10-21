@@ -184,7 +184,11 @@ public class TenantIsolationTests(YurtWebAppFactory factory)
 
         Assert.True(await db.Locations.AnyAsync());
         Assert.True(await db.MenuItems.AnyAsync());
-        Assert.Equal(await db.Locations.IgnoreQueryFilters().CountAsync(), await db.Locations.CountAsync());
+        // Other tests add branches to their own cafes, so check the seeded branches by id rather than counting all.
+        var seeded = await db.Locations.IgnoreQueryFilters()
+            .Where(l => l.Id.ToString().StartsWith("11111111-0000-0000-0000-")).ToListAsync();
+        Assert.NotEmpty(seeded);
+        Assert.All(seeded, l => Assert.Equal(Tenant.DefaultId, l.TenantId));
     }
 
     [Fact]

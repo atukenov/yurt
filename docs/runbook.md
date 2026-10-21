@@ -34,7 +34,8 @@ Checklist (one-time, done in the hosting dashboard):
    `AllowedOrigins__0..n` (staging frontend URLs), `Otp__Required=false` unless a test OTP channel exists.
 4. Integrations in sandbox mode only: payments (`KaspiSandbox`, `FreedomPay__Enabled=false`),
    iiko test organisation (or `Iiko` disabled), a separate Firebase project (`Firebase__Enabled=true` only if
-   you want to test pushes with test devices).
+   you want to test pushes with test devices), and `Webkassa__BaseUrl=https://devkkm.webkassa.kz` (Webkassa's
+   test server; production uses the default live server).
 5. Two frontend deployments (customer and admin) built with `apiUrl` of the staging backend.
 
 Every release goes to staging first. Promote to production only after the smoke test below passes.
