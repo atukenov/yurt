@@ -124,7 +124,8 @@ public class PrintService(
         await db.PrintJobs.Where(j => (j.Status == PrintJob.Printed || j.Status == PrintJob.Failed) && j.CreatedAt < keepFrom)
             .ExecuteDeleteAsync(ct);
 
-        var jobs = await db.PrintJobs.AsNoTracking().Where(j => j.Status == PrintJob.Pending)
+        // Jobs for printers behind a print agent wait for the agent to fetch them (PrintAgentService).
+        var jobs = await db.PrintJobs.AsNoTracking().Where(j => j.Status == PrintJob.Pending && !j.Printer.ViaAgent)
             .OrderBy(j => j.CreatedAt).Take(BatchSize)
             .Select(j => new { j.Id, j.Data, j.Attempts, j.Printer.Host, j.Printer.Port })
             .ToListAsync(ct);
@@ -147,7 +148,7 @@ public class PrintService(
             }
             catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
             {
-                status = job.Attempts + 1 >= MaxAttempts ? PrintJob.Failed : PrintJob.Pending;
+                status = StatusAfter(false, job.Attempts + 1);
                 error = Short(ex);
                 logger.LogWarning("Print job {JobId} to {Host}:{Port} failed: {Error}", job.Id, job.Host, job.Port, error);
             }
@@ -160,11 +161,13 @@ public class PrintService(
         return printed;
     }
 
-    internal static string Short(Exception ex)
-    {
-        var message = ex.Message;
-        return message.Length <= 300 ? message : message[..300];
-    }
+    /// <summary>The state a job moves to after a send: printed, or tried again until <see cref="MaxAttempts"/>.</summary>
+    internal static string StatusAfter(bool ok, int attemptsSoFar)
+        => ok ? PrintJob.Printed : attemptsSoFar >= MaxAttempts ? PrintJob.Failed : PrintJob.Pending;
+
+    internal static string Short(Exception ex) => Short(ex.Message);
+
+    internal static string Short(string message) => message.Length <= 300 ? message : message[..300];
 
     private void Add(Printer printer, Guid orderId, string kind, byte[] data)
         => db.PrintJobs.Add(new PrintJob { PrinterId = printer.Id, OrderId = orderId, Kind = kind, Data = data });

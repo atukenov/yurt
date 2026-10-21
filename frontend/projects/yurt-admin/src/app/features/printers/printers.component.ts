@@ -3,10 +3,11 @@ import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { YurtApiService } from 'shared-api';
-import { Location, Printer, PrintJob, SavePrinter, Station } from 'shared-models';
+import { Location, Printer, PrintAgent, PrintJob, SavePrinter, Station } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
+import { environment } from '../../../environments/environment';
 
 /**
  * Network printers (Phase 6, `own_pos`): the address of each branch's kitchen and receipt printers, a test print, and
@@ -27,6 +28,10 @@ export class PrintersComponent implements OnInit, OnDestroy {
   jobs = signal<PrintJob[]>([]);
   locations = signal<Location[]>([]);
   stations = signal<Station[]>([]);
+  agents = signal<PrintAgent[]>([]);
+  /** A key just made, shown once so staff can copy it to the agent. */
+  newKey = signal<{ locationId: string; key: string } | null>(null);
+  readonly apiUrl = environment.apiUrl;
   loading = signal(true);
   busyId = signal<string | null>(null);
 
@@ -63,10 +68,41 @@ export class PrintersComponent implements OnInit, OnDestroy {
       error: () => this.loading.set(false),
     });
     this.loadJobs();
+    this.api.getPrintAgents().subscribe((a) => this.agents.set(a));
   }
 
   loadJobs(): void {
     this.api.getPrintJobs(30).subscribe((j) => this.jobs.set(j));
+  }
+
+  agentOf(locationId: string): PrintAgent | undefined {
+    return this.agents().find((a) => a.locationId === locationId);
+  }
+
+  /** The agent asks for jobs every few seconds, so one seen in the last minute is running. */
+  agentOnline(a?: PrintAgent): boolean {
+    return !!a?.lastSeenAt && Date.now() - new Date(a.lastSeenAt).getTime() < 60_000;
+  }
+
+  createKey(locationId: string): void {
+    if (this.agentOf(locationId) && !confirm(this.lang.t('printers.agent.confirmNewKey'))) return;
+    this.api.createPrintAgentKey(locationId).subscribe({
+      next: (k) => {
+        this.newKey.set(k);
+        this.load();
+      },
+      error: (e: HttpErrorResponse) => this.toast.error(this.message(e, 'Could not make a key')),
+    });
+  }
+
+  removeKey(locationId: string): void {
+    if (!confirm(this.lang.t('printers.agent.confirmRemove'))) return;
+    this.api.deletePrintAgentKey(locationId).subscribe({ next: () => this.load() });
+  }
+
+  copyKey(): void {
+    const key = this.newKey()?.key;
+    if (key) void navigator.clipboard?.writeText(key).then(() => this.toast.success(this.lang.t('printers.agent.copied')));
   }
 
   stationName(id?: string | null): string {
@@ -116,9 +152,10 @@ export class PrintersComponent implements OnInit, OnDestroy {
   test(p: Printer): void {
     this.busyId.set(p.id);
     this.api.testPrinter(p.id).subscribe({
-      next: () => {
+      next: (r) => {
         this.busyId.set(null);
-        this.toast.success(this.lang.t('printers.testSent'));
+        this.toast.success(this.lang.t(r.printed ? 'printers.testSent' : 'printers.testQueued'));
+        if (!r.printed) this.loadJobs();
       },
       error: (e: HttpErrorResponse) => {
         this.busyId.set(null);
@@ -149,6 +186,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
       codeTable: 17,
       language: (this.lang.lang() === 'en' ? 'en' : this.lang.lang() === 'kk' ? 'kk' : 'ru'),
       autoPrint: true,
+      viaAgent: false,
     };
   }
 }

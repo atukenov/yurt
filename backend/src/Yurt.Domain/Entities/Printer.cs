@@ -39,4 +39,10 @@ public class Printer : BaseEntity, ITenantOwned
 
     /// <summary>Print by itself when an order is accepted. Off = only when staff press Print.</summary>
     public bool AutoPrint { get; set; } = true;
+
+    /// <summary>
+    /// Sent through the branch's <see cref="PrintAgent"/> instead of by the server itself. Needed when the server runs in
+    /// the cloud and the printer is on the cafe's own network.
+    /// </summary>
+    public bool ViaAgent { get; set; }
 }

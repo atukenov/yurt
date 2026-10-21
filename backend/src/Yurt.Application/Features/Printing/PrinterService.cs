@@ -7,7 +7,7 @@ using Yurt.Domain.Entities;
 namespace Yurt.Application.Features.Printing;
 
 /// <summary>Setting up the network printers of each branch, a test print, and the list of recent print jobs (own_pos).</summary>
-public partial class PrinterService(IApplicationDbContext db, IPrinterTransport transport, IAuditLogService audit)
+public partial class PrinterService(IApplicationDbContext db, IPrinterTransport transport, IAuditLogService audit, PrintQueueSignal? signal = null)
 {
     private const int MaxName = 50, MaxPrinters = 30;
 
@@ -58,20 +58,31 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
         return Result<bool>.Success(true);
     }
 
-    /// <summary>Prints a test page right away and says whether it worked, so staff can check the address while setting up.</summary>
-    public async Task<Result<bool>> TestAsync(Guid id, CancellationToken ct = default)
+    /// <summary>
+    /// Prints a test page right away and says whether it worked, so staff can check the address while setting up. A
+    /// printer reached through the print agent cannot be reached from here, so its test page is queued for the agent and
+    /// shows up in the job list.
+    /// </summary>
+    public async Task<Result<PrintTestDto>> TestAsync(Guid id, CancellationToken ct = default)
     {
         var printer = await db.Printers.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, ct);
-        if (printer is null) return Result<bool>.NotFound("Printer not found.");
+        if (printer is null) return Result<PrintTestDto>.NotFound("Printer not found.");
+        if (printer.ViaAgent)
+        {
+            db.PrintJobs.Add(new PrintJob { PrinterId = printer.Id, Kind = PrintJob.TestKind, Data = PrintLayouts.Test(printer) });
+            await db.SaveChangesAsync(ct);
+            signal?.Notify();
+            return Result<PrintTestDto>.Success(new PrintTestDto(false));
+        }
         try
         {
             await transport.SendAsync(printer.Host, printer.Port, PrintLayouts.Test(printer), ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
         {
-            return Result<bool>.Failure($"Could not reach the printer at {printer.Host}:{printer.Port}. {PrintService.Short(ex)}", 502);
+            return Result<PrintTestDto>.Failure($"Could not reach the printer at {printer.Host}:{printer.Port}. {PrintService.Short(ex)}", 502);
         }
-        return Result<bool>.Success(true);
+        return Result<PrintTestDto>.Success(new PrintTestDto(true));
     }
 
     /// <summary>The newest print jobs, so staff can see what printed and what did not.</summary>
@@ -106,9 +117,10 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
         printer.CodeTable = dto.CodeTable;
         printer.Language = dto.Language;
         printer.AutoPrint = dto.AutoPrint;
+        printer.ViaAgent = dto.ViaAgent;
         return null;
     }
 
     private static PrinterDto ToDto(Printer p)
-        => new(p.Id, p.LocationId, p.Name, p.Kind, p.StationId, p.Host, p.Port, p.LineWidth, p.CodeTable, p.Language, p.AutoPrint);
+        => new(p.Id, p.LocationId, p.Name, p.Kind, p.StationId, p.Host, p.Port, p.LineWidth, p.CodeTable, p.Language, p.AutoPrint, p.ViaAgent);
 }
