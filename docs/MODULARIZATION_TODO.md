@@ -178,7 +178,8 @@ Steps:
   - [x] Stock per product per branch with the automatic stop-list (admin Stock page, orders limited to what is left, accept lowers the count, sold-out items leave the customer menu). Details in `docs/modules.md`. Also fixed the customer menu cache so it is kept per cafe.
   - [x] Ingredients and recipes: ingredient counts per branch, a recipe per dish (optionally per size), dishes leave the menu when an ingredient runs out, accepting an order lowers the counts. Details in `docs/modules.md`.
   - [x] Toppings can use ingredients (hidden from a branch's menu and refused when short, lowered on accept).
-  - [x] Low-stock alerts: a badge on the Stock menu entry and a summary on the Stock page (push or phone alerts later).
+  - [x] Low-stock alerts: a badge on the Stock menu entry and a summary on the Stock page.
+  - [x] Low-stock phone alerts: a push to the cafe app of up to 5 chosen phone numbers when an order takes stock down to its warn-at number or to zero (needs `push` and the cafe's Firebase).
 - [ ] Cashier screen, shifts, receipts and Z report.
   - [x] Cashier page: open and close a shift with the cash counted, cash in/out, X report while open, Z report on close with the cash difference, earlier shifts, print. Details in `docs/modules.md`.
   - [x] Print a receipt per order from the order details (browser print, 80 mm layout).

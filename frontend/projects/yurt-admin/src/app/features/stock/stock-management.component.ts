@@ -6,6 +6,7 @@ import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { IngredientsPanelComponent } from './ingredients-panel.component';
 import { RecipesPanelComponent } from './recipes-panel.component';
+import { StockAlertPhonesComponent } from './stock-alert-phones.component';
 
 interface StockRow extends StockItem {
   /** What the staff typed, kept apart from the saved value until they press Save. */
@@ -21,7 +22,13 @@ interface StockRow extends StockItem {
 @Component({
   selector: 'app-stock-management',
   standalone: true,
-  imports: [FormsModule, AdminTranslatePipe, IngredientsPanelComponent, RecipesPanelComponent],
+  imports: [
+    FormsModule,
+    AdminTranslatePipe,
+    IngredientsPanelComponent,
+    RecipesPanelComponent,
+    StockAlertPhonesComponent,
+  ],
   templateUrl: './stock-management.component.html',
 })
 export class StockManagementComponent implements OnInit {
