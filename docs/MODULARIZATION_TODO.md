@@ -105,7 +105,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [x] Optional per-cafe font (self-hosted, loaded from config). _(The Brand screen offers Inter, a system font or a serif font, all without a download, plus an optional link to the cafe's own font file (https .woff2/.woff/.ttf/.otf). The apps load the file and fall back to the chosen preset while it loads or if it fails. The file is hosted by the cafe or a CDN like the logo; Yurt has no file upload yet.)_
 
 **Brand configuration**
-- [ ] `Brand` settings per cafe: display name, logo (light/dark), icon, splash, primary/accent colors, support contact, social links, welcome texts. _(Partly done: name, primary and accent colour, logo URL, icon URL, splash image URL and support contact are stored; the icon swaps the tab/home-screen icon and the splash image replaces the logo on the loading screen. Light/dark logos wait for dark mode (no dark surface shows a logo yet); the sign-in welcome line replaces the built-in tagline, and up to 6 labelled https links plus the support contact appear on the profile screen in place of the hard-coded @altyncup Instagram link, so the existing cafe adds that link in the Brand screen.)_
+- [ ] `Brand` settings per cafe: display name, logo (light/dark), icon, splash, primary/accent colors, support contact, social links, welcome texts. _(Partly done: name, primary and accent colour, logo URL, icon URL, splash image URL and support contact are stored; the icon swaps the tab/home-screen icon and the splash image replaces the logo on the loading screen. An optional dark mode logo URL is stored too: the customer splash and the admin login, password and sidebar show it while dark mode is on, and fall back to the normal logo when it is empty (the admin's light tile behind the logo is dropped when the dark one shows); the sign-in welcome line replaces the built-in tagline, and up to 6 labelled https links plus the support contact appear on the profile screen in place of the hard-coded @altyncup Instagram link, so the existing cafe adds that link in the Brand screen.)_
 - [x] Serve through `GET /app/config`; apply at app start before first paint (no color flash); cache with stale-while-revalidate. _(Done: `brand` is in the app config, served only while the `branding` module is on; `BrandService` overrides the `--brand-*` variables and caches the last brand in localStorage.)_
 - [x] Replace hard-coded "Altyncup" strings in UI, translations, push/OTP/WhatsApp templates, receipts and emails with `{brand}`. _(Done: apps show the brand name (login, register, shell, receipt, page title, update gate, splash logo fallback); the OTP message uses `{brand}`. Push copy has no brand name.)_
 - [x] Admin page (super admin) to edit brand values with a live preview. _(Done: a Brand section on the Platform page; the preview uses scoped variables, so the real app changes only after Save.)_
@@ -188,7 +188,10 @@ Steps:
   - [x] Split payments: the cashier pays one order in parts with different methods; the Z report counts each part under its own method. Details in `docs/modules.md`.
   - [x] Per-branch payment method list: tick boxes on the branch dialog; the customer app and the server follow it. Details in `docs/modules.md`.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
-  - [x] Kitchen ticket: a "Print ticket" button on each kitchen card (80 mm browser print, only the items of the chosen station, notes in bold, no prices). Direct network/Bluetooth printing is still to do.
+  - [x] Kitchen ticket: a "Print ticket" button on each kitchen card (80 mm browser print, only the items of the chosen station, notes in bold, no prices).
+  - [x] Network printers (ESC/POS over TCP): kitchen and receipt printers per branch, tied to a station or to all items, print by themselves on accept, test print, job list with retries. Details in `docs/modules.md`.
+  - [ ] Print agent that runs in the cafe, for servers in the cloud that cannot reach the cafe's network.
+  - [ ] Bluetooth printers (native plugin in the tablet app) and cash drawer opening.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter. _(Checklist written: `docs/cutover-from-iiko.md`. Using it on the first cafe is Lev's call.)_
 
 ## Open items
@@ -197,5 +200,5 @@ Steps:
 - [x] How SuperAdmin accounts are created: environment variable seed (done in Phase 2).
 - [ ] Data export format for departing cafes.
 - [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).
-- [ ] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan.
+- [x] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan. _(Researched: `docs/fiscal-receipts-kz.md`. Plan: cloud cash register via provider API, Webkassa first. Building it is still to do.)_
 - [ ] Terms of service / data ownership wording.

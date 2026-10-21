@@ -40,6 +40,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/cashier/cashier.component').then((m) => m.CashierComponent),
       },
       {
+        path: 'printers',
+        canActivate: [moduleGuard('own_pos', '/orders')],
+        loadComponent: () =>
+          import('./features/printers/printers.component').then((m) => m.PrintersComponent),
+      },
+      {
         path: 'stock',
         canActivate: [moduleGuard('own_pos', '/orders')],
         loadComponent: () =>

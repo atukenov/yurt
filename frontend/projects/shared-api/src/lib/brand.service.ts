@@ -1,6 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { BrandConfig, BrandLink } from 'shared-models';
 import { CAFE_FONT_FAMILY, RADIUS_SCALE, brandFontStack, setFontFace, buildScale, parseHex, readableOn, readableOnDark, readableOnLight } from './brand-palette';
+import { ThemeService } from './theme.service';
 
 /** Steps of the accent scale used for gradient ends and soft tints. */
 const ACCENT_STEPS = ['50', '400', '500'] as const;
@@ -27,6 +28,13 @@ export class BrandService {
   readonly name = signal('Yurt');
   /** Absolute https URL of the cafe's logo, or null to use the bundled logo.png. */
   readonly logoUrl = signal<string | null>(null);
+  /** Absolute https URL of the logo made for dark backgrounds, or null when the cafe has none. */
+  readonly logoDarkUrl = signal<string | null>(null);
+  private readonly theme = inject(ThemeService);
+  /** True when the dark mode logo is the one showing (so it needs no light tile behind it). */
+  readonly darkLogoShowing = computed(() => this.theme.dark() && !!this.logoDarkUrl());
+  /** The logo to show now: the dark one in dark mode when set, otherwise the normal one; null means the bundled logo.png. */
+  readonly logo = computed(() => (this.darkLogoShowing() ? this.logoDarkUrl() : this.logoUrl()));
   readonly supportContact = signal<string | null>(null);
   /** Absolute https URL of the splash image shown while the app loads, or null to show the logo. */
   readonly splashUrl = signal<string | null>(null);
@@ -50,6 +58,7 @@ export class BrandService {
   private apply(brand: BrandConfig, persist: boolean): void {
     this.name.set(brand.name?.trim() || 'Yurt');
     this.logoUrl.set(httpsOrNull(brand.logoUrl));
+    this.logoDarkUrl.set(httpsOrNull(brand.logoDarkUrl));
     this.supportContact.set(brand.supportContact?.trim() || null);
     this.splashUrl.set(httpsOrNull(brand.splashUrl));
     this.welcomeText.set(brand.welcomeText?.trim() || null);

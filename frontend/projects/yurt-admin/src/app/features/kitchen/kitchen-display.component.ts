@@ -8,6 +8,7 @@ import { environment } from '../../../environments/environment';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { SoundService } from '../../core/sound.service';
 import { ReceiptService } from '../../core/receipt.service';
+import { AdminLangService } from '../../core/lang.service';
 
 interface KitchenColumn {
   status: OrderStatus;
@@ -32,6 +33,7 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private sound = inject(SoundService);
   private receipts = inject(ReceiptService);
+  private lang = inject(AdminLangService);
 
   private readonly LOC_KEY = 'yurt_kitchen_location';
   private readonly STATION_KEY = 'yurt_kitchen_station';
@@ -171,9 +173,17 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Sends the ticket to the branch's network printers (this station's, or every kitchen printer on the All tab). With
+   * no printer set up, or if the server cannot be asked, it prints through the browser as before.
+   */
   printTicket(order: Order): void {
     const station = this.routing().stations.find((s) => s.id === this.stationFilter());
-    this.receipts.printTicket(order, this.itemsOf(order), station?.name);
+    const browserPrint = () => this.receipts.printTicket(order, this.itemsOf(order), station?.name);
+    this.api.printOrderTicket(order.id, station?.id).subscribe({
+      next: (r) => (r.printers > 0 ? this.toast.success(this.lang.t('printers.sent')) : browserPrint()),
+      error: () => browserPrint(),
+    });
   }
 
   pickStation(id: string): void {
