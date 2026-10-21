@@ -50,6 +50,7 @@ import {
   SavePrinter,
   PrintJob,
   PrintQueued,
+  PrintAgent,
   CategoryRouting,
   Shift,
   ShiftReport,
@@ -605,9 +606,25 @@ export class YurtApiService {
     return this.http.delete<boolean>(`${this.api}/admin/printers/${id}`);
   }
 
-  /** Prints a test page right away; fails with the reason when the printer cannot be reached. */
-  testPrinter(id: string): Observable<boolean> {
-    return this.http.post<boolean>(`${this.api}/admin/printers/${id}/test`, {});
+  /**
+   * Prints a test page right away; fails with the reason when the printer cannot be reached. For a printer behind the
+   * print agent the page is queued instead (`printed: false`).
+   */
+  testPrinter(id: string): Observable<{ printed: boolean }> {
+    return this.http.post<{ printed: boolean }>(`${this.api}/admin/printers/${id}/test`, {});
+  }
+
+  getPrintAgents(): Observable<PrintAgent[]> {
+    return this.http.get<PrintAgent[]>(`${this.api}/admin/printers/agents`);
+  }
+
+  /** Makes a new key for a branch's print agent. The key is shown only this once; an older key stops working. */
+  createPrintAgentKey(locationId: string): Observable<{ locationId: string; key: string }> {
+    return this.http.post<{ locationId: string; key: string }>(`${this.api}/admin/printers/agents/${locationId}`, {});
+  }
+
+  deletePrintAgentKey(locationId: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/printers/agents/${locationId}`);
   }
 
   getPrintJobs(limit = 30): Observable<PrintJob[]> {

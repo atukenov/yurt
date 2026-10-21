@@ -132,6 +132,13 @@
         <input name="autoPrint" type="checkbox" [(ngModel)]="form.autoPrint" class="h-4 w-4" />
         {{ 'printers.autoPrint' | t }}
       </label>
+      <label class="flex items-start gap-2 text-sm text-slate-600 sm:col-span-2">
+        <input name="viaAgent" type="checkbox" [(ngModel)]="form.viaAgent" class="mt-0.5 h-4 w-4" />
+        <span>
+          {{ 'printers.viaAgent' | t }}
+          <span class="block text-xs text-slate-400">{{ 'printers.viaAgentHint' | t }}</span>
+        </span>
+      </label>
       <div class="flex gap-2 sm:col-span-2">
         <button
           type="submit"
@@ -178,6 +185,9 @@
                 @if (!p.autoPrint) {
                   · {{ 'printers.manualOnly' | t }}
                 }
+                @if (p.viaAgent) {
+                  · {{ 'printers.agent.via' | t }}
+                }
               </p>
             </div>
             <div class="flex gap-2">
@@ -209,6 +219,77 @@
       </ul>
     }
   }
+
+  <h2 class="mb-1 mt-8 text-lg font-bold text-slate-800">{{ 'printers.agent.title' | t }}</h2>
+  <p class="mb-3 text-sm text-slate-500">{{ 'printers.agent.hint' | t }}</p>
+  @if (newKey(); as k) {
+    <div class="mb-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+      <p class="mb-2 font-semibold">{{ 'printers.agent.keyOnce' | t }}</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <code class="break-all rounded bg-surface px-2 py-1 font-mono text-xs text-slate-800">{{ k.key }}</code>
+        <button
+          type="button"
+          (click)="copyKey()"
+          class="rounded-lg border border-amber-300 px-3 py-1 text-xs font-semibold hover:bg-amber-100"
+        >
+          {{ 'printers.agent.copy' | t }}
+        </button>
+      </div>
+      <p class="mb-1 mt-3">{{ 'printers.agent.run' | t }}</p>
+      <code class="block break-all rounded bg-surface px-2 py-1 font-mono text-xs text-slate-800"
+        >node print-agent.mjs --api {{ apiUrl }} --key {{ k.key }}</code
+      >
+      <button
+        type="button"
+        (click)="newKey.set(null)"
+        class="mt-3 rounded-lg border border-amber-300 px-3 py-1 text-xs font-semibold hover:bg-amber-100"
+      >
+        {{ 'action.close' | t }}
+      </button>
+    </div>
+  }
+  <ul class="space-y-2">
+    @for (loc of locations(); track loc.id) {
+      <li
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-surface p-4"
+      >
+        <div>
+          <p class="font-semibold text-slate-800">{{ loc.name }}</p>
+          @if (agentOf(loc.id); as a) {
+            <p class="text-sm" [class]="agentOnline(a) ? 'text-green-700' : 'text-slate-500'">
+              @if (agentOnline(a)) {
+                {{ 'printers.agent.online' | t }}
+              } @else if (a.lastSeenAt) {
+                {{ 'printers.agent.lastSeen' | t }} {{ a.lastSeenAt | date: 'dd.MM HH:mm' }}
+              } @else {
+                {{ 'printers.agent.never' | t }}
+              }
+            </p>
+          } @else {
+            <p class="text-sm text-slate-400">{{ 'printers.agent.noKey' | t }}</p>
+          }
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            (click)="createKey(loc.id)"
+            class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+          >
+            {{ (agentOf(loc.id) ? 'printers.agent.newKey' : 'printers.agent.makeKey') | t }}
+          </button>
+          @if (agentOf(loc.id)) {
+            <button
+              type="button"
+              (click)="removeKey(loc.id)"
+              class="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+            >
+              {{ 'action.delete' | t }}
+            </button>
+          }
+        </div>
+      </li>
+    }
+  </ul>
 
   <div class="mb-2 mt-8 flex items-center justify-between">
     <h2 class="text-lg font-bold text-slate-800">{{ 'printers.jobs' | t }}</h2>

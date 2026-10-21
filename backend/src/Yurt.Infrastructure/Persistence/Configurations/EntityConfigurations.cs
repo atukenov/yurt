@@ -372,6 +372,18 @@ public class PrintJobConfiguration : IEntityTypeConfiguration<PrintJob>
     }
 }
 
+public class PrintAgentConfiguration : IEntityTypeConfiguration<PrintAgent>
+{
+    public void Configure(EntityTypeBuilder<PrintAgent> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.KeyHash).HasMaxLength(64).IsRequired();
+        builder.HasIndex(e => e.KeyHash).IsUnique();
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.TenantId, e.LocationId }).IsUnique();
+    }
+}
+
 public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)

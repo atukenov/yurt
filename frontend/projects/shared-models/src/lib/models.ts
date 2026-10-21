@@ -370,6 +370,8 @@ export interface Printer {
   codeTable: number;
   language: 'ru' | 'kk' | 'en';
   autoPrint: boolean;
+  /** Sent through the branch's print agent (a printer on the cafe network that the server cannot reach). */
+  viaAgent: boolean;
 }
 
 export type SavePrinter = Omit<Printer, 'id'>;
@@ -386,6 +388,13 @@ export interface PrintJob {
   lastError?: string | null;
   createdAt: string;
   printedAt?: string | null;
+}
+
+/** The print agent of a branch: a small program in the cafe that passes jobs to printers on the cafe network. */
+export interface PrintAgent {
+  locationId: string;
+  hasKey: boolean;
+  lastSeenAt?: string | null;
 }
 
 /** How many printers got the job; 0 means the branch has none for it, so print in the browser instead. */

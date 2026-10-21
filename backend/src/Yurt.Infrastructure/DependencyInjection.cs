@@ -158,6 +158,7 @@ public static class DependencyInjection
         services.AddSingleton<IPrinterTransport, TcpPrinterTransport>();
         services.AddScoped<PrinterService>();
         services.AddScoped<PrintService>();
+        services.AddScoped<PrintAgentService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

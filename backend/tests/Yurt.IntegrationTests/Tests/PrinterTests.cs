@@ -97,6 +97,101 @@ public class PrinterTests(YurtWebAppFactory factory)
     }
 
     [Fact]
+    public async Task PrintAgent_FetchesItsBranchJobs_AndReportsBack()
+    {
+        var admin = factory.CreateClient();
+        admin.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin));
+        var station = await CreateStationAsync(admin, "Agent bar");
+        var drink = await CreateItemAsync(station, "Agent latte");
+        Guid printerId = default;
+
+        try
+        {
+            // An address only the cafe's own network can reach: the server never connects to it, the agent does.
+            printerId = await CreatePrinterAsync(admin, new
+            {
+                locationId = LocationId, name = "Agent printer", kind = "Kitchen", stationId = station,
+                host = "192.168.77.10", port = 9100, lineWidth = 32, codeTable = 17, language = "en", autoPrint = true, viaAgent = true,
+            });
+
+            var agent = factory.CreateClient();
+            HttpRequestMessage Claim(string key)
+            {
+                var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/print-agent/jobs/claim");
+                req.Headers.Add("X-Print-Agent-Key", key);
+                req.Headers.Add("X-Tenant", key.Split('.')[0]);
+                return req;
+            }
+            async Task<HttpResponseMessage> Report(string key, Guid job, bool ok)
+            {
+                var req = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/print-agent/jobs/{job}/result")
+                    { Content = JsonContent.Create(new { ok, error = ok ? null : "Paper out" }) };
+                req.Headers.Add("X-Print-Agent-Key", key);
+                req.Headers.Add("X-Tenant", key.Split('.')[0]);
+                return await agent.SendAsync(req);
+            }
+
+            Assert.Equal(HttpStatusCode.Unauthorized, (await agent.SendAsync(Claim("default.not-a-key"))).StatusCode);
+
+            var created = await admin.PostAsync($"/api/v1/admin/printers/agents/{LocationId}", null);
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+            var key = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("key").GetString()!;
+            Assert.StartsWith("default.", key);
+
+            // The order's ticket waits for the agent: the server's own sender leaves it alone.
+            var order = await PlaceAcceptedOrderAsync(admin, "+77002990502", drink);
+            await Task.Delay(1000);
+            var jobs = await ClaimedAsync(await agent.SendAsync(Claim(key)));
+            var ticket = jobs.Single(j => j.GetProperty("host").GetString() == "192.168.77.10");
+            Assert.Equal(9100, ticket.GetProperty("port").GetInt32());
+            Assert.Contains("1 x Agent latte", Encoding.GetEncoding(866).GetString(ticket.GetProperty("data").GetBytesFromBase64()));
+            Assert.Empty(await ClaimedAsync(await agent.SendAsync(Claim(key)))); // Already taken.
+
+            (await Report(key, ticket.GetProperty("id").GetGuid(), true)).EnsureSuccessStatusCode();
+            await WaitForJobAsync(admin, order, "Ticket", "Printed", printerId);
+            Assert.Equal(HttpStatusCode.Conflict, (await Report(key, ticket.GetProperty("id").GetGuid(), true)).StatusCode);
+
+            var agents = await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/printers/agents");
+            Assert.True(agents.EnumerateArray().Single(a => a.GetProperty("locationId").GetGuid() == LocationId)
+                .TryGetProperty("lastSeenAt", out _));
+
+            // A test print for an agent printer is queued; three failed tries mark it not printed.
+            var test = await (await admin.PostAsync($"/api/v1/admin/printers/{printerId}/test", null)).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(test.GetProperty("printed").GetBoolean());
+            for (var i = 0; i < 3; i++)
+            {
+                var job = Assert.Single(await ClaimedAsync(await agent.SendAsync(Claim(key))));
+                (await Report(key, job.GetProperty("id").GetGuid(), false)).EnsureSuccessStatusCode();
+            }
+            Assert.Empty(await ClaimedAsync(await agent.SendAsync(Claim(key))));
+            var jobsList = await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/printers/jobs?limit=100");
+            var failed = jobsList.EnumerateArray().First(j => j.GetProperty("kind").GetString() == "Test" && j.GetProperty("printerId").GetGuid() == printerId);
+            Assert.Equal("Failed", failed.GetProperty("status").GetString());
+            Assert.Equal("Paper out", failed.GetProperty("lastError").GetString());
+
+            // A new key replaces the old one; removing it locks the agent out.
+            var newKey = (await (await admin.PostAsync($"/api/v1/admin/printers/agents/{LocationId}", null)).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("key").GetString()!;
+            Assert.Equal(HttpStatusCode.Unauthorized, (await agent.SendAsync(Claim(key))).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await agent.SendAsync(Claim(newKey))).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await admin.DeleteAsync($"/api/v1/admin/printers/agents/{LocationId}")).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await agent.SendAsync(Claim(newKey))).StatusCode);
+        }
+        finally
+        {
+            if (printerId != default) await admin.DeleteAsync($"/api/v1/admin/printers/{printerId}");
+            await admin.DeleteAsync($"/api/v1/admin/printers/agents/{LocationId}");
+            await admin.DeleteAsync($"/api/v1/admin/stations/{station}");
+        }
+    }
+
+    private static async Task<List<JsonElement>> ClaimedAsync(HttpResponseMessage res)
+    {
+        res.EnsureSuccessStatusCode();
+        return (await res.Content.ReadFromJsonAsync<JsonElement>()).EnumerateArray().ToList();
+    }
+
+    [Fact]
     public async Task OnlyAnAdmin_CanSetUpPrinters()
     {
         var staff = factory.CreateClient();
