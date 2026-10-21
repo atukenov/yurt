@@ -2,7 +2,15 @@ import { Component, inject, OnInit, OnDestroy, signal, computed, effect } from '
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModuleService, YurtApiService, SignalrService } from 'shared-api';
-import { Order, OrderStatus, Location, IikoOrderSyncStatus } from 'shared-models';
+import {
+  Order,
+  OrderStatus,
+  Location,
+  IikoOrderSyncStatus,
+  PaymentStatus,
+  SplitPaymentLine,
+} from 'shared-models';
+import { SplitPaymentComponent } from './split-payment.component';
 import {
   BadgeComponent,
   ButtonComponent,
@@ -21,6 +29,7 @@ import { ReceiptService } from '../../core/receipt.service';
   selector: 'app-orders-live',
   standalone: true,
   imports: [
+    SplitPaymentComponent,
     CommonModule,
     FormsModule,
     BadgeComponent,
@@ -160,7 +169,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     this.api.getAdminOrders(undefined, this.selectedLocationId || undefined, search).subscribe({
       next: (res) => {
         // Guard: old backend returns Order[] directly; new backend returns { items: Order[] }
-        const items = Array.isArray(res) ? (res as unknown as Order[]) : res.items ?? [];
+        const items = Array.isArray(res) ? (res as unknown as Order[]) : (res.items ?? []);
         this.orders.set(items);
         this.loading.set(false);
       },
@@ -220,6 +229,16 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
         },
         error: () => this.paymentLoading.set(false),
       });
+  }
+
+  /** A split payment marks the order paid and keeps the biggest part as its main method. */
+  onSplitSaved(order: Order, lines: SplitPaymentLine[]): void {
+    const main = [...lines].sort((a, b) => b.amount - a.amount)[0];
+    this.upsertOrder({
+      ...order,
+      paymentStatus: PaymentStatus.Paid,
+      paymentMethod: (main?.method ?? order.paymentMethod) as Order['paymentMethod'],
+    });
   }
 
   canAccept(order: Order): boolean {

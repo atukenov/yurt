@@ -47,6 +47,8 @@ import {
   CategoryRouting,
   Shift,
   ShiftReport,
+  SplitPayment,
+  SplitPaymentLine,
   CashMovement,
   Ingredient,
   RecipeLine,
@@ -575,6 +577,16 @@ export class YurtApiService {
 
   updateOrderPayment(id: string, req: UpdatePaymentRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/orders/${id}/payment`, req);
+  }
+
+  getSplitPayment(orderId: string): Observable<SplitPayment> {
+    return this.http.get<SplitPayment>(`${this.api}/admin/orders/${orderId}/split-payment`);
+  }
+
+  saveSplitPayment(orderId: string, lines: SplitPaymentLine[]): Observable<SplitPayment> {
+    return this.http.put<SplitPayment>(`${this.api}/admin/orders/${orderId}/split-payment`, {
+      lines,
+    });
   }
 
   // ── Dashboard ──────────────────────────────────────────────────────────────

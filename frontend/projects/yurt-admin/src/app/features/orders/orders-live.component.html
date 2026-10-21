@@ -24,7 +24,9 @@
       >
         <option value="">{{ 'orders.allLocations' | t }}</option>
         @for (loc of locations(); track loc.id) {
-          <option [value]="loc.id">{{ loc.name }}{{ loc.address ? ' — ' + loc.address : '' }}</option>
+          <option [value]="loc.id">
+            {{ loc.name }}{{ loc.address ? ' — ' + loc.address : '' }}
+          </option>
         }
       </select>
       <!-- Search -->
@@ -38,7 +40,11 @@
       />
     </div>
     <!-- Status tabs -->
-    <div class="flex gap-1 px-3 py-2 border-b border-slate-50 flex-shrink-0" role="group" aria-label="Status">
+    <div
+      class="flex gap-1 px-3 py-2 border-b border-slate-50 flex-shrink-0"
+      role="group"
+      aria-label="Status"
+    >
       @for (tab of statusTabs; track tab.value) {
         <button
           (click)="activeTab.set(tab.value)"
@@ -62,7 +68,9 @@
     <!-- Order list -->
     <div class="flex-1 overflow-y-auto">
       @if (loading()) {
-        <div class="p-4 text-center text-slate-400 text-sm animate-pulse">{{ 'label.loading' | t }}</div>
+        <div class="p-4 text-center text-slate-400 text-sm animate-pulse">
+          {{ 'label.loading' | t }}
+        </div>
       } @else if (!filteredOrders().length) {
         <div class="p-8 text-center text-slate-400">
           <div class="text-4xl mb-2">📋</div>
@@ -84,7 +92,9 @@
                 <p class="text-sm font-semibold text-slate-800 truncate">
                   Order #{{ order.id.slice(-6).toUpperCase() }}
                 </p>
-                <p class="text-xs font-medium text-slate-700 truncate mt-0.5">{{ order.customerName }}</p>
+                <p class="text-xs font-medium text-slate-700 truncate mt-0.5">
+                  {{ order.customerName }}
+                </p>
                 <p class="text-xs text-slate-500 mt-0.5">
                   {{ order.createdAt | date: 'HH:mm' }} · {{ totalQty(order) }} item(s)
                 </p>
@@ -125,7 +135,9 @@
             @if (o.customerPhone) {
               <div class="mt-1">
                 <span class="text-xs text-slate-400">{{ 'label.phone' | t }}</span>
-                <p class="text-base font-semibold text-slate-800 tracking-wide">{{ formatPhone(o.customerPhone) }}</p>
+                <p class="text-base font-semibold text-slate-800 tracking-wide">
+                  {{ formatPhone(o.customerPhone) }}
+                </p>
               </div>
             }
             <p class="text-slate-500 text-sm">{{ o.createdAt | date: 'MMM d, yyyy HH:mm' }}</p>
@@ -143,7 +155,9 @@
         <!-- Decline reason -->
         @if (o.declineReason) {
           <div class="bg-red-50 border border-red-100 rounded-2xl p-4">
-            <p class="text-xs font-semibold text-red-500 mb-1">{{ 'orders.declineReasonLabel' | t }}</p>
+            <p class="text-xs font-semibold text-red-500 mb-1">
+              {{ 'orders.declineReasonLabel' | t }}
+            </p>
             <p class="text-sm text-red-700">{{ o.declineReason }}</p>
           </div>
         }
@@ -152,7 +166,9 @@
         @if (o.status === OrderStatus.Created) {
           <div class="bg-surface rounded-2xl border border-slate-100 p-4 shadow-sm space-y-3">
             <div>
-              <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'orders.eta' | t }}</label>
+              <label class="block text-xs font-medium text-slate-600 mb-1">{{
+                'orders.eta' | t
+              }}</label>
               <select
                 [(ngModel)]="etaPresetValue"
                 (ngModelChange)="onEtaPresetChange($event)"
@@ -198,7 +214,9 @@
               </button>
             </div>
             @if (!canAccept(o)) {
-              <p class="text-xs text-brand-ink font-medium mt-1">{{ 'orders.acceptRequiresPayment' | t }}</p>
+              <p class="text-xs text-brand-ink font-medium mt-1">
+                {{ 'orders.acceptRequiresPayment' | t }}
+              </p>
             }
           </div>
         }
@@ -269,14 +287,23 @@
                   [attr.aria-pressed]="paymentStatus === s"
                   [disabled]="paymentLoading()"
                   class="flex-1 text-xs font-semibold py-2 rounded-xl border-2 transition-all disabled:opacity-50"
-                  [class]="paymentStatus === s
-                    ? (s === 'Paid' ? 'border-teal-400 bg-teal-50 text-teal-700' : s === 'Refunded' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-brand-400 bg-brand-50 text-brand-ink')
-                    : 'border-slate-200 bg-surface text-slate-500 hover:border-slate-300'"
+                  [class]="
+                    paymentStatus === s
+                      ? s === 'Paid'
+                        ? 'border-teal-400 bg-teal-50 text-teal-700'
+                        : s === 'Refunded'
+                          ? 'border-slate-400 bg-slate-100 text-slate-700'
+                          : 'border-brand-400 bg-brand-50 text-brand-ink'
+                      : 'border-slate-200 bg-surface text-slate-500 hover:border-slate-300'
+                  "
                 >
                   {{ 'orders.' + s.toLowerCase() | t }}
                 </button>
               }
             </div>
+            @if (modules.isEnabled('own_pos')) {
+              <app-split-payment [order]="o" (saved)="onSplitSaved(o, $event)" />
+            }
           </div>
         }
 
@@ -301,7 +328,11 @@
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-slate-700">{{ 'orders.items' | t }}</h3>
             @if (modules.isEnabled('own_pos')) {
-              <button type="button" (click)="printReceipt(o)" class="text-xs font-semibold text-brand-ink hover:underline">
+              <button
+                type="button"
+                (click)="printReceipt(o)"
+                class="text-xs font-semibold text-brand-ink hover:underline"
+              >
                 🖨 {{ 'receipt.print' | t }}
               </button>
             }
@@ -312,12 +343,14 @@
                 <p class="text-slate-800 text-sm font-medium">
                   {{ item.quantity }} × {{ item.menuItemName }}
                   @if (item.variantLabel) {
-                    <span class="text-xs text-slate-500 font-normal"> · {{ item.variantLabel }}</span>
+                    <span class="text-xs text-slate-500 font-normal">
+                      · {{ item.variantLabel }}</span
+                    >
                   }
                 </p>
                 @if (item.toppings.length) {
                   <p class="text-slate-400 text-xs mt-0.5">
-                    + {{ item.toppings.map(t => t.toppingName).join(', ') }}
+                    + {{ item.toppings.map((t) => t.toppingName).join(', ') }}
                   </p>
                 }
                 @if (item.notes) {
@@ -338,7 +371,10 @@
               </div>
               <div class="flex justify-between text-sm">
                 <span class="text-teal-600 flex items-center gap-1">
-                  🏷️ <span class="font-mono bg-teal-50 rounded px-1 text-xs">{{ o.discountCode }}</span>
+                  🏷️
+                  <span class="font-mono bg-teal-50 rounded px-1 text-xs">{{
+                    o.discountCode
+                  }}</span>
                 </span>
                 <span class="text-teal-600 font-semibold">-{{ o.discountAmount | currency2 }}</span>
               </div>
@@ -350,11 +386,15 @@
             @if (o.loyaltyPointsSpent) {
               <div class="flex justify-between text-sm">
                 <span class="text-brand-ink">✨ {{ 'orders.bonusPaid' | t }}</span>
-                <span class="text-brand-ink font-semibold">-{{ o.loyaltyPointsSpent | currency2 }}</span>
+                <span class="text-brand-ink font-semibold"
+                  >-{{ o.loyaltyPointsSpent | currency2 }}</span
+                >
               </div>
               <div class="flex justify-between text-sm">
                 <span class="font-semibold text-slate-600">{{ 'orders.dueAtCounter' | t }}</span>
-                <span class="font-semibold text-slate-700">{{ o.total - o.loyaltyPointsSpent | currency2 }}</span>
+                <span class="font-semibold text-slate-700">{{
+                  o.total - o.loyaltyPointsSpent | currency2
+                }}</span>
               </div>
             }
           </div>
@@ -366,9 +406,19 @@
 
 <!-- Decline dialog -->
 @if (showDecline()) {
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showDecline.set(false)">
-    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6" role="dialog" aria-modal="true" aria-labelledby="decline-dialog-title">
-      <h3 id="decline-dialog-title" class="text-lg font-bold text-slate-800 mb-4">{{ 'orders.declineTitle' | t }}</h3>
+  <div
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    (keydown.escape)="showDecline.set(false)"
+  >
+    <div
+      class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="decline-dialog-title"
+    >
+      <h3 id="decline-dialog-title" class="text-lg font-bold text-slate-800 mb-4">
+        {{ 'orders.declineTitle' | t }}
+      </h3>
       <textarea
         [(ngModel)]="declineReason"
         rows="3"
@@ -378,7 +428,12 @@
       >
       </textarea>
       <div class="flex gap-3 mt-4">
-        <yurt-button variant="ghost" size="md" [fullWidth]="true" (clicked)="showDecline.set(false)">
+        <yurt-button
+          variant="ghost"
+          size="md"
+          [fullWidth]="true"
+          (clicked)="showDecline.set(false)"
+        >
           {{ 'action.cancel' | t }}
         </yurt-button>
         <yurt-button

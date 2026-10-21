@@ -857,3 +857,15 @@ export interface UserReport {
   resolvedAt?: string;
   createdAt: string;
 }
+
+/** One part of an order paid with several methods (own POS). */
+export interface SplitPaymentLine {
+  method: string;
+  amount: number;
+}
+
+export interface SplitPayment {
+  orderId: string;
+  toPay: number;
+  lines: SplitPaymentLine[];
+}

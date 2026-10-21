@@ -1,0 +1,70 @@
+@if (!open()) {
+  <button
+    type="button"
+    (click)="start()"
+    class="mt-3 text-xs font-semibold text-brand-ink hover:underline"
+  >
+    {{ 'split.open' | t }}
+  </button>
+} @else {
+  <div class="mt-3 space-y-2 border-t border-slate-100 pt-3">
+    <p class="text-xs text-slate-500">{{ 'split.hint' | t }} ₸{{ toPay() }}</p>
+    @for (r of rows(); track $index) {
+      <div class="flex items-center gap-2">
+        <select
+          [(ngModel)]="r.method"
+          [attr.aria-label]="'orders.method' | t"
+          class="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+        >
+          @for (m of methods; track m) {
+            <option [value]="m">{{ m }}</option>
+          }
+        </select>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          [(ngModel)]="r.amount"
+          [attr.aria-label]="'cash.amount' | t"
+          class="w-24 rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+        />
+        <button
+          type="button"
+          (click)="fillRest($index)"
+          class="text-xs text-brand-ink hover:underline"
+        >
+          {{ 'split.rest' | t }}
+        </button>
+        <button
+          type="button"
+          (click)="remove($index)"
+          class="text-red-500 hover:text-red-700"
+          [attr.aria-label]="'ing.delete' | t"
+        >
+          ×
+        </button>
+      </div>
+    }
+    <div class="flex items-center justify-between gap-2">
+      <button
+        type="button"
+        (click)="add()"
+        [disabled]="rows().length >= 5"
+        class="text-xs font-semibold text-brand-ink hover:underline disabled:opacity-40"
+      >
+        + {{ 'split.add' | t }}
+      </button>
+      <span class="text-xs" [class]="left() === 0 ? 'text-teal-700' : 'text-red-600'">
+        {{ 'split.left' | t }}: ₸{{ left() }}
+      </span>
+    </div>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving() || left() !== 0 || !rows().length"
+      class="w-full rounded-xl bg-brand-500 py-2 text-sm font-bold text-on-brand disabled:opacity-40"
+    >
+      {{ 'split.save' | t }}
+    </button>
+  </div>
+}

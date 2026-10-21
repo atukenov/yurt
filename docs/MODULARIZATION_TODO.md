@@ -182,7 +182,8 @@ Steps:
 - [ ] Cashier screen, shifts, receipts and Z report.
   - [x] Cashier page: open and close a shift with the cash counted, cash in/out, X report while open, Z report on close with the cash difference, earlier shifts, print. Details in `docs/modules.md`.
   - [x] Print a receipt per order from the order details (browser print, 80 mm layout).
-  - [ ] Per-branch payment method list, split payments.
+  - [x] Split payments: the cashier pays one order in parts with different methods; the Z report counts each part under its own method. Details in `docs/modules.md`.
+  - [ ] Per-branch payment method list (which methods each branch offers).
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
   - [x] Kitchen ticket: a "Print ticket" button on each kitchen card (80 mm browser print, only the items of the chosen station, notes in bold, no prices). Direct network/Bluetooth printing is still to do.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter. _(Checklist written: `docs/cutover-from-iiko.md`. Using it on the first cafe is Lev's call.)_
