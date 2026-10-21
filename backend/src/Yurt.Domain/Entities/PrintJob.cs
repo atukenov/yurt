@@ -9,7 +9,7 @@ namespace Yurt.Domain.Entities;
 public class PrintJob : BaseEntity, ITenantOwned
 {
     public const string Pending = "Pending", Sending = "Sending", Printed = "Printed", Failed = "Failed";
-    public const string TicketKind = "Ticket", ReceiptKind = "Receipt", TestKind = "Test";
+    public const string TicketKind = "Ticket", ReceiptKind = "Receipt", TestKind = "Test", DrawerKind = "Drawer";
 
     public Guid TenantId { get; set; }
 

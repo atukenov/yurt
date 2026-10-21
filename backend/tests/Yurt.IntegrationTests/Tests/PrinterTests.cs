@@ -17,7 +17,7 @@ namespace Yurt.IntegrationTests.Tests;
 public class PrinterTests(YurtWebAppFactory factory)
 {
     private static readonly Guid LocationId = Guid.Parse("11111111-0000-0000-0000-000000000001");
-    private const int PrinterPort = 9107, ClosedPort = 9108;
+    private const int PrinterPort = 9107, ClosedPort = 9108, DrawerPort = 9106;
 
     static PrinterTests() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -192,6 +192,64 @@ public class PrinterTests(YurtWebAppFactory factory)
     }
 
     [Fact]
+    public async Task CashDrawer_OpensOnCashPayment_AndOnButton()
+    {
+        using var printer = new FakePrinter(DrawerPort);
+        var admin = factory.CreateClient();
+        admin.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin));
+        var station = await CreateStationAsync(admin, "Till");
+        var item = await CreateItemAsync(station, "Drawer latte");
+        var printerIds = new List<Guid>();
+        try
+        {
+            object Body(string name, string kind) => new
+            {
+                locationId = LocationId, name, kind, host = "127.0.0.1", port = DrawerPort, lineWidth = 48, codeTable = 17,
+                language = "ru", autoPrint = false, cashDrawer = true,
+            };
+            var till = await CreatePrinterAsync(admin, Body("Till with drawer", "Receipt"));
+            var kitchen = await CreatePrinterAsync(admin, Body("Kitchen", "Kitchen"));
+            printerIds.AddRange([till, kitchen]);
+
+            // Only a receipt printer can have a cash drawer.
+            var list = (await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/printers")).EnumerateArray().ToList();
+            Assert.True(list.Single(p => p.GetProperty("id").GetGuid() == till).GetProperty("cashDrawer").GetBoolean());
+            Assert.False(list.Single(p => p.GetProperty("id").GetGuid() == kitchen).GetProperty("cashDrawer").GetBoolean());
+
+            // Cash marked paid at the till opens the drawer, and nothing is printed.
+            var cash = await PlaceOrderAsync("+77002990503", "Cash", item);
+            (await admin.PostAsJsonAsync($"/api/v1/admin/orders/{cash}/payment", new { paymentStatus = "Paid" })).EnsureSuccessStatusCode();
+            var kick = await printer.NextAsync();
+            Assert.Contains("\u001Bp\u0000", kick);
+            Assert.DoesNotContain("Итого", kick);
+            await WaitForJobAsync(admin, cash, "Drawer", "Printed", till);
+
+            // A card payment leaves the drawer shut.
+            var card = await PlaceOrderAsync("+77002990504", "Card", item);
+            (await admin.PostAsJsonAsync($"/api/v1/admin/orders/{card}/payment", new { paymentStatus = "Paid" })).EnsureSuccessStatusCode();
+            await Task.Delay(1000);
+            var jobs = await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/printers/jobs?limit=100");
+            Assert.DoesNotContain(jobs.EnumerateArray(), j =>
+                j.TryGetProperty("orderId", out var o) && o.ValueKind != JsonValueKind.Null && o.GetGuid() == card);
+
+            // Any staff member can press Open drawer; it is not tied to an order.
+            var staff = factory.CreateClient();
+            staff.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+                await ApiHelpers.CreateAdminTokenAsync(factory.Services, staff, username: "drawerworker", role: Domain.Enums.AdminRole.Worker));
+            var res = await staff.PostAsync($"/api/v1/admin/cash-drawer/{LocationId}/open", null);
+            Assert.Equal(1, (await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("printers").GetInt32());
+            Assert.Contains("\u001Bp\u0000", await printer.NextAsync());
+            Assert.Equal(HttpStatusCode.NotFound, (await staff.PostAsync($"/api/v1/admin/cash-drawer/{Guid.NewGuid()}/open", null)).StatusCode);
+        }
+        finally
+        {
+            foreach (var id in printerIds) await admin.DeleteAsync($"/api/v1/admin/printers/{id}");
+            await admin.DeleteAsync($"/api/v1/admin/stations/{station}");
+        }
+    }
+
+    [Fact]
     public async Task OnlyAnAdmin_CanSetUpPrinters()
     {
         var staff = factory.CreateClient();
@@ -247,18 +305,23 @@ public class PrinterTests(YurtWebAppFactory factory)
         return item.Id;
     }
 
-    private async Task<Guid> PlaceAcceptedOrderAsync(HttpClient admin, string phone, params Guid[] items)
+    private async Task<Guid> PlaceOrderAsync(string phone, string paymentMethod, params Guid[] items)
     {
         var customer = factory.CreateClient();
         var (token, _) = await ApiHelpers.CreateCustomerAsync(customer, phone);
         ApiHelpers.Authorize(customer, token);
         var placed = await customer.PostAsJsonAsync("/api/v1/orders", new
         {
-            locationId = LocationId, paymentMethod = "Cash",
+            locationId = LocationId, paymentMethod,
             items = items.Select(i => new { menuItemId = i, quantity = 1, toppings = Array.Empty<object>() }).ToArray(),
         });
         placed.EnsureSuccessStatusCode();
-        var order = (await placed.Content.ReadFromJsonAsync<ApiHelpers.OrderResult>(ApiHelpers.JsonOpts))!.Id;
+        return (await placed.Content.ReadFromJsonAsync<ApiHelpers.OrderResult>(ApiHelpers.JsonOpts))!.Id;
+    }
+
+    private async Task<Guid> PlaceAcceptedOrderAsync(HttpClient admin, string phone, params Guid[] items)
+    {
+        var order = await PlaceOrderAsync(phone, "Cash", items);
         (await admin.PostAsJsonAsync($"/api/v1/admin/orders/{order}/payment", new { paymentStatus = "Paid" })).EnsureSuccessStatusCode();
         (await admin.PostAsJsonAsync($"/api/v1/admin/orders/{order}/accept", new { etaMinutes = 5 })).EnsureSuccessStatusCode();
         return order;

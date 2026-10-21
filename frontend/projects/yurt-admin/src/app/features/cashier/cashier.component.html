@@ -4,16 +4,26 @@
       <h1 class="text-xl font-bold text-slate-800">{{ 'cash.title' | t }}</h1>
       <p class="text-sm text-slate-500">{{ 'cash.hint' | t }}</p>
     </div>
-    <select
-      [(ngModel)]="locationId"
-      (ngModelChange)="load()"
-      [attr.aria-label]="'stock.branch' | t"
-      class="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-400"
-    >
-      @for (loc of locations(); track loc.id) {
-        <option [value]="loc.id">{{ loc.name }}</option>
-      }
-    </select>
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        (click)="openDrawer()"
+        [disabled]="drawerBusy() || !locationId"
+        class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+      >
+        {{ 'cash.openDrawer' | t }}
+      </button>
+      <select
+        [(ngModel)]="locationId"
+        (ngModelChange)="load()"
+        [attr.aria-label]="'stock.branch' | t"
+        class="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+      >
+        @for (loc of locations(); track loc.id) {
+          <option [value]="loc.id">{{ loc.name }}</option>
+        }
+      </select>
+    </div>
   </div>
 
   @if (loading()) {

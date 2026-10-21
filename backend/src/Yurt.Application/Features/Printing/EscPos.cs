@@ -74,6 +74,12 @@ public sealed class EscPos
     /// <summary>Feeds a little paper and cuts it (a printer with no cutter just feeds).</summary>
     public EscPos Cut() => Raw(Esc, (byte)'d', 4).Raw(Gs, (byte)'V', 66, 0);
 
+    /// <summary>
+    /// Opens the cash drawer plugged into the printer (a short pulse on the drawer socket). Drawers are wired to pin 2 or
+    /// pin 5, so both get the pulse; only the one with a drawer does anything.
+    /// </summary>
+    public EscPos OpenDrawer() => Raw(Esc, (byte)'p', 0, 25, 250).Raw(Esc, (byte)'p', 1, 25, 250);
+
     public byte[] ToArray() => [.. _bytes];
 
     private EscPos Text(string text)

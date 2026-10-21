@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Printing;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
@@ -11,7 +12,7 @@ namespace Yurt.Application.Features.Shifts;
 /// The parts must add up to what the guest pays in money (total less bonus points). Saving marks the order paid and
 /// keeps the biggest part as the order's main method, so older screens and reports still show something sensible.
 /// </summary>
-public class SplitPaymentService(IApplicationDbContext db, IAuditLogService audit)
+public class SplitPaymentService(IApplicationDbContext db, IAuditLogService audit, PrintService? print = null)
 {
     private const int MaxLines = 5;
 
@@ -63,6 +64,8 @@ public class SplitPaymentService(IApplicationDbContext db, IAuditLogService audi
         await db.SaveChangesAsync(ct);
         await audit.LogAsync("OrderSplitPayment", "Order", orderId.ToString(),
             string.Join(", ", merged.Select(m => $"{m.Method} {m.Amount:0.##}")), ct);
+        // A part paid in cash opens the cash drawer on the branch's receipt printer.
+        if (print is not null && merged.Any(m => m.Method == PaymentMethod.Cash)) await print.OpenDrawerForCashAsync(order, ct);
         return Result<SplitPaymentDto>.Success(ToDto(order, rows));
     }
 

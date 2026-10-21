@@ -45,4 +45,10 @@ public class Printer : BaseEntity, ITenantOwned
     /// the cloud and the printer is on the cafe's own network.
     /// </summary>
     public bool ViaAgent { get; set; }
+
+    /// <summary>
+    /// Receipt printers only: a cash drawer is plugged into this printer. It opens when a cash payment is taken and when
+    /// the cashier presses Open drawer.
+    /// </summary>
+    public bool CashDrawer { get; set; }
 }

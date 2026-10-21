@@ -638,6 +638,11 @@ export class YurtApiService {
     });
   }
 
+  /** Opens the cash drawer plugged into the branch's receipt printer. `printers` is 0 when the branch has none. */
+  openCashDrawer(locationId: string): Observable<PrintQueued> {
+    return this.http.post<PrintQueued>(`${this.api}/admin/cash-drawer/${locationId}/open`, {});
+  }
+
   printOrderReceipt(orderId: string): Observable<PrintQueued> {
     return this.http.post<PrintQueued>(`${this.api}/admin/orders/${orderId}/print/receipt`, {});
   }
