@@ -174,6 +174,7 @@ Steps:
 - [ ] Kitchen display and order-routing per branch.
   - [x] Simple kitchen screen (`/kitchen`, gated by `own_pos`): three columns per branch, one tap per step, live updates, sound for a new accepted order. Details in `docs/modules.md`.
   - [x] Stations (Kitchen, Bar) and routing a menu category to a station; the kitchen screen can be set to one station and then shows only its items. Details in `docs/modules.md`.
+  - [x] Ready per station: each station marks its own part of an order ready; the order is Ready once every station's part is. Details in `docs/modules.md`.
 - [ ] Stock, ingredients and automatic stop-list.
   - [x] Stock per product per branch with the automatic stop-list (admin Stock page, orders limited to what is left, accept lowers the count, sold-out items leave the customer menu). Details in `docs/modules.md`. Also fixed the customer menu cache so it is kept per cafe.
   - [x] Ingredients and recipes: ingredient counts per branch, a recipe per dish (optionally per size), dishes leave the menu when an ingredient runs out, accepting an order lowers the counts. Details in `docs/modules.md`.

@@ -571,6 +571,12 @@ export class YurtApiService {
     });
   }
 
+  /** A station marks its own part of an order ready (or takes it back); the order is Ready once every part is. */
+  setStationReady(orderId: string, stationId: string, ready: boolean): Observable<Order> {
+    const url = `${this.api}/admin/orders/${orderId}/stations/${stationId}/ready`;
+    return ready ? this.http.post<Order>(url, {}) : this.http.delete<Order>(url);
+  }
+
   getToppingUses(toppingId: string): Observable<RecipeLine[]> {
     return this.http.get<RecipeLine[]>(`${this.api}/admin/ingredients/toppings/${toppingId}`);
   }

@@ -305,6 +305,7 @@ public class OrderService
             .Include(o => o.CustomerUser)
             .Include(o => o.Items).ThenInclude(i => i.Toppings)
             .Include(o => o.DiscountCode)
+            .Include(o => o.ReadyStations)
             .Where(o => !o.IsArchived)
             .AsQueryable();
 
@@ -466,12 +467,13 @@ public class OrderService
         return Result<OrderDto>.Success(MapToDto(order));
     }
 
-    private async Task<Order?> LoadOrderAsync(Guid id, CancellationToken ct)
+    internal async Task<Order?> LoadOrderAsync(Guid id, CancellationToken ct)
         => await _db.Orders
             .Include(o => o.Location)
             .Include(o => o.CustomerUser)
             .Include(o => o.Items).ThenInclude(i => i.Toppings)
             .Include(o => o.DiscountCode)
+            .Include(o => o.ReadyStations)
             .FirstOrDefaultAsync(o => o.Id == id, ct);
 
     public static OrderDto MapToDto(Order o)
@@ -513,6 +515,7 @@ public class OrderService
             o.Rating,
             o.RatingComment,
             o.IikoOrderSyncStatus,
-            o.Location?.TwoGisUrl);
+            o.Location?.TwoGisUrl,
+            o.ReadyStations.Select(r => r.StationId).ToList());
     }
 }
