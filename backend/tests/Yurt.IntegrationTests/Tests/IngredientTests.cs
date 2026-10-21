@@ -195,4 +195,41 @@ public class IngredientTests(YurtWebAppFactory factory)
             .EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.Created, (await Order(50)).StatusCode);
     }
+
+    [Fact]
+    public async Task Alerts_ListWhatIsLowOrOut_AndDropItWhenRestockedOrNotCounted()
+    {
+        var admin = factory.CreateClient();
+        admin.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin));
+        var name = $"Sugar {Guid.NewGuid():N}"[..18];
+        var sugar = (await (await admin.PostAsJsonAsync("/api/v1/admin/ingredients", new { name, unit = "g" }))
+            .Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        async Task<JsonElement?> AlertAsync()
+        {
+            var json = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/admin/stock/alerts?locationId={LocationId}");
+            foreach (var a in json.GetProperty("items").EnumerateArray())
+                if (a.GetProperty("name").GetString() == name) return a;
+            return null;
+        }
+        Task Set(decimal? quantity, decimal? low) => admin.PutAsJsonAsync($"/api/v1/admin/ingredients/{sugar}/stock/{LocationId}", new { quantity, lowStockAt = low });
+
+        Assert.Null(await AlertAsync()); // not counted
+        await Set(500m, 100m);
+        Assert.Null(await AlertAsync()); // plenty left
+        await Set(80m, 100m);
+        var low = await AlertAsync();
+        Assert.NotNull(low);
+        Assert.False(low!.Value.GetProperty("isOut").GetBoolean());
+        Assert.Equal("ingredient", low.Value.GetProperty("kind").GetString());
+        await Set(0m, 100m);
+        Assert.True((await AlertAsync())!.Value.GetProperty("isOut").GetBoolean());
+
+        var all = await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/stock/alerts");
+        Assert.True(all.GetProperty("out").GetInt32() >= 1);
+
+        await Set(null, null);
+        Assert.Null(await AlertAsync());
+    }
 }

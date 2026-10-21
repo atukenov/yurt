@@ -22,6 +22,11 @@ public record SaveRecipeLineDto(Guid IngredientId, Guid? VariantId, decimal Quan
 
 public record SaveRecipeDto(List<SaveRecipeLineDto> Lines);
 
+/// <summary>One thing that is running low or has run out at a branch. `Kind` is "dish" or "ingredient".</summary>
+public record StockAlertDto(string Kind, Guid Id, string Name, Guid LocationId, string LocationName, decimal Quantity, string? Unit, bool IsOut);
+
+public record StockAlertsDto(int Low, int Out, List<StockAlertDto> Items);
+
 public record ToppingUseDto(Guid IngredientId, string IngredientName, string Unit, decimal Quantity);
 
 public record SaveToppingUseDto(Guid IngredientId, decimal Quantity);

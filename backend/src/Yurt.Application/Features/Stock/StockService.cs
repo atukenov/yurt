@@ -80,6 +80,30 @@ public class StockService(
             IsSoldOut: row is { Quantity: <= 0 }));
     }
 
+    /// <summary>
+    /// Dishes and ingredients that are running low (at or under their warn-at number) or out, in one branch or in all
+    /// of them. Empty while the module is off. Out items come first; the list is capped so the screen stays small.
+    /// </summary>
+    public async Task<StockAlertsDto> AlertsAsync(Guid? locationId, CancellationToken ct = default)
+    {
+        const int Cap = 100;
+        if (!await IsActiveAsync(ct)) return new StockAlertsDto(0, 0, []);
+
+        var dishes = await db.MenuItemStocks
+            .Where(s => (locationId == null || s.LocationId == locationId)
+                && (s.Quantity <= 0 || (s.LowStockAt != null && s.Quantity <= s.LowStockAt)))
+            .Select(s => new StockAlertDto("dish", s.MenuItemId, s.MenuItem.Name, s.LocationId, s.Location.Name, s.Quantity, null, s.Quantity <= 0))
+            .ToListAsync(ct);
+        var ingredients = await db.IngredientStocks
+            .Where(s => (locationId == null || s.LocationId == locationId)
+                && (s.Quantity <= 0 || (s.LowStockAt != null && s.Quantity <= s.LowStockAt)))
+            .Select(s => new StockAlertDto("ingredient", s.IngredientId, s.Ingredient.Name, s.LocationId, s.Location.Name, s.Quantity, s.Ingredient.Unit, s.Quantity <= 0))
+            .ToListAsync(ct);
+
+        var all = dishes.Concat(ingredients).OrderByDescending(a => a.IsOut).ThenBy(a => a.Name).ToList();
+        return new StockAlertsDto(all.Count(a => !a.IsOut), all.Count(a => a.IsOut), all.Take(Cap).ToList());
+    }
+
     /// <summary>Menu items at zero in this branch. Empty while the module is off.</summary>
     public async Task<List<Guid>> SoldOutItemIdsAsync(Guid locationId, CancellationToken ct = default)
     {
