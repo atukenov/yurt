@@ -187,6 +187,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
       language: (this.lang.lang() === 'en' ? 'en' : this.lang.lang() === 'kk' ? 'kk' : 'ru'),
       autoPrint: true,
       viaAgent: false,
+      cashDrawer: false,
     };
   }
 }

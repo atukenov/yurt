@@ -139,6 +139,15 @@
           <span class="block text-xs text-slate-400">{{ 'printers.viaAgentHint' | t }}</span>
         </span>
       </label>
+      @if (form.kind === 'Receipt') {
+        <label class="flex items-start gap-2 text-sm text-slate-600 sm:col-span-2">
+          <input name="cashDrawer" type="checkbox" [(ngModel)]="form.cashDrawer" class="mt-0.5 h-4 w-4" />
+          <span>
+            {{ 'printers.cashDrawer' | t }}
+            <span class="block text-xs text-slate-400">{{ 'printers.cashDrawerHint' | t }}</span>
+          </span>
+        </label>
+      }
       <div class="flex gap-2 sm:col-span-2">
         <button
           type="submit"
@@ -187,6 +196,9 @@
                 }
                 @if (p.viaAgent) {
                   · {{ 'printers.agent.via' | t }}
+                }
+                @if (p.cashDrawer) {
+                  · {{ 'printers.withDrawer' | t }}
                 }
               </p>
             </div>

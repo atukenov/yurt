@@ -72,6 +72,21 @@ public class AdminOrderPrintController(PrintService print) : ApiControllerBase
 }
 
 /// <summary>
+/// The Open drawer button on the Cashier page: opens the cash drawer plugged into the branch's receipt printer (own_pos).
+/// Any staff member may press it; each press is in the audit log.
+/// </summary>
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/admin/cash-drawer")]
+[Authorize(Policy = "AdminOnly")]
+[RequireModule(ModuleKeys.OwnPos)]
+public class AdminCashDrawerController(PrintService print) : ApiControllerBase
+{
+    [HttpPost("{locationId:guid}/open")]
+    public async Task<IActionResult> Open(Guid locationId, CancellationToken ct) => ToResult(await print.OpenDrawerAsync(locationId, ct));
+}
+
+/// <summary>
 /// Used by the print agent that runs in the cafe (scripts/print-agent.mjs). It signs in with its key in the
 /// <c>X-Print-Agent-Key</c> header and names its cafe with <c>X-Tenant</c> (own_pos).
 /// </summary>

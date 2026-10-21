@@ -30,6 +30,7 @@ export class CashierComponent implements OnInit {
   history = signal<Shift[]>([]);
   loading = signal(true);
   busy = signal(false);
+  drawerBusy = signal(false);
   /** True once the report on screen is the Z report of a shift that was just closed or picked from history. */
   viewingClosed = signal(false);
 
@@ -192,6 +193,22 @@ export class CashierComponent implements OnInit {
     this.api.getShiftReport(s.id).subscribe((r) => {
       this.report.set(r);
       this.viewingClosed.set(true);
+    });
+  }
+
+  /** Opens the cash drawer plugged into this branch's receipt printer (for change, cash in/out or counting). */
+  openDrawer(): void {
+    this.drawerBusy.set(true);
+    this.api.openCashDrawer(this.locationId).subscribe({
+      next: (r) => {
+        this.drawerBusy.set(false);
+        if (r.printers > 0) this.toast.success(this.lang.t('cash.drawerOpened'));
+        else this.toast.error(this.lang.t('cash.noDrawer'));
+      },
+      error: () => {
+        this.drawerBusy.set(false);
+        this.toast.error(this.lang.t('cash.drawerFailed'));
+      },
     });
   }
 

@@ -1859,6 +1859,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<bool>("AutoPrint")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("CashDrawer")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("CodeTable")
                         .HasColumnType("integer");
 

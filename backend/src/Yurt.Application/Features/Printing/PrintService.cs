@@ -13,13 +13,20 @@ namespace Yurt.Application.Features.Printing;
 /// print from the browser.
 /// </summary>
 public class PrintService(
-    IApplicationDbContext db, IPrinterTransport transport, PrintQueueSignal signal, ILogger<PrintService> logger)
+    IApplicationDbContext db, IPrinterTransport transport, PrintQueueSignal signal, ILogger<PrintService> logger,
+    IAuditLogService audit)
 {
     /// <summary>Tries per job before it is marked failed.</summary>
     public const int MaxAttempts = 3;
 
     /// <summary>A ticket that could not print within this time is dropped: printing it much later would only confuse the kitchen.</summary>
     public static readonly TimeSpan MaxAge = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// A cash drawer that could not open within this time stays shut: a drawer popping open minutes later, when nobody
+    /// is at the till, is worse than the cashier pressing Open drawer again.
+    /// </summary>
+    public static readonly TimeSpan DrawerMaxAge = TimeSpan.FromMinutes(1);
 
     /// <summary>A job left "sending" this long (the server stopped mid-send) is marked failed.</summary>
     private static readonly TimeSpan StuckAfter = TimeSpan.FromMinutes(2);
@@ -56,6 +63,42 @@ public class PrintService(
         var order = await LoadAsync(orderId, ct);
         if (order is null) return Result<PrintQueuedDto>.NotFound();
         return Result<PrintQueuedDto>.Success(new PrintQueuedDto(await QueueReceiptAsync(order, autoOnly: false, ct)));
+    }
+
+    /// <summary>
+    /// A cash payment was taken for this order: opens the cash drawer of the order's branch. Never fails the payment;
+    /// a drawer that does not open only leaves a failed job in the list.
+    /// </summary>
+    public async Task OpenDrawerForCashAsync(Order order, CancellationToken ct = default)
+    {
+        try
+        {
+            await QueueDrawerAsync(order.LocationId, order.Id, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Could not open the cash drawer for order {OrderId}", order.Id);
+        }
+    }
+
+    /// <summary>The cashier pressed Open drawer (for change, cash in/out or counting). Logged in the audit log.</summary>
+    public async Task<Result<PrintQueuedDto>> OpenDrawerAsync(Guid locationId, CancellationToken ct = default)
+    {
+        if (!await db.Locations.AnyAsync(l => l.Id == locationId, ct)) return Result<PrintQueuedDto>.NotFound("Branch not found.");
+        var queued = await QueueDrawerAsync(locationId, null, ct);
+        if (queued > 0) await audit.LogAsync("CashDrawerOpened", "Location", locationId.ToString(), null, ct);
+        return Result<PrintQueuedDto>.Success(new PrintQueuedDto(queued));
+    }
+
+    /// <summary>Sends "open drawer" to every receipt printer of the branch that has a cash drawer plugged in.</summary>
+    private async Task<int> QueueDrawerAsync(Guid locationId, Guid? orderId, CancellationToken ct)
+    {
+        var printers = await db.Printers.AsNoTracking()
+            .Where(p => p.LocationId == locationId && p.Kind == Printer.ReceiptKind && p.CashDrawer)
+            .ToListAsync(ct);
+        foreach (var printer in printers)
+            db.PrintJobs.Add(new PrintJob { PrinterId = printer.Id, OrderId = orderId, Kind = PrintJob.DrawerKind, Data = PrintLayouts.Drawer(printer) });
+        return await SaveAsync(printers.Count, ct);
     }
 
     /// <summary>
@@ -112,6 +155,10 @@ public class PrintService(
         var now = DateTime.UtcNow;
         var tooOld = now - MaxAge;
         var stuck = now - StuckAfter;
+        var drawerTooOld = now - DrawerMaxAge;
+        await db.PrintJobs.Where(j => j.Status == PrintJob.Pending && j.Kind == PrintJob.DrawerKind && j.CreatedAt < drawerTooOld)
+            .ExecuteUpdateAsync(s => s.SetProperty(j => j.Status, PrintJob.Failed)
+                .SetProperty(j => j.LastError, "Drawer not opened in time.").SetProperty(j => j.UpdatedAt, now), ct);
         await db.PrintJobs.Where(j => j.Status == PrintJob.Pending && j.CreatedAt < tooOld)
             .ExecuteUpdateAsync(s => s.SetProperty(j => j.Status, PrintJob.Failed)
                 .SetProperty(j => j.LastError, "Not printed in time.").SetProperty(j => j.UpdatedAt, now), ct);

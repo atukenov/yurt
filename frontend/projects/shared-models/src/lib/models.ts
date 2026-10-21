@@ -375,6 +375,8 @@ export interface Printer {
   autoPrint: boolean;
   /** Sent through the branch's print agent (a printer on the cafe network that the server cannot reach). */
   viaAgent: boolean;
+  /** Receipt printers only: a cash drawer is plugged into this printer and opens on cash payments. */
+  cashDrawer: boolean;
 }
 
 export type SavePrinter = Omit<Printer, 'id'>;
@@ -385,7 +387,7 @@ export interface PrintJob {
   printerId: string;
   printerName: string;
   orderId?: string | null;
-  kind: 'Ticket' | 'Receipt' | 'Test';
+  kind: 'Ticket' | 'Receipt' | 'Test' | 'Drawer';
   status: 'Pending' | 'Sending' | 'Printed' | 'Failed';
   attempts: number;
   lastError?: string | null;
