@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { YurtApiService } from 'shared-api';
+import { TranslatePipe } from '../../core/translate.pipe';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-group-order-join',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './group-order-join.component.html',
 })
 export class GroupOrderJoinComponent implements OnInit {
@@ -28,13 +29,13 @@ export class GroupOrderJoinComponent implements OnInit {
 
   join(): void {
     const trimmed = this.code.trim().toUpperCase();
-    if (trimmed.length !== 6) { this.error.set('Please enter a 6-character code.'); return; }
+    if (trimmed.length !== 6) { this.error.set('group.codeLength'); return; }
     this.error.set('');
     this.loading.set(true);
     this.api.joinGroupOrder(trimmed).subscribe({
       next: (cart) => this.router.navigate(['/group-order', cart.id]),
-      error: (err) => {
-        this.error.set(err?.error?.title ?? 'Invalid code or group has expired.');
+      error: () => {
+        this.error.set('group.invalidCode');
         this.loading.set(false);
       },
     });
