@@ -401,6 +401,8 @@ export interface Order {
   rating?: number;
   ratingComment?: string;
   iikoOrderSyncStatus?: IikoOrderSyncStatus;
+  /** Stations (Kitchen, Bar, ...) that have finished their part of this order (own_pos). */
+  readyStationIds?: string[];
 }
 
 export enum IikoOrderSyncStatus {
