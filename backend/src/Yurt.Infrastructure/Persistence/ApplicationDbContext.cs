@@ -43,6 +43,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<OrderPayment> OrderPayments => Set<OrderPayment>();
     public DbSet<Station> Stations => Set<Station>();
     public DbSet<OrderStationReady> OrderStationReadies => Set<OrderStationReady>();
+    public DbSet<Printer> Printers => Set<Printer>();
+    public DbSet<PrintJob> PrintJobs => Set<PrintJob>();
     public DbSet<ToppingUse> ToppingUses => Set<ToppingUse>();
     public DbSet<CashMovement> CashMovements => Set<CashMovement>();
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();

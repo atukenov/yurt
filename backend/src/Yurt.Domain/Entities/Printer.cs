@@ -1,0 +1,42 @@
+using Yurt.Domain.Common;
+
+namespace Yurt.Domain.Entities;
+
+/// <summary>
+/// A thermal printer at one branch that the server sends ESC/POS bytes to over the network (Phase 6, <c>own_pos</c>).
+/// A kitchen printer prints the items of one station (or all items when no station is set); a receipt printer prints
+/// the customer receipt.
+/// </summary>
+public class Printer : BaseEntity, ITenantOwned
+{
+    public const string KitchenKind = "Kitchen", ReceiptKind = "Receipt";
+
+    public Guid TenantId { get; set; }
+
+    public Guid LocationId { get; set; }
+    public Location Location { get; set; } = null!;
+
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary><see cref="KitchenKind"/> or <see cref="ReceiptKind"/>.</summary>
+    public string Kind { get; set; } = KitchenKind;
+
+    /// <summary>Kitchen printers only: the station whose items this printer gets. Null = every item.</summary>
+    public Guid? StationId { get; set; }
+
+    /// <summary>Network address of the printer, such as 192.168.1.50.</summary>
+    public string Host { get; set; } = string.Empty;
+    public int Port { get; set; } = 9100;
+
+    /// <summary>Characters per line: 32 for 58 mm paper, 48 for 80 mm paper.</summary>
+    public int LineWidth { get; set; } = 48;
+
+    /// <summary>The ESC/POS character table number the printer uses for Cyrillic (code page 866). 17 on most printers.</summary>
+    public int CodeTable { get; set; } = 17;
+
+    /// <summary>Language of the printed words (ru, kk or en).</summary>
+    public string Language { get; set; } = "ru";
+
+    /// <summary>Print by itself when an order is accepted. Off = only when staff press Print.</summary>
+    public bool AutoPrint { get; set; } = true;
+}
