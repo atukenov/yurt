@@ -392,6 +392,12 @@ export interface StockAlerts {
   items: StockAlert[];
 }
 
+/** A phone that gets low-stock pushes. `hasApp`: a cafe-app account with this number can receive them. */
+export interface StockAlertPhone {
+  phone: string;
+  hasApp: boolean;
+}
+
 export interface Order {
   id: string;
   customerUserId: string;

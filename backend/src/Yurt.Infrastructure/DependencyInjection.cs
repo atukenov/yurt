@@ -145,6 +145,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantSecrets, TenantSecrets>();
         services.AddScoped<CafeSecretsService>();
         services.AddScoped<LoyaltyImportService>();
+        services.AddScoped<StockAlertPushService>();
         services.AddScoped<StockService>();
         services.AddScoped<IngredientService>();
         services.AddScoped<ShiftService>();

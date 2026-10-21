@@ -136,4 +136,27 @@ public class PushNotificationServiceTests
             Arg.Any<IReadOnlyList<string>>(), Arg.Any<string>(), Arg.Any<string>(),
             Arg.Any<IReadOnlyDictionary<string, string>?>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task SendToCustomersAsync_SendsOnceToEveryDeviceOfThoseCustomers()
+    {
+        var a = Guid.NewGuid();
+        var b = Guid.NewGuid();
+        var (svc, _, sender) = Build(
+        [
+            new CustomerDeviceToken { CustomerUserId = a, Token = "a1", Platform = DevicePlatform.Ios },
+            new CustomerDeviceToken { CustomerUserId = b, Token = "b1", Platform = DevicePlatform.Android },
+            new CustomerDeviceToken { CustomerUserId = Guid.NewGuid(), Token = "other", Platform = DevicePlatform.Android },
+        ]);
+        sender.SendAsync(
+                Arg.Any<IReadOnlyList<string>>(), Arg.Any<string>(), Arg.Any<string>(),
+                Arg.Any<IReadOnlyDictionary<string, string>?>(), Arg.Any<CancellationToken>())
+            .Returns(new PushSendResult([]));
+
+        await svc.SendToCustomersAsync([a, b], "title", "body");
+
+        await sender.Received(1).SendAsync(
+            Arg.Is<IReadOnlyList<string>>(t => t.Count == 2 && t.Contains("a1") && t.Contains("b1")),
+            "title", "body", Arg.Any<IReadOnlyDictionary<string, string>?>(), Arg.Any<CancellationToken>());
+    }
 }

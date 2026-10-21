@@ -15,7 +15,8 @@ public record StockLine(Guid MenuItemId, Guid? VariantId, int Quantity, IReadOnl
 /// While the <c>own_pos</c> module is off nothing is enforced, so an item can never stay stuck at zero without a way to fix it.
 /// </summary>
 public class StockService(
-    IApplicationDbContext db, IAuditLogService audit, IMenuCacheService menuCache, IModuleGate modules, ICurrentUserService user)
+    IApplicationDbContext db, IAuditLogService audit, IMenuCacheService menuCache, IModuleGate modules,
+    StockAlertPushService alerts, ICurrentUserService user)
 {
     private const int MaxHistory = 500;
 
@@ -252,18 +253,26 @@ public class StockService(
         return null;
     }
 
-    /// <summary>Lowers the counts for an accepted order. Never goes below zero; safe when two orders are accepted together.</summary>
+    /// <summary>
+    /// Lowers the counts for an accepted order. Never goes below zero; safe when two orders are accepted together.
+    /// Anything this order takes down to its warn-at number, or to zero, is sent as a phone alert.
+    /// </summary>
     public async Task ConsumeForOrderAsync(Order order, CancellationToken ct = default)
     {
         if (!await IsActiveAsync(ct)) return;
 
         var now = DateTime.UtcNow;
         var touched = false;
-        foreach (var line in order.Items.GroupBy(i => i.MenuItemId))
+        var dishes = order.Items.GroupBy(i => i.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+        var dishIds = dishes.Keys.ToList();
+        var dishesBefore = await db.MenuItemStocks.AsNoTracking()
+            .Where(s => s.LocationId == order.LocationId && dishIds.Contains(s.MenuItemId))
+            .Select(s => new { s.MenuItemId, s.Quantity, s.LowStockAt, s.MenuItem.Name })
+            .ToListAsync(ct);
+        foreach (var (menuItemId, qty) in dishes)
         {
-            var qty = line.Sum(i => i.Quantity);
             var changed = await db.MenuItemStocks
-                .Where(s => s.MenuItemId == line.Key && s.LocationId == order.LocationId)
+                .Where(s => s.MenuItemId == menuItemId && s.LocationId == order.LocationId)
                 .ExecuteUpdateAsync(u => u
                     .SetProperty(s => s.Quantity, s => s.Quantity > qty ? s.Quantity - qty : 0)
                     .SetProperty(s => s.UpdatedAt, now), ct);
@@ -275,7 +284,13 @@ public class StockService(
             .ToList();
         var recipes = await RecipesForAsync(orderLines, ct);
         var toppingUses = await ToppingUsesForAsync(orderLines, ct);
-        foreach (var (ingredientId, need) in NeedsOf(orderLines, recipes, toppingUses))
+        var needs = NeedsOf(orderLines, recipes, toppingUses);
+        var ingredientIds = needs.Keys.ToList();
+        var ingredientsBefore = await db.IngredientStocks.AsNoTracking()
+            .Where(s => s.LocationId == order.LocationId && ingredientIds.Contains(s.IngredientId))
+            .Select(s => new { s.IngredientId, s.Quantity, s.LowStockAt, s.Ingredient.Name, s.Ingredient.Unit })
+            .ToListAsync(ct);
+        foreach (var (ingredientId, need) in needs)
         {
             var changed = await db.IngredientStocks
                 .Where(s => s.IngredientId == ingredientId && s.LocationId == order.LocationId)
@@ -287,5 +302,28 @@ public class StockService(
 
         // The customer menu is cached; an item that just sold out must disappear from it.
         if (touched) await menuCache.InvalidateAllMenuAsync();
+
+        var crossed = new List<(string Kind, Guid Id, string Name, decimal Left, string? Unit)>();
+        foreach (var d in dishesBefore)
+        {
+            var left = Math.Max(0, d.Quantity - dishes[d.MenuItemId]);
+            if (CrossedWarnLevel(d.Quantity, left, d.LowStockAt)) crossed.Add(("dish", d.MenuItemId, d.Name, left, null));
+        }
+        foreach (var i in ingredientsBefore)
+        {
+            var left = Math.Max(0m, i.Quantity - needs[i.IngredientId]);
+            if (CrossedWarnLevel(i.Quantity, left, i.LowStockAt)) crossed.Add(("ingredient", i.IngredientId, i.Name, left, i.Unit));
+        }
+        if (crossed.Count == 0) return;
+
+        var locationName = await db.Locations.Where(l => l.Id == order.LocationId).Select(l => l.Name).FirstOrDefaultAsync(ct) ?? "";
+        await alerts.NotifyAsync(crossed
+            .Select(c => new StockAlertDto(c.Kind, c.Id, c.Name, order.LocationId, locationName, c.Left, c.Unit, c.Left <= 0))
+            .ToList(), ct);
     }
+
+    /// <summary>True when this change took a count from above its warn-at number to at or under it, or to zero. Only
+    /// the order that crosses the line alerts; the ones after it stay quiet until someone restocks.</summary>
+    public static bool CrossedWarnLevel(decimal before, decimal after, decimal? lowStockAt)
+        => (before > 0 && after <= 0) || (lowStockAt != null && before > lowStockAt && after <= lowStockAt);
 }

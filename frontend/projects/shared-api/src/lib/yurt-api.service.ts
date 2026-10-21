@@ -41,6 +41,7 @@ import {
   MenuTopping,
   Order,
   StockItem,
+  StockAlertPhone,
   StockAlerts,
   StockChange,
   Station,
@@ -549,6 +550,15 @@ export class YurtApiService {
     return this.http.get<StockChange[]>(`${this.api}/admin/stock/history`, {
       params: { locationId, take },
     });
+  }
+
+  /** Phones whose cafe app gets a push when stock runs low. */
+  getStockAlertPhones(): Observable<StockAlertPhone[]> {
+    return this.http.get<StockAlertPhone[]>(`${this.api}/admin/stock/alert-phones`);
+  }
+
+  setStockAlertPhones(phones: string[]): Observable<StockAlertPhone[]> {
+    return this.http.put<StockAlertPhone[]>(`${this.api}/admin/stock/alert-phones`, { phones });
   }
 
   getStationRouting(): Observable<StationRouting> {

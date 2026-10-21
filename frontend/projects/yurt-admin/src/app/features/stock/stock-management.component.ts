@@ -6,6 +6,7 @@ import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { IngredientsPanelComponent } from './ingredients-panel.component';
 import { RecipesPanelComponent } from './recipes-panel.component';
+import { StockAlertPhonesComponent } from './stock-alert-phones.component';
 import { StockHistoryPanelComponent } from './stock-history-panel.component';
 
 interface StockRow extends StockItem {
@@ -28,6 +29,7 @@ interface StockRow extends StockItem {
     IngredientsPanelComponent,
     RecipesPanelComponent,
     StockHistoryPanelComponent,
+    StockAlertPhonesComponent,
   ],
   templateUrl: './stock-management.component.html',
 })

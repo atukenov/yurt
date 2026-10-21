@@ -34,6 +34,12 @@ public record StockChangeDto(
     Guid Id, string Kind, Guid ItemId, string ItemName, string? Unit,
     decimal? OldQuantity, decimal? NewQuantity, decimal? Change, string ChangedBy, DateTime ChangedAt);
 
+/// <summary>A phone that gets low-stock pushes. <c>HasApp</c> is true when a cafe-app account with this number has a
+/// device registered for pushes, so the alert can actually arrive.</summary>
+public record StockAlertPhoneDto(string Phone, bool HasApp);
+
+public record SaveStockAlertPhonesDto(List<string>? Phones);
+
 public record ToppingUseDto(Guid IngredientId, string IngredientName, string Unit, decimal Quantity);
 
 public record SaveToppingUseDto(Guid IngredientId, decimal Quantity);

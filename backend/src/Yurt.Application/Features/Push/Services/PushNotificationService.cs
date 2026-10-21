@@ -30,14 +30,25 @@ public class PushNotificationService
         _modules = modules;
     }
 
-    public async Task SendOrderStatusPushAsync(
+    public Task SendOrderStatusPushAsync(
         Guid customerUserId,
         string title,
         string body,
         IReadOnlyDictionary<string, string>? data = null,
         CancellationToken ct = default)
+        => SendToCustomersAsync([customerUserId], title, body, data, ct);
+
+    /// <summary>Sends one push to every device of the given customers (for example staff who use the cafe app
+    /// on their phone and get stock alerts on it). Same rules as order pushes: a no-op while Firebase or the push
+    /// module is off, dead tokens are pruned, and a failure never propagates.</summary>
+    public async Task SendToCustomersAsync(
+        IReadOnlyCollection<Guid> customerUserIds,
+        string title,
+        string body,
+        IReadOnlyDictionary<string, string>? data = null,
+        CancellationToken ct = default)
     {
-        if (!_options.Enabled) return;
+        if (!_options.Enabled || customerUserIds.Count == 0) return;
 
         try
         {
@@ -45,24 +56,22 @@ public class PushNotificationService
             if (!await _modules.IsEnabledAsync(ModuleKeys.Push, ct)) return;
 
             var tokens = await _db.CustomerDeviceTokens
-                .Where(t => t.CustomerUserId == customerUserId)
+                .Where(t => customerUserIds.Contains(t.CustomerUserId))
                 .Select(t => t.Token)
                 .ToListAsync(ct);
             if (tokens.Count == 0)
             {
                 _logger.LogInformation(
-                    "No registered device tokens for customer {CustomerUserId} — skipping push.", customerUserId);
+                    "No registered device tokens for {Count} customer(s) — skipping push.", customerUserIds.Count);
                 return;
             }
 
             _logger.LogInformation(
-                "Sending push to {Count} device(s) for customer {CustomerUserId}.", tokens.Count, customerUserId);
+                "Sending push to {Count} device(s) for {Customers} customer(s).", tokens.Count, customerUserIds.Count);
             var result = await _sender.SendAsync(tokens, title, body, data, ct);
             if (result.DeadTokens.Count == 0) return;
 
-            _logger.LogInformation(
-                "Pruning {Count} dead device token(s) for customer {CustomerUserId}.",
-                result.DeadTokens.Count, customerUserId);
+            _logger.LogInformation("Pruning {Count} dead device token(s).", result.DeadTokens.Count);
             var deadTokens = await _db.CustomerDeviceTokens
                 .Where(t => result.DeadTokens.Contains(t.Token))
                 .ToListAsync(ct);
@@ -71,7 +80,7 @@ public class PushNotificationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send push notification to customer {CustomerUserId}.", customerUserId);
+            _logger.LogError(ex, "Failed to send push notification to {Count} customer(s).", customerUserIds.Count);
         }
     }
 }
