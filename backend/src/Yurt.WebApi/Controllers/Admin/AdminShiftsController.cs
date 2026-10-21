@@ -35,6 +35,11 @@ public class AdminShiftsController(ShiftService shifts) : ApiControllerBase
     public async Task<IActionResult> Close(Guid id, [FromBody] CloseShiftDto dto, CancellationToken ct)
         => ToResult(await shifts.CloseAsync(id, dto, ct));
 
+    /// <summary>Tries the fiscal Z report again when closing the fiscal shift failed.</summary>
+    [HttpPost("{id:guid}/fiscal-z-report")]
+    public async Task<IActionResult> FiscalZReport(Guid id, CancellationToken ct)
+        => ToResult(await shifts.RetryFiscalZReportAsync(id, ct));
+
     [HttpGet("{id:guid}/report")]
     public async Task<IActionResult> Report(Guid id, CancellationToken ct)
         => ToResult(await shifts.ReportAsync(id, ct));

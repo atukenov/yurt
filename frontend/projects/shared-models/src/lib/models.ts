@@ -309,6 +309,9 @@ export interface Shift {
   closedBy?: string | null;
   countedCash?: number | null;
   note?: string | null;
+  /** When the fiscal shift at the cloud cash register was closed (fiscal Z report). */
+  fiscalZReportAt?: string | null;
+  fiscalZReportError?: string | null;
 }
 
 export interface CashMovement {
@@ -968,6 +971,48 @@ export interface LoyaltyCompareResult {
   mismatched: number;
   failed: number;
   mismatches: LoyaltyMismatch[];
+}
+
+/** One official tax receipt of an order (own_pos). Pending = "not fiscalized yet". */
+export interface FiscalReceipt {
+  id: string;
+  orderId: string;
+  locationId: string;
+  kind: 'Sale' | 'Return';
+  status: 'Pending' | 'Sent' | 'Skipped';
+  amount: number;
+  provider: string;
+  attempts: number;
+  lastError?: string | null;
+  createdAt: string;
+  nextAttemptAt: string;
+  sentAt?: string | null;
+  registerNumber?: string | null;
+  checkNumber?: string | null;
+  ticketUrl?: string | null;
+}
+
+export interface FiscalBranch {
+  locationId: string;
+  name: string;
+  registerNumber?: string | null;
+}
+
+export interface FiscalSettings {
+  provider: string | null;
+  since?: string | null;
+  skipMethods: string[];
+  vatPercent?: number | null;
+  branches: FiscalBranch[];
+  providers: string[];
+  credentialsSet: boolean;
+}
+
+export interface SaveFiscalSettings {
+  provider: string | null;
+  skipMethods: string[];
+  vatPercent: number | null;
+  branches: { locationId: string; registerNumber: string | null }[];
 }
 
 export interface LoyaltyLedgerInfo {
