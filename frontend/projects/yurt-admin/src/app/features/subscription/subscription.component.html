@@ -7,7 +7,7 @@
     </div>
 
     @if (loading()) {
-      <p class="text-slate-400 text-sm">{{ 'label.loading' | t }}</p>
+      <p class="text-slate-500 text-sm">{{ 'label.loading' | t }}</p>
     } @else {
       <div class="space-y-2">
         @for (m of modules(); track m.key) {
@@ -18,7 +18,7 @@
                 {{ 'sub.state.' + m.state | t }}
               </span>
               @if (m.validUntil) {
-                <span class="text-xs text-slate-400 ml-auto">{{ 'sub.validUntil' | t }} {{ m.validUntil | date: 'MMM d, y' }}</span>
+                <span class="text-xs text-slate-500 ml-auto">{{ 'sub.validUntil' | t }} {{ m.validUntil | date: 'MMM d, y' }}</span>
               }
             </div>
             @if (m.state === 'grace' && m.graceEndsAt) {

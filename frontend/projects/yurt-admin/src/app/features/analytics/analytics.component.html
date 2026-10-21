@@ -4,7 +4,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div>
         <h1 class="text-2xl font-bold text-stone-800">{{ 'analytics.title' | t }}</h1>
-        <p class="text-sm text-slate-400 mt-1">{{ 'analytics.overview' | t }}</p>
+        <p class="text-sm text-slate-500 mt-1">{{ 'analytics.overview' | t }}</p>
       </div>
       <div class="flex flex-wrap items-center gap-3">
         @if (locations().length > 1) {
@@ -69,7 +69,7 @@
     @if (!loading() && data()) {
       <!-- ── KPI Cards ───────────────────────────────────────────────────── -->
       @if (trendCaptionKey()) {
-        <p class="text-xs text-slate-400 mb-2">{{ trendCaptionKey() | t }}</p>
+        <p class="text-xs text-slate-500 mb-2">{{ trendCaptionKey() | t }}</p>
       }
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Total Revenue -->
@@ -86,7 +86,7 @@
             }
           </div>
           <p class="text-2xl font-bold text-stone-800">{{ formatTenge(data()!.kpis.totalRevenue) }}</p>
-          <p class="text-xs text-slate-400 mt-1">{{ data()!.kpis.completedOrders }} {{ 'analytics.completedOrders' | t }}</p>
+          <p class="text-xs text-slate-500 mt-1">{{ data()!.kpis.completedOrders }} {{ 'analytics.completedOrders' | t }}</p>
         </div>
 
         <!-- Total Orders -->
@@ -103,7 +103,7 @@
             }
           </div>
           <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.totalOrders }}</p>
-          <p class="text-xs text-slate-400 mt-1">{{ data()!.kpis.uniqueCustomers }} {{ 'analytics.uniqueCustomers' | t }}</p>
+          <p class="text-xs text-slate-500 mt-1">{{ data()!.kpis.uniqueCustomers }} {{ 'analytics.uniqueCustomers' | t }}</p>
         </div>
 
         <!-- Avg Order Value -->
@@ -120,7 +120,7 @@
             }
           </div>
           <p class="text-2xl font-bold text-stone-800">{{ formatTenge(data()!.kpis.avgOrderValue) }}</p>
-          <p class="text-xs text-slate-400 mt-1">{{ 'analytics.perCompleted' | t }}</p>
+          <p class="text-xs text-slate-500 mt-1">{{ 'analytics.perCompleted' | t }}</p>
         </div>
 
         <!-- Avg Prep Time -->
@@ -137,21 +137,21 @@
             }
           </div>
           <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.avgPrepTimeMinutes }} min</p>
-          <p class="text-xs text-slate-400 mt-1">{{ 'analytics.fromAccept' | t }}</p>
+          <p class="text-xs text-slate-500 mt-1">{{ 'analytics.fromAccept' | t }}</p>
         </div>
 
         <!-- Decline Rate -->
         <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center">
-              <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-tone-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-8.18 14.18A1 1 0 003 19.5h18a1 1 0 00.89-1.46L13.71 3.86a1 1 0 00-1.72 0z" />
               </svg>
             </div>
             <span class="text-sm font-medium text-slate-500">{{ 'analytics.declineRate' | t }}</span>
           </div>
           <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.declineRatePercent }}%</p>
-          <p class="text-xs text-slate-400 mt-1">
+          <p class="text-xs text-slate-500 mt-1">
             {{ data()!.kpis.declinedOrders }} {{ 'analytics.declinedOrdersLabel' | t }} · {{ formatTenge(data()!.kpis.declinedRevenue) }} {{ 'analytics.lostRevenue' | t }}
           </p>
         </div>
@@ -169,12 +169,12 @@
           <div class="flex items-end gap-4">
             <div>
               <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.newCustomers }}</p>
-              <p class="text-xs text-slate-400">{{ 'analytics.newCustomers' | t }}</p>
+              <p class="text-xs text-slate-500">{{ 'analytics.newCustomers' | t }}</p>
             </div>
             <div class="h-8 w-px bg-slate-100"></div>
             <div>
               <p class="text-2xl font-bold text-stone-800">{{ data()!.kpis.returningCustomers }}</p>
-              <p class="text-xs text-slate-400">{{ 'analytics.returningCustomers' | t }}</p>
+              <p class="text-xs text-slate-500">{{ 'analytics.returningCustomers' | t }}</p>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@
       <!-- ── Revenue Over Time ─────────────────────────────────────────────── -->
       <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6 mb-6">
         <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.revenueOverTime' | t }}</h2>
-        <p class="text-xs text-slate-400 mb-6">{{ 'analytics.completedRev' | t }}</p>
+        <p class="text-xs text-slate-500 mb-6">{{ 'analytics.completedRev' | t }}</p>
 
         @if (data()!.revenueOverTime.length > 0) {
           <div class="revenue-chart-container">
@@ -209,7 +209,7 @@
             </div>
           </div>
         } @else {
-          <div class="text-center py-12 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+          <div class="text-center py-12 text-slate-500 text-sm">{{ 'analytics.noData' | t }}</div>
         }
       </div>
 
@@ -218,13 +218,13 @@
         <!-- Top Selling Items -->
         <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.topSelling' | t }}</h2>
-          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.byQuantity' | t }}</p>
+          <p class="text-xs text-slate-500 mb-5">{{ 'analytics.byQuantity' | t }}</p>
 
           @if (data()!.topItems.length > 0) {
             <div class="space-y-3">
               @for (item of data()!.topItems; track item.name; let i = $index) {
                 <div class="flex items-center gap-3">
-                  <span class="text-xs font-bold text-slate-400 w-5 text-right">{{ i + 1 }}</span>
+                  <span class="text-xs font-bold text-slate-500 w-5 text-right">{{ i + 1 }}</span>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-1">
                       <span class="text-sm font-medium text-stone-700 truncate">{{ item.name }}</span>
@@ -238,14 +238,14 @@
               }
             </div>
           } @else {
-            <div class="text-center py-8 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+            <div class="text-center py-8 text-slate-500 text-sm">{{ 'analytics.noData' | t }}</div>
           }
         </div>
 
         <!-- Revenue by Location -->
         <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.revenueByLocation' | t }}</h2>
-          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.perLocation' | t }}</p>
+          <p class="text-xs text-slate-500 mb-5">{{ 'analytics.perLocation' | t }}</p>
 
           @if (data()!.locationPerformance.length > 0) {
             <div class="space-y-4">
@@ -262,7 +262,7 @@
               }
             </div>
           } @else {
-            <div class="text-center py-8 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+            <div class="text-center py-8 text-slate-500 text-sm">{{ 'analytics.noData' | t }}</div>
           }
         </div>
       </div>
@@ -272,7 +272,7 @@
         <!-- Peak Hours -->
         <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.peakHours' | t }}</h2>
-          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.hourlyDist' | t }}</p>
+          <p class="text-xs text-slate-500 mb-5">{{ 'analytics.hourlyDist' | t }}</p>
 
           <div class="hourly-chart">
             @for (h of data()!.hourlyDistribution; track h.hour) {
@@ -300,7 +300,7 @@
         <!-- Payment Methods -->
         <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
           <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.paymentMethods' | t }}</h2>
-          <p class="text-xs text-slate-400 mb-5">{{ 'analytics.howPay' | t }}</p>
+          <p class="text-xs text-slate-500 mb-5">{{ 'analytics.howPay' | t }}</p>
 
           @if (data()!.paymentBreakdown.length > 0) {
             <!-- Stacked bar -->
@@ -326,7 +326,7 @@
               }
             </div>
           } @else {
-            <div class="text-center py-8 text-slate-400 text-sm">{{ 'analytics.noData' | t }}</div>
+            <div class="text-center py-8 text-slate-500 text-sm">{{ 'analytics.noData' | t }}</div>
           }
         </div>
       </div>
@@ -334,7 +334,7 @@
       <!-- ── Order Status Breakdown ────────────────────────────────────────── -->
       <div class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-6">
         <h2 class="text-base font-semibold text-stone-800 mb-1">{{ 'analytics.statusBreakdown' | t }}</h2>
-        <p class="text-xs text-slate-400 mb-5">{{ 'analytics.allOrders' | t }}</p>
+        <p class="text-xs text-slate-500 mb-5">{{ 'analytics.allOrders' | t }}</p>
 
         <div class="flex flex-wrap gap-3">
           @for (s of data()!.statusBreakdown; track s.status) {

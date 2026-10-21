@@ -464,6 +464,8 @@ public class OrderService
         var order = await LoadOrderAsync(orderId, ct);
         if (order == null) return Result<OrderDto>.NotFound();
 
+        var cashTaken = order.PaymentStatus != PaymentStatus.Paid && dto.PaymentStatus == PaymentStatus.Paid
+            && order.PaymentMethod == PaymentMethod.Cash;
         order.PaymentStatus = dto.PaymentStatus;
         order.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
@@ -471,6 +473,10 @@ public class OrderService
         await _hub.NotifyPaymentUpdatedAsync(order, ct);
         await _audit.LogAsync("OrderPaymentUpdated", "Order", orderId.ToString(),
             $"{dto.PaymentStatus}", ct);
+
+        // Cash taken at the till opens the cash drawer on the branch's receipt printer (own_pos). Fails open.
+        if (cashTaken && _print is not null && await _modules.IsEnabledAsync(ModuleKeys.OwnPos, ct))
+            await _print.OpenDrawerForCashAsync(order, ct);
         return Result<OrderDto>.Success(MapToDto(order));
     }
 

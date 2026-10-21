@@ -60,8 +60,10 @@ public class PrintAgentService(IApplicationDbContext db, ITenantContext tenant, 
         await db.PrintAgents.Where(a => a.Id == agent.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.LastSeenAt, now), ct);
 
         var tooOld = now - PrintService.MaxAge;
+        var drawerTooOld = now - PrintService.DrawerMaxAge;
         var candidates = await db.PrintJobs.AsNoTracking()
             .Where(j => j.Status == PrintJob.Pending && j.Printer.ViaAgent && j.Printer.LocationId == agent.LocationId && j.CreatedAt >= tooOld)
+            .Where(j => j.Kind != PrintJob.DrawerKind || j.CreatedAt >= drawerTooOld)
             .OrderBy(j => j.CreatedAt).Take(BatchSize)
             .Select(j => new AgentJobDto(j.Id, j.Printer.Host, j.Printer.Port, j.Data))
             .ToListAsync(ct);

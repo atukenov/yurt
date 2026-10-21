@@ -15,7 +15,7 @@ import { ButtonComponent } from 'shared-ui';
         <div class="text-center mb-8">
           <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" class="w-16 h-16 object-contain mx-auto mb-3" />
           <h1 class="text-2xl font-bold text-stone-800">Change Password</h1>
-          <p class="text-slate-400 text-sm mt-1">You must set a new password before continuing.</p>
+          <p class="text-slate-500 text-sm mt-1">You must set a new password before continuing.</p>
         </div>
 
         <form (ngSubmit)="submit()" #form="ngForm">
@@ -60,7 +60,7 @@ import { ButtonComponent } from 'shared-ui';
           </div>
 
           @if (error()) {
-            <p class="mt-3 text-red-600 text-xs text-center">{{ error() }}</p>
+            <p class="mt-3 text-tone-red text-xs text-center">{{ error() }}</p>
           }
           @if (success()) {
             <p class="mt-3 text-green-600 text-xs text-center">Password changed! Redirecting...</p>

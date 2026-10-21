@@ -118,9 +118,10 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
         printer.Language = dto.Language;
         printer.AutoPrint = dto.AutoPrint;
         printer.ViaAgent = dto.ViaAgent;
+        printer.CashDrawer = dto.Kind == Printer.ReceiptKind && dto.CashDrawer;
         return null;
     }
 
     private static PrinterDto ToDto(Printer p)
-        => new(p.Id, p.LocationId, p.Name, p.Kind, p.StationId, p.Host, p.Port, p.LineWidth, p.CodeTable, p.Language, p.AutoPrint, p.ViaAgent);
+        => new(p.Id, p.LocationId, p.Name, p.Kind, p.StationId, p.Host, p.Port, p.LineWidth, p.CodeTable, p.Language, p.AutoPrint, p.ViaAgent, p.CashDrawer);
 }

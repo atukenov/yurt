@@ -6,7 +6,7 @@
     <div class="text-center mb-8">
       <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" [class.logo-for-dark]="brand.darkLogoShowing()" class="brand-logo w-16 h-16 object-contain mx-auto mb-3" />
       <h1 class="text-2xl font-bold text-stone-800">{{ brand.name() }} Admin</h1>
-      <p class="text-slate-400 text-sm mt-1">Sign in to your account</p>
+      <p class="text-slate-500 text-sm mt-1">Sign in to your account</p>
     </div>
 
     <form (ngSubmit)="login()" #form="ngForm">
@@ -40,7 +40,7 @@
       </div>
 
       @if (error()) {
-        <p class="mt-3 text-red-600 text-xs text-center" role="alert">{{ error() }}</p>
+        <p class="mt-3 text-tone-red text-xs text-center" role="alert">{{ error() }}</p>
       }
 
       <div class="mt-6">

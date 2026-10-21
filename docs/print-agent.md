@@ -49,4 +49,6 @@ has to be opened to the internet.
 - One key per branch. **New key** stops the old one; **Delete** stops the agent. The server keeps only a hash of the key.
 - If the agent is off, jobs wait. A job not printed within 15 minutes is dropped, so the kitchen never gets an old ticket.
   A printer that does not answer is tried 3 times, then the job shows as **Not printed** with the reason.
+- A cash drawer plugged into an agent printer opens through the agent too. If the agent does not pass it on within 1
+  minute, the drawer stays shut; press **Open drawer** again.
 - Printers without the tick are still sent by the server itself (when the server runs in the cafe or reaches its network).

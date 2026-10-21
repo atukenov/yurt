@@ -51,7 +51,7 @@
           [attr.aria-pressed]="activeTab() === tab.value"
           [class]="
             activeTab() === tab.value
-              ? 'bg-brand-100 text-brand-ink font-semibold'
+              ? 'bg-brand-50 text-brand-ink font-semibold'
               : 'text-slate-500 hover:text-slate-700'
           "
           class="flex-1 text-xs rounded-lg py-1.5 transition-colors"
@@ -68,11 +68,11 @@
     <!-- Order list -->
     <div class="flex-1 overflow-y-auto">
       @if (loading()) {
-        <div class="p-4 text-center text-slate-400 text-sm animate-pulse">
+        <div class="p-4 text-center text-slate-500 text-sm animate-pulse">
           {{ 'label.loading' | t }}
         </div>
       } @else if (!filteredOrders().length) {
-        <div class="p-8 text-center text-slate-400">
+        <div class="p-8 text-center text-slate-500">
           <div class="text-4xl mb-2">📋</div>
           <p class="text-sm">{{ 'orders.noOrders' | t }}</p>
         </div>
@@ -119,7 +119,7 @@
   <div class="flex-1 overflow-y-auto bg-slate-50 p-6">
     @if (!selectedOrder()) {
       <div class="h-full flex items-center justify-center">
-        <div class="text-center text-slate-400">
+        <div class="text-center text-slate-500">
           <div class="text-6xl mb-4">☕</div>
           <p class="text-lg font-medium">{{ 'orders.selectOrder' | t }}</p>
           <p class="text-sm mt-1">{{ 'orders.clickToView' | t }}</p>
@@ -137,7 +137,7 @@
             <p class="text-slate-800 text-sm font-semibold">{{ o.customerName }}</p>
             @if (o.customerPhone) {
               <div class="mt-1">
-                <span class="text-xs text-slate-400">{{ 'label.phone' | t }}</span>
+                <span class="text-xs text-slate-500">{{ 'label.phone' | t }}</span>
                 <p class="text-base font-semibold text-slate-800 tracking-wide">
                   {{ formatPhone(o.customerPhone) }}
                 </p>
@@ -180,7 +180,7 @@
         <!-- Decline reason -->
         @if (o.declineReason) {
           <div class="bg-red-50 border border-red-100 rounded-2xl p-4">
-            <p class="text-xs font-semibold text-red-500 mb-1">
+            <p class="text-xs font-semibold text-tone-red mb-1">
               {{ 'orders.declineReasonLabel' | t }}
             </p>
             <p class="text-sm text-red-700">{{ o.declineReason }}</p>
@@ -374,14 +374,14 @@
                   }
                 </p>
                 @if (item.toppings.length) {
-                  <p class="text-slate-400 text-xs mt-0.5">
+                  <p class="text-slate-500 text-xs mt-0.5">
                     + {{ item.toppings.map((t) => t.toppingName).join(', ') }}
                   </p>
                 }
                 @if (item.notes) {
                   <p class="text-slate-500 text-xs mt-0.5 italic">📝 {{ item.notes }}</p>
                 }
-                <p class="text-slate-400 text-xs mt-0.5">{{ item.unitPrice | currency2 }} each</p>
+                <p class="text-slate-500 text-xs mt-0.5">{{ item.unitPrice | currency2 }} each</p>
               </div>
               <span class="font-semibold text-slate-800 text-sm shrink-0">{{
                 item.lineTotal | currency2

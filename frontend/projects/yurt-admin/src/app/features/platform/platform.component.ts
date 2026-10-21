@@ -341,8 +341,8 @@ export class PlatformComponent implements OnInit {
   badgeClass(m: PlatformModule): string {
     switch (m.state) {
       case 'active': return 'bg-emerald-100 text-emerald-700';
-      case 'grace': return 'bg-brand-100 text-brand-ink';
-      default: return 'bg-slate-100 text-slate-500';
+      case 'grace': return 'bg-brand-50 text-brand-ink';
+      default: return 'bg-slate-100 text-slate-600';
     }
   }
 }

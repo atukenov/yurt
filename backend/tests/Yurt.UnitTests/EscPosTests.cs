@@ -26,6 +26,27 @@ public class EscPosTests
     }
 
     [Fact]
+    public void DrawerJob_OnlyOpensTheDrawer_AndTestPageOpensItWhenTicked()
+    {
+        var kick = new byte[] { 0x1B, (byte)'p', 0, 25, 250, 0x1B, (byte)'p', 1, 25, 250 };
+        var printer = new Printer { Name = "Till", Kind = Printer.ReceiptKind, LineWidth = 48, CodeTable = 17 };
+
+        var drawer = PrintLayouts.Drawer(printer);
+        Assert.Equal(kick, drawer[5..]); // after reset and character table: no text, no cut, no paper used
+
+        Assert.False(Contains(PrintLayouts.Test(printer), kick));
+        printer.CashDrawer = true;
+        Assert.True(Contains(PrintLayouts.Test(printer), kick));
+    }
+
+    private static bool Contains(byte[] bytes, byte[] part)
+    {
+        for (var i = 0; i + part.Length <= bytes.Length; i++)
+            if (bytes.AsSpan(i, part.Length).SequenceEqual(part)) return true;
+        return false;
+    }
+
+    [Fact]
     public void KazakhLettersAndTengeSign_BecomeCloseLettersInCodePage866()
     {
         Assert.Equal("Кофе тг, ау кон", EscPos.Clean("Кофе ₸, әү қөң"));

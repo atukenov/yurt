@@ -108,8 +108,13 @@ public static class PrintLayouts
         p.Line("абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
         p.Line("Әә Ғғ Ққ Ңң Өө Ұұ Үү Һһ Іі 0123456789");
         p.Rule().Columns("1 x Капучино", "1 200 " + w["currency"]);
+        // A printer with a cash drawer also opens it, so staff can check the drawer cable while setting up.
+        if (printer.CashDrawer) p.OpenDrawer();
         return p.Cut().ToArray();
     }
+
+    /// <summary>Only opens the cash drawer: nothing is printed and no paper is used.</summary>
+    public static byte[] Drawer(Printer printer) => new EscPos(printer.LineWidth, printer.CodeTable).OpenDrawer().ToArray();
 
     private static string Extras(OrderItem item)
         => string.Join(", ", new[] { item.VariantLabel }.Concat(item.Toppings.Select(t => "+ " + t.ToppingName))

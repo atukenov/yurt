@@ -131,7 +131,7 @@ export class AnalyticsComponent implements OnInit {
     const sign = percent > 0 ? '+' : '';
     return {
       text: `${sign}${percent}%`,
-      colorClass: isFlat ? 'text-slate-400' : isGood ? 'text-emerald-600' : 'text-red-500',
+      colorClass: isFlat ? 'text-slate-500' : isGood ? 'text-emerald-600' : 'text-tone-red',
       arrow: isFlat ? '·' : percent > 0 ? '▲' : '▼',
     };
   }
@@ -186,7 +186,7 @@ export class AnalyticsComponent implements OnInit {
 
   statusColor(status: string): string {
     const map: Record<string, string> = {
-      Created: 'bg-brand-100 text-brand-ink',
+      Created: 'bg-brand-50 text-brand-ink',
       Accepted: 'bg-blue-100 text-blue-700',
       Preparing: 'bg-teal-100 text-teal-700',
       Ready: 'bg-green-100 text-green-700',
