@@ -38,7 +38,10 @@ public record OrderDto(
     string? RatingComment = null,
     IikoOrderSyncStatus? IikoOrderSyncStatus = null,
     string? LocationTwoGisUrl = null,
-    List<Guid>? ReadyStationIds = null);
+    List<Guid>? ReadyStationIds = null,
+    // Links to the official tax receipts once the cash register service sent them (own_pos); null otherwise.
+    string? FiscalReceiptUrl = null,
+    string? FiscalReturnUrl = null);
 
 public record OrderItemDto(
     Guid Id,

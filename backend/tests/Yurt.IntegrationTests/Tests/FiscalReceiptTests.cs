@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Fiscal;
+using Yurt.Application.Features.Orders.Services;
+using Yurt.Application.Features.Printing;
 using Yurt.Application.Features.Shifts;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
@@ -179,6 +181,73 @@ public class FiscalReceiptTests(YurtWebAppFactory factory)
 
         Assert.Empty(await ReceiptsAsync(cafe, before));
         Assert.Empty(await ReceiptsAsync(cafe, waiting));
+    }
+
+    [Fact]
+    public async Task SentReceipt_LinkShowsForTheGuest_AndAsQrOnThePrintedReceipt()
+    {
+        var cafe = await NewCafeAsync();
+        await TurnOnAsync(cafe);
+        var orderId = await AddOrderAsync(cafe);
+        Guid printerId;
+        using (var scope = ScopeFor(cafe))
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var printer = new Printer { LocationId = cafe.LocationId, Name = "Till", Kind = Printer.ReceiptKind, Host = "10.0.0.9" };
+            db.Printers.Add(printer);
+            await db.SaveChangesAsync();
+            printerId = printer.Id;
+        }
+
+        // Not sent yet: nothing changes for the guest or on paper.
+        Assert.Null((await GuestViewAsync(cafe, orderId)).FiscalReceiptUrl);
+        Assert.False(HasQr(await PrintReceiptAsync(cafe, orderId, printerId)));
+
+        await RunAsync(cafe, new FakeRegistrar());
+
+        var dto = await GuestViewAsync(cafe, orderId);
+        Assert.Equal("https://ofd.example/t/1", dto.FiscalReceiptUrl);
+        Assert.Null(dto.FiscalReturnUrl);
+        var printed = await PrintReceiptAsync(cafe, orderId, printerId);
+        Assert.True(HasQr(printed));
+        Assert.Contains("https://ofd.example/t/1", System.Text.Encoding.UTF8.GetString(printed));
+
+        // A link that is not a web address is never shown or printed.
+        using (var scope = ScopeFor(cafe))
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.FiscalReceipts.Where(r => r.OrderId == orderId)
+                .ExecuteUpdateAsync(x => x.SetProperty(r => r.TicketUrl, "javascript:alert(1)"));
+        }
+        Assert.Null((await GuestViewAsync(cafe, orderId)).FiscalReceiptUrl);
+        Assert.False(HasQr(await PrintReceiptAsync(cafe, orderId, printerId)));
+    }
+
+    private async Task<Yurt.Application.Features.Orders.DTOs.OrderDto> GuestViewAsync(Cafe cafe, Guid orderId)
+    {
+        using var scope = ScopeFor(cafe);
+        var result = await scope.ServiceProvider.GetRequiredService<OrderService>().GetOrderAsync(orderId, cafe.CustomerId);
+        Assert.True(result.Succeeded, result.Error);
+        return result.Data!;
+    }
+
+    private async Task<byte[]> PrintReceiptAsync(Cafe cafe, Guid orderId, Guid printerId)
+    {
+        using var scope = ScopeFor(cafe);
+        var queued = await scope.ServiceProvider.GetRequiredService<PrintService>().PrintReceiptAsync(orderId);
+        Assert.Equal(1, queued.Data!.Printers);
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        return await db.PrintJobs.AsNoTracking().Where(j => j.PrinterId == printerId)
+            .OrderByDescending(j => j.CreatedAt).Select(j => j.Data).FirstAsync();
+    }
+
+    /// <summary>The "print the stored QR code" command.</summary>
+    private static bool HasQr(byte[] bytes)
+    {
+        byte[] print = [0x1D, (byte)'(', (byte)'k', 3, 0, 49, 81, 48];
+        for (var i = 0; i + print.Length <= bytes.Length; i++)
+            if (bytes.AsSpan(i, print.Length).SequenceEqual(print)) return true;
+        return false;
     }
 
     [Fact]

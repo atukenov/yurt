@@ -80,6 +80,21 @@ public sealed class EscPos
     /// </summary>
     public EscPos OpenDrawer() => Raw(Esc, (byte)'p', 0, 25, 250).Raw(Esc, (byte)'p', 1, 25, 250);
 
+    /// <summary>
+    /// Prints a QR code drawn by the printer itself (the GS ( k commands, model 2, medium error correction). Text is
+    /// sent as UTF-8, so it suits links. <paramref name="moduleSize"/> is the size of one dot of the code (1 to 16).
+    /// </summary>
+    public EscPos QrCode(string text, int moduleSize)
+    {
+        var data = Encoding.UTF8.GetBytes(text);
+        var length = data.Length + 3;
+        Raw(Gs, (byte)'(', (byte)'k', 4, 0, 49, 65, 50, 0);                     // model 2
+        Raw(Gs, (byte)'(', (byte)'k', 3, 0, 49, 67, (byte)Math.Clamp(moduleSize, 1, 16)); // dot size
+        Raw(Gs, (byte)'(', (byte)'k', 3, 0, 49, 69, 49);                        // error correction M
+        Raw(Gs, (byte)'(', (byte)'k', (byte)(length % 256), (byte)(length / 256), 49, 80, 48).Raw(data); // store
+        return Raw(Gs, (byte)'(', (byte)'k', 3, 0, 49, 81, 48).Raw(Lf);           // print
+    }
+
     public byte[] ToArray() => [.. _bytes];
 
     private EscPos Text(string text)

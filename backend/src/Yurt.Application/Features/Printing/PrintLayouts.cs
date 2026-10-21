@@ -16,18 +16,21 @@ public static class PrintLayouts
             ["subtotal"] = "Подытог", ["discount"] = "Скидка", ["total"] = "Итого", ["bonus"] = "Оплачено бонусами",
             ["paid"] = "К оплате", ["method"] = "Оплата", ["thanks"] = "Спасибо!", ["test"] = "Тестовая печать",
             ["testOk"] = "Принтер работает", ["currency"] = "тг", ["Cash"] = "Наличные", ["Card"] = "Карта", ["Other"] = "Другое",
+            ["fiscal"] = "Фискальный чек", ["fiscalScan"] = "Отсканируйте, чтобы открыть чек",
         },
         ["kk"] = new()
         {
             ["subtotal"] = "Аралық сома", ["discount"] = "Жеңілдік", ["total"] = "Барлығы", ["bonus"] = "Бонуспен төленді",
             ["paid"] = "Төлеуге", ["method"] = "Төлем", ["thanks"] = "Рахмет!", ["test"] = "Сынақ басып шығару",
             ["testOk"] = "Принтер жұмыс істейді", ["currency"] = "тг", ["Cash"] = "Қолма-қол", ["Card"] = "Карта", ["Other"] = "Басқа",
+            ["fiscal"] = "Фискалдық чек", ["fiscalScan"] = "Чекті ашу үшін сканерлеңіз",
         },
         ["en"] = new()
         {
             ["subtotal"] = "Subtotal", ["discount"] = "Discount", ["total"] = "Total", ["bonus"] = "Paid with bonus",
             ["paid"] = "To pay", ["method"] = "Payment", ["thanks"] = "Thank you!", ["test"] = "Test print",
             ["testOk"] = "The printer works", ["currency"] = "KZT", ["Cash"] = "Cash", ["Card"] = "Card", ["Other"] = "Other",
+            ["fiscal"] = "Tax receipt", ["fiscalScan"] = "Scan to open the receipt",
         },
     };
 
@@ -55,8 +58,13 @@ public static class PrintLayouts
         return p.Cut().ToArray();
     }
 
-    /// <summary>A customer receipt: brand, branch, time and number, the lines with prices, totals and how it was paid.</summary>
-    public static byte[] Receipt(Printer printer, Order order, string brandName, IReadOnlyList<OrderPayment> split)
+    /// <summary>
+    /// A customer receipt: brand, branch, time and number, the lines with prices, totals and how it was paid. When the
+    /// order's official tax receipt already went through, a QR code with its link is printed at the bottom.
+    /// </summary>
+    /// <param name="fiscal">The sent sale receipt of the order, or null when there is none (nothing extra is printed).</param>
+    public static byte[] Receipt(
+        Printer printer, Order order, string brandName, IReadOnlyList<OrderPayment> split, FiscalReceipt? fiscal = null)
     {
         var w = Words.GetValueOrDefault(printer.Language) ?? Words["ru"];
         string Money(decimal n) => $"{Math.Round(n).ToString("#,0", CultureInfo.InvariantCulture).Replace(',', ' ')} {w["currency"]}";
@@ -94,6 +102,13 @@ public static class PrintLayouts
         }
         else if (order.PaymentMethod is { } method) p.Center().Line($"{w["method"]}: {MethodName(method, w)}");
         p.Center().Line(w["thanks"]);
+        if (fiscal is { TicketUrl: { Length: > 0 } url })
+        {
+            p.Rule().Bold(true).Line(w["fiscal"]).Bold(false);
+            if (!string.IsNullOrWhiteSpace(fiscal.CheckNumber)) p.Line($"N {fiscal.CheckNumber}");
+            // Bigger dots on 80 mm paper; on 58 mm a long link still fits the 384-dot line.
+            p.QrCode(url, printer.LineWidth >= 42 ? 6 : 4).Line(w["fiscalScan"]);
+        }
         return p.Cut().ToArray();
     }
 

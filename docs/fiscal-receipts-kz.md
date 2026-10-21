@@ -36,7 +36,7 @@ Both Webkassa and ReKassa give the full API documentation and a test account to 
    - The provider login or API key goes in the cafe's encrypted secrets (the same store as payment keys, see `Secrets__MasterKey` in `docs/runbook.md`).
    - On each branch: the cash register number (one register per branch is the normal case).
    - Per payment method: "send to fiscal" or "skip" (skip Kaspi when the cafe has Kaspi Kassa on, so there are no double receipts).
-3. **When to send:** when an order becomes paid (online payment confirmed, or the cashier takes the money). A cancelled paid order sends a return receipt. The fiscal QR link is saved on the order and shown on the printed receipt and in the customer's order screen.
+3. **When to send:** when an order becomes paid (online payment confirmed, or the cashier takes the money). A cancelled paid order sends a return receipt. The fiscal QR link is saved on the order and shown on the printed receipt and in the customer's order screen. _(Done: see "Receipt link for the guest and on paper" in `docs/modules.md`.)_
 4. **Never block a sale.** If the provider is down, the order still goes through, the receipt waits in a queue and is retried, and staff see a "not fiscalized yet" badge. The cashier page will not close a shift while receipts are still waiting, and closing a Yurt shift also closes the fiscal shift (Z report).
 5. **Cut-over:** while iiko is live, iiko (or the cafe's current register) already prints fiscal receipts. Turn Yurt's fiscal sending on only on the day a cafe leaves iiko, so no sale gets two receipts. This step belongs in `docs/cutover-from-iiko.md`.
 

@@ -101,4 +101,53 @@ public class EscPosTests
         Assert.Contains("1 400 тг", receipt);
         Assert.Contains("Центр", receipt);
     }
+
+    [Fact]
+    public void QrCode_StoresTheLinkWithItsLength_ThenPrintsIt()
+    {
+        var url = new string('a', 300);
+        var bytes = new EscPos(48, 17).QrCode(url, 6).ToArray()[5..];
+
+        Assert.Equal(new byte[] { 0x1D, (byte)'(', (byte)'k', 4, 0, 49, 65, 50, 0 }, bytes[..9]);
+        Assert.Equal(new byte[] { 0x1D, (byte)'(', (byte)'k', 3, 0, 49, 67, 6 }, bytes[9..17]);
+        // Store: length is the link plus 3, low byte first (303 = 47 + 1 * 256).
+        Assert.Equal(new byte[] { 0x1D, (byte)'(', (byte)'k', 47, 1, 49, 80, 48 }, bytes[25..33]);
+        Assert.Equal(url, Encoding.ASCII.GetString(bytes[33..(33 + url.Length)]));
+        Assert.Equal(new byte[] { 0x1D, (byte)'(', (byte)'k', 3, 0, 49, 81, 48, 0x0A }, bytes[^9..]);
+    }
+
+    [Fact]
+    public void Receipt_PrintsTheTaxReceiptQr_OnlyWhenItWasSent()
+    {
+        var printer = new Printer { Name = "Till", LineWidth = 32, CodeTable = 17, Language = "ru" };
+        var order = new Order
+        {
+            Items = [new OrderItem { MenuItemName = "Латте", Quantity = 1, LineTotal = 1200 }], Subtotal = 1200, Total = 1200,
+            PaymentMethod = PaymentMethod.Card, Location = new Location { Name = "Центр" },
+        };
+        byte[] qr = [0x1D, (byte)'(', (byte)'k', 3, 0, 49, 81, 48];
+
+        var plain = PrintLayouts.Receipt(printer, order, "Yurt", []);
+        Assert.False(Contains(plain, qr));
+        Assert.DoesNotContain("Фискальный чек", Cp866.GetString(plain));
+        Assert.Equal(plain, PrintLayouts.Receipt(printer, order, "Yurt", [], new FiscalReceipt { TicketUrl = null }));
+
+        var withQr = PrintLayouts.Receipt(printer, order, "Yurt", [],
+            new FiscalReceipt { TicketUrl = "https://ofd.example/t/1", CheckNumber = "777" });
+        Assert.True(Contains(withQr, qr));
+        var text = Cp866.GetString(withQr);
+        Assert.Contains("Фискальный чек", text);
+        Assert.Contains("N 777", text);
+        Assert.Contains("https://ofd.example/t/1", text);
+    }
+
+    [Theory]
+    [InlineData("https://ofd.example/t/1", "https://ofd.example/t/1")]
+    [InlineData("  http://consumer.oofd.kz?i=1  ", "http://consumer.oofd.kz?i=1")]
+    [InlineData("javascript:alert(1)", null)]
+    [InlineData("ofd.example/t/1", null)]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    public void FiscalLinks_KeepOnlyWebAddresses(string? url, string? expected)
+        => Assert.Equal(expected, Yurt.Application.Features.Fiscal.FiscalLinks.Safe(url));
 }

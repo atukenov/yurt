@@ -241,6 +241,29 @@
           <p style="font-size:12.5px;font-weight:600;color:#92400e">{{ 'order.waitingPayment' | t }}</p>
         </div>
       }
+      <!-- Official tax receipt — only once the cash register service sent it -->
+      @if (o.fiscalReceiptUrl) {
+        <a class="fiscal-link" [href]="o.fiscalReceiptUrl" target="_blank" rel="noopener noreferrer">
+          <span class="fiscal-text">
+            <span class="fiscal-title">{{ 'order.fiscalReceipt' | t }}</span>
+            <span class="fiscal-sub">{{ 'order.fiscalOpen' | t }}</span>
+          </span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>
+          </svg>
+        </a>
+      }
+      @if (o.fiscalReturnUrl) {
+        <a class="fiscal-link" [href]="o.fiscalReturnUrl" target="_blank" rel="noopener noreferrer">
+          <span class="fiscal-text">
+            <span class="fiscal-title">{{ 'order.fiscalReturn' | t }}</span>
+            <span class="fiscal-sub">{{ 'order.fiscalOpen' | t }}</span>
+          </span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>
+          </svg>
+        </a>
+      }
     </div>
 
     <!-- ── Cancel — only before the order is accepted ───────────────────────── -->
@@ -403,6 +426,11 @@
               </div>
             }
           </div>
+          @if (r.fiscalReceiptUrl) {
+            <a class="block text-center text-sm font-semibold text-brand-ink underline" [href]="r.fiscalReceiptUrl" target="_blank" rel="noopener noreferrer">
+              {{ 'order.fiscalReceipt' | t }}
+            </a>
+          }
           <p class="text-center text-stone-300 text-xs pb-2">{{ 'order.thankYou' | t }}</p>
         </div>
       </div>
