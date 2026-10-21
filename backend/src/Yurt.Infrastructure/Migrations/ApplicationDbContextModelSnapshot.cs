@@ -811,6 +811,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("StationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("TenantId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
@@ -820,6 +823,8 @@ namespace Yurt.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("StationId");
 
                     b.HasIndex("TenantId");
 
@@ -1808,6 +1813,41 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("Shifts");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.Station", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Stations");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2193,6 +2233,11 @@ namespace Yurt.Infrastructure.Migrations
 
             modelBuilder.Entity("Yurt.Domain.Entities.MenuCategory", b =>
                 {
+                    b.HasOne("Yurt.Domain.Entities.Station", null)
+                        .WithMany()
+                        .HasForeignKey("StationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
@@ -2510,6 +2555,15 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.Station", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.TenantSecret", b =>

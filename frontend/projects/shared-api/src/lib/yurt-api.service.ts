@@ -41,6 +41,9 @@ import {
   MenuTopping,
   Order,
   StockItem,
+  Station,
+  StationRouting,
+  CategoryRouting,
   Shift,
   ShiftReport,
   CashMovement,
@@ -512,6 +515,24 @@ export class YurtApiService {
       `${this.api}/admin/ingredients/${id}/stock/${locationId}`,
       body,
     );
+  }
+
+  getStationRouting(): Observable<StationRouting> {
+    return this.http.get<StationRouting>(`${this.api}/admin/stations/routing`);
+  }
+
+  createStation(name: string): Observable<Station> {
+    return this.http.post<Station>(`${this.api}/admin/stations`, { name });
+  }
+
+  deleteStation(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/stations/${id}`);
+  }
+
+  setCategoryStation(categoryId: string, stationId: string | null): Observable<CategoryRouting> {
+    return this.http.put<CategoryRouting>(`${this.api}/admin/stations/categories/${categoryId}`, {
+      stationId,
+    });
   }
 
   getToppingUses(toppingId: string): Observable<RecipeLine[]> {

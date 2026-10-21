@@ -2,7 +2,7 @@ import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SignalrService, YurtApiService } from 'shared-api';
-import { Location, Order, OrderStatus } from 'shared-models';
+import { Location, Order, OrderItem, OrderStatus, StationRouting } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -32,13 +32,29 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
   private sound = inject(SoundService);
 
   private readonly LOC_KEY = 'yurt_kitchen_location';
+  private readonly STATION_KEY = 'yurt_kitchen_station';
   private subs: Subscription[] = [];
   private clock: ReturnType<typeof setInterval> | null = null;
 
   readonly columns: KitchenColumn[] = [
-    { status: OrderStatus.Accepted, titleKey: 'kitchen.colNew', actionKey: 'kitchen.start', next: OrderStatus.Preparing },
-    { status: OrderStatus.Preparing, titleKey: 'kitchen.colPreparing', actionKey: 'kitchen.ready', next: OrderStatus.Ready },
-    { status: OrderStatus.Ready, titleKey: 'kitchen.colReady', actionKey: 'kitchen.handedOver', next: OrderStatus.Completed },
+    {
+      status: OrderStatus.Accepted,
+      titleKey: 'kitchen.colNew',
+      actionKey: 'kitchen.start',
+      next: OrderStatus.Preparing,
+    },
+    {
+      status: OrderStatus.Preparing,
+      titleKey: 'kitchen.colPreparing',
+      actionKey: 'kitchen.ready',
+      next: OrderStatus.Ready,
+    },
+    {
+      status: OrderStatus.Ready,
+      titleKey: 'kitchen.colReady',
+      actionKey: 'kitchen.handedOver',
+      next: OrderStatus.Completed,
+    },
   ];
 
   orders = signal<Order[]>([]);
@@ -48,16 +64,27 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
   now = signal(Date.now());
   selectedLocationId = '';
 
+  routing = signal<StationRouting>({ stations: [], categories: [], itemStations: {} });
+  /** The station this screen shows ('' = everything). Items of a category with no station show on every screen. */
+  stationFilter = signal('');
+  showSetup = signal(false);
+  newStation = '';
+
   /** Orders for the kitchen only: accepted and onwards, oldest first, so the longest wait is on top. */
   byColumn = computed(() => {
     const map = new Map<OrderStatus, Order[]>();
     for (const c of this.columns) map.set(c.status, []);
-    for (const o of this.orders()) map.get(o.status as OrderStatus)?.push(o);
-    for (const list of map.values()) list.sort((a, b) => this.since(a).localeCompare(this.since(b)));
+    for (const o of this.orders())
+      if (this.itemsOf(o).length) map.get(o.status as OrderStatus)?.push(o);
+    for (const list of map.values())
+      list.sort((a, b) => this.since(a).localeCompare(this.since(b)));
     return map;
   });
 
   ngOnInit(): void {
+    const savedStation = localStorage.getItem(this.STATION_KEY) ?? '';
+    this.stationFilter.set(savedStation);
+    this.loadRouting();
     this.api.getAdminLocations().subscribe((locs) => {
       this.locations.set(locs);
       const saved = localStorage.getItem(this.LOC_KEY) ?? '';
@@ -94,6 +121,52 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  /** The items of an order this screen should show: all of them, or those made at the chosen station. */
+  itemsOf(order: Order): OrderItem[] {
+    const station = this.stationFilter();
+    if (!station) return order.items;
+    const map = this.routing().itemStations;
+    return order.items.filter((i) => !map[i.menuItemId] || map[i.menuItemId] === station);
+  }
+
+  pickStation(id: string): void {
+    this.stationFilter.set(id);
+    localStorage.setItem(this.STATION_KEY, id);
+  }
+
+  loadRouting(): void {
+    this.api.getStationRouting().subscribe((r) => {
+      this.routing.set(r);
+      // A station that was deleted since this screen last ran falls back to showing everything.
+      if (this.stationFilter() && !r.stations.some((s) => s.id === this.stationFilter()))
+        this.pickStation('');
+    });
+  }
+
+  addStation(): void {
+    const name = this.newStation.trim();
+    if (!name) return;
+    this.api.createStation(name).subscribe({
+      next: () => {
+        this.newStation = '';
+        this.loadRouting();
+      },
+      error: () => this.toast.error('Could not add (the name may already exist)'),
+    });
+  }
+
+  removeStation(id: string): void {
+    if (!confirm('Delete this station? Its categories will show on every screen again.')) return;
+    this.api.deleteStation(id).subscribe({ next: () => this.loadRouting() });
+  }
+
+  routeCategory(categoryId: string, stationId: string): void {
+    this.api.setCategoryStation(categoryId, stationId || null).subscribe({
+      next: () => this.loadRouting(),
+      error: () => this.toast.error('Could not save'),
     });
   }
 

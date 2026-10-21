@@ -173,7 +173,7 @@ Steps:
   - [x] Per-cafe switch: `GET/PUT /platform/loyalty/ledger` (body `{ "mode": "iiko" | "native" }`) acts on the cafe picked with `X-Tenant` and is saved on the cafe (`Tenant.LoyaltyLedger`; empty means iiko, as before). A cafe with iiko can only move to `native` while the compare shows every balance matches (otherwise `409`); switching back to `iiko` is the way out. A cafe without iiko can use `native` straight away and then gets loyalty without iiko. Switch when no orders are in flight: a hold made in one wallet cannot be released in the other, and points earned in the own wallet are not copied back to iiko. The own wallet is now safe against two simultaneous spends. No Platform screen button yet.
 - [ ] Kitchen display and order-routing per branch.
   - [x] Simple kitchen screen (`/kitchen`, gated by `own_pos`): three columns per branch, one tap per step, live updates, sound for a new accepted order. Details in `docs/modules.md`.
-  - [ ] Stations (Kitchen, Bar) and routing a menu item to a station.
+  - [x] Stations (Kitchen, Bar) and routing a menu category to a station; the kitchen screen can be set to one station and then shows only its items. Details in `docs/modules.md`.
 - [ ] Stock, ingredients and automatic stop-list.
   - [x] Stock per product per branch with the automatic stop-list (admin Stock page, orders limited to what is left, accept lowers the count, sold-out items leave the customer menu). Details in `docs/modules.md`. Also fixed the customer menu cache so it is kept per cafe.
   - [x] Ingredients and recipes: ingredient counts per branch, a recipe per dish (optionally per size), dishes leave the menu when an ingredient runs out, accepting an order lowers the counts. Details in `docs/modules.md`.

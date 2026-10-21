@@ -29,6 +29,7 @@ public interface IApplicationDbContext
     DbSet<MenuItemLocation> MenuItemLocations { get; }
     DbSet<MenuItemStock> MenuItemStocks { get; }
     DbSet<Shift> Shifts { get; }
+    DbSet<Station> Stations { get; }
     DbSet<ToppingUse> ToppingUses { get; }
     DbSet<CashMovement> CashMovements { get; }
     DbSet<Ingredient> Ingredients { get; }

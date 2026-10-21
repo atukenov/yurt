@@ -62,6 +62,18 @@ public class MenuCategoryConfiguration : IEntityTypeConfiguration<MenuCategory>
         builder.Property(e => e.Name).HasMaxLength(100).IsRequired();
         builder.Property(e => e.NameRu).HasMaxLength(100);
         builder.Property(e => e.NameKk).HasMaxLength(100);
+        // Deleting a station only un-routes its categories.
+        builder.HasOne<Station>().WithMany().HasForeignKey(e => e.StationId).OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+public class StationConfiguration : IEntityTypeConfiguration<Station>
+{
+    public void Configure(EntityTypeBuilder<Station> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
+        builder.HasIndex(e => new { e.TenantId, e.Name }).IsUnique();
     }
 }
 
