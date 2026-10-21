@@ -1,7 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, OnDestroy, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthStateService, BrandService, ModuleService, ThemeService } from 'shared-api';
+import {
+  AuthStateService,
+  BrandService,
+  ModuleService,
+  ThemeService,
+  YurtApiService,
+} from 'shared-api';
 import { ToastService } from 'shared-ui';
 import { AdminLangService } from '../core/lang.service';
 import { AdminTranslatePipe } from '../core/translate.pipe';
@@ -15,7 +21,7 @@ const SIDEBAR_KEY = 'yurt_admin_sidebar_collapsed';
   templateUrl: './admin-shell.component.html',
   styleUrl: './admin-shell.component.css',
 })
-export class AdminShellComponent {
+export class AdminShellComponent implements OnDestroy {
   readonly auth = inject(AuthStateService);
   readonly modules = inject(ModuleService);
   readonly brand = inject(BrandService);
@@ -24,6 +30,37 @@ export class AdminShellComponent {
   readonly themeModes = ['light', 'dark', 'system'] as const;
   private router = inject(Router);
   private toast = inject(ToastService);
+  private api = inject(YurtApiService);
+
+  /** Dishes and ingredients running low or out, for the badge on the Stock menu entry (own_pos). */
+  stockAlerts = signal(0);
+  private alertTimer: ReturnType<typeof setInterval> | null = null;
+
+  constructor() {
+    effect(() => {
+      if (this.alertTimer) {
+        clearInterval(this.alertTimer);
+        this.alertTimer = null;
+      }
+      if (!this.modules.isEnabled('own_pos') || !this.auth.currentUser) {
+        this.stockAlerts.set(0);
+        return;
+      }
+      this.refreshAlerts();
+      this.alertTimer = setInterval(() => this.refreshAlerts(), 120_000);
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.alertTimer) clearInterval(this.alertTimer);
+  }
+
+  private refreshAlerts(): void {
+    this.api.getStockAlerts().subscribe({
+      next: (a) => this.stockAlerts.set(a.low + a.out),
+      error: () => {},
+    });
+  }
 
   collapsed = signal(localStorage.getItem(SIDEBAR_KEY) === '1' || window.innerWidth < 768);
 

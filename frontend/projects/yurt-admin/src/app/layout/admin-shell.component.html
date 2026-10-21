@@ -99,6 +99,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
           @if (!collapsed()) { <span class="truncate">{{ 'nav.stock' | t }}</span> }
+          @if (stockAlerts() > 0) {
+            <span
+              class="ml-auto rounded-full bg-red-500 px-1.5 text-xs font-bold leading-5 text-white"
+              [attr.aria-label]="('stock.alerts' | t) + ': ' + stockAlerts()"
+              >{{ stockAlerts() }}</span
+            >
+          }
         </a>
         }
 

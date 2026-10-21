@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
-import { Location, StockItem } from 'shared-models';
+import { Location, StockAlerts, StockItem } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { IngredientsPanelComponent } from './ingredients-panel.component';
@@ -34,6 +34,7 @@ export class StockManagementComponent implements OnInit {
   rows = signal<StockRow[]>([]);
   loading = signal(true);
   selectedLocationId = '';
+  alerts = signal<StockAlerts>({ low: 0, out: 0, items: [] });
   tab = signal<'products' | 'ingredients' | 'recipes'>('products');
   readonly tabs = ['products', 'ingredients', 'recipes'] as const;
 
@@ -53,6 +54,7 @@ export class StockManagementComponent implements OnInit {
       return;
     }
     localStorage.setItem(this.LOC_KEY, this.selectedLocationId);
+    this.api.getStockAlerts(this.selectedLocationId).subscribe((a) => this.alerts.set(a));
     this.loading.set(true);
     this.api.getAdminStock(this.selectedLocationId).subscribe({
       next: (items) => {
@@ -77,6 +79,7 @@ export class StockManagementComponent implements OnInit {
             list.map((r) => (r.menuItemId === saved.menuItemId ? this.toRow(saved) : r)),
           );
           this.toast.success('Saved');
+          this.api.getStockAlerts(this.selectedLocationId).subscribe((a) => this.alerts.set(a));
         },
         error: () => {
           row.saving = false;

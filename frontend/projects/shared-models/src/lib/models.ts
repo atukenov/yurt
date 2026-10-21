@@ -355,6 +355,24 @@ export interface StationRouting {
   itemStations: Record<string, string>;
 }
 
+/** Something running low or out at a branch (own_pos). `kind` is "dish" or "ingredient". */
+export interface StockAlert {
+  kind: 'dish' | 'ingredient';
+  id: string;
+  name: string;
+  locationId: string;
+  locationName: string;
+  quantity: number;
+  unit?: string | null;
+  isOut: boolean;
+}
+
+export interface StockAlerts {
+  low: number;
+  out: number;
+  items: StockAlert[];
+}
+
 export interface Order {
   id: string;
   customerUserId: string;

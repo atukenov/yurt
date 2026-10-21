@@ -41,6 +41,7 @@ import {
   MenuTopping,
   Order,
   StockItem,
+  StockAlerts,
   Station,
   StationRouting,
   CategoryRouting,
@@ -515,6 +516,13 @@ export class YurtApiService {
       `${this.api}/admin/ingredients/${id}/stock/${locationId}`,
       body,
     );
+  }
+
+  /** What is running low or out, at one branch or (with no branch) at all of them. */
+  getStockAlerts(locationId?: string): Observable<StockAlerts> {
+    return this.http.get<StockAlerts>(`${this.api}/admin/stock/alerts`, {
+      params: locationId ? { locationId } : {},
+    });
   }
 
   getStationRouting(): Observable<StationRouting> {
