@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { BrandService } from 'shared-api';
-import { Order, OrderItem } from 'shared-models';
+import { Order, OrderItem, SplitPaymentLine } from 'shared-models';
 import { AdminLangService } from './lang.service';
 
 /**
@@ -13,8 +13,9 @@ export class ReceiptService {
   private lang = inject(AdminLangService);
   private brand = inject(BrandService);
 
-  print(order: Order): void {
-    this.printHtml(this.html(order));
+  /** `split` are the parts of a split payment; with two or more the receipt lists each one. */
+  print(order: Order, split: SplitPaymentLine[] = []): void {
+    this.printHtml(this.html(order, split));
   }
 
   /** Prints a kitchen ticket: the items to make (already filtered for a station), notes in bold, no prices. */
@@ -46,7 +47,7 @@ export class ReceiptService {
     setTimeout(() => frame.remove(), 60_000);
   }
 
-  html(order: Order): string {
+  html(order: Order, split: SplitPaymentLine[] = []): string {
     const t = (k: string) => this.lang.t(k);
     const money = (n: number) =>
       `₸${Math.round(n)
@@ -96,7 +97,8 @@ export class ReceiptService {
       <h1>${esc(this.brand.name())}</h1>
       <p class="c">${esc(order.locationName)}<br>${esc(when)}<br>#${esc(order.id.slice(0, 8).toUpperCase())}</p>
       <hr><table>${lines}</table><hr><table>${totals}</table><hr>
-      <p class="c">${esc(order.paymentMethod ? t('receipt.method') + ': ' + order.paymentMethod : '')}<br>${esc(t('receipt.thanks'))}</p>
+      ${split.length > 1 ? `<table>${split.map((p) => row(p.method, money(p.amount))).join('')}</table><hr>` : ''}
+      <p class="c">${esc(split.length > 1 ? '' : order.paymentMethod ? t('receipt.method') + ': ' + order.paymentMethod : '')}<br>${esc(t('receipt.thanks'))}</p>
     </body></html>`;
   }
 
