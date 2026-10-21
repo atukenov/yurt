@@ -145,6 +145,41 @@ public class IngredientService(IApplicationDbContext db, IAuditLogService audit,
         return await GetRecipeAsync(menuItemId, ct);
     }
 
+    public async Task<Result<List<ToppingUseDto>>> GetToppingUsesAsync(Guid toppingId, CancellationToken ct = default)
+    {
+        if (!await db.MenuToppings.AnyAsync(t => t.Id == toppingId, ct))
+            return Result<List<ToppingUseDto>>.Failure("Topping not found.", 404);
+
+        var lines = await db.ToppingUses.Where(u => u.ToppingId == toppingId)
+            .OrderBy(u => u.Ingredient.Name)
+            .Select(u => new ToppingUseDto(u.IngredientId, u.Ingredient.Name, u.Ingredient.Unit, u.Quantity))
+            .ToListAsync(ct);
+        return Result<List<ToppingUseDto>>.Success(lines);
+    }
+
+    /// <summary>Replaces what a topping uses. An empty list means the topping is not counted.</summary>
+    public async Task<Result<List<ToppingUseDto>>> SaveToppingUsesAsync(Guid toppingId, SaveToppingUsesDto dto, CancellationToken ct = default)
+    {
+        if (!await db.MenuToppings.AnyAsync(t => t.Id == toppingId, ct))
+            return Result<List<ToppingUseDto>>.Failure("Topping not found.", 404);
+        var lines = dto.Lines ?? [];
+        if (lines.Count > MaxRecipeLines) return Result<List<ToppingUseDto>>.Failure("Too many lines.", 400);
+        if (lines.Any(l => l.Quantity <= 0)) return Result<List<ToppingUseDto>>.Failure("Each amount must be more than zero.", 400);
+        if (lines.GroupBy(l => l.IngredientId).Any(g => g.Count() > 1))
+            return Result<List<ToppingUseDto>>.Failure("An ingredient appears twice.", 400);
+        var ingredientIds = lines.Select(l => l.IngredientId).ToList();
+        if (await db.Ingredients.CountAsync(i => ingredientIds.Contains(i.Id), ct) != ingredientIds.Count)
+            return Result<List<ToppingUseDto>>.Failure("An ingredient was not found.", 400);
+
+        db.ToppingUses.RemoveRange(await db.ToppingUses.Where(u => u.ToppingId == toppingId).ToListAsync(ct));
+        foreach (var l in lines)
+            db.ToppingUses.Add(new ToppingUse { ToppingId = toppingId, IngredientId = l.IngredientId, Quantity = l.Quantity });
+        await db.SaveChangesAsync(ct);
+        await menuCache.InvalidateAllMenuAsync();
+        await audit.LogAsync("ToppingUseSaved", "MenuTopping", toppingId.ToString(), $"{lines.Count} lines", ct);
+        return await GetToppingUsesAsync(toppingId, ct);
+    }
+
     private static (string Name, string Unit, string? Error) Validate(SaveIngredientDto dto)
     {
         var name = dto.Name?.Trim() ?? "";

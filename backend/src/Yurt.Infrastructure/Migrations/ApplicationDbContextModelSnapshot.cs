@@ -1888,6 +1888,45 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("TenantSecrets");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.ToppingUse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("IngredientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<Guid>("ToppingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("ToppingId", "IngredientId")
+                        .IsUnique();
+
+                    b.ToTable("ToppingUses");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.UserReport", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2480,6 +2519,31 @@ namespace Yurt.Infrastructure.Migrations
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.ToppingUse", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.MenuTopping", "Topping")
+                        .WithMany()
+                        .HasForeignKey("ToppingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Topping");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.UserReport", b =>

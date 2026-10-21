@@ -102,7 +102,7 @@ public class MenuService
             .ToListAsync(ct);
 
         var categoryIds = items.Select(i => i.CategoryId).Distinct().ToList();
-        var toppingsByCategory = await GetToppingsByCategoryIdsAsync(categoryIds, lang, ct);
+        var toppingsByCategory = await GetToppingsByCategoryIdsAsync(categoryIds, lang, locationId, ct);
 
         var result = items.Select(i => MapItemToDto(i, lang,
             toppingsByCategory.TryGetValue(i.CategoryId, out var t) ? t : null)).ToList();
@@ -125,7 +125,7 @@ public class MenuService
             !item.MenuItemLocations.Any(l => l.LocationId == locationId.Value))
             return Result<MenuItemDto>.Failure("This item is not available at your selected location.", 403);
 
-        var toppingsByCategory = await GetToppingsByCategoryIdsAsync([item.CategoryId], lang, ct);
+        var toppingsByCategory = await GetToppingsByCategoryIdsAsync([item.CategoryId], lang, locationId, ct);
         toppingsByCategory.TryGetValue(item.CategoryId, out var toppings);
         return Result<MenuItemDto>.Success(MapItemToDto(item, lang, toppings));
     }
@@ -481,13 +481,20 @@ public class MenuService
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private async Task<Dictionary<Guid, List<MenuToppingDto>>> GetToppingsByCategoryIdsAsync(
-        List<Guid> categoryIds, string lang, CancellationToken ct)
+        List<Guid> categoryIds, string lang, Guid? locationId, CancellationToken ct)
     {
         var links = await _db.MenuToppingCategories
             .Include(tc => tc.Topping)
                 .ThenInclude(t => t.ToppingCategories)
             .Where(tc => categoryIds.Contains(tc.CategoryId) && tc.Topping.IsAvailable)
             .ToListAsync(ct);
+
+        // A topping whose ingredient has run out at this branch is left off the menu there.
+        if (_stock is not null && locationId is not null)
+        {
+            var soldOutToppings = await _stock.SoldOutToppingIdsAsync(locationId.Value, ct);
+            if (soldOutToppings.Count > 0) links.RemoveAll(l => soldOutToppings.Contains(l.ToppingId));
+        }
 
         var result = new Dictionary<Guid, List<MenuToppingDto>>();
         foreach (var link in links)

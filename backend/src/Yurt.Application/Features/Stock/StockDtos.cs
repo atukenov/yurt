@@ -21,3 +21,9 @@ public record RecipeLineDto(Guid IngredientId, string IngredientName, string Uni
 public record SaveRecipeLineDto(Guid IngredientId, Guid? VariantId, decimal Quantity);
 
 public record SaveRecipeDto(List<SaveRecipeLineDto> Lines);
+
+public record ToppingUseDto(Guid IngredientId, string IngredientName, string Unit, decimal Quantity);
+
+public record SaveToppingUseDto(Guid IngredientId, decimal Quantity);
+
+public record SaveToppingUsesDto(List<SaveToppingUseDto> Lines);

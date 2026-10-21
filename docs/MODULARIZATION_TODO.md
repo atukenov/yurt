@@ -177,7 +177,8 @@ Steps:
 - [ ] Stock, ingredients and automatic stop-list.
   - [x] Stock per product per branch with the automatic stop-list (admin Stock page, orders limited to what is left, accept lowers the count, sold-out items leave the customer menu). Details in `docs/modules.md`. Also fixed the customer menu cache so it is kept per cafe.
   - [x] Ingredients and recipes: ingredient counts per branch, a recipe per dish (optionally per size), dishes leave the menu when an ingredient runs out, accepting an order lowers the counts. Details in `docs/modules.md`.
-  - [ ] Stock for toppings, low-stock alerts.
+  - [x] Toppings can use ingredients (hidden from a branch's menu and refused when short, lowered on accept).
+  - [ ] Low-stock alerts.
 - [ ] Cashier screen, shifts, receipts and Z report.
   - [x] Cashier page: open and close a shift with the cash counted, cash in/out, X report while open, Z report on close with the cash difference, earlier shifts, print. Details in `docs/modules.md`.
   - [x] Print a receipt per order from the order details (browser print, 80 mm layout).

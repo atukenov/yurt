@@ -45,3 +45,20 @@ public class RecipeLine : BaseEntity, ITenantOwned
     public MenuItemVariant? Variant { get; set; }
     public Ingredient Ingredient { get; set; } = null!;
 }
+
+/// <summary>
+/// How much of an ingredient one topping uses each time a guest adds it to an item (for example oat milk 200 ml).
+/// Applies per item ordered. A topping with no rows is not counted.
+/// </summary>
+public class ToppingUse : BaseEntity, ITenantOwned
+{
+    public Guid TenantId { get; set; }
+
+    public Guid ToppingId { get; set; }
+    public Guid IngredientId { get; set; }
+
+    public decimal Quantity { get; set; }
+
+    public MenuTopping Topping { get; set; } = null!;
+    public Ingredient Ingredient { get; set; } = null!;
+}
