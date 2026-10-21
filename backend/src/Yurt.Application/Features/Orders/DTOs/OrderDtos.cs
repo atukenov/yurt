@@ -37,7 +37,8 @@ public record OrderDto(
     int? Rating = null,
     string? RatingComment = null,
     IikoOrderSyncStatus? IikoOrderSyncStatus = null,
-    string? LocationTwoGisUrl = null);
+    string? LocationTwoGisUrl = null,
+    List<Guid>? ReadyStationIds = null);
 
 public record OrderItemDto(
     Guid Id,
