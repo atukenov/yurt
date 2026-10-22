@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Platform;
 using Yurt.Domain.Entities;
 
@@ -141,8 +142,13 @@ public class PrintService(
 
         var brand = (await BrandReader.ReadAsync(db, ct)).Name;
         var split = await db.OrderPayments.AsNoTracking().Where(p => p.OrderId == order.Id).OrderBy(p => p.CreatedAt).ToListAsync(ct);
+        // The tax receipt usually goes out a minute after the order is accepted, so the first auto-printed receipt
+        // often has no QR code yet; printing the receipt again later adds it.
+        var fiscal = await db.FiscalReceipts.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.OrderId == order.Id && r.Kind == FiscalReceiptKind.Sale && r.Status == FiscalReceiptStatus.Sent, ct);
+        if (fiscal is not null) fiscal.TicketUrl = FiscalLinks.Safe(fiscal.TicketUrl);
         foreach (var printer in printers)
-            Add(printer, order.Id, PrintJob.ReceiptKind, PrintLayouts.Receipt(printer, order, brand, split));
+            Add(printer, order.Id, PrintJob.ReceiptKind, PrintLayouts.Receipt(printer, order, brand, split, fiscal));
         return await SaveAsync(printers.Count, ct);
     }
 

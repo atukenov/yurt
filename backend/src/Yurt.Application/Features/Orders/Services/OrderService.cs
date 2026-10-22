@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.DiscountCodes.Services;
+using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Loyalty.Services;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Printing;
@@ -219,7 +220,26 @@ public class OrderService
         var order = await LoadOrderAsync(orderId, ct);
         if (order == null) return Result<OrderDto>.NotFound();
         if (order.CustomerUserId != customerId) return Result<OrderDto>.Forbidden();
-        return Result<OrderDto>.Success(MapToDto(order));
+        return Result<OrderDto>.Success(await WithFiscalLinksAsync(MapToDto(order), ct));
+    }
+
+    /// <summary>
+    /// Adds the links to the order's official tax receipts that already went through (own_pos). An order with none
+    /// (fiscal receipts off, not sent yet, or skipped) comes back unchanged.
+    /// </summary>
+    private async Task<OrderDto> WithFiscalLinksAsync(OrderDto dto, CancellationToken ct)
+    {
+        if (!await _modules.IsEnabledAsync(ModuleKeys.OwnPos, ct)) return dto;
+        var sent = await _db.FiscalReceipts.AsNoTracking()
+            .Where(r => r.OrderId == dto.Id && r.Status == FiscalReceiptStatus.Sent && r.TicketUrl != null)
+            .Select(r => new { r.Kind, r.TicketUrl })
+            .ToListAsync(ct);
+        if (sent.Count == 0) return dto;
+        return dto with
+        {
+            FiscalReceiptUrl = FiscalLinks.Safe(sent.FirstOrDefault(r => r.Kind == FiscalReceiptKind.Sale)?.TicketUrl),
+            FiscalReturnUrl = FiscalLinks.Safe(sent.FirstOrDefault(r => r.Kind == FiscalReceiptKind.Return)?.TicketUrl),
+        };
     }
 
     public async Task<Result<OrderDto>> RateOrderAsync(

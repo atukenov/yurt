@@ -476,6 +476,10 @@ export interface Order {
   iikoOrderSyncStatus?: IikoOrderSyncStatus;
   /** Stations (Kitchen, Bar, ...) that have finished their part of this order (own_pos). */
   readyStationIds?: string[];
+  /** Link to the official tax receipt once the cash register service sent it (own_pos). */
+  fiscalReceiptUrl?: string | null;
+  /** Link to the tax receipt of the refund, when the order was refunded after its receipt went out. */
+  fiscalReturnUrl?: string | null;
 }
 
 export enum IikoOrderSyncStatus {

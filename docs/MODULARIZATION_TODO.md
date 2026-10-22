@@ -188,6 +188,7 @@ Steps:
   - [x] Split payments: the cashier pays one order in parts with different methods; the Z report counts each part under its own method. Details in `docs/modules.md`.
   - [x] Per-branch payment method list: tick boxes on the branch dialog; the customer app and the server follow it. Details in `docs/modules.md`.
   - [x] Official tax receipts through a cloud cash register: `IFiscalRegistrar` slot with a Webkassa adapter, off by default, per-cafe provider/skip methods/VAT and register number per branch, queue with retry, "not fiscalized" badge, fiscal Z report on shift close. Details in `docs/modules.md`. _(The Webkassa calls are not verified yet: needs Webkassa partner docs and a test account. ReKassa adapter not built.)_
+  - [x] Tax receipt link for the guest: a **Tax receipt** button on the customer order screen and a QR code on receipts printed by network printers, once the receipt went through. Details in `docs/modules.md`.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
   - [x] Kitchen ticket: a "Print ticket" button on each kitchen card (80 mm browser print, only the items of the chosen station, notes in bold, no prices).
   - [x] Network printers (ESC/POS over TCP): kitchen and receipt printers per branch, tied to a station or to all items, print by themselves on accept, test print, job list with retries. Details in `docs/modules.md`.

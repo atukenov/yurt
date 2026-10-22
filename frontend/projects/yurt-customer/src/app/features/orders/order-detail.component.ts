@@ -96,16 +96,39 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
     this.signalr.startConnection().then(() => {
       this.subs.push(
         this.signalr.orderUpdated$.subscribe((o) => {
-          if (o.id === this.id) this.order.set(o);
+          if (o.id === this.id) this.setLive(o);
         }),
         this.signalr.orderDeclined$.subscribe((o) => {
-          if (o.id === this.id) this.order.set(o);
+          if (o.id === this.id) this.setLive(o);
         }),
         this.signalr.paymentUpdated$.subscribe((o) => {
-          if (o.id === this.id) this.order.set(o);
+          if (o.id === this.id) this.setLive(o);
         }),
       );
     });
+  }
+
+  /**
+   * Live updates do not carry the tax receipt links, so the ones already shown are kept. Until the receipt is there,
+   * the order is fetched again on each update to pick it up once the cafe's cash register sent it.
+   */
+  private setLive(o: Order): void {
+    const prev = this.order();
+    const merged = {
+      ...o,
+      fiscalReceiptUrl: o.fiscalReceiptUrl ?? prev?.fiscalReceiptUrl,
+      fiscalReturnUrl: o.fiscalReturnUrl ?? prev?.fiscalReturnUrl,
+    };
+    this.order.set(merged);
+    if (!merged.fiscalReceiptUrl && o.paymentStatus === PaymentStatus.Paid && o.status !== OrderStatus.Created && o.status !== OrderStatus.Declined) {
+      const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
+      this.api.getOrder(this.id, context).subscribe({
+        next: (fresh) => {
+          if (fresh.fiscalReceiptUrl || fresh.fiscalReturnUrl) this.setLive(fresh);
+        },
+        error: () => {},
+      });
+    }
   }
 
   cancelOrder(): void {
