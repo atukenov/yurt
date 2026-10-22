@@ -20,7 +20,7 @@
         [class.text-brand-ink]="menuLink.isActive"
         [class.text-stone-500]="!menuLink.isActive"
         class="flex flex-col items-center gap-0.5 hover:text-brand-ink transition-all duration-200 min-w-14 py-1"
-        aria-label="Menu"
+        [attr.aria-label]="'nav.menu' | t"
       >
         <span class="transition-transform duration-200"
               [class.scale-110]="menuLink.isActive"
@@ -40,7 +40,7 @@
         [class.text-brand-ink]="cartLink.isActive"
         [class.text-stone-500]="!cartLink.isActive"
         class="flex flex-col items-center gap-0.5 hover:text-brand-ink transition-all duration-200 min-w-14 py-1"
-        aria-label="Cart"
+        [attr.aria-label]="'nav.cart' | t"
       >
         <span class="relative transition-transform duration-200"
               [class.scale-110]="cartLink.isActive"
@@ -65,7 +65,7 @@
         [class.text-brand-ink]="ordersLink.isActive"
         [class.text-stone-500]="!ordersLink.isActive"
         class="flex flex-col items-center gap-0.5 hover:text-brand-ink transition-all duration-200 min-w-14 py-1"
-        aria-label="Orders"
+        [attr.aria-label]="'nav.orders' | t"
       >
         <span class="transition-transform duration-200"
               [class.scale-110]="ordersLink.isActive"
@@ -85,7 +85,7 @@
         [class.text-brand-ink]="newsLink.isActive"
         [class.text-stone-500]="!newsLink.isActive"
         class="flex flex-col items-center gap-0.5 hover:text-brand-ink transition-all duration-200 min-w-14 py-1"
-        aria-label="News"
+        [attr.aria-label]="'nav.news' | t"
       >
         <span class="transition-transform duration-200"
               [class.scale-110]="newsLink.isActive"
@@ -106,7 +106,7 @@
         [class.text-brand-ink]="profileLink.isActive"
         [class.text-stone-500]="!profileLink.isActive"
         class="flex flex-col items-center gap-0.5 hover:text-brand-ink transition-all duration-200 min-w-14 py-1"
-        aria-label="Profile"
+        [attr.aria-label]="'nav.profile' | t"
       >
         <span class="transition-transform duration-200"
               [class.scale-110]="profileLink.isActive"

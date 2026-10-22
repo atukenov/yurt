@@ -4,6 +4,9 @@ export type Lang = 'en' | 'ru' | 'kk';
 
 const T: Record<Lang, Record<string, string>> = {
   en: {
+    'profile.spentTotal': 'total', 'profile.achievementsHint': 'unlock rewards', 'profile.ordersHint': 'history and reorder', 'order.pickup': 'pickup',
+    'a11y.back': 'Back', 'a11y.close': 'Close', 'a11y.search': 'Search', 'a11y.closeSearch': 'Close search', 'a11y.toggleFavorite': 'Add to or remove from saved',
+    'a11y.removeFavorite': 'Remove from saved', 'a11y.decrease': 'Decrease', 'a11y.increase': 'Increase', 'a11y.pinEntry': 'PIN entry',
     'nav.menu': 'Menu', 'nav.cart': 'Cart', 'nav.orders': 'Orders', 'nav.saved': 'Saved', 'nav.profile': 'Profile', 'nav.news': 'News',
     'profile.theme': 'Appearance', 'profile.theme.light': 'Light', 'profile.theme.dark': 'Dark', 'profile.theme.system': 'Auto', 'profile.support': 'Support', 'auth.tagline': 'Your coffee, your way', 'auth.welcomeBack': 'Welcome back', 'auth.signInSubtitle': 'Sign in to continue ordering',
     'auth.mobileNumber': 'Mobile Number', 'auth.pin': '4-Digit PIN', 'auth.signIn': 'Sign In', 'auth.newHere': 'New here?',
@@ -103,6 +106,9 @@ const T: Record<Lang, Record<string, string>> = {
     'rating.submit': 'Submit rating', 'rating.thanks': 'Thanks for your feedback!',
   },
   ru: {
+    'profile.spentTotal': 'всего', 'profile.achievementsHint': 'открывайте награды', 'profile.ordersHint': 'история и повтор', 'order.pickup': 'самовывоз',
+    'a11y.back': 'Назад', 'a11y.close': 'Закрыть', 'a11y.search': 'Поиск', 'a11y.closeSearch': 'Закрыть поиск', 'a11y.toggleFavorite': 'Добавить в избранное или убрать',
+    'a11y.removeFavorite': 'Убрать из избранного', 'a11y.decrease': 'Уменьшить', 'a11y.increase': 'Увеличить', 'a11y.pinEntry': 'Ввод PIN-кода',
     'nav.menu': 'Меню', 'nav.cart': 'Корзина', 'nav.orders': 'Заказы', 'nav.saved': 'Избранное', 'nav.profile': 'Профиль', 'nav.news': 'Новости',
     'profile.theme': 'Оформление', 'profile.theme.light': 'Светлая', 'profile.theme.dark': 'Тёмная', 'profile.theme.system': 'Авто', 'profile.support': 'Поддержка', 'auth.tagline': 'Ваш кофе, ваш выбор', 'auth.welcomeBack': 'С возвращением', 'auth.signInSubtitle': 'Войдите, чтобы продолжить',
     'auth.mobileNumber': 'Номер телефона', 'auth.pin': '4-значный PIN', 'auth.signIn': 'Войти', 'auth.newHere': 'Впервые здесь?',
@@ -143,7 +149,7 @@ const T: Record<Lang, Record<string, string>> = {
     'orders.noOrders': 'Заказов нет', 'orders.ordersHere': 'Ваши заказы появятся здесь', 'orders.total': 'Итого',
     'orders.offsiteSectionTitle': 'Покупки в кофейне', 'orders.offsitePurchase': 'Покупка в кофейне', 'orders.offsiteOrderNumber': 'Заказ',
     'orders.offsiteTotal': 'Итого', 'orders.offsitePaidKzt': 'Оплачено в тенге', 'orders.offsiteBonusSpent': 'Списано с бонусов', 'orders.offsiteBonusEarned': 'Начислено бонусов',
-    'order.details': 'Детали заказа', 'order.timeline': 'Хронология заказа', 'order.live': 'В эфире',
+    'order.details': 'Детали заказа', 'order.timeline': 'Хронология заказа', 'order.live': 'Онлайн',
     'order.items': 'Товары', 'order.total': 'Итого', 'order.payment': 'Оплата', 'order.status': 'Статус', 'order.method': 'Метод',
     'order.payKaspi': 'Оплатить через Kaspi', 'order.creatingInvoice': 'Создание счёта...', 'order.scanQR': 'Отсканируйте QR-код в приложении Kaspi',
     'order.viewReceipt': 'Чек', 'order.receipt': 'Чек', 'order.thankYou': 'Спасибо за заказ!',
@@ -202,6 +208,9 @@ const T: Record<Lang, Record<string, string>> = {
     'rating.submit': 'Отправить оценку', 'rating.thanks': 'Спасибо за отзыв!',
   },
   kk: {
+    'profile.spentTotal': 'барлығы', 'profile.achievementsHint': 'марапаттарды ашыңыз', 'profile.ordersHint': 'тарих және қайталау', 'order.pickup': 'өзі алып кету',
+    'a11y.back': 'Артқа', 'a11y.close': 'Жабу', 'a11y.search': 'Іздеу', 'a11y.closeSearch': 'Іздеуді жабу', 'a11y.toggleFavorite': 'Сақталғандарға қосу немесе алып тастау',
+    'a11y.removeFavorite': 'Сақталғандардан алып тастау', 'a11y.decrease': 'Азайту', 'a11y.increase': 'Көбейту', 'a11y.pinEntry': 'PIN-кодты енгізу',
     'nav.menu': 'Мәзір', 'nav.cart': 'Себет', 'nav.orders': 'Тапсырыстар', 'nav.saved': 'Сақталған', 'nav.profile': 'Профиль', 'nav.news': 'Жаңалықтар',
     'profile.theme': 'Көрініс', 'profile.theme.light': 'Ашық', 'profile.theme.dark': 'Қараңғы', 'profile.theme.system': 'Авто', 'profile.support': 'Қолдау', 'auth.tagline': 'Сіздің кофеңіз', 'auth.welcomeBack': 'Қош келдіңіз', 'auth.signInSubtitle': 'Жалғастыру үшін кіріңіз',
     'auth.mobileNumber': 'Телефон нөмірі', 'auth.pin': '4 таңбалы PIN', 'auth.signIn': 'Кіру', 'auth.newHere': 'Жаңа пайдаланушы?',

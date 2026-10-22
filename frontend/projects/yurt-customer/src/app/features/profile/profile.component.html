@@ -125,7 +125,7 @@
             {{ s.totalOrders }} {{ 'profile.orders' | t | lowercase }}
           </p>
           <p style="font-size:12px;font-weight:600;color:rgba(255,255,255,.65)">
-            {{ s.totalSpent | currency2 }} всего
+            {{ s.totalSpent | currency2 }} {{ 'profile.spentTotal' | t }}
           </p>
         </div>
       }
@@ -150,7 +150,7 @@
       </svg>
       <div>
         <p style="font-size:13.5px;font-weight:800;color:var(--ink-900)">{{ 'news.achievements' | t }}</p>
-        <p style="font-size:11px;font-weight:600;color:var(--ink-500);margin-top:2px">открывайте награды</p>
+        <p style="font-size:11px;font-weight:600;color:var(--ink-500);margin-top:2px">{{ 'profile.achievementsHint' | t }}</p>
       </div>
     </a>
 }
@@ -164,7 +164,7 @@
       </svg>
       <div>
         <p style="font-size:13.5px;font-weight:800;color:var(--ink-900)">{{ 'profile.myOrders' | t }}</p>
-        <p style="font-size:11px;font-weight:600;color:var(--ink-500);margin-top:2px">история и повтор</p>
+        <p style="font-size:11px;font-weight:600;color:var(--ink-500);margin-top:2px">{{ 'profile.ordersHint' | t }}</p>
       </div>
     </a>
   </div>
