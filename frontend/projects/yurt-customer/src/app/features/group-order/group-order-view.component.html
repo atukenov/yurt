@@ -1,12 +1,12 @@
 <div class="min-h-screen bg-stone-50 pb-32">
   <div class="bg-surface border-b border-stone-100 px-4 py-4 flex items-center gap-3">
-    <a routerLink="/cart" class="text-stone-400 hover:text-stone-600 transition-colors">
+    <a routerLink="/cart" [attr.aria-label]="'group.back' | t" class="text-stone-400 hover:text-stone-600 transition-colors">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
     </a>
     <div>
-      <h1 class="text-xl font-bold text-stone-800">Group Order</h1>
+      <h1 class="text-xl font-bold text-stone-800">{{ 'group.title' | t }}</h1>
       @if (cart()) {
         <p class="text-xs text-stone-500 mt-0.5">📍 {{ cart()!.locationName }}</p>
       }
@@ -19,32 +19,32 @@
       <div class="bg-surface rounded-2xl h-20"></div>
     </div>
   } @else if (!cart()) {
-    <div class="text-center py-20 text-stone-400">Group order not found.</div>
+    <div class="text-center py-20 text-stone-400">{{ 'group.notFound' | t }}</div>
   } @else {
     @let c = cart()!;
 
     <!-- Share code -->
     <div class="mx-4 mt-4 bg-gradient-to-br from-brand-400 to-accent-400 rounded-2xl p-5 text-white shadow-lg shadow-brand-200/50">
-      <p class="text-xs font-semibold text-brand-100 uppercase tracking-wider mb-1">Share Code</p>
+      <p class="text-xs font-semibold text-brand-100 uppercase tracking-wider mb-1">{{ 'group.shareCode' | t }}</p>
       <div class="flex items-center justify-between gap-3">
         <span class="text-4xl font-black tracking-widest">{{ c.code }}</span>
         <button
           (click)="copyCode()"
           class="bg-white/20 hover:bg-white/30 active:scale-95 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-all"
         >
-          {{ copySuccess() ? '✓ Copied' : 'Copy' }}
+          {{ (copySuccess() ? 'group.copied' : 'group.copy') | t }}
         </button>
       </div>
       @if (c.status !== GroupCartStatus.Open) {
         <p class="text-xs text-brand-100 mt-2 font-semibold">
-          {{ c.status === GroupCartStatus.Finalized ? 'Order placed' : 'Expired' }}
+          {{ (c.status === GroupCartStatus.Finalized ? 'group.placed' : 'group.expired') | t }}
         </p>
       }
     </div>
 
     <!-- Members -->
     <div class="mx-4 mt-3 bg-surface rounded-2xl border border-stone-100 shadow-sm p-4">
-      <p class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Members ({{ c.members.length }})</p>
+      <p class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">{{ 'group.members' | t }} ({{ c.members.length }})</p>
       <div class="flex flex-wrap gap-2">
         @for (m of c.members; track m.customerId) {
           <span class="bg-brand-50 text-brand-ink text-xs font-semibold px-3 py-1 rounded-full">
@@ -58,7 +58,7 @@
     <div class="mx-4 mt-3 space-y-2">
       @if (!c.items.length) {
         <div class="bg-surface rounded-2xl border border-stone-100 shadow-sm p-6 text-center text-stone-400 text-sm">
-          No items yet. Add something!
+          {{ 'group.noItems' | t }}
         </div>
       } @else {
         @for (item of c.items; track item.id) {
@@ -72,6 +72,7 @@
             @if (item.addedByUserId === myUserId) {
               <button
                 (click)="removeItem(item)"
+                [attr.aria-label]="'group.removeItem' | t"
                 class="text-stone-300 hover:text-red-400 active:scale-90 transition-all p-1"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -91,7 +92,7 @@
           (click)="openAddSheet()"
           class="w-full border-2 border-dashed border-brand-300 text-brand-ink font-semibold text-sm rounded-2xl py-4 hover:bg-brand-50 transition-colors"
         >
-          + Add Item
+          {{ 'group.addItem' | t }}
         </button>
       </div>
     }
@@ -105,7 +106,7 @@
           [disabled]="checkoutLoading()"
           class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] disabled:opacity-60 text-on-brand font-bold rounded-2xl py-4 text-base shadow-lg transition-all"
         >
-          {{ checkoutLoading() ? 'Placing order…' : 'Place Order · ' + (total() | currency2) }}
+          {{ checkoutLoading() ? ('group.placing' | t) : ('group.placeOrder' | t) + ' · ' + (total() | currency2) }}
         </button>
       </div>
     }
@@ -118,8 +119,8 @@
     <div class="absolute inset-0 bg-black/40"></div>
     <div class="relative bg-surface rounded-t-3xl max-h-[70vh] flex flex-col" (click)="$event.stopPropagation()">
       <div class="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-        <h2 class="font-bold text-stone-800">Add Item</h2>
-        <button (click)="showAddSheet.set(false)" class="text-stone-400 hover:text-stone-600">
+        <h2 class="font-bold text-stone-800">{{ 'group.addItemTitle' | t }}</h2>
+        <button (click)="showAddSheet.set(false)" [attr.aria-label]="'group.close' | t" class="text-stone-400 hover:text-stone-600">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -129,7 +130,7 @@
         <input
           type="text"
           [(ngModel)]="menuSearch"
-          placeholder="Search…"
+          [placeholder]="'group.search' | t"
           style="font-size: 16px"
           class="w-full text-sm border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
         />

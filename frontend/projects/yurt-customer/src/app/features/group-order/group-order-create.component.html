@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-stone-50 pb-8">
   <div class="bg-surface border-b border-stone-100 px-4 py-4">
-    <h1 class="text-xl font-bold text-stone-800">Start Group Order</h1>
-    <p class="text-xs text-stone-500 mt-0.5">Choose a location and share the code with friends</p>
+    <h1 class="text-xl font-bold text-stone-800">{{ 'group.createTitle' | t }}</h1>
+    <p class="text-xs text-stone-500 mt-0.5">{{ 'group.createHint' | t }}</p>
   </div>
 
   <div class="p-4 max-w-lg mx-auto space-y-3 pb-28">
@@ -45,7 +45,7 @@
         [disabled]="loading()"
         class="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.98] disabled:opacity-60 text-on-brand font-bold rounded-2xl py-4 text-base shadow-lg transition-all"
       >
-        {{ loading() ? 'Creating…' : 'Create Group Cart' }}
+        {{ (loading() ? 'group.creating' : 'group.createCart') | t }}
       </button>
     </div>
   }

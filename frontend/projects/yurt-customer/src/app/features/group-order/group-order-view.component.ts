@@ -6,12 +6,14 @@ import { Subject, takeUntil } from 'rxjs';
 import { YurtApiService, SignalrService, AuthStateService } from 'shared-api';
 import { Currency2Pipe, ToastService } from 'shared-ui';
 import { AddGroupOrderItemRequest, GroupCart, GroupCartItem, GroupCartStatus, MenuItem } from 'shared-models';
+import { TranslatePipe } from '../../core/translate.pipe';
+import { LangService } from '../../core/lang.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-group-order-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, Currency2Pipe],
+  imports: [CommonModule, FormsModule, RouterLink, Currency2Pipe, TranslatePipe],
   templateUrl: './group-order-view.component.html',
 })
 export class GroupOrderViewComponent implements OnInit, OnDestroy {
@@ -22,6 +24,7 @@ export class GroupOrderViewComponent implements OnInit, OnDestroy {
   private auth = inject(AuthStateService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private lang = inject(LangService);
   private destroy$ = new Subject<void>();
 
   cart = signal<GroupCart | null>(null);
@@ -119,7 +122,7 @@ export class GroupOrderViewComponent implements OnInit, OnDestroy {
     this.checkoutLoading.set(true);
     this.api.checkoutGroupOrder(this.id).subscribe({
       next: (order) => {
-        this.toast.success('Order placed! ☕');
+        this.toast.success(this.lang.t('group.placedToast'));
         this.router.navigate(['/orders', order.id]);
       },
       error: () => this.checkoutLoading.set(false),

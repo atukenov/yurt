@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { YurtApiService } from 'shared-api';
 import { Location } from 'shared-models';
+import { TranslatePipe } from '../../core/translate.pipe';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-group-order-create',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './group-order-create.component.html',
 })
 export class GroupOrderCreateComponent implements OnInit {
