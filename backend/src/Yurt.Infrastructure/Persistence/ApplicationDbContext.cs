@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Yurt.Application.Common;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Domain.Common;
 using Yurt.Domain.Entities;
@@ -92,18 +93,82 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     private void ApplyTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantOwned
         => modelBuilder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         foreach (var entry in ChangeTracker.Entries<ITenantOwned>())
         {
             if (entry.State == EntityState.Added && entry.Entity.TenantId == Guid.Empty)
                 entry.Entity.TenantId = _tenant.TenantId;
         }
+        await GuardCafeLinksAsync(cancellationToken);
         foreach (var entry in ChangeTracker.Entries<Domain.Common.BaseEntity>())
         {
             if (entry.State == EntityState.Modified)
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
         }
-        return base.SaveChangesAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// The query filters stop one cafe from reading another cafe's rows, but a save could still point a row at an id
+    /// from another cafe (say a menu item moved into another cafe's category). This refuses such saves, and refuses
+    /// moving a row to another cafe.
+    /// </summary>
+    private async Task GuardCafeLinksAsync(CancellationToken ct)
+    {
+        var entries = ChangeTracker.Entries<ITenantOwned>().ToList();
+        var tracked = new Dictionary<(Type, object), ITenantOwned>();
+        foreach (var e in entries)
+        {
+            if (e.Metadata.FindPrimaryKey() is { Properties.Count: 1 } pk && e.Property(pk.Properties[0].Name).CurrentValue is { } key)
+                tracked.TryAdd((e.Metadata.GetRootType().ClrType, key), e.Entity);
+        }
+
+        var toCheck = new Dictionary<(Type Principal, string Key, Guid Owner), HashSet<Guid>>();
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                var cafe = entry.Property(nameof(ITenantOwned.TenantId));
+                if (cafe.IsModified && !Equals(cafe.OriginalValue, cafe.CurrentValue))
+                    throw new CrossTenantReferenceException($"A {entry.Metadata.ClrType.Name} cannot move to another cafe.");
+            }
+            if (entry.State is not (EntityState.Added or EntityState.Modified)) continue;
+
+            var owner = entry.Entity.TenantId;
+            foreach (var fk in entry.Metadata.GetForeignKeys())
+            {
+                var principal = fk.PrincipalEntityType;
+                if (!typeof(ITenantOwned).IsAssignableFrom(principal.ClrType) || fk.Properties.Count != 1) continue;
+                var link = entry.Property(fk.Properties[0].Name);
+                if (entry.State == EntityState.Modified && !link.IsModified) continue;
+                if (link.CurrentValue is not Guid id) continue;
+
+                if (fk.PrincipalKey.IsPrimaryKey() && tracked.TryGetValue((principal.GetRootType().ClrType, id), out var target))
+                {
+                    if (target.TenantId != owner)
+                        throw Refused(entry.Metadata.ClrType, principal.ClrType);
+                    continue;
+                }
+                var group = (principal.GetRootType().ClrType, fk.PrincipalKey.Properties[0].Name, owner);
+                if (!toCheck.TryGetValue(group, out var ids)) toCheck[group] = ids = [];
+                ids.Add(id);
+            }
+        }
+
+        foreach (var ((principal, key, owner), ids) in toCheck)
+        {
+            var other = await (Task<bool>)typeof(ApplicationDbContext)
+                .GetMethod(nameof(AnyInOtherCafeAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .MakeGenericMethod(principal)
+                .Invoke(this, [key, ids.ToList(), owner, ct])!;
+            if (other) throw Refused(null, principal);
+        }
+    }
+
+    private Task<bool> AnyInOtherCafeAsync<T>(string key, List<Guid> ids, Guid owner, CancellationToken ct) where T : class, ITenantOwned
+        => Set<T>().IgnoreQueryFilters().AnyAsync(e => ids.Contains(EF.Property<Guid>(e, key)) && e.TenantId != owner, ct);
+
+    private static CrossTenantReferenceException Refused(Type? row, Type target)
+        => new($"{row?.Name ?? "A row"} cannot point to a {target.Name} of another cafe.");
 }

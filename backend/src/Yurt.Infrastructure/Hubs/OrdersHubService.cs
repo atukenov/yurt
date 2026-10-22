@@ -12,19 +12,25 @@ public class OrdersHubService : IOrdersHubService
 {
     private readonly IHubContext<OrdersHub> _hubContext;
     private readonly PushNotificationService _push;
+    private readonly ITenantContext _tenant;
 
-    public OrdersHubService(IHubContext<OrdersHub> hubContext, PushNotificationService push)
+    public OrdersHubService(IHubContext<OrdersHub> hubContext, PushNotificationService push, ITenantContext tenant)
     {
         _hubContext = hubContext;
         _push = push;
+        _tenant = tenant;
     }
+
+    /// <summary>The order's own cafe; a row that is not saved yet has no cafe stamped, so the current one is used.</summary>
+    private string Staff(Order order)
+        => OrdersHub.AdminsGroup(order.TenantId == Guid.Empty ? _tenant.TenantId : order.TenantId);
 
     public async Task NotifyOrderCreatedAsync(Order order, CancellationToken ct = default)
     {
         var dto = OrderService.MapToDto(order);
-        // Notify all admins
+        // Notify this cafe's staff only
         await _hubContext.Clients
-            .Group("admins")
+            .Group(Staff(order))
             .SendAsync("OrderCreated", dto, ct);
         // Notify customer
         await _hubContext.Clients
@@ -38,7 +44,7 @@ public class OrdersHubService : IOrdersHubService
     {
         var dto = OrderService.MapToDto(order);
         await _hubContext.Clients
-            .Group("admins")
+            .Group(Staff(order))
             .SendAsync("OrderUpdated", dto, ct);
         await _hubContext.Clients
             .Group($"customer:{order.CustomerUserId}")
@@ -57,7 +63,7 @@ public class OrdersHubService : IOrdersHubService
     {
         var dto = OrderService.MapToDto(order);
         await _hubContext.Clients
-            .Group("admins")
+            .Group(Staff(order))
             .SendAsync("OrderDeclined", dto, ct);
         await _hubContext.Clients
             .Group($"customer:{order.CustomerUserId}")
@@ -87,7 +93,7 @@ public class OrdersHubService : IOrdersHubService
     {
         var dto = OrderService.MapToDto(order);
         await _hubContext.Clients
-            .Group("admins")
+            .Group(Staff(order))
             .SendAsync("PaymentUpdated", dto, ct);
         await _hubContext.Clients
             .Group($"customer:{order.CustomerUserId}")
@@ -98,7 +104,7 @@ public class OrdersHubService : IOrdersHubService
     {
         var dto = OrderService.MapToDto(order);
         await _hubContext.Clients
-            .Group("admins")
+            .Group(Staff(order))
             .SendAsync("PaymentPending", dto, ct);
         await _hubContext.Clients
             .Group($"customer:{order.CustomerUserId}")
@@ -109,7 +115,7 @@ public class OrdersHubService : IOrdersHubService
     {
         var dto = OrderService.MapToDto(order);
         await _hubContext.Clients
-            .Group("admins")
+            .Group(Staff(order))
             .SendAsync("PaymentSucceeded", dto, ct);
         await _hubContext.Clients
             .Group($"customer:{order.CustomerUserId}")
@@ -120,7 +126,7 @@ public class OrdersHubService : IOrdersHubService
     {
         var dto = OrderService.MapToDto(order);
         await _hubContext.Clients
-            .Group("admins")
+            .Group(Staff(order))
             .SendAsync("PaymentFailed", dto, ct);
         await _hubContext.Clients
             .Group($"customer:{order.CustomerUserId}")
@@ -129,7 +135,7 @@ public class OrdersHubService : IOrdersHubService
 
     public async Task NotifyGroupCartUpdatedAsync(Guid groupCartId, GroupCartDto dto, CancellationToken ct = default)
         => await _hubContext.Clients
-            .Group($"group-{groupCartId}")
+            .Group(OrdersHub.GroupCartGroup(_tenant.TenantId, groupCartId))
             .SendAsync("GroupCartUpdated", dto, ct);
 
     public async Task NotifyEtaReminderAsync(Guid orderId, Guid customerUserId, int minutesLeft, CancellationToken ct = default)
