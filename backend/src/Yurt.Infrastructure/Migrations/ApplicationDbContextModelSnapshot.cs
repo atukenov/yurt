@@ -1914,6 +1914,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<bool>("ViaAgent")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("ViaBluetooth")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LocationId");

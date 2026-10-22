@@ -360,7 +360,7 @@ export interface StationRouting {
   itemStations: Record<string, string>;
 }
 
-/** A network printer at a branch (own_pos). Kitchen printers print one station's items (or all with no station). */
+/** A network or Bluetooth printer at a branch (own_pos). Kitchen printers print one station's items (or all with no station). */
 export interface Printer {
   id: string;
   locationId: string;
@@ -379,6 +379,16 @@ export interface Printer {
   cashDrawer: boolean;
   /** Receipt printers only: print the receipt again, with the tax receipt QR code, once the tax receipt is sent. */
   reprintWithTaxQr: boolean;
+  /** Printed by a tablet paired with the printer over Bluetooth. Such a printer has no network address. */
+  viaBluetooth: boolean;
+}
+
+/** A job a tablet takes for one of its Bluetooth printers; `data` is the ESC/POS bytes as base64. */
+export interface BluetoothPrintJob {
+  id: string;
+  printerId: string;
+  kind: string;
+  data: string;
 }
 
 export type SavePrinter = Omit<Printer, 'id'>;

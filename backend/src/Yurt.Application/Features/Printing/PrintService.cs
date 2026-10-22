@@ -199,8 +199,9 @@ public class PrintService(
         await db.PrintJobs.Where(j => (j.Status == PrintJob.Printed || j.Status == PrintJob.Failed) && j.CreatedAt < keepFrom)
             .ExecuteDeleteAsync(ct);
 
-        // Jobs for printers behind a print agent wait for the agent to fetch them (PrintAgentService).
-        var jobs = await db.PrintJobs.AsNoTracking().Where(j => j.Status == PrintJob.Pending && !j.Printer.ViaAgent)
+        // Jobs for printers behind a print agent wait for the agent to fetch them (PrintAgentService), and jobs for
+        // Bluetooth printers wait for the tablet paired with them (BluetoothPrintService).
+        var jobs = await db.PrintJobs.AsNoTracking().Where(j => j.Status == PrintJob.Pending && !j.Printer.ViaAgent && !j.Printer.ViaBluetooth)
             .OrderBy(j => j.CreatedAt).Take(BatchSize)
             .Select(j => new { j.Id, j.Data, j.Attempts, j.Printer.Host, j.Printer.Port })
             .ToListAsync(ct);

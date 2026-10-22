@@ -100,6 +100,11 @@ jobs:
       - name: Test native build scripts
         run: node --test scripts/*.test.mjs
 
+      # Bluetooth printing on the tablet, with a pretend printer (no real Bluetooth in CI).
+      - name: Test admin app
+        working-directory: frontend
+        run: npx ng test yurt-admin --watch=false
+
       - name: Build customer app
         working-directory: frontend
         run: npx ng build yurt-customer --configuration production

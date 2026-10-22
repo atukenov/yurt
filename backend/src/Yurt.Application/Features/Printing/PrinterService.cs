@@ -6,7 +6,7 @@ using Yurt.Domain.Entities;
 
 namespace Yurt.Application.Features.Printing;
 
-/// <summary>Setting up the network printers of each branch, a test print, and the list of recent print jobs (own_pos).</summary>
+/// <summary>Setting up the network and Bluetooth printers of each branch, a test print, and the list of recent print jobs (own_pos).</summary>
 public partial class PrinterService(IApplicationDbContext db, IPrinterTransport transport, IAuditLogService audit, PrintQueueSignal? signal = null)
 {
     private const int MaxName = 50, MaxPrinters = 30;
@@ -60,14 +60,14 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
 
     /// <summary>
     /// Prints a test page right away and says whether it worked, so staff can check the address while setting up. A
-    /// printer reached through the print agent cannot be reached from here, so its test page is queued for the agent and
-    /// shows up in the job list.
+    /// printer reached through the print agent or a Bluetooth tablet cannot be reached from here, so its test page is
+    /// queued for the agent or the tablet and shows up in the job list.
     /// </summary>
     public async Task<Result<PrintTestDto>> TestAsync(Guid id, CancellationToken ct = default)
     {
         var printer = await db.Printers.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, ct);
         if (printer is null) return Result<PrintTestDto>.NotFound("Printer not found.");
-        if (printer.ViaAgent)
+        if (printer.ViaAgent || printer.ViaBluetooth)
         {
             db.PrintJobs.Add(new PrintJob { PrinterId = printer.Id, Kind = PrintJob.TestKind, Data = PrintLayouts.Test(printer) });
             await db.SaveChangesAsync(ct);
@@ -97,9 +97,11 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
         var name = dto.Name?.Trim() ?? "";
         if (name.Length == 0 || name.Length > MaxName) return Result<PrinterDto>.Failure($"Name is required (up to {MaxName} characters).", 400);
         if (dto.Kind is not (Printer.KitchenKind or Printer.ReceiptKind)) return Result<PrinterDto>.Failure("Kind must be Kitchen or Receipt.", 400);
-        var host = dto.Host?.Trim() ?? "";
-        if (!HostPattern().IsMatch(host)) return Result<PrinterDto>.Failure("Enter the printer's network address, such as 192.168.1.50.", 400);
-        if (dto.Port is < MinPort or > MaxPort) return Result<PrinterDto>.Failure($"Port must be between {MinPort} and {MaxPort} (usually 9100).", 400);
+        // A Bluetooth printer is reached by the tablet paired with it, never by the server, so it has no address.
+        var host = dto.ViaBluetooth ? "" : dto.Host?.Trim() ?? "";
+        var port = dto.ViaBluetooth ? MinPort : dto.Port;
+        if (!dto.ViaBluetooth && !HostPattern().IsMatch(host)) return Result<PrinterDto>.Failure("Enter the printer's network address, such as 192.168.1.50.", 400);
+        if (port is < MinPort or > MaxPort) return Result<PrinterDto>.Failure($"Port must be between {MinPort} and {MaxPort} (usually 9100).", 400);
         if (!LineWidths.Contains(dto.LineWidth)) return Result<PrinterDto>.Failure("Line width must be 32 (58 mm paper), 42 or 48 (80 mm paper).", 400);
         if (dto.CodeTable is < 0 or > 255) return Result<PrinterDto>.Failure("Character table must be between 0 and 255.", 400);
         if (!PrintLayouts.Languages.Contains(dto.Language)) return Result<PrinterDto>.Failure("Language must be ru, kk or en.", 400);
@@ -112,12 +114,13 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
         printer.Kind = dto.Kind;
         printer.StationId = stationId;
         printer.Host = host;
-        printer.Port = dto.Port;
+        printer.Port = port;
         printer.LineWidth = dto.LineWidth;
         printer.CodeTable = dto.CodeTable;
         printer.Language = dto.Language;
         printer.AutoPrint = dto.AutoPrint;
-        printer.ViaAgent = dto.ViaAgent;
+        printer.ViaAgent = dto.ViaAgent && !dto.ViaBluetooth;
+        printer.ViaBluetooth = dto.ViaBluetooth;
         printer.CashDrawer = dto.Kind == Printer.ReceiptKind && dto.CashDrawer;
         printer.ReprintWithTaxQr = dto.Kind == Printer.ReceiptKind && dto.ReprintWithTaxQr;
         return null;
@@ -125,5 +128,5 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
 
     private static PrinterDto ToDto(Printer p)
         => new(p.Id, p.LocationId, p.Name, p.Kind, p.StationId, p.Host, p.Port, p.LineWidth, p.CodeTable, p.Language, p.AutoPrint, p.ViaAgent, p.CashDrawer,
-            p.ReprintWithTaxQr);
+            p.ReprintWithTaxQr, p.ViaBluetooth);
 }

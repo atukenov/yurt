@@ -52,3 +52,4 @@ has to be opened to the internet.
 - A cash drawer plugged into an agent printer opens through the agent too. If the agent does not pass it on within 1
   minute, the drawer stays shut; press **Open drawer** again.
 - Printers without the tick are still sent by the server itself (when the server runs in the cafe or reaches its network).
+- A Bluetooth printer is not reached by the agent: a tablet next to it prints instead (see `docs/bluetooth-printers.md`).

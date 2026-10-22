@@ -8,10 +8,11 @@ import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 import { environment } from '../../../environments/environment';
+import { BluetoothPrintService } from '../../core/bluetooth/bluetooth-print.service';
 
 /**
- * Network printers (Phase 6, `own_pos`): the address of each branch's kitchen and receipt printers, a test print, and
- * the latest print jobs so staff can see what printed and what did not.
+ * Printers (Phase 6, `own_pos`): the address of each branch's kitchen and receipt printers (or Bluetooth through a
+ * tablet), a test print, and the latest print jobs so staff can see what printed and what did not.
  */
 @Component({
   selector: 'app-printers',
@@ -23,6 +24,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
   private lang = inject(AdminLangService);
+  readonly bluetooth = inject(BluetoothPrintService);
 
   printers = signal<Printer[]>([]);
   jobs = signal<PrintJob[]>([]);
@@ -120,11 +122,33 @@ export class PrintersComponent implements OnInit, OnDestroy {
     this.editingId.set(p.id);
   }
 
+  /** The form can be saved: a network printer needs an address, a Bluetooth one does not. */
+  canSave(): boolean {
+    return !!this.form.name.trim() && !!this.form.locationId && (this.form.viaBluetooth || !!this.form.host.trim());
+  }
+
+  /** Pairs this tablet with a Bluetooth printer. The browser shows its list of nearby devices. */
+  async connectBluetooth(p: Printer): Promise<void> {
+    this.busyId.set(p.id);
+    try {
+      await this.bluetooth.connect(p.id);
+    } catch (e) {
+      // Closing the browser's list without picking is not an error worth showing.
+      if (!(e instanceof Error && e.name === 'NotFoundError')) {
+        this.toast.error(`${this.lang.t('printers.bt.connectFailed')}${e instanceof Error && e.message ? ': ' + e.message : ''}`);
+      }
+    } finally {
+      this.busyId.set(null);
+    }
+  }
+
   save(): void {
     const id = this.editingId();
     if (id === null) return;
     const body: SavePrinter = {
       ...this.form,
+      host: this.form.viaBluetooth ? '' : this.form.host,
+      viaAgent: this.form.viaBluetooth ? false : this.form.viaAgent,
       port: Number(this.form.port),
       lineWidth: Number(this.form.lineWidth),
       codeTable: Number(this.form.codeTable),
@@ -154,7 +178,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
     this.api.testPrinter(p.id).subscribe({
       next: (r) => {
         this.busyId.set(null);
-        this.toast.success(this.lang.t(r.printed ? 'printers.testSent' : 'printers.testQueued'));
+        this.toast.success(this.lang.t(r.printed ? 'printers.testSent' : p.viaBluetooth ? 'printers.testQueuedBt' : 'printers.testQueued'));
         if (!r.printed) this.loadJobs();
       },
       error: (e: HttpErrorResponse) => {
@@ -189,6 +213,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
       viaAgent: false,
       cashDrawer: false,
       reprintWithTaxQr: false,
+      viaBluetooth: false,
     };
   }
 }
