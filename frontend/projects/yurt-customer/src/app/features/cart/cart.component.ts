@@ -144,7 +144,7 @@ export class CartComponent implements OnInit {
 
   openConfirm(): void {
     if (!this.locationSvc.locationId()) {
-      this.toast.warning('Please select a location first.');
+      this.toast.warning(this.langService.t('cart.selectLocationFirst'));
       this.goToLocations();
       return;
     }
@@ -192,18 +192,18 @@ export class CartComponent implements OnInit {
     }
     const locationId = this.locationSvc.locationId();
     if (!locationId) {
-      this.toast.warning('Please select a location first.');
+      this.toast.warning(this.langService.t('cart.selectLocationFirst'));
       this.goToLocations();
       return;
     }
     if (!this.cart.items().length) {
-      this.toast.warning('Cart is empty.');
+      this.toast.warning(this.langService.t('cart.empty'));
       return;
     }
 
     const paymentMethod = this.selectedPaymentMethod();
     if (!paymentMethod && !this.fullyCoveredByBonus()) {
-      this.toast.warning('Select a payment method to continue.');
+      this.toast.warning(this.langService.t('cart.payRequired'));
       return;
     }
 
@@ -236,14 +236,14 @@ export class CartComponent implements OnInit {
         if (paymentMethod === PaymentMethod.ApplePay) {
           try {
             await this.applePay.pay(order.id, order.total);
-            this.toast.success('Order placed! ☕');
+            this.toast.success(this.langService.t('group.placedToast'));
           } catch {
             // Order already exists (Unpaid) — a cancelled or failed Apple Pay sheet
             // falls back to paying at the counter, same as any other unpaid order.
-            this.toast.warning('Apple Pay didn’t complete. You can pay at the counter.');
+            this.toast.warning(this.langService.t('cart.applePayFailed'));
           }
         } else {
-          this.toast.success('Order placed! ☕');
+          this.toast.success(this.langService.t('group.placedToast'));
         }
 
         this.router.navigate(['/orders', order.id]);

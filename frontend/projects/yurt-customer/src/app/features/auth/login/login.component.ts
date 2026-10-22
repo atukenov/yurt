@@ -93,11 +93,11 @@ export class LoginComponent {
   onLogin(): void {
     this.error.set('');
     if (!/^\d{10}$/.test(this.phoneDigits)) {
-      this.error.set('Enter your 10-digit mobile number.');
+      this.error.set(this.lang.t('auth.errPhone'));
       return;
     }
     if (this.pin4.length !== 4) {
-      this.error.set('Enter your 4-digit PIN.');
+      this.error.set(this.lang.t('auth.errPin'));
       return;
     }
 
@@ -120,7 +120,7 @@ export class LoginComponent {
           const minutes = err.error?.extensions?.minutesRemaining ?? err.error?.minutesRemaining ?? '?';
           msg = this.lang.t('auth.locked').replace('{minutes}', String(minutes));
         } else {
-          msg = err.error?.title ?? err.error?.detail ?? 'Login failed. Please try again.';
+          msg = err.error?.title ?? err.error?.detail ?? this.lang.t('auth.loginFailed');
         }
         this.error.set(msg);
         this.pins = ['', '', '', ''];

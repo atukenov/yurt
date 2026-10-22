@@ -43,7 +43,7 @@
     <div
       class="flex gap-1 px-3 py-2 border-b border-slate-50 flex-shrink-0"
       role="group"
-      aria-label="Status"
+      [attr.aria-label]="'label.status' | t"
     >
       @for (tab of statusTabs; track tab.value) {
         <button
@@ -90,13 +90,13 @@
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-semibold text-slate-800 truncate">
-                  Order #{{ order.id.slice(-6).toUpperCase() }}
+                  {{ 'orders.orderNo' | t: { no: order.id.slice(-6).toUpperCase() } }}
                 </p>
                 <p class="text-xs font-medium text-slate-700 truncate mt-0.5">
                   {{ order.customerName }}
                 </p>
                 <p class="text-xs text-slate-500 mt-0.5">
-                  {{ order.createdAt | ldate: 'HH:mm' }} · {{ totalQty(order) }} item(s)
+                  {{ order.createdAt | ldate: 'HH:mm' }} · {{ 'common.items' | t: { count: totalQty(order) } }}
                 </p>
               </div>
               <div class="flex-shrink-0 flex flex-col items-end gap-1">
@@ -132,7 +132,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-xl font-bold text-slate-800">
-              Order #{{ o.id.slice(-6).toUpperCase() }}
+              {{ 'orders.orderNo' | t: { no: o.id.slice(-6).toUpperCase() } }}
             </h2>
             <p class="text-slate-800 text-sm font-semibold">{{ o.customerName }}</p>
             @if (o.customerPhone) {
@@ -200,11 +200,11 @@
                 aria-label="{{ 'orders.eta' | t }}"
                 class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
               >
-                <option value="10">10 min</option>
-                <option value="15">15 min</option>
-                <option value="20">20 min</option>
-                <option value="30">30 min</option>
-                <option value="custom">Custom…</option>
+                <option value="10">{{ 'common.minutes' | t: { count: 10 } }}</option>
+                <option value="15">{{ 'common.minutes' | t: { count: 15 } }}</option>
+                <option value="20">{{ 'common.minutes' | t: { count: 20 } }}</option>
+                <option value="30">{{ 'common.minutes' | t: { count: 30 } }}</option>
+                <option value="custom">{{ 'common.custom' | t }}</option>
               </select>
               @if (useCustomEta) {
                 <input
@@ -381,7 +381,7 @@
                 @if (item.notes) {
                   <p class="text-slate-500 text-xs mt-0.5 italic">📝 {{ item.notes }}</p>
                 }
-                <p class="text-slate-500 text-xs mt-0.5">{{ item.unitPrice | currency2 }} each</p>
+                <p class="text-slate-500 text-xs mt-0.5">{{ 'common.each' | t: { price: (item.unitPrice | currency2) } }}</p>
               </div>
               <span class="font-semibold text-slate-800 text-sm shrink-0">{{
                 item.lineTotal | currency2

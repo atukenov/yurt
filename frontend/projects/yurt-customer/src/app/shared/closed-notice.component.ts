@@ -42,7 +42,7 @@ import { TranslatePipe } from '../core/translate.pipe';
               }
             </div>
           </div>
-          <button class="x" type="button" (click)="status.dismissNotice()" aria-label="Close">&times;</button>
+          <button class="x" type="button" (click)="status.dismissNotice()" [attr.aria-label]="'a11y.close' | t">&times;</button>
         </div>
       </div>
     }

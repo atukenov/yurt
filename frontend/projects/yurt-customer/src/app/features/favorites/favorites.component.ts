@@ -51,13 +51,13 @@ export class FavoritesComponent {
       quantity: 1,
       imageUrl: item.imageUrl,
     });
-    if (added) this.toast.success(`${item.name} added to cart`);
+    if (added) this.toast.success(this.langService.t('cart.added', { name: item.name }));
   }
 
   removeFavorite(item: MenuItem): void {
     this.api.removeFavorite(item.id).subscribe(() => {
       this.items.update((list) => list.filter((i) => i.id !== item.id));
-      this.toast.info('Removed from favorites');
+      this.toast.info(this.langService.t('fav.removed'));
     });
   }
 }

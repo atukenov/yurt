@@ -12,7 +12,18 @@ export interface ScheduleInfo {
   weekSummary: string[];  // ["Mon–Fri  08:00–22:00", "Sat–Sun  Closed"]
 }
 
-const DAY_ABBR = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/** Words the schedule is written with, so the screen can pass them in the app's language. */
+export interface ScheduleWords {
+  days: string[]; // Mon … Sun
+  closed: string;
+  closedToday: string;
+}
+
+const ENGLISH: ScheduleWords = {
+  days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  closed: 'Closed',
+  closedToday: 'Closed today',
+};
 
 const DAY_INDEX: Record<string, number> = {
   mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7,
@@ -64,7 +75,7 @@ function toMin(hhmm: string): number {
   return (h || 0) * 60 + (m || 0);
 }
 
-export function buildScheduleInfo(wh: string, now: Date): ScheduleInfo {
+export function buildScheduleInfo(wh: string, now: Date, words: ScheduleWords = ENGLISH): ScheduleInfo {
   const slots = parseSlots(wh);
 
   if (!slots) {
@@ -87,7 +98,7 @@ export function buildScheduleInfo(wh: string, now: Date): ScheduleInfo {
   const todayOpen = todaySlot.enabled && nowMin >= toMin(todaySlot.from) && nowMin < toMin(todaySlot.to);
   const todayLabel = todaySlot.enabled
     ? `${todaySlot.from} – ${todaySlot.to}`
-    : 'Closed today';
+    : words.closedToday;
 
   // Next open time (when closed)
   let nextOpenAt: string | null = null;
@@ -118,10 +129,10 @@ export function buildScheduleInfo(wh: string, now: Date): ScheduleInfo {
   }
 
   const weekSummary = groups.map((g) => {
-    const first = DAY_ABBR[g.days[0] - 1];
-    const last  = DAY_ABBR[g.days[g.days.length - 1] - 1];
+    const first = words.days[g.days[0] - 1];
+    const last  = words.days[g.days[g.days.length - 1] - 1];
     const dayStr = g.days.length === 1 ? first : `${first}–${last}`;
-    return g.enabled ? `${dayStr}  ${g.from}–${g.to}` : `${dayStr}  Closed`;
+    return g.enabled ? `${dayStr}  ${g.from}–${g.to}` : `${dayStr}  ${words.closed}`;
   });
 
   return { isOpen: todayOpen, todayLabel, nextOpenAt, weekSummary };

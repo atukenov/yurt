@@ -118,7 +118,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   submitPinChange(): void {
     if (!this.currentPin || !this.newPin || this.currentPin.length !== 4 || this.newPin.length !== 4) {
-      this.toast.error('Both PINs must be exactly 4 digits.');
+      this.toast.error(this.langService.t('profile.pinFormat'));
       return;
     }
     this.pinLoading.set(true);
@@ -128,7 +128,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.currentPin = '';
         this.newPin = '';
         this.pinLoading.set(false);
-        this.toast.success('PIN changed successfully.');
+        this.toast.success(this.langService.t('profile.pinChanged'));
       },
       error: (err) => {
         this.pinLoading.set(false);
@@ -195,12 +195,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.phoneOtp = '';
         this.phoneStep.set('otp');
         this.startPhoneResendCountdown();
-        if (res.devCode) this.toast.success('Dev code: ' + res.devCode);
+        if (res.devCode) this.toast.success(this.langService.t('auth.devCode', { code: res.devCode }));
       },
       error: (err) => {
         this.phoneLoading.set(false);
         this.phoneError.set(
-          err.status === 409 ? this.langService.t('profile.phoneInUse') : 'Could not send the verification code.',
+          err.status === 409 ? this.langService.t('profile.phoneInUse') : this.langService.t('auth.sendCodeFailed'),
         );
       },
     });
@@ -209,7 +209,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   verifyPhoneChange(): void {
     this.phoneError.set('');
     if (this.phoneOtp.length !== 4) {
-      this.phoneError.set('Enter the 4-digit code.');
+      this.phoneError.set(this.langService.t('auth.errCode'));
       return;
     }
     this.phoneLoading.set(true);
@@ -226,7 +226,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.phoneLoading.set(false);
         this.phoneError.set(
-          err.status === 409 ? this.langService.t('profile.phoneInUse') : (err.error?.title ?? 'Incorrect code.'),
+          err.status === 409 ? this.langService.t('profile.phoneInUse') : (err.error?.title ?? this.langService.t('auth.wrongCode')),
         );
       },
     });
@@ -241,11 +241,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.phoneLoading.set(false);
         this.phoneOtpBoxes()?.clear();
         this.startPhoneResendCountdown();
-        this.toast.success(res.devCode ? 'Dev code: ' + res.devCode : 'Code sent.');
+        this.toast.success(res.devCode ? this.langService.t('auth.devCode', { code: res.devCode }) : this.langService.t('auth.codeSent'));
       },
       error: (err) => {
         this.phoneLoading.set(false);
-        this.phoneError.set(err.error?.title ?? 'Could not resend the code.');
+        this.phoneError.set(err.error?.title ?? this.langService.t('auth.resendFailed'));
       },
     });
   }
@@ -279,7 +279,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.api.deleteAccount().subscribe({
       next: () => {
         this.auth.logout();
-        this.toast.info('Account deleted.');
+        this.toast.info(this.langService.t('profile.accountDeleted'));
         this.router.navigate(['/auth/login']);
       },
       error: () => this.deleteLoading.set(false),
@@ -296,7 +296,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   saveProfile(): void {
     if (!this.editFirstName.trim() || !this.editLastName.trim()) {
-      this.toast.error('First and last name are required.');
+      this.toast.error(this.langService.t('profile.nameRequired'));
       return;
     }
     if (this.editDateOfBirth && this.editDateOfBirth > this.maxDateOfBirth) {
@@ -315,7 +315,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.profile.set(p);
           this.editMode.set(false);
           this.saving.set(false);
-          this.toast.success('Profile updated.');
+          this.toast.success(this.langService.t('profile.updated'));
         },
         error: () => this.saving.set(false),
       });
@@ -331,7 +331,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.auth.logout();
-    this.toast.info('Signed out');
+    this.toast.info(this.langService.t('profile.signedOut'));
     this.router.navigate(['/auth/login']);
   }
 

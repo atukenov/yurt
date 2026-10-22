@@ -180,6 +180,12 @@ const T: Record<AdminLang, Record<string, string>> = {
     'dashboard.ordersHourly': 'Orders by Hour (Today)', 'dashboard.viewPending': 'View Pending Orders',
     'dashboard.goMenu': 'Go to Menu', 'dashboard.refresh': 'Refresh', 'dashboard.retry': 'Retry',
     'dashboard.failedLoad': 'Failed to load dashboard', 'dashboard.noData': 'No order data for today yet',
+    'common.items.one': '{count} item', 'common.items.other': '{count} items', 'common.fromPrice': 'from {price}',
+    'common.each': '{price} each', 'common.minutes': '{count} min', 'common.custom': 'Custom…', 'orders.orderNo': 'Order #{no}',
+    'reports.subtitle': 'Problems customers reported', 'reports.statusGroup': 'Report status', 'reports.open': 'Open',
+    'reports.resolved': 'Resolved', 'reports.noneOpen': 'No open reports', 'reports.noneResolved': 'No resolved reports',
+    'reports.resolvedAt': 'Resolved {date}', 'reports.resolve': 'Resolve', 'reports.resolving': 'Resolving…',
+    'reports.resolvedToast': 'Report marked as resolved.',
   },
 
   ru: {
@@ -360,6 +366,13 @@ const T: Record<AdminLang, Record<string, string>> = {
     'dashboard.ordersHourly': 'Заказы по часам (сегодня)', 'dashboard.viewPending': 'Ожидающие заказы',
     'dashboard.goMenu': 'Перейти в меню', 'dashboard.refresh': 'Обновить', 'dashboard.retry': 'Повторить',
     'dashboard.failedLoad': 'Не удалось загрузить дашборд', 'dashboard.noData': 'Нет данных за сегодня',
+    'common.items.one': '{count} позиция', 'common.items.few': '{count} позиции', 'common.items.many': '{count} позиций',
+    'common.items.other': '{count} позиции', 'common.fromPrice': 'от {price}', 'common.each': '{price} за шт.',
+    'common.minutes': '{count} мин', 'common.custom': 'Своё…', 'orders.orderNo': 'Заказ №{no}',
+    'reports.subtitle': 'Проблемы, о которых сообщили клиенты', 'reports.statusGroup': 'Статус обращения', 'reports.open': 'Открытые',
+    'reports.resolved': 'Решённые', 'reports.noneOpen': 'Открытых обращений нет', 'reports.noneResolved': 'Решённых обращений нет',
+    'reports.resolvedAt': 'Решено {date}', 'reports.resolve': 'Решено', 'reports.resolving': 'Сохраняем…',
+    'reports.resolvedToast': 'Обращение отмечено как решённое.',
   },
 
   kk: {
@@ -540,6 +553,12 @@ const T: Record<AdminLang, Record<string, string>> = {
     'dashboard.ordersHourly': 'Сағаттық тапсырыстар (бүгін)', 'dashboard.viewPending': 'Күтудегі тапсырыстар',
     'dashboard.goMenu': 'Мәзірге өту', 'dashboard.refresh': 'Жаңарту', 'dashboard.retry': 'Қайталау',
     'dashboard.failedLoad': 'Дашборд жүктелмеді', 'dashboard.noData': 'Бүгін деректер жоқ',
+    'common.items.one': '{count} позиция', 'common.items.other': '{count} позиция', 'common.fromPrice': '{price} бастап',
+    'common.each': '{price} / дана', 'common.minutes': '{count} мин', 'common.custom': 'Басқа…', 'orders.orderNo': 'Тапсырыс №{no}',
+    'reports.subtitle': 'Клиенттер хабарлаған мәселелер', 'reports.statusGroup': 'Өтініш күйі', 'reports.open': 'Ашық',
+    'reports.resolved': 'Шешілген', 'reports.noneOpen': 'Ашық өтініш жоқ', 'reports.noneResolved': 'Шешілген өтініш жоқ',
+    'reports.resolvedAt': 'Шешілді: {date}', 'reports.resolve': 'Шешілді', 'reports.resolving': 'Сақталуда…',
+    'reports.resolvedToast': 'Өтініш шешілді деп белгіленді.',
   },
 };
 
@@ -558,7 +577,18 @@ export class AdminLangService {
     document.documentElement.lang = lang;
   }
 
-  t(key: string): string {
-    return T[this.lang()][key] ?? key;
+  /**
+   * The text for `key`, with {name} slots filled from `params`.
+   * A number `count` also picks the plural form: `key.one`, `key.few`, `key.many` or `key.other`.
+   */
+  t(key: string, params?: Record<string, string | number>): string {
+    const dict = T[this.lang()];
+    let text = dict[key];
+    if (text === undefined && typeof params?.['count'] === 'number') {
+      const form = new Intl.PluralRules(this.lang()).select(params['count']);
+      text = dict[`${key}.${form}`] ?? dict[`${key}.other`];
+    }
+    text ??= key;
+    return params ? text.replace(/\{(\w+)\}/g, (slot, name) => (name in params ? String(params[name]) : slot)) : text;
   }
 }

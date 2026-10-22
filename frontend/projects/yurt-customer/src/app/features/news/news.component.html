@@ -100,10 +100,10 @@
               <div class="relative p-4 flex flex-col h-full justify-end" style="min-height:140px">
                 <!-- Badge -->
                 <span class="absolute top-3 left-3 bg-brand-400 text-on-brand text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                  PROMO
+                  {{ 'news.promo' | t }}
                 </span>
                 <!-- Tap hint -->
-                <span class="absolute top-3 right-3 text-white/60 text-[10px] font-medium">Tap to open ▶</span>
+                <span class="absolute top-3 right-3 text-white/60 text-[10px] font-medium">{{ 'news.tapToOpen' | t }}</span>
                 <p class="text-lg font-bold text-white leading-tight">{{ promo.title }}</p>
                 @if (promo.description) {
                   <p class="text-sm text-white/80 mt-0.5 line-clamp-2">{{ promo.description }}</p>
@@ -135,7 +135,7 @@
                   <p class="text-[13px] font-semibold text-stone-800 leading-tight line-clamp-2">{{ item.name }}</p>
                   <p class="text-brand-ink font-bold text-sm">
                     @if (item.variants && item.variants.length > 0) {
-                      from {{ displayPrice(item) | currency2 }}
+                      {{ 'common.fromPrice' | t: { price: (displayPrice(item) | currency2) } }}
                     } @else {
                       {{ displayPrice(item) | currency2 }}
                     }
@@ -174,7 +174,7 @@
                   <p class="text-[13px] font-semibold text-stone-800 leading-tight line-clamp-2">{{ item.name }}</p>
                   <p class="text-brand-ink font-bold text-sm">
                     @if (item.variants && item.variants.length > 0) {
-                      from {{ displayPrice(item) | currency2 }}
+                      {{ 'common.fromPrice' | t: { price: (displayPrice(item) | currency2) } }}
                     } @else {
                       {{ displayPrice(item) | currency2 }}
                     }
@@ -222,7 +222,7 @@
                 <div>
                   <p class="text-sm font-semibold text-stone-800">{{ order.locationName }}</p>
                   <p class="text-xs text-stone-400 mt-0.5">
-                    {{ order.createdAt | ldate: 'shortDate' }} · {{ order.items.length }} item(s)
+                    {{ order.createdAt | ldate: 'shortDate' }} · {{ 'common.items' | t: { count: order.items.length } }}
                   </p>
                 </div>
                 <span class="text-brand-ink font-bold text-sm">{{ order.total | currency2 }}</span>
