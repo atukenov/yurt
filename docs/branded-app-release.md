@@ -12,8 +12,8 @@ Checklist for putting one cafe's own app in the App Store and Google Play. The b
 - [ ] Firebase project for the cafe, with `google-services.json` and `GoogleService-Info.plist` in `cafes/<slug>/secrets/`.
 - [ ] Apple Pay: merchant id created in the Apple Developer account and set as `appleMerchantId`; certificate set up as in `docs/apple-pay-setup.md`.
 - [ ] Backend for the cafe: Brand saved (name, colours, links), modules switched on, push and payments configured.
-- [ ] Store listing: name, short and full description (EN/RU/KK as needed), screenshots from the branded app, privacy policy URL,
-      support contact, age rating, and review notes with a test account.
+- [ ] Store listing: name, short and full description (EN/RU/KK as needed), screenshots from the branded app (see
+      "Store screenshots" below), privacy policy URL, support contact, age rating, and review notes with a test account.
 - [ ] Android signing key created and backed up outside git (`key.properties`); iOS signing set up in Xcode.
 
 ## Every release
@@ -25,7 +25,38 @@ Checklist for putting one cafe's own app in the App Store and Google Play. The b
 - [ ] Publish an app release entry in the admin panel so older app versions show the update popup.
 - [ ] Discard the changes the script made to tracked native files (they belong to this cafe only).
 
+## Store screenshots
+
+One command makes the screenshots for both stores, for one cafe and one language, in light mode. It opens the real
+customer app in a hidden browser with fake sample data (a menu, a cart, an order being made, a profile), so it needs no
+server, no phone and no real customer data.
+
+```bash
+cd frontend
+npm ci                                                   # once
+npx ng build yurt-customer --configuration production    # after every app change
+npx playwright@1.56.1 install chromium                   # once
+NODE_PATH="$(npm root -g)" node scripts/brand-screenshots.mjs --store=<slug> --lang=ru
+```
+
+(If `node` says it cannot find `playwright`, run `npm install -g playwright@1.56.1` once.)
+
+- `--lang=ru`, `--lang=kk` or `--lang=en`; run it once per language the listing has.
+- Colours, name, logo and welcome line come from the `brand` part of `cafes/<slug>/cafe.json` (same fields as the
+  Brand screen, see `cafes/README.md`). Add `--api=https://your-server` to take them from the live server instead, so
+  the pictures match exactly what the cafe saved in the Brand screen.
+- The pictures land in `frontend/store-screenshots/<slug>/<lang>/`, one folder per screen size, numbered in the order
+  to upload them (01-menu, 02-cart, 03-order-status, 04-profile, 05-sign-in):
+
+| Folder          | Size (pixels) | Upload to                                         |
+| --------------- | ------------- | ------------------------------------------------- |
+| `ios-6.9in`     | 1320 x 2868   | App Store Connect, iPhone 6.9" (required)         |
+| `ios-6.5in`     | 1242 x 2688   | App Store Connect, iPhone 6.5" (if it asks)       |
+| `android-phone` | 1080 x 1920   | Google Play Console, Phone screenshots            |
+
+The iOS app is iPhone-only, so no iPad pictures are needed. The menu and order texts are sample data, not the cafe's
+real menu. They are plain app screens, without a frame or a caption on top; add those in a design tool if you want them.
+
 ## Not automated yet
 
 - A CI build matrix that produces the signed apps from a cafe folder (needs signing secrets and a macOS runner).
-- Generating store screenshots.

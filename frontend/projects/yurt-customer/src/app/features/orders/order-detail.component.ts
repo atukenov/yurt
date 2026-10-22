@@ -11,7 +11,7 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from 'shared-models';
-import { Currency2Pipe, OrderStatusLabelPipe, ToastService, LocalDatePipe } from 'shared-ui';
+import { Currency2Pipe, ToastService, LocalDatePipe } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { LangService } from '../../core/lang.service';
 import { TranslatePipe } from '../../core/translate.pipe';
@@ -20,10 +20,10 @@ import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
 @Component({
   selector: 'app-order-detail',
   standalone: true,
-  imports: [LocalDatePipe, 
+  imports: [
+    LocalDatePipe,
     CommonModule,
     FormsModule,
-    OrderStatusLabelPipe,
     Currency2Pipe,
     TranslatePipe,
     PullToRefreshDirective,
