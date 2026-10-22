@@ -49,7 +49,7 @@
             >
               <td class="px-5 py-3 font-mono text-slate-700">{{ c.phone }}</td>
               <td class="px-5 py-3 text-slate-800">{{ c.displayName || '—' }}</td>
-              <td class="px-5 py-3 text-slate-500">{{ c.registeredAt | date: 'MMM d, y' }}</td>
+              <td class="px-5 py-3 text-slate-500">{{ c.registeredAt | ldate: 'shortDate' }}</td>
               <td class="px-5 py-3 text-right font-semibold text-slate-700">{{ c.orderCount }}</td>
               <td class="px-5 py-3 text-right font-semibold text-brand-ink">{{ c.totalSpent | currency2 }}</td>
             </tr>
@@ -72,7 +72,7 @@
               <p class="font-semibold text-slate-800">{{ c.displayName || '—' }}</p>
               <p class="font-mono text-xs text-slate-500 mt-0.5">{{ c.phone }}</p>
             </div>
-            <p class="text-xs text-slate-500">{{ c.registeredAt | date: 'MMM d, y' }}</p>
+            <p class="text-xs text-slate-500">{{ c.registeredAt | ldate: 'shortDate' }}</p>
           </div>
           <div class="flex gap-3 mt-2 text-sm">
             <span class="text-slate-500">{{ 'customers.orders' | t }}: <strong class="text-slate-700">{{ c.orderCount }}</strong></span>

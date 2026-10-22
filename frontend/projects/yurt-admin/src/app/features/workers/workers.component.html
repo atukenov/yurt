@@ -49,7 +49,7 @@
                   {{ w.isActive ? ('workers.active' | t) : ('workers.inactive' | t) }}
                 </span>
               </td>
-              <td class="px-5 py-3 text-slate-500">{{ w.createdAt | date: 'MMM d, y' }}</td>
+              <td class="px-5 py-3 text-slate-500">{{ w.createdAt | ldate: 'shortDate' }}</td>
               <td class="px-5 py-3 text-right">
                 <div class="flex justify-end gap-2">
                   <button
@@ -88,7 +88,7 @@
           <div class="flex items-start justify-between mb-3">
             <div>
               <p class="font-semibold text-slate-800">{{ w.username }}</p>
-              <p class="text-xs text-slate-500 mt-0.5">{{ w.createdAt | date: 'MMM d, y' }}</p>
+              <p class="text-xs text-slate-500 mt-0.5">{{ w.createdAt | ldate: 'shortDate' }}</p>
             </div>
             <div class="flex gap-1.5">
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full"

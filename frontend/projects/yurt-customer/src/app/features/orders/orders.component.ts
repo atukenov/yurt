@@ -9,6 +9,7 @@ import {
   OrderStatusColorPipe,
   Currency2Pipe,
   SkeletonOrderCardComponent,
+  LocalDatePipe,
 } from 'shared-ui';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { AppResumeService } from '../../core/app-resume.service';
@@ -17,7 +18,7 @@ import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [
+  imports: [LocalDatePipe, 
     CommonModule,
     RouterLink,
     BadgeComponent,

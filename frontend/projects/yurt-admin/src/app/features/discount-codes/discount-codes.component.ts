@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
-import { ToastService } from 'shared-ui';
+import { ToastService, LocalDatePipe, LocalNumberPipe } from 'shared-ui';
 import { DiscountCode } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
@@ -10,7 +10,7 @@ import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
 @Component({
   selector: 'app-discount-codes',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminTranslatePipe],
+  imports: [LocalDatePipe, LocalNumberPipe, CommonModule, FormsModule, AdminTranslatePipe],
   templateUrl: './discount-codes.component.html',
 })
 export class DiscountCodesComponent implements OnInit {

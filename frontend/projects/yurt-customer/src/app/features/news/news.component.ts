@@ -9,14 +9,13 @@ import { CartService } from '../cart/cart.service';
 import { LangService } from '../../core/lang.service';
 import { PromoViewerService } from '../../core/promo-viewer.service';
 import { TranslatePipe } from '../../core/translate.pipe';
-import { Currency2Pipe, SkeletonNewsComponent, ToastService } from 'shared-ui';
-import { DatePipe } from '@angular/common';
+import { Currency2Pipe, SkeletonNewsComponent, ToastService, LocalDatePipe } from 'shared-ui';
 import { ACHIEVEMENTS, Achievement, buildAchievementFlags } from './achievements';
 
 @Component({
   selector: 'app-news',
   standalone: true,
-  imports: [RouterLink, TranslatePipe, Currency2Pipe, DatePipe, SkeletonNewsComponent],
+  imports: [LocalDatePipe, RouterLink, TranslatePipe, Currency2Pipe, SkeletonNewsComponent],
   templateUrl: './news.component.html',
   styleUrl: './news.component.css',
 })

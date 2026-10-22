@@ -53,7 +53,7 @@
             <p class="text-slate-500 text-sm mt-0.5 line-clamp-2">{{ promo.description }}</p>
             @if (promo.expiresAt) {
               <p class="text-slate-500 text-xs mt-1">
-                {{ 'promotions.expires' | t }} {{ promo.expiresAt | date: 'medium' }}
+                {{ 'promotions.expires' | t }} {{ promo.expiresAt | ldate: 'dateTime24' }}
               </p>
             }
           </div>

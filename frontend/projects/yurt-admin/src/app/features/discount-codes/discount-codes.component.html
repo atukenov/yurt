@@ -49,17 +49,17 @@
                   @if (code.discountType === 'Percentage') {
                     <span class="text-brand-ink font-semibold">{{ code.discountValue }}%</span>
                   } @else {
-                    <span class="text-brand-ink font-semibold">{{ code.discountValue | number:'1.0-0' }} ₸</span>
+                    <span class="text-brand-ink font-semibold">{{ code.discountValue | lnumber: '1.0-0' }} ₸</span>
                   }
                   @if (code.minOrderAmount) {
-                    <span class="text-xs text-slate-500 ml-1">(min {{ code.minOrderAmount | number:'1.0-0' }} ₸)</span>
+                    <span class="text-xs text-slate-500 ml-1">(min {{ code.minOrderAmount | lnumber: '1.0-0' }} ₸)</span>
                   }
                 </td>
                 <td class="px-4 py-3 text-slate-600">
                   {{ code.usedCount }}{{ code.maxUses ? ' / ' + code.maxUses : '' }}
                 </td>
                 <td class="px-4 py-3 text-slate-500 text-xs">
-                  {{ code.expiresAt ? (code.expiresAt | date:'dd MMM yyyy') : '—' }}
+                  {{ code.expiresAt ? (code.expiresAt | ldate: 'shortDate') : '—' }}
                 </td>
                 <td class="px-4 py-3">
                   @if (!code.isActive) {

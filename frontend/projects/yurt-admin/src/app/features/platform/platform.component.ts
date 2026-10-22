@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
-import { ToastService } from 'shared-ui';
+import { ToastService, LocalDatePipe } from 'shared-ui';
 import { FiscalSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
@@ -18,7 +18,7 @@ interface ModuleEdit {
 @Component({
   selector: 'app-platform',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, FormsModule, RouterLink, AdminTranslatePipe],
   templateUrl: './platform.component.html',
 })
 export class PlatformComponent implements OnInit {

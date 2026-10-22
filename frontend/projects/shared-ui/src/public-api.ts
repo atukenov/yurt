@@ -10,3 +10,4 @@ export * from './lib/toast/toast.component';
 export * from './lib/toast/toast.service';
 export * from './lib/pipes/pipes';
 export * from './lib/otp-boxes/otp-boxes.component';
+export * from './lib/locale/locale-format';

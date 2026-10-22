@@ -1,9 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
 import { FiscalReceipt, Location, Shift, ShiftReport } from 'shared-models';
-import { Currency2Pipe, ToastService } from 'shared-ui';
+import { Currency2Pipe, ToastService, LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 
@@ -14,7 +13,7 @@ import { AdminLangService } from '../../core/lang.service';
 @Component({
   selector: 'app-cashier',
   standalone: true,
-  imports: [FormsModule, DatePipe, Currency2Pipe, AdminTranslatePipe],
+  imports: [LocalDatePipe, FormsModule, Currency2Pipe, AdminTranslatePipe],
   templateUrl: './cashier.component.html',
 })
 export class CashierComponent implements OnInit {

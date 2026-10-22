@@ -47,11 +47,11 @@
               <div class="flex items-center gap-3 mb-2">
                 <span class="font-semibold text-slate-800 text-sm">{{ report.customerName || '—' }}</span>
                 <span class="text-xs text-slate-500">{{ report.customerPhone }}</span>
-                <span class="text-xs text-slate-300 ml-auto">{{ report.createdAt | date:'dd MMM, HH:mm' }}</span>
+                <span class="text-xs text-slate-300 ml-auto">{{ report.createdAt | ldate: 'shortDateTime24' }}</span>
               </div>
               <p class="text-slate-700 text-sm leading-relaxed">{{ report.text }}</p>
               @if (report.resolvedAt) {
-                <p class="text-xs text-green-500 mt-2">Resolved {{ report.resolvedAt | date:'dd MMM, HH:mm' }}</p>
+                <p class="text-xs text-green-500 mt-2">Resolved {{ report.resolvedAt | ldate: 'shortDateTime24' }}</p>
               }
             </div>
             @if (tab() === 'open') {

@@ -19,6 +19,7 @@ import {
   OrderStatusColorPipe,
   Currency2Pipe,
   BadgeVariant,
+  LocalDatePipe,
 } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { Subscription, catchError, forkJoin, map, of } from 'rxjs';
@@ -30,7 +31,7 @@ import { AdminLangService } from '../../core/lang.service';
 @Component({
   selector: 'app-orders-live',
   standalone: true,
-  imports: [
+  imports: [LocalDatePipe, 
     SplitPaymentComponent,
     CommonModule,
     FormsModule,

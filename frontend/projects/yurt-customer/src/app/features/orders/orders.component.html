@@ -37,7 +37,7 @@
                 Order #{{ order.id.slice(-6).toUpperCase() }}
               </p>
               <p class="text-xs text-stone-400 mt-0.5">
-                {{ order.createdAt | date: 'MMM d · h:mm a' }}
+                {{ order.createdAt | ldate: 'shortDateTime' }}
               </p>
               <p class="text-xs text-stone-500 mt-0.5 font-medium">📍 {{ order.locationName }}</p>
             </div>
@@ -78,7 +78,7 @@
               <div class="bg-surface rounded-2xl border border-stone-100 p-4 shadow-sm">
                 <div class="flex items-center justify-between mb-1">
                   <p class="font-bold text-stone-800 text-sm">{{ 'orders.offsitePurchase' | t }}</p>
-                  <p class="text-xs text-stone-400">{{ tx.whenCreated | date: 'MMM d · h:mm a' }}</p>
+                  <p class="text-xs text-stone-400">{{ tx.whenCreated | ldate: 'shortDateTime' }}</p>
                 </div>
                 @if (tx.orderNumber) {
                   <p class="text-xs text-stone-500 mb-2">{{ 'orders.offsiteOrderNumber' | t }} #{{ tx.orderNumber }}</p>

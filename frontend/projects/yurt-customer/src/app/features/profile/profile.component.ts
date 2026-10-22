@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BrandService, ModuleService, YurtApiService, AuthStateService, NotificationService, ThemeService, ThemeMode } from 'shared-api';
 import { CustomerProfile, CustomerStats, LoyaltyBalance } from 'shared-models';
-import { Currency2Pipe, OtpBoxesComponent, ToastService } from 'shared-ui';
+import { Currency2Pipe, OtpBoxesComponent, ToastService, LocalDatePipe, LocalNumberPipe } from 'shared-ui';
 import { LangService, Lang } from '../../core/lang.service';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
@@ -12,7 +12,7 @@ import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [
+  imports: [LocalDatePipe, LocalNumberPipe, 
     CommonModule,
     FormsModule,
     RouterLink,

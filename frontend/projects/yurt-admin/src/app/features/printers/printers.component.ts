@@ -1,10 +1,9 @@
-import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { YurtApiService } from 'shared-api';
 import { Location, Printer, PrintAgent, PrintJob, SavePrinter, Station } from 'shared-models';
-import { ToastService } from 'shared-ui';
+import { ToastService, LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 import { environment } from '../../../environments/environment';
@@ -17,7 +16,7 @@ import { BluetoothPrintService } from '../../core/bluetooth/bluetooth-print.serv
 @Component({
   selector: 'app-printers',
   standalone: true,
-  imports: [FormsModule, DatePipe, AdminTranslatePipe],
+  imports: [LocalDatePipe, FormsModule, AdminTranslatePipe],
   templateUrl: './printers.component.html',
 })
 export class PrintersComponent implements OnInit, OnDestroy {

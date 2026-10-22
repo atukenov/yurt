@@ -2,14 +2,14 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
-import { ToastService } from 'shared-ui';
+import { ToastService, LocalDatePipe } from 'shared-ui';
 import { WorkerAccount } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 @Component({
   selector: 'app-workers',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, FormsModule, AdminTranslatePipe],
   templateUrl: './workers.component.html',
 })
 export class WorkersComponent implements OnInit {

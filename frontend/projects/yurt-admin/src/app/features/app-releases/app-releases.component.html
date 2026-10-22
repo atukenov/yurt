@@ -30,7 +30,7 @@
                 [class]="r.isMandatory ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'">
                 {{ r.isMandatory ? ('rel.mandatoryShort' | t) : ('rel.optional' | t) }}
               </span>
-              <span class="text-xs text-slate-500 ml-auto">{{ 'rel.published' | t }} {{ r.createdAt | date: 'MMM d, y' }}</span>
+              <span class="text-xs text-slate-500 ml-auto">{{ 'rel.published' | t }} {{ r.createdAt | ldate: 'shortDate' }}</span>
             </div>
             <ul class="mt-3 space-y-1 text-sm text-slate-600 list-disc pl-5">
               @for (n of notes(r); track $index) { <li>{{ n }}</li> }

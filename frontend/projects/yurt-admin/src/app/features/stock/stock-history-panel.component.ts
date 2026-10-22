@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { LocalDatePipe, LocalNumberPipe } from 'shared-ui';
 import { Component, inject, Input, OnChanges, signal } from '@angular/core';
 import { YurtApiService } from 'shared-api';
 import { StockChange } from 'shared-models';
@@ -8,7 +8,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 @Component({
   selector: 'app-stock-history-panel',
   standalone: true,
-  imports: [AdminTranslatePipe, DatePipe, DecimalPipe],
+  imports: [LocalDatePipe, LocalNumberPipe, AdminTranslatePipe],
   templateUrl: './stock-history-panel.component.html',
 })
 export class StockHistoryPanelComponent implements OnChanges {
