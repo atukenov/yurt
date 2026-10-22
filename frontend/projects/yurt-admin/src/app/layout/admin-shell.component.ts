@@ -11,6 +11,7 @@ import {
 import { ToastService } from 'shared-ui';
 import { AdminLangService } from '../core/lang.service';
 import { AdminTranslatePipe } from '../core/translate.pipe';
+import { BluetoothPrintService } from '../core/bluetooth/bluetooth-print.service';
 
 const SIDEBAR_KEY = 'yurt_admin_sidebar_collapsed';
 
@@ -31,6 +32,7 @@ export class AdminShellComponent implements OnDestroy {
   private router = inject(Router);
   private toast = inject(ToastService);
   private api = inject(YurtApiService);
+  private bluetooth = inject(BluetoothPrintService);
 
   /** Dishes and ingredients running low or out, for the badge on the Stock menu entry (own_pos). */
   stockAlerts = signal(0);
@@ -44,8 +46,11 @@ export class AdminShellComponent implements OnDestroy {
       }
       if (!this.modules.isEnabled('own_pos') || !this.auth.currentUser) {
         this.stockAlerts.set(0);
+        this.bluetooth.stop();
         return;
       }
+      // Bluetooth printers paired with this tablet print from any page while the app is open.
+      this.bluetooth.start();
       this.refreshAlerts();
       this.alertTimer = setInterval(() => this.refreshAlerts(), 120_000);
     });
@@ -53,6 +58,7 @@ export class AdminShellComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     if (this.alertTimer) clearInterval(this.alertTimer);
+    this.bluetooth.stop();
   }
 
   private refreshAlerts(): void {
@@ -76,6 +82,7 @@ export class AdminShellComponent implements OnDestroy {
   }
 
   logout(): void {
+    this.bluetooth.stop();
     this.auth.logout();
     this.toast.info('Signed out');
     this.router.navigate(['/auth/login']);

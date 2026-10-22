@@ -166,9 +166,11 @@ public static class DependencyInjection
         services.AddScoped<StationReadyService>();
         services.AddSingleton<PrintQueueSignal>();
         services.AddSingleton<IPrinterTransport, TcpPrinterTransport>();
+        services.AddSingleton<IQrCodeImages, QrCodeImages>();
         services.AddScoped<PrinterService>();
         services.AddScoped<PrintService>();
         services.AddScoped<PrintAgentService>();
+        services.AddScoped<BluetoothPrintService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

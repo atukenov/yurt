@@ -1,12 +1,29 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Yurt.Domain.Entities;
+using Yurt.Infrastructure.Services;
 
 namespace Yurt.Infrastructure.Hubs;
 
 [Authorize]
 public class OrdersHub : Hub
 {
+    /// <summary>Set by the tenant middleware on the request that opened the connection.</summary>
+    public const string TenantItem = "TenantId";
+
+    // Every group name carries the cafe, so one cafe's staff never hear another cafe's orders.
+    public static string AdminsGroup(Guid tenantId) => $"admins:{tenantId}";
+    public static string LocationGroup(Guid tenantId, string locationId) => $"location:{tenantId}:{locationId}";
+    public static string GroupCartGroup(Guid tenantId, Guid groupCartId) => $"group:{tenantId}:{groupCartId}";
+
+    /// <summary>The cafe this connection was opened for (already checked against the token by the tenant middleware).</summary>
+    private Guid Cafe()
+    {
+        if (Context.GetHttpContext()?.Items[TenantItem] is Guid fromRequest) return fromRequest;
+        return Guid.TryParse(Context.User?.FindFirstValue(JwtTokenService.TenantClaim), out var fromToken) ? fromToken : Tenant.DefaultId;
+    }
+
     public override async Task OnConnectedAsync()
     {
         var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -21,8 +38,8 @@ public class OrdersHub : Hub
         }
         else if (userType == "admin")
         {
-            // Admins join the global admin group to receive all order events
-            await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
+            // Staff join their own cafe's group to receive its order events
+            await Groups.AddToGroupAsync(Context.ConnectionId, AdminsGroup(Cafe()));
         }
 
         await base.OnConnectedAsync();
@@ -34,21 +51,25 @@ public class OrdersHub : Hub
         var userType = Context.User?.FindFirstValue("user_type");
         if (userType != "admin") return;
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"location:{locationId}");
+        await Groups.AddToGroupAsync(Context.ConnectionId, LocationGroup(Cafe(), locationId));
     }
 
     public async Task UnsubscribeFromLocation(string locationId)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"location:{locationId}");
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, LocationGroup(Cafe(), locationId));
     }
 
     public async Task JoinGroupCart(string groupCartId)
     {
         var userType = Context.User?.FindFirstValue("user_type");
         if (userType != "customer") return;
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"group-{groupCartId}");
+        if (Guid.TryParse(groupCartId, out var id))
+            await Groups.AddToGroupAsync(Context.ConnectionId, GroupCartGroup(Cafe(), id));
     }
 
     public async Task LeaveGroupCart(string groupCartId)
-        => await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"group-{groupCartId}");
+    {
+        if (Guid.TryParse(groupCartId, out var id))
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupCartGroup(Cafe(), id));
+    }
 }

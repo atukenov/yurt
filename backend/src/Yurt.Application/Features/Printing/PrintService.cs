@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
@@ -133,17 +134,38 @@ public class PrintService(
         return await SaveAsync(queued, ct);
     }
 
-    public async Task<int> QueueReceiptAsync(Order order, bool autoOnly, CancellationToken ct = default)
+    /// <summary>
+    /// The order's official tax receipt was just sent: prints the receipt again, now with its QR code, on the receipt
+    /// printers of the branch that have "print again with the tax QR code" ticked. Never fails the tax receipt.
+    /// </summary>
+    public async Task ReprintWithTaxQrAsync(Guid orderId, CancellationToken ct = default)
+    {
+        try
+        {
+            var order = await LoadAsync(orderId, ct);
+            if (order is not null) await QueueReceiptAsync(order, p => p.ReprintWithTaxQr, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Could not queue the receipt with the tax QR code for order {OrderId}", orderId);
+        }
+    }
+
+    public Task<int> QueueReceiptAsync(Order order, bool autoOnly, CancellationToken ct = default)
+        => QueueReceiptAsync(order, p => !autoOnly || p.AutoPrint, ct);
+
+    private async Task<int> QueueReceiptAsync(Order order, Expression<Func<Printer, bool>> which, CancellationToken ct)
     {
         var printers = await db.Printers.AsNoTracking()
-            .Where(p => p.LocationId == order.LocationId && p.Kind == Printer.ReceiptKind && (!autoOnly || p.AutoPrint))
+            .Where(p => p.LocationId == order.LocationId && p.Kind == Printer.ReceiptKind)
+            .Where(which)
             .ToListAsync(ct);
         if (printers.Count == 0) return 0;
 
         var brand = (await BrandReader.ReadAsync(db, ct)).Name;
         var split = await db.OrderPayments.AsNoTracking().Where(p => p.OrderId == order.Id).OrderBy(p => p.CreatedAt).ToListAsync(ct);
         // The tax receipt usually goes out a minute after the order is accepted, so the first auto-printed receipt
-        // often has no QR code yet; printing the receipt again later adds it.
+        // often has no QR code yet; printing the receipt again later adds it (by hand, or by itself with ReprintWithTaxQr).
         var fiscal = await db.FiscalReceipts.AsNoTracking()
             .FirstOrDefaultAsync(r => r.OrderId == order.Id && r.Kind == FiscalReceiptKind.Sale && r.Status == FiscalReceiptStatus.Sent, ct);
         if (fiscal is not null) fiscal.TicketUrl = FiscalLinks.Safe(fiscal.TicketUrl);
@@ -177,8 +199,9 @@ public class PrintService(
         await db.PrintJobs.Where(j => (j.Status == PrintJob.Printed || j.Status == PrintJob.Failed) && j.CreatedAt < keepFrom)
             .ExecuteDeleteAsync(ct);
 
-        // Jobs for printers behind a print agent wait for the agent to fetch them (PrintAgentService).
-        var jobs = await db.PrintJobs.AsNoTracking().Where(j => j.Status == PrintJob.Pending && !j.Printer.ViaAgent)
+        // Jobs for printers behind a print agent wait for the agent to fetch them (PrintAgentService), and jobs for
+        // Bluetooth printers wait for the tablet paired with them (BluetoothPrintService).
+        var jobs = await db.PrintJobs.AsNoTracking().Where(j => j.Status == PrintJob.Pending && !j.Printer.ViaAgent && !j.Printer.ViaBluetooth)
             .OrderBy(j => j.CreatedAt).Take(BatchSize)
             .Select(j => new { j.Id, j.Data, j.Attempts, j.Printer.Host, j.Printer.Port })
             .ToListAsync(ct);

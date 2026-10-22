@@ -12,7 +12,7 @@ using Yurt.IntegrationTests.Helpers;
 
 namespace Yurt.IntegrationTests.Tests;
 
-/// <summary>Network printers per branch: setup, test print, and tickets/receipts sent by the server (own_pos, Phase 6).</summary>
+/// <summary>Printers per branch: setup, test print, and tickets/receipts sent by the server, the print agent or a Bluetooth tablet (own_pos, Phase 6).</summary>
 [Collection("Integration")]
 public class PrinterTests(YurtWebAppFactory factory)
 {
@@ -181,6 +181,82 @@ public class PrinterTests(YurtWebAppFactory factory)
         {
             if (printerId != default) await admin.DeleteAsync($"/api/v1/admin/printers/{printerId}");
             await admin.DeleteAsync($"/api/v1/admin/printers/agents/{LocationId}");
+            await admin.DeleteAsync($"/api/v1/admin/stations/{station}");
+        }
+    }
+
+    [Fact]
+    public async Task BluetoothPrinter_TabletFetchesItsJobs_AndReportsBack()
+    {
+        var admin = factory.CreateClient();
+        admin.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin));
+        // The kitchen tablet is often signed in as a worker: that is enough to print.
+        var tablet = factory.CreateClient();
+        tablet.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, tablet, username: "btworker", role: Domain.Enums.AdminRole.Worker));
+        var station = await CreateStationAsync(admin, "BT bar");
+        var drink = await CreateItemAsync(station, "BT latte");
+        Guid printerId = default;
+
+        try
+        {
+            // No address: only the tablet paired with it can reach a Bluetooth printer. The agent tick is ignored.
+            var created = await admin.PostAsJsonAsync("/api/v1/admin/printers", new
+            {
+                locationId = LocationId, name = "BT printer", kind = "Kitchen", stationId = station,
+                lineWidth = 32, codeTable = 17, language = "en", autoPrint = true, viaAgent = true, viaBluetooth = true,
+            });
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+            var saved = await created.Content.ReadFromJsonAsync<JsonElement>();
+            printerId = saved.GetProperty("id").GetGuid();
+            Assert.True(saved.GetProperty("viaBluetooth").GetBoolean());
+            Assert.False(saved.GetProperty("viaAgent").GetBoolean());
+            Assert.Equal("", saved.GetProperty("host").GetString());
+
+            Task<HttpResponseMessage> Claim(params Guid[] printers)
+                => tablet.PostAsJsonAsync("/api/v1/admin/printers/bluetooth/claim", new { printerIds = printers });
+            Task<HttpResponseMessage> Report(Guid job, bool ok)
+                => tablet.PostAsJsonAsync($"/api/v1/admin/printers/bluetooth/jobs/{job}/result", new { ok, error = ok ? null : "Printer is off" });
+
+            // The ticket waits for the tablet: the server's own sender leaves it alone.
+            var order = await PlaceAcceptedOrderAsync(admin, "+77002991503", drink);
+            await Task.Delay(1000);
+            await WaitForJobAsync(admin, order, "Ticket", "Pending", printerId);
+
+            // A tablet only gets jobs for the printers it says it is connected to.
+            Assert.Empty(await ClaimedAsync(await Claim()));
+            Assert.Empty(await ClaimedAsync(await Claim(Guid.NewGuid())));
+            var ticket = Assert.Single(await ClaimedAsync(await Claim(printerId)));
+            Assert.Equal(printerId, ticket.GetProperty("printerId").GetGuid());
+            Assert.Equal("Ticket", ticket.GetProperty("kind").GetString());
+            Assert.Contains("1 x BT latte", Encoding.GetEncoding(866).GetString(ticket.GetProperty("data").GetBytesFromBase64()));
+            Assert.Empty(await ClaimedAsync(await Claim(printerId))); // Already taken.
+
+            (await Report(ticket.GetProperty("id").GetGuid(), true)).EnsureSuccessStatusCode();
+            await WaitForJobAsync(admin, order, "Ticket", "Printed", printerId);
+            Assert.Equal(HttpStatusCode.Conflict, (await Report(ticket.GetProperty("id").GetGuid(), true)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await Report(Guid.NewGuid(), true)).StatusCode);
+
+            // A test print is queued for the tablet; three failed tries mark it not printed.
+            var test = await (await admin.PostAsync($"/api/v1/admin/printers/{printerId}/test", null)).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.False(test.GetProperty("printed").GetBoolean());
+            for (var i = 0; i < 3; i++)
+            {
+                var job = Assert.Single(await ClaimedAsync(await Claim(printerId)));
+                (await Report(job.GetProperty("id").GetGuid(), false)).EnsureSuccessStatusCode();
+            }
+            Assert.Empty(await ClaimedAsync(await Claim(printerId)));
+            var jobsList = await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/printers/jobs?limit=100");
+            var failed = jobsList.EnumerateArray().First(j => j.GetProperty("kind").GetString() == "Test" && j.GetProperty("printerId").GetGuid() == printerId);
+            Assert.Equal("Failed", failed.GetProperty("status").GetString());
+            Assert.Equal("Printer is off", failed.GetProperty("lastError").GetString());
+
+            Assert.Equal(HttpStatusCode.BadRequest, (await Claim(Enumerable.Range(0, 31).Select(_ => Guid.NewGuid()).ToArray())).StatusCode);
+        }
+        finally
+        {
+            if (printerId != default) await admin.DeleteAsync($"/api/v1/admin/printers/{printerId}");
             await admin.DeleteAsync($"/api/v1/admin/stations/{station}");
         }
     }

@@ -1897,6 +1897,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<int>("Port")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("ReprintWithTaxQr")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("StationId")
                         .HasColumnType("uuid");
 
@@ -1909,6 +1912,9 @@ namespace Yurt.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("ViaAgent")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ViaBluetooth")
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
