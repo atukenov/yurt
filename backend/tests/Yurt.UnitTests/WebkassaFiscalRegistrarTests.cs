@@ -177,4 +177,19 @@ public class WebkassaFiscalRegistrarTests
     [InlineData(50, 30)]
     public void Pause_Grows_UpToHalfAnHour(int attempts, int minutes)
         => Assert.Equal(TimeSpan.FromMinutes(minutes), FiscalReceiptService.Pause(attempts));
+
+    [Theory]
+    [InlineData(FiscalReceiptKind.Sale, FiscalReceiptStatus.Sent, "https://ofd.example/t/1", 2, true)]
+    [InlineData(FiscalReceiptKind.Sale, FiscalReceiptStatus.Sent, "https://ofd.example/t/1", 20, false)] // guest has long left
+    [InlineData(FiscalReceiptKind.Sale, FiscalReceiptStatus.Sent, "javascript:alert(1)", 2, false)]
+    [InlineData(FiscalReceiptKind.Sale, FiscalReceiptStatus.Sent, null, 2, false)]
+    [InlineData(FiscalReceiptKind.Sale, FiscalReceiptStatus.Pending, "https://ofd.example/t/1", 2, false)]
+    [InlineData(FiscalReceiptKind.Return, FiscalReceiptStatus.Sent, "https://ofd.example/t/1", 2, false)]
+    public void ShouldReprint_OnlyAFreshSentSaleWithAWebLink(
+        FiscalReceiptKind kind, FiscalReceiptStatus status, string? url, int minutesAgo, bool expected)
+    {
+        var now = DateTime.UtcNow;
+        var row = new FiscalReceipt { Kind = kind, Status = status, TicketUrl = url, CreatedAt = now.AddMinutes(-minutesAgo) };
+        Assert.Equal(expected, FiscalReceiptService.ShouldReprint(row, now));
+    }
 }

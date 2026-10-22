@@ -3,7 +3,9 @@ namespace Yurt.Application.Features.Fiscal;
 public record FiscalReceiptDto(
     Guid Id, Guid OrderId, Guid LocationId, string Kind, string Status, decimal Amount, string Provider,
     int Attempts, string? LastError, DateTime CreatedAt, DateTime NextAttemptAt,
-    DateTime? SentAt, string? RegisterNumber, string? CheckNumber, string? TicketUrl);
+    DateTime? SentAt, string? RegisterNumber, string? CheckNumber, string? TicketUrl,
+    // The link as a QR code picture (data: link), for the receipt printed from the browser. Only on a sent receipt with a web link.
+    string? TicketQr = null);
 
 public record FiscalBranchDto(Guid LocationId, string Name, string? RegisterNumber);
 
