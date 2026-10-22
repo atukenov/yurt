@@ -132,6 +132,15 @@ app.UseExceptionHandler(opts =>
     {
         var ex = ctx.Features.Get<IExceptionHandlerFeature>()?.Error;
         var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
+        if (ex is Yurt.Application.Common.CrossTenantReferenceException)
+        {
+            // Same answer as asking for another cafe's row by id: it does not exist here.
+            logger.LogWarning(ex, "Refused a link to another cafe's data for {Method} {Path}", ctx.Request.Method, ctx.Request.Path);
+            ctx.Response.StatusCode = 404;
+            ctx.Response.ContentType = "application/problem+json";
+            await ctx.Response.WriteAsJsonAsync(new ProblemDetails { Status = 404, Title = "Not found.", Instance = ctx.Request.Path });
+            return;
+        }
         logger.LogError(ex, "Unhandled exception for {Method} {Path}", ctx.Request.Method, ctx.Request.Path);
 
         ctx.Response.StatusCode = 500;

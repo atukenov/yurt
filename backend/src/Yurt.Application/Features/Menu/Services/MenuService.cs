@@ -323,6 +323,8 @@ public class MenuService
             .FirstOrDefaultAsync(i => i.Id == id, ct);
 
         if (item == null) return Result<AdminMenuItemDto>.NotFound();
+        if (item.CategoryId != dto.CategoryId && !await _db.MenuCategories.AnyAsync(c => c.Id == dto.CategoryId, ct))
+            return Result<AdminMenuItemDto>.Failure("Category not found.", 400);
 
         item.CategoryId = dto.CategoryId;
         item.Name = dto.Name;

@@ -190,6 +190,7 @@ public class FiscalReceiptService(
 
     public async Task<Result<List<FiscalReceiptDto>>> ListForOrderAsync(Guid orderId, CancellationToken ct = default)
     {
+        if (!await db.Orders.AnyAsync(o => o.Id == orderId, ct)) return Result<List<FiscalReceiptDto>>.Failure("Order not found.", 404);
         var rows = await db.FiscalReceipts.AsNoTracking().Where(r => r.OrderId == orderId)
             .OrderBy(r => r.CreatedAt).ToListAsync(ct);
         return Result<List<FiscalReceiptDto>>.Success(rows.Select(ToDto).ToList());
