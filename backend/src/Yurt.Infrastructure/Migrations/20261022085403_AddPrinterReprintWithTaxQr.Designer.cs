@@ -12,8 +12,8 @@ using Yurt.Infrastructure.Persistence;
 namespace Yurt.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261022091547_AddPrinterBluetooth")]
-    partial class AddPrinterBluetooth
+    [Migration("20261022085403_AddPrinterReprintWithTaxQr")]
+    partial class AddPrinterReprintWithTaxQr
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1900,6 +1900,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<int>("Port")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("ReprintWithTaxQr")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("StationId")
                         .HasColumnType("uuid");
 
@@ -1912,9 +1915,6 @@ namespace Yurt.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("ViaAgent")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ViaBluetooth")
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");

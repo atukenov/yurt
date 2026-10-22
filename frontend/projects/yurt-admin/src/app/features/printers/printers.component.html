@@ -158,6 +158,13 @@
             <span class="block text-xs text-slate-400">{{ 'printers.cashDrawerHint' | t }}</span>
           </span>
         </label>
+        <label class="flex items-start gap-2 text-sm text-slate-600 sm:col-span-2">
+          <input name="reprintWithTaxQr" type="checkbox" [(ngModel)]="form.reprintWithTaxQr" class="mt-0.5 h-4 w-4" />
+          <span>
+            {{ 'printers.reprintWithTaxQr' | t }}
+            <span class="block text-xs text-slate-400">{{ 'printers.reprintWithTaxQrHint' | t }}</span>
+          </span>
+        </label>
       }
       <div class="flex gap-2 sm:col-span-2">
         <button
@@ -214,6 +221,9 @@
                 }
                 @if (p.cashDrawer) {
                   · {{ 'printers.withDrawer' | t }}
+                }
+                @if (p.reprintWithTaxQr) {
+                  · {{ 'printers.withReprint' | t }}
                 }
               </p>
               @if (p.viaBluetooth) {

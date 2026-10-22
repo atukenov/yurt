@@ -57,4 +57,10 @@ public class Printer : BaseEntity, ITenantOwned
     /// the cashier presses Open drawer.
     /// </summary>
     public bool CashDrawer { get; set; }
+
+    /// <summary>
+    /// Receipt printers only: print the receipt once more, now with the QR code of the official tax receipt, as soon as
+    /// that tax receipt is sent. The first receipt usually prints before it is sent, so it has no QR code. Off by default.
+    /// </summary>
+    public bool ReprintWithTaxQr { get; set; }
 }

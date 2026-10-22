@@ -122,9 +122,11 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
         printer.ViaAgent = dto.ViaAgent && !dto.ViaBluetooth;
         printer.ViaBluetooth = dto.ViaBluetooth;
         printer.CashDrawer = dto.Kind == Printer.ReceiptKind && dto.CashDrawer;
+        printer.ReprintWithTaxQr = dto.Kind == Printer.ReceiptKind && dto.ReprintWithTaxQr;
         return null;
     }
 
     private static PrinterDto ToDto(Printer p)
-        => new(p.Id, p.LocationId, p.Name, p.Kind, p.StationId, p.Host, p.Port, p.LineWidth, p.CodeTable, p.Language, p.AutoPrint, p.ViaAgent, p.CashDrawer, p.ViaBluetooth);
+        => new(p.Id, p.LocationId, p.Name, p.Kind, p.StationId, p.Host, p.Port, p.LineWidth, p.CodeTable, p.Language, p.AutoPrint, p.ViaAgent, p.CashDrawer,
+            p.ReprintWithTaxQr, p.ViaBluetooth);
 }

@@ -21,7 +21,7 @@ import {
   BadgeVariant,
 } from 'shared-ui';
 import { environment } from '../../../environments/environment';
-import { Subscription } from 'rxjs';
+import { Subscription, catchError, forkJoin, map, of } from 'rxjs';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { SoundService } from '../../core/sound.service';
 import { ReceiptService } from '../../core/receipt.service';
@@ -62,11 +62,18 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   }
 
   private browserReceipt(order: Order): void {
-    // Parts of a split payment go on the receipt; if they cannot be loaded the receipt still prints.
-    this.api.getSplitPayment(order.id).subscribe({
-      next: (p) => this.receipts.print(order, p.lines),
-      error: () => this.receipts.print(order),
-    });
+    // Parts of a split payment and the tax receipt QR code go on the receipt; if either cannot be loaded the receipt
+    // still prints without it.
+    forkJoin({
+      lines: this.api.getSplitPayment(order.id).pipe(
+        map((p) => p.lines),
+        catchError(() => of<SplitPaymentLine[]>([])),
+      ),
+      fiscal: this.api.getOrderFiscalReceipts(order.id).pipe(
+        map((list) => list.find((r) => r.kind === 'Sale' && r.status === 'Sent') ?? null),
+        catchError(() => of(null)),
+      ),
+    }).subscribe(({ lines, fiscal }) => this.receipts.print(order, lines, fiscal));
   }
 
   readonly OrderStatus = OrderStatus;

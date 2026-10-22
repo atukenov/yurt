@@ -27,6 +27,7 @@ public class TenantMiddleware(RequestDelegate next)
             ctx.Request.Headers[TenantResolver.HeaderName].FirstOrDefault());
         tenant.Set(id, slug);
         ctx.Items["TenantSlug"] = slug;
+        ctx.Items[Yurt.Infrastructure.Hubs.OrdersHub.TenantItem] = id;
 
         using (LogContext.PushProperty("Tenant", slug))
             await next(ctx);

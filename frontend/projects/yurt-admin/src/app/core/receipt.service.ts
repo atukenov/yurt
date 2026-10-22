@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { BrandService } from 'shared-api';
-import { Order, OrderItem, SplitPaymentLine } from 'shared-models';
+import { FiscalReceipt, Order, OrderItem, SplitPaymentLine } from 'shared-models';
 import { AdminLangService } from './lang.service';
 
 /**
@@ -13,9 +13,12 @@ export class ReceiptService {
   private lang = inject(AdminLangService);
   private brand = inject(BrandService);
 
-  /** `split` are the parts of a split payment; with two or more the receipt lists each one. */
-  print(order: Order, split: SplitPaymentLine[] = []): void {
-    this.printHtml(this.html(order, split));
+  /**
+   * `split` are the parts of a split payment; with two or more the receipt lists each one. `fiscal` is the order's sent
+   * tax receipt: its QR code goes at the bottom, like on the network-printed receipt.
+   */
+  print(order: Order, split: SplitPaymentLine[] = [], fiscal?: FiscalReceipt | null): void {
+    this.printHtml(this.html(order, split, fiscal));
   }
 
   /** Prints a kitchen ticket: the items to make (already filtered for a station), notes in bold, no prices. */
@@ -47,7 +50,7 @@ export class ReceiptService {
     setTimeout(() => frame.remove(), 60_000);
   }
 
-  html(order: Order, split: SplitPaymentLine[] = []): string {
+  html(order: Order, split: SplitPaymentLine[] = [], fiscal?: FiscalReceipt | null): string {
     const t = (k: string) => this.lang.t(k);
     const money = (n: number) =>
       `₸${Math.round(n)
@@ -86,6 +89,16 @@ export class ReceiptService {
       points > 0 ? row(t('receipt.paid'), money(Math.max(0, order.total - points)), true) : '',
     ].join('');
 
+    // Only a QR picture the server drew (an SVG data link) goes on paper; anything else is left out.
+    const qr =
+      fiscal?.status === 'Sent' && fiscal.ticketQr?.startsWith('data:image/svg+xml;base64,')
+        ? fiscal.ticketQr
+        : null;
+    const fiscalBlock = qr
+      ? `<hr><p class="c"><b>${esc(t('receipt.fiscal'))}</b>${fiscal!.checkNumber ? `<br>N ${esc(fiscal!.checkNumber)}` : ''}</p>
+      <p class="c"><img class="qr" src="${esc(qr)}" alt=""><br>${esc(t('receipt.fiscalScan'))}</p>`
+      : '';
+
     return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(t('receipt.title'))}</title><style>
       @page { size: 80mm auto; margin: 4mm; }
       body { font: 12px/1.35 'Courier New', monospace; width: 72mm; margin: 0 auto; color: #000; }
@@ -93,12 +106,14 @@ export class ReceiptService {
       .c { text-align: center; } table { width: 100%; border-collapse: collapse; } td { padding: 2px 0; vertical-align: top; }
       .r { text-align: right; white-space: nowrap; padding-left: 6px; } .b td { font-weight: bold; font-size: 13px; }
       small { color: #333; } hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+      .qr { width: 36mm; height: 36mm; image-rendering: pixelated; }
     </style></head><body>
       <h1>${esc(this.brand.name())}</h1>
       <p class="c">${esc(order.locationName)}<br>${esc(when)}<br>#${esc(order.id.slice(0, 8).toUpperCase())}</p>
       <hr><table>${lines}</table><hr><table>${totals}</table><hr>
       ${split.length > 1 ? `<table>${split.map((p) => row(p.method, money(p.amount))).join('')}</table><hr>` : ''}
       <p class="c">${esc(split.length > 1 ? '' : order.paymentMethod ? t('receipt.method') + ': ' + order.paymentMethod : '')}<br>${esc(t('receipt.thanks'))}</p>
+      ${fiscalBlock}
     </body></html>`;
   }
 

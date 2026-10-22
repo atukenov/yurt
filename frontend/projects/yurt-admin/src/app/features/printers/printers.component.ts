@@ -212,6 +212,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
       autoPrint: true,
       viaAgent: false,
       cashDrawer: false,
+      reprintWithTaxQr: false,
       viaBluetooth: false,
     };
   }

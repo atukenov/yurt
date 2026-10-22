@@ -1897,6 +1897,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<int>("Port")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("ReprintWithTaxQr")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("StationId")
                         .HasColumnType("uuid");
 

@@ -42,7 +42,7 @@
               <p class="text-xs text-stone-500 mt-0.5 font-medium">📍 {{ order.locationName }}</p>
             </div>
             <yurt-badge [variant]="order.status | orderStatusColor">
-              {{ order.status | orderStatusLabel }}
+              {{ ('status.' + order.status) | t }}
             </yurt-badge>
           </div>
 
