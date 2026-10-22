@@ -14,6 +14,9 @@ optional `versionName` (`1.2.3`), `versionCode` (whole number, Android) and `app
 (`merchant.kz.mycafe.app`, the Apple Pay merchant in the iOS entitlements; leave it out for a cafe without Apple Pay).
 Optional `tenant` is the cafe's key on the platform (the slug shown in Platform > Cafes); when set, the app is built to
 send it as `X-Tenant`, so it always talks to that cafe even before the cafe has its own web address.
+Optional `brand` holds the Brand screen values (`name`, `primaryColor`, `accentColor`, and optionally `welcomeText`,
+`logoUrl`, `links` and so on); only the store screenshot script reads it (see "Store screenshots" in
+`docs/branded-app-release.md`). The live app still takes its brand from the server.
 
 Apply a cafe to the native projects, then build as usual:
 

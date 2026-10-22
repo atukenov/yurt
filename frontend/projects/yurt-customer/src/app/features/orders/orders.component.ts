@@ -6,7 +6,6 @@ import { YurtApiService } from 'shared-api';
 import { OffsitePurchase, Order, OrderStatus } from 'shared-models';
 import {
   BadgeComponent,
-  OrderStatusLabelPipe,
   OrderStatusColorPipe,
   Currency2Pipe,
   SkeletonOrderCardComponent,
@@ -22,7 +21,6 @@ import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
     CommonModule,
     RouterLink,
     BadgeComponent,
-    OrderStatusLabelPipe,
     OrderStatusColorPipe,
     Currency2Pipe,
     SkeletonOrderCardComponent,

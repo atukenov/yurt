@@ -10,9 +10,15 @@
 // resolvable like playwright, e.g. NODE_PATH to a folder that has both).
 // --fail exits with code 1 when any a11y failure was found (CI runs it this way).
 // LOG_API=1 prints the API calls that have no fake answer, to find what a new screen needs.
+//
+// Store mode makes App Store and Google Play screenshots for one cafe (cafes/<slug>/cafe.json), light mode, in one language:
+//   node scripts/brand-screenshots.mjs [outDir] --store=<slug> [--lang=ru|kk|en] [--api=https://your-server]
+// The brand comes from the live server's app config when --api is given (sent with the cafe's `tenant`), otherwise from
+// the optional `brand` object in cafe.json (same fields as the Brand screen). Files land in
+// <outDir>/<slug>/<lang>/<device>/01-menu.png and so on, at the exact pixel sizes the stores accept (STORE_DEVICES).
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
-import { extname, join, normalize } from 'node:path';
+import { dirname, extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
@@ -21,7 +27,10 @@ const appName = args.find((a) => a.startsWith('--app='))?.slice(6) ?? 'customer'
 const a11y = args.includes('--a11y');
 const dark = args.includes('--dark');
 const failOnIssues = args.includes('--fail');
-const out = args.find((a) => !a.startsWith('--')) ?? join(process.cwd(), 'brand-screenshots');
+const storeSlug = args.find((a) => a.startsWith('--store='))?.slice(8);
+const lang = args.find((a) => a.startsWith('--lang='))?.slice(7) ?? 'ru';
+const apiBase = args.find((a) => a.startsWith('--api='))?.slice(6);
+const out = args.find((a) => !a.startsWith('--')) ?? join(process.cwd(), storeSlug ? 'store-screenshots' : 'brand-screenshots');
 let failures = 0;
 
 const LOCATION = { id: 'loc-1', name: 'Main Street', address: '1 Main Street', workingHours: '', contactPhone: '+7 700 000 00 01', isActive: true };
@@ -127,6 +136,43 @@ const ADMIN_STORAGE = {
   yurt_user: JSON.stringify({ accessToken: 'a11y', refreshToken: '', userId: 'a-1', displayName: 'Dana', userType: 'admin', role: 'Admin' }),
 };
 
+/** The sample data's English texts in the other app languages, so store screenshots are in one language throughout. */
+const SAMPLE_TEXT = {
+  ru: {
+    Coffee: 'Кофе', Bakery: 'Выпечка', Cappuccino: 'Капучино', 'Flat white': 'Флэт уайт', Raf: 'Раф', Croissant: 'Круассан',
+    'Double shot with steamed milk': 'Двойной эспрессо со взбитым молоком', 'Butter croissant': 'Сливочный круассан',
+    'Main Street': 'Центральная', '1 Main Street': 'ул. Центральная, 1', Large: 'Большой', 'Warm it up': 'Подогрейте, пожалуйста',
+    Aru: 'Ару', Sadykova: 'Садыкова',
+  },
+  kk: {
+    Coffee: 'Кофе', Bakery: 'Тоқаштар', Cappuccino: 'Капучино', 'Flat white': 'Флэт уайт', Raf: 'Раф', Croissant: 'Круассан',
+    'Double shot with steamed milk': 'Көпіршітілген сүті бар қос эспрессо', 'Butter croissant': 'Майлы круассан',
+    'Main Street': 'Орталық', '1 Main Street': 'Орталық к-сі, 1', Large: 'Үлкен', 'Warm it up': 'Жылытып беріңізші',
+    Aru: 'Ару', Sadykova: 'Садықова',
+  },
+};
+/** Deep copy of `value` with every string that has a translation in `lang` replaced. */
+const localize = (value, lang) => JSON.parse(JSON.stringify(value), (_, v) => (typeof v === 'string' && SAMPLE_TEXT[lang]?.[v]) || v);
+
+/**
+ * Screen sizes the stores take, as CSS size x scale = pixels. Apple needs the 6.9" set (6.5" is accepted as well);
+ * the iOS app is iPhone-only (TARGETED_DEVICE_FAMILY = 1), so no iPad set. Google Play takes 9:16 phone shots up to 3840px.
+ */
+export const STORE_DEVICES = {
+  'ios-6.9in': { viewport: { width: 440, height: 956 }, deviceScaleFactor: 3 }, // 1320 x 2868
+  'ios-6.5in': { viewport: { width: 414, height: 896 }, deviceScaleFactor: 3 }, // 1242 x 2688
+  'android-phone': { viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 }, // 1080 x 1920
+};
+/** Store mode screens in listing order; the number becomes the file name prefix. */
+const STORE_SCREENS = [
+  { name: 'menu', path: '/menu', signedIn: true },
+  // A picked payment method, so the checkout button is not greyed out.
+  { name: 'cart', path: '/cart', signedIn: true, prepare: (page) => page.click('button:has(img[src="kaspi.png"])') },
+  { name: 'order-status', path: '/orders/o-1', signedIn: true },
+  { name: 'profile', path: '/profile', signedIn: true },
+  { name: 'sign-in', path: '/auth/login', signedIn: false },
+];
+
 /** Per app: where the build is, which screens to open signed out and signed in, the fake API and the screen size. */
 const APPS = {
   customer: {
@@ -142,8 +188,9 @@ const APPS = {
     api: ADMIN_MOCK_API, storage: ADMIN_STORAGE,
   },
 };
-const app = APPS[appName];
+const app = APPS[storeSlug ? 'customer' : appName];
 if (!app) throw new Error(`Unknown --app=${appName}; use one of: ${Object.keys(APPS).join(', ')}.`);
+if (storeSlug && !['ru', 'kk', 'en'].includes(lang)) throw new Error(`Unknown --lang=${lang}; use ru, kk or en.`);
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'dist', app.project, 'browser');
 
 /** Sample brands: the Yurt default, a deep blue, a dark green with a long name, links and a welcome line, and a pale one. */
@@ -160,6 +207,53 @@ export const BRANDS = {
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.mp4': 'video/mp4' };
+
+/** The cafe's brand for store mode: from the live server with --api, otherwise `brand` in cafe.json. */
+async function storeBrand(slug) {
+  const { readCafe } = await import('../../scripts/apply-cafe.mjs');
+  const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..');
+  const cafe = readCafe(repoRoot, slug);
+  let brand = cafe.brand;
+  if (apiBase) {
+    const url = `${apiBase.replace(/\/+$/, '')}/api/v1/app/config`;
+    const res = await fetch(url, { headers: cafe.tenant ? { 'X-Tenant': cafe.tenant } : {} });
+    if (!res.ok) throw new Error(`${url} answered ${res.status}.`);
+    brand = (await res.json()).brand;
+    if (!brand) throw new Error(`${url} has no brand; switch the branding module on for this cafe and save its Brand screen.`);
+  }
+  if (!brand) {
+    console.warn(`  warning: no brand for ${slug} (add "brand" to cafe.json or pass --api); using the Yurt colours with "${cafe.appName}"`);
+    brand = { ...BRANDS.yurt, name: cafe.appName };
+  }
+  if (typeof brand.name !== 'string' || !/^#[0-9a-f]{6}$/i.test(brand.primaryColor ?? '') || !/^#[0-9a-f]{6}$/i.test(brand.accentColor ?? ''))
+    throw new Error('brand needs a name and primaryColor / accentColor like #1d4ed8.');
+  return brand;
+}
+
+/** What to shoot: per brand, a signed-out and a signed-in pass, each with its screens, screen size and file names. */
+async function plan() {
+  if (!storeSlug) {
+    return Object.entries(BRANDS).flatMap(([slug, brand]) => [false, true].map((signedIn) => ({
+      slug, brand, signedIn, lang: 'en', theme: dark ? 'dark' : 'light', viewport: app.viewport, deviceScaleFactor: app.deviceScaleFactor,
+      fullPage: true, api: app.api, storage: app.storage,
+      screens: (signedIn ? app.signedInScreens : app.publicScreens)
+        .map((path) => ({ path, file: join(out, `${app.prefix}${slug}${path.replace(/\//g, '-')}${dark ? '-dark' : ''}.png`) })),
+    })));
+  }
+  const brand = await storeBrand(storeSlug);
+  const api = localize(app.api, lang);
+  api['/orders/o-1'].paymentMethod = 'KaspiBank'; // shows the bank's name and logo instead of the plain "Card"
+  // Storage values are JSON text themselves, so each is parsed, translated and written back.
+  const storage = Object.fromEntries(Object.entries(app.storage).map(([k, v]) => {
+    try { return [k, JSON.stringify(localize(JSON.parse(v), lang))]; } catch { return [k, localize(v, lang)]; }
+  }));
+  return Object.entries(STORE_DEVICES).flatMap(([device, size]) => [false, true].map((signedIn) => ({
+    slug: storeSlug, brand, signedIn, lang, theme: 'light', ...size, fullPage: false, api, storage,
+    screens: STORE_SCREENS.map((s, i) => ({ ...s, n: i + 1 })).filter((s) => s.signedIn === signedIn).map((s) => ({
+      path: s.path, prepare: s.prepare, file: join(out, storeSlug, lang, device, `${String(s.n).padStart(2, '0')}-${s.name}.png`),
+    })),
+  })));
+}
 
 function serve() {
   const server = createServer((req, res) => {
@@ -226,41 +320,44 @@ async function checkHeroText(page, label, isDefaultBrand) {
 async function main() {
   if (!existsSync(join(root, 'index.html'))) throw new Error(`Build first: ${root} not found (ng build ${app.project} --configuration production).`);
   const { chromium } = createRequire(import.meta.url)('playwright');
-  mkdirSync(out, { recursive: true });
   const server = await serve();
   const base = `http://127.0.0.1:${server.address().port}`;
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
   try {
-    for (const [slug, brand] of Object.entries(BRANDS)) {
-      for (const signedIn of [false, true]) {
-        const context = await browser.newContext({ viewport: app.viewport, deviceScaleFactor: app.deviceScaleFactor });
-        await context.addInitScript(([b, theme, extra]) => {
-          localStorage.setItem('yurt.brand', JSON.stringify(b));
-          localStorage.setItem('yurt_lang', 'en');
-          localStorage.setItem('yurt.theme', theme);
-          for (const [k, v] of Object.entries(extra)) localStorage.setItem(k, v);
-        }, [brand, dark ? 'dark' : 'light', signedIn ? app.storage : {}]);
-        const page = await context.newPage();
-        // Backend is not running: answer the known calls with fake data and fail the rest fast instead of waiting.
-        await page.route('**/api/**', (r) => {
-          const path = new URL(r.request().url()).pathname.replace(/^.*\/api\/v1/, '');
-          const body = r.request().method() === 'GET' ? app.api[path] : undefined;
-          if (body === undefined && process.env.LOG_API) console.log(`    unmocked ${r.request().method()} ${path}`);
-          return body === undefined ? r.abort() : r.fulfill({ json: body });
-        });
-        for (const screen of signedIn ? app.signedInScreens : app.publicScreens) {
-          await page.goto(base + screen, { waitUntil: 'load' });
-          await page.waitForTimeout(2500); // intro video falls back, splash dismisses
-          const file = join(out, `${app.prefix}${slug}${screen.replace(/\//g, '-')}${dark ? '-dark' : ''}.png`);
-          await page.screenshot({ path: file, fullPage: true });
-          console.log(file);
-          if (a11y) {
-            await checkContrast(page, `${app.prefix}${slug}${screen}`);
-            await checkHeroText(page, `${app.prefix}${slug}${screen}`, slug === 'yurt');
-          }
+    for (const job of await plan()) {
+      const context = await browser.newContext({ viewport: job.viewport, deviceScaleFactor: job.deviceScaleFactor });
+      await context.addInitScript(([b, language, theme, extra]) => {
+        localStorage.setItem('yurt.brand', JSON.stringify(b));
+        localStorage.setItem('yurt_lang', language);
+        localStorage.setItem('yurt.theme', theme);
+        for (const [k, v] of Object.entries(extra)) localStorage.setItem(k, v);
+      }, [job.brand, job.lang, job.theme, job.signedIn ? job.storage : {}]);
+      const page = await context.newPage();
+      // Backend is not running: answer the known calls with fake data and fail the rest fast instead of waiting.
+      await page.route('**/api/**', (r) => {
+        const path = new URL(r.request().url()).pathname.replace(/^.*\/api\/v1/, '');
+        const body = r.request().method() === 'GET' ? job.api[path] : undefined;
+        if (body === undefined && process.env.LOG_API) console.log(`    unmocked ${r.request().method()} ${path}`);
+        return body === undefined ? r.abort() : r.fulfill({ json: body });
+      });
+      for (const { path, file, prepare } of job.screens) {
+        await page.goto(base + path, { waitUntil: 'load' });
+        await page.waitForTimeout(2500); // intro video falls back, splash dismisses
+        if (prepare) {
+          await prepare(page);
+          // The click scrolls the button into view; go back to the top so the shot starts where the screen does.
+          await page.evaluate(() => { for (const el of [document.scrollingElement, ...document.querySelectorAll('*')]) if (el?.scrollTop) el.scrollTop = 0; });
+          await page.waitForTimeout(300);
         }
-        await context.close();
+        mkdirSync(dirname(file), { recursive: true });
+        await page.screenshot({ path: file, fullPage: job.fullPage });
+        console.log(file);
+        if (a11y) {
+          await checkContrast(page, `${app.prefix}${job.slug}${path}`);
+          await checkHeroText(page, `${app.prefix}${job.slug}${path}`, job.slug === 'yurt');
+        }
       }
+      await context.close();
     }
   } finally {
     await browser.close();
