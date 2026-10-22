@@ -2,12 +2,13 @@ namespace Yurt.Application.Features.Printing;
 
 public record PrinterDto(
     Guid Id, Guid LocationId, string Name, string Kind, Guid? StationId, string Host, int Port,
-    int LineWidth, int CodeTable, string Language, bool AutoPrint, bool ViaAgent, bool CashDrawer);
+    int LineWidth, int CodeTable, string Language, bool AutoPrint, bool ViaAgent, bool CashDrawer,
+    bool ReprintWithTaxQr = false);
 
 public record SavePrinterDto(
     Guid LocationId, string Name, string Kind, Guid? StationId, string Host, int Port = 9100,
     int LineWidth = 48, int CodeTable = 17, string Language = "ru", bool AutoPrint = true, bool ViaAgent = false,
-    bool CashDrawer = false);
+    bool CashDrawer = false, bool ReprintWithTaxQr = false);
 
 public record PrintJobDto(
     Guid Id, Guid PrinterId, string PrinterName, Guid? OrderId, string Kind, string Status, int Attempts,

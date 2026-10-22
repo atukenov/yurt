@@ -53,7 +53,8 @@ public class FiscalReceiptTests(YurtWebAppFactory factory)
         return new FiscalReceiptService(
             sp.GetRequiredService<ApplicationDbContext>(), sp.GetRequiredService<IModuleGate>(),
             sp.GetRequiredService<ITenantContext>(), sp.GetRequiredService<ITenantSecrets>(),
-            [registrar], NullLogger<FiscalReceiptService>.Instance);
+            [registrar], sp.GetRequiredService<PrintService>(), sp.GetRequiredService<IQrCodeImages>(),
+            NullLogger<FiscalReceiptService>.Instance);
     }
 
     private static FiscalSettingsService Settings(IServiceScope scope)
@@ -221,6 +222,63 @@ public class FiscalReceiptTests(YurtWebAppFactory factory)
         }
         Assert.Null((await GuestViewAsync(cafe, orderId)).FiscalReceiptUrl);
         Assert.False(HasQr(await PrintReceiptAsync(cafe, orderId, printerId)));
+    }
+
+    [Fact]
+    public async Task SentReceipt_PrintsAgainWithQr_OnlyOnPrintersWithTheTick_AndOnlyWhileFresh()
+    {
+        var cafe = await NewCafeAsync();
+        await TurnOnAsync(cafe);
+        Guid reprinter, plain;
+        using (var scope = ScopeFor(cafe))
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            // Behind a print agent, so the jobs stay in the list instead of the server trying to reach these addresses.
+            var a = new Printer { LocationId = cafe.LocationId, Name = "Till", Kind = Printer.ReceiptKind, Host = "10.0.0.9", ViaAgent = true, ReprintWithTaxQr = true };
+            var b = new Printer { LocationId = cafe.LocationId, Name = "Bar", Kind = Printer.ReceiptKind, Host = "10.0.0.10", ViaAgent = true };
+            db.Printers.AddRange(a, b);
+            await db.SaveChangesAsync();
+            (reprinter, plain) = (a.Id, b.Id);
+        }
+
+        var fresh = await AddOrderAsync(cafe);
+        await RunAsync(cafe, new FakeRegistrar());
+
+        var jobs = await JobsAsync(cafe, fresh);
+        var job = Assert.Single(jobs);
+        Assert.Equal(reprinter, job.PrinterId);
+        Assert.Equal(PrintJob.ReceiptKind, job.Kind);
+        Assert.True(HasQr(job.Data));
+
+        // The browser receipt gets the same link as a QR picture.
+        using (var scope = ScopeFor(cafe))
+        {
+            var list = (await Fiscal(scope, new FakeRegistrar()).ListForOrderAsync(fresh)).Data!;
+            Assert.StartsWith("data:image/svg+xml;base64,", Assert.Single(list).TicketQr);
+        }
+
+        // A receipt that only went through long after the order (service was down) does not print by itself.
+        var late = await AddOrderAsync(cafe);
+        var registrar = new FakeRegistrar { Fail = true };
+        await RunAsync(cafe, registrar);
+        using (var scope = ScopeFor(cafe))
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.FiscalReceipts.Where(r => r.OrderId == late).ExecuteUpdateAsync(x => x
+                .SetProperty(r => r.CreatedAt, DateTime.UtcNow.AddHours(-1)).SetProperty(r => r.NextAttemptAt, DateTime.UtcNow.AddMinutes(-1)));
+        }
+        registrar.Fail = false;
+        await RunAsync(cafe, registrar);
+        Assert.Equal(FiscalReceiptStatus.Sent, Assert.Single(await ReceiptsAsync(cafe, late)).Status);
+        Assert.Empty(await JobsAsync(cafe, late));
+        Assert.DoesNotContain(await JobsAsync(cafe, fresh), j => j.PrinterId == plain);
+    }
+
+    private async Task<List<PrintJob>> JobsAsync(Cafe cafe, Guid orderId)
+    {
+        using var scope = ScopeFor(cafe);
+        return await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().PrintJobs.AsNoTracking()
+            .Where(j => j.OrderId == orderId).ToListAsync();
     }
 
     private async Task<Yurt.Application.Features.Orders.DTOs.OrderDto> GuestViewAsync(Cafe cafe, Guid orderId)

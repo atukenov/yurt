@@ -377,6 +377,8 @@ export interface Printer {
   viaAgent: boolean;
   /** Receipt printers only: a cash drawer is plugged into this printer and opens on cash payments. */
   cashDrawer: boolean;
+  /** Receipt printers only: print the receipt again, with the tax receipt QR code, once the tax receipt is sent. */
+  reprintWithTaxQr: boolean;
 }
 
 export type SavePrinter = Omit<Printer, 'id'>;
@@ -996,6 +998,8 @@ export interface FiscalReceipt {
   registerNumber?: string | null;
   checkNumber?: string | null;
   ticketUrl?: string | null;
+  /** The link as a QR code picture (a data: link), on sent receipts only; for the receipt printed from the browser. */
+  ticketQr?: string | null;
 }
 
 export interface FiscalBranch {

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Printing;
 using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
@@ -20,6 +21,8 @@ public class FiscalReceiptService(
     ITenantContext tenant,
     ITenantSecrets secrets,
     IEnumerable<IFiscalRegistrar> registrars,
+    PrintService print,
+    IQrCodeImages qr,
     ILogger<FiscalReceiptService> logger)
 {
     private const int BatchSize = 50;
@@ -170,7 +173,19 @@ public class FiscalReceiptService(
             logger.LogWarning("Fiscal receipt for order {OrderId} not sent (try {Attempt}): {Error}", row.OrderId, row.Attempts, row.LastError);
         }
         await db.SaveChangesAsync(ct);
+
+        if (ShouldReprint(row, DateTime.UtcNow)) await print.ReprintWithTaxQrAsync(row.OrderId, ct);
     }
+
+    /// <summary>
+    /// A sale receipt that just went through, with a link to put in the QR code, for a guest who is most likely still
+    /// there: queued at most <see cref="PrintService.MaxAge"/> ago. A receipt sent much later (the cash register service
+    /// was down for a while) is not printed again by itself; staff can still press Print receipt.
+    /// </summary>
+    public static bool ShouldReprint(FiscalReceipt row, DateTime now)
+        => row is { Kind: FiscalReceiptKind.Sale, Status: FiscalReceiptStatus.Sent }
+            && FiscalLinks.Safe(row.TicketUrl) is not null
+            && row.CreatedAt >= now - PrintService.MaxAge;
 
     /// <summary>1, 2, 4, 8 ... minutes between tries, at most 30. Never gives up: every sale needs its receipt.</summary>
     public static TimeSpan Pause(int attempts)
@@ -192,7 +207,10 @@ public class FiscalReceiptService(
     {
         var rows = await db.FiscalReceipts.AsNoTracking().Where(r => r.OrderId == orderId)
             .OrderBy(r => r.CreatedAt).ToListAsync(ct);
-        return Result<List<FiscalReceiptDto>>.Success(rows.Select(ToDto).ToList());
+        return Result<List<FiscalReceiptDto>>.Success(rows.Select(r => ToDto(r) with
+        {
+            TicketQr = r.Status == FiscalReceiptStatus.Sent && FiscalLinks.Safe(r.TicketUrl) is { } url ? qr.SvgDataUri(url) : null,
+        }).ToList());
     }
 
     /// <summary>Staff pressed "Try again": send this receipt now instead of waiting for the next pause to end.</summary>
