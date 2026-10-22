@@ -169,6 +169,7 @@ public static class DependencyInjection
         services.AddScoped<PrinterService>();
         services.AddScoped<PrintService>();
         services.AddScoped<PrintAgentService>();
+        services.AddScoped<BluetoothPrintService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

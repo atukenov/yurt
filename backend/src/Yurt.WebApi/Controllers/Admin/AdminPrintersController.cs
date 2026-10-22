@@ -7,13 +7,13 @@ using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
 
-/// <summary>Network printers per branch, test print and the print job list (own_pos). Setting printers up needs an Admin.</summary>
+/// <summary>Network and Bluetooth printers per branch, test print and the print job list (own_pos). Setting printers up needs an Admin.</summary>
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/printers")]
 [Authorize(Policy = "AdminOnly")]
 [RequireModule(ModuleKeys.OwnPos)]
-public class AdminPrintersController(PrinterService printers, PrintAgentService agents) : ApiControllerBase
+public class AdminPrintersController(PrinterService printers, PrintAgentService agents, BluetoothPrintService bluetooth) : ApiControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken ct) => Ok(await printers.ListAsync(ct));
@@ -53,6 +53,18 @@ public class AdminPrintersController(PrinterService printers, PrintAgentService 
     [Authorize(Policy = "AdminRoleAdmin")]
     public async Task<IActionResult> RevokeAgentKey(Guid locationId, CancellationToken ct)
         => ToResult(await agents.RevokeAsync(locationId, ct));
+
+    /// <summary>
+    /// The admin app on a tablet paired with Bluetooth printers takes their waiting jobs. Any staff member signed in on
+    /// the tablet may do this, since the kitchen tablet is often signed in as a worker.
+    /// </summary>
+    [HttpPost("bluetooth/claim")]
+    public async Task<IActionResult> ClaimBluetooth([FromBody] BluetoothClaimDto dto, CancellationToken ct)
+        => ToResult(await bluetooth.ClaimAsync(dto, ct));
+
+    [HttpPost("bluetooth/jobs/{id:guid}/result")]
+    public async Task<IActionResult> BluetoothResult(Guid id, [FromBody] AgentJobResultDto dto, CancellationToken ct)
+        => ToResult(await bluetooth.ReportAsync(id, dto, ct));
 }
 
 /// <summary>Print buttons on the kitchen screen and the orders page (own_pos).</summary>

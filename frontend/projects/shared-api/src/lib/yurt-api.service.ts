@@ -51,6 +51,7 @@ import {
   PrintJob,
   PrintQueued,
   PrintAgent,
+  BluetoothPrintJob,
   CategoryRouting,
   Shift,
   ShiftReport,
@@ -634,7 +635,7 @@ export class YurtApiService {
 
   /**
    * Prints a test page right away; fails with the reason when the printer cannot be reached. For a printer behind the
-   * print agent the page is queued instead (`printed: false`).
+   * print agent or a Bluetooth tablet the page is queued instead (`printed: false`).
    */
   testPrinter(id: string): Observable<{ printed: boolean }> {
     return this.http.post<{ printed: boolean }>(`${this.api}/admin/printers/${id}/test`, {});
@@ -651,6 +652,15 @@ export class YurtApiService {
 
   deletePrintAgentKey(locationId: string): Observable<boolean> {
     return this.http.delete<boolean>(`${this.api}/admin/printers/agents/${locationId}`);
+  }
+
+  /** A tablet with Bluetooth printers takes the waiting jobs of the printers it is connected to (own_pos). */
+  claimBluetoothJobs(printerIds: string[]): Observable<BluetoothPrintJob[]> {
+    return this.http.post<BluetoothPrintJob[]>(`${this.api}/admin/printers/bluetooth/claim`, { printerIds });
+  }
+
+  reportBluetoothJob(jobId: string, ok: boolean, error?: string): Observable<boolean> {
+    return this.http.post<boolean>(`${this.api}/admin/printers/bluetooth/jobs/${jobId}/result`, { ok, error: error ?? null });
   }
 
   getPrintJobs(limit = 30): Observable<PrintJob[]> {

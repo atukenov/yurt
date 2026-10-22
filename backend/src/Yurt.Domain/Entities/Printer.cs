@@ -3,7 +3,7 @@ using Yurt.Domain.Common;
 namespace Yurt.Domain.Entities;
 
 /// <summary>
-/// A thermal printer at one branch that the server sends ESC/POS bytes to over the network (Phase 6, <c>own_pos</c>).
+/// A thermal printer at one branch that gets ESC/POS bytes over the network or over Bluetooth (Phase 6, <c>own_pos</c>).
 /// A kitchen printer prints the items of one station (or all items when no station is set); a receipt printer prints
 /// the customer receipt.
 /// </summary>
@@ -24,7 +24,7 @@ public class Printer : BaseEntity, ITenantOwned
     /// <summary>Kitchen printers only: the station whose items this printer gets. Null = every item.</summary>
     public Guid? StationId { get; set; }
 
-    /// <summary>Network address of the printer, such as 192.168.1.50.</summary>
+    /// <summary>Network address of the printer, such as 192.168.1.50. Empty for a Bluetooth printer.</summary>
     public string Host { get; set; } = string.Empty;
     public int Port { get; set; } = 9100;
 
@@ -45,6 +45,12 @@ public class Printer : BaseEntity, ITenantOwned
     /// the cloud and the printer is on the cafe's own network.
     /// </summary>
     public bool ViaAgent { get; set; }
+
+    /// <summary>
+    /// Printed by a tablet in the cafe that is paired with the printer over Bluetooth: the admin app on that tablet fetches
+    /// the jobs and sends them. Such a printer has no network address.
+    /// </summary>
+    public bool ViaBluetooth { get; set; }
 
     /// <summary>
     /// Receipt printers only: a cash drawer is plugged into this printer. It opens when a cash payment is taken and when
