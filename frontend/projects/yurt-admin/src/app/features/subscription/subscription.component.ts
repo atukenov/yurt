@@ -1,3 +1,4 @@
+import { LocalDatePipe } from 'shared-ui';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { YurtApiService } from 'shared-api';
@@ -7,7 +8,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 @Component({
   selector: 'app-subscription',
   standalone: true,
-  imports: [CommonModule, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, AdminTranslatePipe],
   templateUrl: './subscription.component.html',
 })
 export class SubscriptionComponent implements OnInit {

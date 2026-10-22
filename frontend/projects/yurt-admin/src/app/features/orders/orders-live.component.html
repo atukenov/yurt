@@ -96,7 +96,7 @@
                   {{ order.customerName }}
                 </p>
                 <p class="text-xs text-slate-500 mt-0.5">
-                  {{ order.createdAt | date: 'HH:mm' }} · {{ totalQty(order) }} item(s)
+                  {{ order.createdAt | ldate: 'HH:mm' }} · {{ totalQty(order) }} item(s)
                 </p>
               </div>
               <div class="flex-shrink-0 flex flex-col items-end gap-1">
@@ -143,7 +143,7 @@
                 </p>
               </div>
             }
-            <p class="text-slate-500 text-sm">{{ o.createdAt | date: 'MMM d, yyyy HH:mm' }}</p>
+            <p class="text-slate-500 text-sm">{{ o.createdAt | ldate: 'dateTime24' }}</p>
           </div>
           <div class="flex flex-col items-end gap-1.5">
             <yurt-badge [variant]="o.status | orderStatusColor" class="text-sm">

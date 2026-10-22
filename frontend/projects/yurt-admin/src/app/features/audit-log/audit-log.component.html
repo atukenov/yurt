@@ -49,7 +49,7 @@
         } @else {
           @for (entry of entries(); track entry.id) {
             <tr class="hover:bg-slate-50 transition-colors">
-              <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">{{ formatDate(entry.createdAt) }}</td>
+              <td class="px-4 py-3 text-slate-500 whitespace-nowrap text-xs">{{ entry.createdAt | ldate: 'dd.MM.yyyy HH:mm:ss' }}</td>
               <td class="px-4 py-3 font-medium text-slate-700">{{ entry.performedByUsername }}</td>
               <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-ink">

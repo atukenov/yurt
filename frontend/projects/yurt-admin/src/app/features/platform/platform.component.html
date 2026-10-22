@@ -278,7 +278,7 @@
                 <span class="font-mono text-xs text-slate-500">{{ m.key }}</span>
                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full" [class]="badgeClass(m)">{{ 'sub.state.' + m.state | t }}</span>
                 @if (m.state === 'grace' && m.graceEndsAt) {
-                  <span class="text-xs text-brand-ink">{{ 'sub.graceWarning' | t }} {{ m.graceEndsAt | date: 'MMM d, y' }}</span>
+                  <span class="text-xs text-brand-ink">{{ 'sub.graceWarning' | t }} {{ m.graceEndsAt | ldate: 'shortDate' }}</span>
                 }
               </div>
               @for (w of m.warnings; track w) {
@@ -388,7 +388,7 @@
             {{ f.provider ? f.provider : ('plat.fiscal.off' | t) }}
           </span>
           @if (f.provider && f.since) {
-            <span class="text-slate-500"> · {{ 'plat.fiscal.since' | t }} {{ f.since | date: 'dd.MM.yyyy HH:mm' }}</span>
+            <span class="text-slate-500"> · {{ 'plat.fiscal.since' | t }} {{ f.since | ldate: 'dd.MM.yyyy HH:mm' }}</span>
           }
         </p>
         @if (!f.credentialsSet) {

@@ -272,7 +272,7 @@
               @if (agentOnline(a)) {
                 {{ 'printers.agent.online' | t }}
               } @else if (a.lastSeenAt) {
-                {{ 'printers.agent.lastSeen' | t }} {{ a.lastSeenAt | date: 'dd.MM HH:mm' }}
+                {{ 'printers.agent.lastSeen' | t }} {{ a.lastSeenAt | ldate: 'dd.MM HH:mm' }}
               } @else {
                 {{ 'printers.agent.never' | t }}
               }
@@ -321,7 +321,7 @@
         <tbody>
           @for (j of jobs(); track j.id) {
             <tr class="border-b border-slate-100 last:border-0">
-              <td class="whitespace-nowrap px-3 py-2 text-slate-500">{{ j.createdAt | date: 'dd.MM HH:mm:ss' }}</td>
+              <td class="whitespace-nowrap px-3 py-2 text-slate-500">{{ j.createdAt | ldate: 'dd.MM HH:mm:ss' }}</td>
               <td class="px-3 py-2">{{ j.printerName }}</td>
               <td class="px-3 py-2 text-slate-500">
                 {{ 'printers.job.' + j.kind | t }} {{ jobOrder(j) }}

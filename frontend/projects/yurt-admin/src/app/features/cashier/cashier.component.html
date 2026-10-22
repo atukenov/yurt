@@ -35,7 +35,7 @@
           <li class="flex flex-wrap items-center justify-between gap-2 border-t border-amber-200 py-1.5">
             <span>
               #{{ w.orderId.slice(0, 8) }} · {{ (w.kind === 'Return' ? 'cash.fiscal.return' : 'cash.fiscal.sale') | t }} ·
-              {{ w.amount | currency2 }} · {{ w.createdAt | date: 'dd.MM HH:mm' }}
+              {{ w.amount | currency2 }} · {{ w.createdAt | ldate: 'dd.MM HH:mm' }}
               @if (w.lastError) { <span class="block text-xs text-amber-700">{{ w.lastError }}</span> }
             </span>
             <button type="button" (click)="retryReceipt(w)" [disabled]="busy()"
@@ -83,9 +83,9 @@
               {{ (r.shift.closedAt ? 'cash.zReport' : 'cash.xReport') | t }}
             </h2>
             <p class="text-sm text-slate-500">
-              {{ r.shift.locationName }} · {{ r.shift.openedAt | date: 'dd.MM HH:mm' }}
+              {{ r.shift.locationName }} · {{ r.shift.openedAt | ldate: 'dd.MM HH:mm' }}
               @if (r.shift.closedAt) {
-                – {{ r.shift.closedAt | date: 'dd.MM HH:mm' }}
+                – {{ r.shift.closedAt | ldate: 'dd.MM HH:mm' }}
               }
               · {{ r.shift.openedBy }}
             </p>
@@ -193,7 +193,7 @@
           <p class="mt-3 text-sm text-slate-500">{{ r.shift.note }}</p>
         }
         @if (r.shift.fiscalZReportAt) {
-          <p class="mt-3 text-sm text-green-700">{{ 'cash.fiscal.zDone' | t }} {{ r.shift.fiscalZReportAt | date: 'dd.MM HH:mm' }}</p>
+          <p class="mt-3 text-sm text-green-700">{{ 'cash.fiscal.zDone' | t }} {{ r.shift.fiscalZReportAt | ldate: 'dd.MM HH:mm' }}</p>
         } @else if (r.shift.fiscalZReportError) {
           <p class="mt-3 text-sm text-red-600 print:hidden">
             {{ 'cash.fiscal.zFailed' | t }}: {{ r.shift.fiscalZReportError }}
@@ -210,7 +210,7 @@
             @for (m of r.movements; track m.id) {
               <li class="flex justify-between border-t border-slate-100 py-1.5">
                 <span
-                  >{{ m.createdAt | date: 'HH:mm' }} · {{ m.reason }}
+                  >{{ m.createdAt | ldate: 'HH:mm' }} · {{ m.reason }}
                   <span class="text-slate-500">({{ m.createdBy }})</span></span
                 >
                 <span [class]="m.isOut ? 'text-tone-red' : 'text-green-700'"
@@ -312,7 +312,7 @@
       >
         @for (h of history(); track h.id) {
           <li class="flex items-center justify-between px-4 py-2">
-            <span>{{ h.openedAt | date: 'dd.MM.yyyy HH:mm' }} · {{ h.openedBy }}</span>
+            <span>{{ h.openedAt | ldate: 'dd.MM.yyyy HH:mm' }} · {{ h.openedBy }}</span>
             <button type="button" (click)="showClosed(h)" class="text-brand-ink hover:underline">
               {{ 'cash.zReport' | t }}
             </button>

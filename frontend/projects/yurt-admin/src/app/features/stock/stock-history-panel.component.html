@@ -16,7 +16,7 @@
       @for (row of rows(); track row.id) {
         <tr class="border-t border-slate-100">
           <td class="whitespace-nowrap px-4 py-2 text-slate-600">
-            {{ row.changedAt | date: 'MMM d, HH:mm' }}
+            {{ row.changedAt | ldate: 'shortDateTime24' }}
           </td>
           <td class="px-4 py-2">
             <p class="font-medium text-slate-800">{{ row.itemName }}</p>
@@ -26,14 +26,14 @@
           </td>
           <td class="px-4 py-2 text-slate-600">
             @if (isCounted(row.oldQuantity)) {
-              {{ row.oldQuantity | number: '1.0-3' }}{{ row.unit ? ' ' + row.unit : '' }}
+              {{ row.oldQuantity | lnumber: '1.0-3' }}{{ row.unit ? ' ' + row.unit : '' }}
             } @else {
               <span class="text-slate-500">{{ 'stock.notCounted' | t }}</span>
             }
           </td>
           <td class="px-4 py-2 text-slate-800">
             @if (isCounted(row.newQuantity)) {
-              {{ row.newQuantity | number: '1.0-3' }}{{ row.unit ? ' ' + row.unit : '' }}
+              {{ row.newQuantity | lnumber: '1.0-3' }}{{ row.unit ? ' ' + row.unit : '' }}
             } @else {
               <span class="text-slate-500">{{ 'stock.notCounted' | t }}</span>
             }
@@ -41,7 +41,7 @@
           <td class="px-4 py-2 font-semibold">
             @if (isCounted(row.change)) {
               <span [class]="row.change < 0 ? 'text-red-700' : 'text-green-700'">
-                {{ row.change > 0 ? '+' : '' }}{{ row.change | number: '1.0-3' }}
+                {{ row.change > 0 ? '+' : '' }}{{ row.change | lnumber: '1.0-3' }}
               </span>
             }
           </td>

@@ -1,10 +1,11 @@
+import { LocalNumberPipe } from 'shared-ui';
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-payment-qr-code',
   standalone: true,
-  imports: [CommonModule],
+  imports: [LocalNumberPipe, CommonModule],
   template: `
     <div class="rounded-3xl border border-stone-200 bg-surface p-4 shadow-sm">
       <div class="text-sm font-semibold text-stone-700 mb-3">{{ label }}</div>
@@ -19,7 +20,7 @@ import { Component, Input } from '@angular/core';
       </div>
       @if (amount != null) {
         <div class="mt-4 text-center text-stone-700 text-sm">
-          Amount: <strong>{{ amount | number: '1.2-2' }} KZT</strong>
+          Amount: <strong>{{ amount | lnumber: '1.2-2' }} KZT</strong>
         </div>
       }
     </div>

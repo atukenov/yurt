@@ -31,7 +31,7 @@
             }
           </div>
           <p class="text-slate-500 font-mono text-sm mt-0.5">{{ c.phone }}</p>
-          <p class="text-slate-500 text-xs mt-1">{{ 'customers.memberSince' | t }} {{ c.registeredAt | date: 'MMM d, y' }}</p>
+          <p class="text-slate-500 text-xs mt-1">{{ 'customers.memberSince' | t }} {{ c.registeredAt | ldate: 'shortDate' }}</p>
         </div>
       </div>
       <div class="grid gap-3 mt-5"
@@ -112,7 +112,7 @@
           <tbody>
             @for (o of c.recentOrders; track o.id) {
               <tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
-                <td class="px-5 py-3 text-slate-500 whitespace-nowrap">{{ o.createdAt | date: 'MMM d, y' }}</td>
+                <td class="px-5 py-3 text-slate-500 whitespace-nowrap">{{ o.createdAt | ldate: 'shortDate' }}</td>
                 <td class="px-5 py-3 text-slate-700">{{ o.locationName }}</td>
                 <td class="px-5 py-3">
                   <span class="text-xs font-semibold px-2 py-0.5 rounded-full"

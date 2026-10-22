@@ -18,11 +18,11 @@
                 {{ 'sub.state.' + m.state | t }}
               </span>
               @if (m.validUntil) {
-                <span class="text-xs text-slate-500 ml-auto">{{ 'sub.validUntil' | t }} {{ m.validUntil | date: 'MMM d, y' }}</span>
+                <span class="text-xs text-slate-500 ml-auto">{{ 'sub.validUntil' | t }} {{ m.validUntil | ldate: 'shortDate' }}</span>
               }
             </div>
             @if (m.state === 'grace' && m.graceEndsAt) {
-              <p class="text-xs text-brand-ink mt-1">{{ 'sub.graceWarning' | t }} {{ m.graceEndsAt | date: 'MMM d, y' }}</p>
+              <p class="text-xs text-brand-ink mt-1">{{ 'sub.graceWarning' | t }} {{ m.graceEndsAt | ldate: 'shortDate' }}</p>
             }
           </div>
         }

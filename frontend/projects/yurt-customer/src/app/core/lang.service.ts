@@ -346,9 +346,14 @@ export class LangService {
   private readonly KEY = 'yurt_lang';
   readonly lang = signal<Lang>((localStorage.getItem('yurt_lang') as Lang) || 'ru');
 
+  constructor() {
+    document.documentElement.lang = this.lang();
+  }
+
   setLang(lang: Lang): void {
     this.lang.set(lang);
     localStorage.setItem(this.KEY, lang);
+    document.documentElement.lang = lang;
   }
 
   t(key: string): string {

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
-import { ToastService } from 'shared-ui';
+import { ToastService, LocalDatePipe } from 'shared-ui';
 import { AppRelease } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
@@ -13,7 +13,7 @@ type NotesTab = 'En' | 'Ru' | 'Kk';
 @Component({
   selector: 'app-app-releases',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, FormsModule, AdminTranslatePipe],
   templateUrl: './app-releases.component.html',
 })
 export class AppReleasesComponent implements OnInit {

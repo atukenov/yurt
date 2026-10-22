@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
 import { AuditLogEntry } from 'shared-models';
+import { LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 const PAGE_SIZE = 50;
@@ -11,7 +12,7 @@ const ENTITY_TYPES = ['', 'Order', 'MenuItem', 'MenuCategory', 'MenuTopping', 'A
 @Component({
   selector: 'app-audit-log',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminTranslatePipe],
+  imports: [CommonModule, FormsModule, AdminTranslatePipe, LocalDatePipe],
   templateUrl: './audit-log.component.html',
 })
 export class AuditLogComponent implements OnInit {
@@ -57,9 +58,5 @@ export class AuditLogComponent implements OnInit {
   loadMore(): void {
     this.page.update(p => p + 1);
     this.load(true);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString();
   }
 }

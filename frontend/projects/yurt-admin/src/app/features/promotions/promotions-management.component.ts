@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService } from 'shared-api';
 import { Promotion } from 'shared-models';
-import { ToastService } from 'shared-ui';
+import { ToastService, LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
 
@@ -21,7 +21,7 @@ interface PromotionForm {
 @Component({
   selector: 'app-promotions-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, FormsModule, AdminTranslatePipe],
   templateUrl: './promotions-management.component.html',
   styleUrl: './promotions-management.component.css',
 })

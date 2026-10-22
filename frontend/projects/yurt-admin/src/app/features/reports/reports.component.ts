@@ -2,13 +2,13 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { YurtApiService } from 'shared-api';
 import { UserReport } from 'shared-models';
-import { ToastService } from 'shared-ui';
+import { ToastService, LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, AdminTranslatePipe],
   templateUrl: './reports.component.html',
 })
 export class ReportsComponent implements OnInit {

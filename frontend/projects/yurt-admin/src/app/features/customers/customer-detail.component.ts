@@ -2,7 +2,7 @@ import { Component, inject, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { YurtApiService } from 'shared-api';
-import { Currency2Pipe, CurrencyDecimalPipe, ToastService } from 'shared-ui';
+import { Currency2Pipe, CurrencyDecimalPipe, ToastService, LocalDatePipe } from 'shared-ui';
 import { CustomerDetail, LoyaltyBalance } from 'shared-models';
 import { environment } from '../../../environments/environment';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -10,7 +10,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, Currency2Pipe, CurrencyDecimalPipe, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, RouterLink, Currency2Pipe, CurrencyDecimalPipe, AdminTranslatePipe],
   templateUrl: './customer-detail.component.html',
 })
 export class CustomerDetailComponent implements OnInit {
