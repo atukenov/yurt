@@ -11,7 +11,7 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from 'shared-models';
-import { Currency2Pipe, OrderStatusLabelPipe, ToastService } from 'shared-ui';
+import { Currency2Pipe, ToastService } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { LangService } from '../../core/lang.service';
 import { TranslatePipe } from '../../core/translate.pipe';
@@ -23,7 +23,6 @@ import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
   imports: [
     CommonModule,
     FormsModule,
-    OrderStatusLabelPipe,
     Currency2Pipe,
     TranslatePipe,
     PullToRefreshDirective,

@@ -115,6 +115,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [x] Per-cafe secrets/config files (Firebase `google-services.json` / `GoogleService-Info.plist`, Apple merchant id) kept outside git and injected at build time. _(Done: the script copies the Firebase files from the git-ignored `cafes/<slug>/secrets/`; the Apple merchant id is a field in `cafe.json` that goes into the iOS entitlements.)_
 - [ ] Build matrix in CI to produce a branded Android/iOS build for one cafe from a config folder.
 - [x] Store-listing checklist (screenshots, privacy policy, Apple/Google accounts, review notes) and a release/versioning scheme per cafe. _(Done: `docs/branded-app-release.md`; the version lives in `cafe.json`.)_
+- [x] Store screenshots per cafe. _(Done: `brand-screenshots.mjs --store=<slug> --lang=ru|kk|en` makes the menu, cart, order status, profile and sign-in screens at the App Store iPhone 6.9" and 6.5" sizes and the Google Play phone size, light mode, with sample data in the chosen language. The brand comes from `brand` in `cafe.json` or, with `--api`, from the live server. How to run it is in `docs/branded-app-release.md`. The order screens now show the status in the app's language (it was always English). Not done: captions or device frames, and dates on the profile are still in English.)_
 - [ ] Decide whether branded apps use a separate bundle id per cafe or a shared one with the cafe picker.
 
 **Quality**

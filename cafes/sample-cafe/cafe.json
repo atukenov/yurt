@@ -2,5 +2,11 @@
   "appId": "kz.samplecafe.app",
   "appName": "Sample Cafe",
   "versionName": "1.0.0",
-  "versionCode": 1
+  "versionCode": 1,
+  "brand": {
+    "name": "Sample Cafe",
+    "primaryColor": "#1d4ed8",
+    "accentColor": "#0ea5e9",
+    "welcomeText": "Свежий кофе каждое утро"
+  }
 }
