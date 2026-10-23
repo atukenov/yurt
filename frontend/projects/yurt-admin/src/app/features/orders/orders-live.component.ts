@@ -137,7 +137,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   retryFiscal(r: FiscalReceipt): void {
     this.api.retryFiscalReceipt(r.id).subscribe({
       next: (saved) => {
-        if (saved.status === 'Pending') this.toast.error(saved.lastError || 'Not sent');
+        if (saved.status === 'Pending') this.toast.error(saved.lastError || this.lang.t('common.notSent'));
         this.loadOrderFiscal();
         this.loadFiscalWaiting();
       },
@@ -204,7 +204,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
       this.subs.push(
         this.signalr.orderCreated$.subscribe((o) => {
           this.orders.update((list) => [o, ...list]);
-          this.toast.info(`New order #${o.id.slice(-6).toUpperCase()}`);
+          this.toast.info(this.lang.t('orders.newToast', { no: o.id.slice(-6).toUpperCase() }));
           void this.sound.playNewOrder();
         }),
         this.signalr.orderUpdated$.subscribe((o) => this.upsertOrder(o)),
@@ -246,7 +246,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
       next: (o) => {
         this.upsertOrder(o);
         this.actionLoading.set(false);
-        this.toast.success('Order accepted');
+        this.toast.success(this.lang.t('orders.acceptedToast'));
       },
       error: () => this.actionLoading.set(false),
     });
@@ -260,7 +260,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
         this.actionLoading.set(false);
         this.showDecline.set(false);
         this.declineReason = '';
-        this.toast.success('Order declined');
+        this.toast.success(this.lang.t('orders.declinedToast'));
       },
       error: () => this.actionLoading.set(false),
     });
@@ -272,7 +272,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
       next: (o) => {
         this.upsertOrder(o);
         this.actionLoading.set(false);
-        this.toast.success(`Status: ${status}`);
+        this.toast.success(this.lang.t('orders.statusToast', { status: this.lang.t(`order.status.${status}`) }));
       },
       error: () => this.actionLoading.set(false),
     });
@@ -288,7 +288,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
         next: (o) => {
           this.upsertOrder(o);
           this.paymentLoading.set(false);
-          this.toast.success('Payment updated');
+          this.toast.success(this.lang.t('orders.paymentUpdated'));
         },
         error: () => this.paymentLoading.set(false),
       });
@@ -322,11 +322,11 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     switch (status) {
       case IikoOrderSyncStatus.Pushed:
       case IikoOrderSyncStatus.Closed:
-        return { label: 'Synced to iiko', variant: 'teal' };
+        return { label: this.lang.t('orders.iiko.synced'), variant: 'teal' };
       case IikoOrderSyncStatus.SkippedUnmapped:
-        return { label: 'Not mapped — check menu settings', variant: 'slate' };
+        return { label: this.lang.t('orders.iiko.unmapped'), variant: 'slate' };
       case IikoOrderSyncStatus.Failed:
-        return { label: 'iiko sync failed', variant: 'red' };
+        return { label: this.lang.t('orders.iiko.failed'), variant: 'red' };
       default:
         return null;
     }

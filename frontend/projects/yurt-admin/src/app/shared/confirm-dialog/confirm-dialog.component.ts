@@ -1,9 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { ConfirmService } from './confirm.service';
+import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 @Component({
   selector: 'admin-confirm-dialog',
   standalone: true,
+  imports: [AdminTranslatePipe],
   template: `
     @if (svc.state()) {
       @let s = svc.state()!;
@@ -30,13 +32,13 @@ import { ConfirmService } from './confirm.service';
               (click)="svc.resolve(false)"
               class="flex-1 py-3 rounded-2xl border-2 border-stone-200 text-stone-600 font-semibold text-sm hover:bg-stone-50 transition-colors"
             >
-              Cancel
+              {{ 'action.cancel' | t }}
             </button>
             <button
               (click)="svc.resolve(true)"
               class="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-semibold text-sm transition-colors active:scale-[0.98]"
             >
-              {{ s.confirmLabel ?? 'Delete' }}
+              {{ s.confirmLabel ?? ('action.delete' | t) }}
             </button>
           </div>
         </div>

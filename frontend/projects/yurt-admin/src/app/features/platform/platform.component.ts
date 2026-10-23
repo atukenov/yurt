@@ -87,7 +87,7 @@ export class PlatformComponent implements OnInit {
 
   switchLedger(mode: 'iiko' | 'native'): void {
     if (!confirm(this.lang.t(mode === 'native' ? 'plat.loyalty.confirmNative' : 'plat.loyalty.confirmIiko'))) return;
-    this.loyaltyCall(() => this.api.setLoyaltyLedger(mode), (l) => { this.ledger.set(l); this.toast.success('Saved'); });
+    this.loyaltyCall(() => this.api.setLoyaltyLedger(mode), (l) => { this.ledger.set(l); this.toast.success(this.lang.t('common.saved')); });
   }
 
   // ── Official tax receipts (cloud cash register) ──
@@ -124,7 +124,7 @@ export class PlatformComponent implements OnInit {
       vatPercent: this.fiscalVat === null || (this.fiscalVat as unknown) === '' ? null : Number(this.fiscalVat),
       branches: f.branches.map((b) => ({ locationId: b.locationId, registerNumber: (this.fiscalRegisters[b.locationId] ?? '').trim() || null })),
     }).subscribe({
-      next: (saved) => { this.setFiscal(saved); this.savingFiscal.set(false); this.toast.success('Saved'); },
+      next: (saved) => { this.setFiscal(saved); this.savingFiscal.set(false); this.toast.success(this.lang.t('common.saved')); },
       error: () => this.savingFiscal.set(false),
     });
   }
@@ -149,7 +149,7 @@ export class PlatformComponent implements OnInit {
         this.cafes.update((l) => [...l, cafe].sort((a, b) => a.name.localeCompare(b.name)));
         this.newCafe = { slug: '', name: '', domain: '', adminUsername: '', adminPassword: '' };
         this.creatingCafe.set(false);
-        this.toast.success('Cafe created');
+        this.toast.success(this.lang.t('plat.cafeCreated'));
       },
       error: () => this.creatingCafe.set(false),
     });
@@ -176,7 +176,7 @@ export class PlatformComponent implements OnInit {
     const id = this.secretsCafeId();
     const value = (this.secretValues[key] ?? '').trim();
     if (!id || !value) return;
-    this.api.setCafeSecret(id, key, value).subscribe({ next: (s) => { this.patchSecret(s); this.toast.success('Saved'); } });
+    this.api.setCafeSecret(id, key, value).subscribe({ next: (s) => { this.patchSecret(s); this.toast.success(this.lang.t('common.saved')); } });
   }
 
   clearSecret(key: string): void {
@@ -264,7 +264,7 @@ export class PlatformComponent implements OnInit {
       next: (saved) => {
         this.brand.set(saved);
         this.savingBrand.set(false);
-        this.toast.success('Brand saved');
+        this.toast.success(this.lang.t('plat.brandSaved'));
       },
       error: () => this.savingBrand.set(false),
     });
@@ -319,7 +319,7 @@ export class PlatformComponent implements OnInit {
         // Re-read the whole list so dependency warnings for other modules refresh too.
         this.api.getPlatformModules().subscribe((list) => this.setModules(list));
         this.savingKey.set(null);
-        this.toast.success('Saved');
+        this.toast.success(this.lang.t('common.saved'));
       },
       error: () => this.savingKey.set(null),
     });
@@ -332,7 +332,7 @@ export class PlatformComponent implements OnInit {
         this.maintenanceEnabled = m.enabled;
         this.maintenanceMessage = m.message;
         this.savingMaintenance.set(false);
-        this.toast.success(m.enabled ? 'Maintenance mode is ON' : 'Maintenance mode is off');
+        this.toast.success(m.enabled ? this.lang.t('plat.maintenanceOn') : this.lang.t('plat.maintenanceOff'));
       },
       error: () => this.savingMaintenance.set(false),
     });

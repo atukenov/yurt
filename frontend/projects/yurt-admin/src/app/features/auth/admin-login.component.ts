@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { YurtApiService, AuthStateService, BrandService } from 'shared-api';
 import { ButtonComponent, ToastService } from 'shared-ui';
+import { AdminLangService } from '../../core/lang.service';
+import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent],
+  imports: [CommonModule, FormsModule, ButtonComponent, AdminTranslatePipe],
   templateUrl: './admin-login.component.html',
   styleUrl: './admin-login.component.css',
 })
@@ -18,6 +20,7 @@ export class AdminLoginComponent {
   readonly brand = inject(BrandService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   username = '';
   password = '';
@@ -46,7 +49,7 @@ export class AdminLoginComponent {
       },
       error: () => {
         this.loading.set(false);
-        this.error.set('Invalid username or password.');
+        this.error.set(this.lang.t('auth.invalid'));
       },
     });
   }

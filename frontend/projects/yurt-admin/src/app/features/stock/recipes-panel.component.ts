@@ -4,6 +4,7 @@ import { YurtApiService } from 'shared-api';
 import { Ingredient, MenuItem, MenuTopping, RecipeLine } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 /**
  * The recipe of one menu item: how much of each ingredient a portion uses (Phase 6, `own_pos`). A line can apply to
@@ -18,6 +19,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 export class RecipesPanelComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   items = signal<MenuItem[]>([]);
   toppings = signal<MenuTopping[]>([]);
@@ -89,11 +91,11 @@ export class RecipesPanelComponent implements OnInit {
         this.lines.set(lines);
         this.dirty = false;
         this.saving.set(false);
-        this.toast.success('Saved');
+        this.toast.success(this.lang.t('common.saved'));
       },
       error: () => {
         this.saving.set(false);
-        this.toast.error('Could not save: check the amounts and sizes');
+        this.toast.error(this.lang.t('rec.saveFailed'));
       },
     });
   }

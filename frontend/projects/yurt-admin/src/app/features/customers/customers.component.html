@@ -85,7 +85,7 @@
     <!-- Pagination -->
     @if (totalPages > 1) {
       <div class="flex items-center justify-between mt-4 text-sm text-slate-500">
-        <span>{{ total() }} total</span>
+        <span>{{ 'customers.totalCount' | t: { count: total() } }}</span>
         <div class="flex items-center gap-2">
           <button
             [disabled]="page() <= 1"

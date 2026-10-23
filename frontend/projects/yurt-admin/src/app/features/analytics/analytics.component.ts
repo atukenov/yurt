@@ -35,12 +35,12 @@ export class AnalyticsComponent implements OnInit {
   };
 
   readonly periods = [
-    { label: 'Today', value: 'today' },
-    { label: 'Week', value: 'week' },
-    { label: 'Month', value: 'month' },
-    { label: '6M', value: '6months' },
-    { label: '1Y', value: 'year' },
-    { label: 'All', value: 'all' },
+    { label: 'analytics.p.today', value: 'today' },
+    { label: 'analytics.p.week', value: 'week' },
+    { label: 'analytics.p.month', value: 'month' },
+    { label: 'analytics.p.6months', value: '6months' },
+    { label: 'analytics.p.year', value: 'year' },
+    { label: 'analytics.p.all', value: 'all' },
   ];
 
   // ── Computed helpers for charts ──────────────────────────────────────────

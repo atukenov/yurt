@@ -4,6 +4,7 @@ import { YurtApiService } from 'shared-api';
 import { Order, SplitPaymentLine } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 interface PartRow {
   method: string;
@@ -20,6 +21,7 @@ interface PartRow {
 export class SplitPaymentComponent {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   readonly methods = ['Cash', 'Card', 'KaspiBank', 'HalykBank', 'FreedomBank', 'ApplePay', 'Other'];
 
@@ -84,7 +86,7 @@ export class SplitPaymentComponent {
       next: (p) => {
         this.saving.set(false);
         this.open.set(false);
-        this.toast.success('Payment updated');
+        this.toast.success(this.lang.t('orders.paymentUpdated'));
         this.saved.emit(p.lines);
       },
       error: () => this.saving.set(false),

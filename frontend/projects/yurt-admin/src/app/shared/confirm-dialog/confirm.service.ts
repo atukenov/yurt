@@ -12,7 +12,8 @@ export class ConfirmService {
 
   private resolver: ((value: boolean) => void) | null = null;
 
-  confirm(title: string, message: string, confirmLabel = 'Delete'): Promise<boolean> {
+  /** Without a `confirmLabel` the button says Delete in the admin's language. */
+  confirm(title: string, message: string, confirmLabel?: string): Promise<boolean> {
     this.state.set({ title, message, confirmLabel });
     return new Promise((resolve) => {
       this.resolver = resolve;

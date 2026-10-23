@@ -6,6 +6,7 @@ import { Promotion } from 'shared-models';
 import { ToastService, LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
+import { AdminLangService } from '../../core/lang.service';
 
 interface PromotionForm {
   id?: string;
@@ -28,6 +29,7 @@ interface PromotionForm {
 export class PromotionsManagementComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
   private confirmSvc = inject(ConfirmService);
 
   promotions = signal<Promotion[]>([]);
@@ -75,7 +77,7 @@ export class PromotionsManagementComponent implements OnInit {
   save(): void {
     const f = this.form();
     if (!f.title) {
-      this.toast.error('Title is required');
+      this.toast.error(this.lang.t('promotions.titleRequired'));
       return;
     }
     this.saving.set(true);
@@ -101,18 +103,18 @@ export class PromotionsManagementComponent implements OnInit {
         }
         this.saving.set(false);
         this.showDialog.set(false);
-        this.toast.success('Promotion saved');
+        this.toast.success(this.lang.t('promotions.saved'));
       },
       error: () => this.saving.set(false),
     });
   }
 
   async deletePromotion(promo: Promotion): Promise<void> {
-    if (!await this.confirmSvc.confirm('Delete Promotion', `Delete "${promo.title}"?`)) return;
+    if (!await this.confirmSvc.confirm(this.lang.t('promotions.deleteTitle'), this.lang.t('common.deleteNamed', { name: promo.title }))) return;
     this.api.deletePromotion(promo.id).subscribe({
       next: () => {
         this.promotions.update((list) => list.filter((p) => p.id !== promo.id));
-        this.toast.success('Promotion deleted');
+        this.toast.success(this.lang.t('promotions.deleted'));
       },
       error: () => {},
     });

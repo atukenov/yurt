@@ -34,7 +34,7 @@
     </div>
 
     <!-- Nav links -->
-    <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto" aria-label="Main">
+    <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto" [attr.aria-label]="'nav.main' | t">
       <a
         routerLink="/orders"
         routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
@@ -311,7 +311,7 @@
          [class]="collapsed() ? 'px-2 py-3 flex flex-col items-center gap-2' : 'px-4 py-4'">
       @if (!collapsed()) {
         <!-- Language switcher -->
-        <div class="flex gap-1 mb-3" role="group" aria-label="Language">
+        <div class="flex gap-1 mb-3" role="group" [attr.aria-label]="'nav.language' | t">
           @for (l of ['ru', 'en', 'kk']; track l) {
             <button
               (click)="langService.setLang(l)"

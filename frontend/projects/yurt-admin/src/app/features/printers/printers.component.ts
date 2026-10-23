@@ -33,6 +33,11 @@ export class PrintersComponent implements OnInit, OnDestroy {
   /** A key just made, shown once so staff can copy it to the agent. */
   newKey = signal<{ locationId: string; key: string } | null>(null);
   readonly apiUrl = environment.apiUrl;
+
+  /** The shell command that starts the print agent with this key. */
+  agentCommand(key: string): string {
+    return `node print-agent.mjs --api ${this.apiUrl} --key ${key}`;
+  }
   loading = signal(true);
   busyId = signal<string | null>(null);
 
@@ -92,7 +97,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
         this.newKey.set(k);
         this.load();
       },
-      error: (e: HttpErrorResponse) => this.toast.error(this.message(e, 'Could not make a key')),
+      error: (e: HttpErrorResponse) => this.toast.error(this.message(e, this.lang.t('printers.agent.keyFailed'))),
     });
   }
 
@@ -162,7 +167,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
       },
       error: (e: HttpErrorResponse) => {
         this.busyId.set(null);
-        this.toast.error(this.message(e, 'Could not save'));
+        this.toast.error(this.message(e, this.lang.t('common.saveFailed')));
       },
     });
   }
@@ -182,7 +187,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
       },
       error: (e: HttpErrorResponse) => {
         this.busyId.set(null);
-        this.toast.error(this.message(e, 'The printer did not answer'));
+        this.toast.error(this.message(e, this.lang.t('printers.noAnswer')));
       },
     });
   }

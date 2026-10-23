@@ -96,7 +96,7 @@
           </h3>
           <button
             (click)="showDialog.set(false)"
-            aria-label="Close"
+            [attr.aria-label]="'action.close' | t"
             class="text-slate-500 hover:text-slate-600 text-xl leading-none"
           >
             ✕
@@ -112,7 +112,7 @@
               [ngModel]="form().title"
               (ngModelChange)="patch('title', $event)"
               class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
-              placeholder="e.g. Buy 2 Get 3rd Free!"
+              [placeholder]="'promotions.titleExample' | t"
             />
           </div>
           <div>
@@ -146,7 +146,7 @@
                 [ngModel]="form().buttonLabel"
                 (ngModelChange)="patch('buttonLabel', $event)"
                 class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-300"
-                placeholder="e.g. Order now"
+                [placeholder]="'promotions.buttonExample' | t"
               />
             </div>
             <div>

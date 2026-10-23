@@ -155,7 +155,7 @@
                   type="button"
                   role="switch"
                   [attr.aria-checked]="slot.enabled"
-                  [attr.aria-label]="DAY_NAMES[slot.day - 1]"
+                  [attr.aria-label]="'day.' + slot.day | t"
                   (click)="toggleDay(i)"
                   class="relative shrink-0 w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-1"
                   [class]="slot.enabled ? 'bg-brand-500' : 'bg-slate-200'"
@@ -171,7 +171,7 @@
                   class="w-7 text-[11px] font-bold uppercase tracking-wide shrink-0 select-none"
                   [class]="slot.enabled ? 'text-slate-700' : 'text-slate-500'"
                 >
-                  {{ DAY_NAMES[slot.day - 1] }}
+                  {{ 'day.' + slot.day | t }}
                 </span>
 
                 <!-- Time inputs (visible when enabled) -->
@@ -180,7 +180,7 @@
                     type="time"
                     [ngModel]="slot.from"
                     (ngModelChange)="updateSlotTime(i, 'from', $event)"
-                    [attr.aria-label]="DAY_NAMES[slot.day - 1] + ' opening time'"
+                    [attr.aria-label]="'locations.opensAt' | t: { day: ('day.' + slot.day | t) }"
                     class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-surface"
                   />
                   <span class="text-slate-500 text-xs shrink-0 font-medium">–</span>
@@ -188,11 +188,11 @@
                     type="time"
                     [ngModel]="slot.to"
                     (ngModelChange)="updateSlotTime(i, 'to', $event)"
-                    [attr.aria-label]="DAY_NAMES[slot.day - 1] + ' closing time'"
+                    [attr.aria-label]="'locations.closesAt' | t: { day: ('day.' + slot.day | t) }"
                     class="flex-1 min-w-0 border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none bg-surface"
                   />
                 } @else {
-                  <span class="flex-1 text-xs text-slate-500 italic">Closed</span>
+                  <span class="flex-1 text-xs text-slate-500 italic">{{ 'locations.closed' | t }}</span>
                 }
               </div>
             }
@@ -226,15 +226,15 @@
         @if (modules.isEnabled('iiko_sync')) {
           <!-- iiko terminal group (order-push routing, optional) -->
           <div>
-            <label for="location-iiko-terminal-group" class="block text-xs font-medium text-slate-600 mb-1">iiko terminal group (optional)</label>
-            <p class="text-xs text-slate-500 mb-2">Which iiko POS/KDS receives orders pushed from this location. Leave unmapped to skip iiko order-push for this location.</p>
+            <label for="location-iiko-terminal-group" class="block text-xs font-medium text-slate-600 mb-1">{{ 'locations.iikoGroup' | t }}</label>
+            <p class="text-xs text-slate-500 mb-2">{{ 'locations.iikoGroupHint' | t }}</p>
             <select
               id="location-iiko-terminal-group"
               [ngModel]="form().iikoTerminalGroupId"
               (ngModelChange)="patch('iikoTerminalGroupId', $event)"
               class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
             >
-              <option value="">Not mapped</option>
+              <option value="">{{ 'common.notMapped' | t }}</option>
               @for (g of iikoTerminalGroups(); track g.id) {
                 <option [value]="g.id">{{ g.name }}</option>
               }

@@ -8,6 +8,7 @@ import { IngredientsPanelComponent } from './ingredients-panel.component';
 import { RecipesPanelComponent } from './recipes-panel.component';
 import { StockAlertPhonesComponent } from './stock-alert-phones.component';
 import { StockHistoryPanelComponent } from './stock-history-panel.component';
+import { AdminLangService } from '../../core/lang.service';
 
 interface StockRow extends StockItem {
   /** What the staff typed, kept apart from the saved value until they press Save. */
@@ -36,6 +37,7 @@ interface StockRow extends StockItem {
 export class StockManagementComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   private readonly LOC_KEY = 'yurt_stock_location';
 
@@ -87,12 +89,12 @@ export class StockManagementComponent implements OnInit {
           this.rows.update((list) =>
             list.map((r) => (r.menuItemId === saved.menuItemId ? this.toRow(saved) : r)),
           );
-          this.toast.success('Saved');
+          this.toast.success(this.lang.t('common.saved'));
           this.api.getStockAlerts(this.selectedLocationId).subscribe((a) => this.alerts.set(a));
         },
         error: () => {
           row.saving = false;
-          this.toast.error('Could not save');
+          this.toast.error(this.lang.t('common.saveFailed'));
         },
       });
   }

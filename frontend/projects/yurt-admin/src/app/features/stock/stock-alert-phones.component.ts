@@ -4,6 +4,7 @@ import { YurtApiService } from 'shared-api';
 import { StockAlertPhone } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 /**
  * Phones that get a push when an order takes stock down to its warn-at number (own_pos). The push goes to the cafe
@@ -58,6 +59,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 export class StockAlertPhonesComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   phones = signal<StockAlertPhone[]>([]);
   saving = signal(false);
@@ -77,14 +79,14 @@ export class StockAlertPhonesComponent implements OnInit {
       next: (list) => {
         this.show(list);
         this.saving.set(false);
-        this.toast.success('Saved');
+        this.toast.success(this.lang.t('common.saved'));
       },
       error: (err) => {
         this.saving.set(false);
         this.toast.error(
           err?.status === 403
             ? 'Only an admin can change this'
-            : (err?.error?.title ?? 'Could not save'),
+            : (err?.error?.title ?? this.lang.t('common.saveFailed')),
         );
       },
     });

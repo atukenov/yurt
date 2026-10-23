@@ -25,7 +25,7 @@
   } @else if (error()) {
     <div class="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
       <p class="text-tone-red font-semibold mb-1">{{ 'dashboard.failedLoad' | t }}</p>
-      <p class="text-red-400 text-sm mb-4">Check your connection or try again</p>
+      <p class="text-red-400 text-sm mb-4">{{ 'dashboard.checkConnection' | t }}</p>
       <button
         (click)="load()"
         class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl px-5 py-2 transition-colors"

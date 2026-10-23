@@ -71,11 +71,11 @@ export class AppReleasesComponent implements OnInit {
 
   save(): void {
     if (!/^\d+(\.\d+){0,3}$/.test(this.form.version.trim())) {
-      this.toast.error('Version must look like 5.3.0');
+      this.toast.error(this.lang.t('rel.badVersion'));
       return;
     }
     if (!this.form.notesEn.trim()) {
-      this.toast.error('English notes are required');
+      this.toast.error(this.lang.t('rel.enNotesRequired'));
       this.tab.set('En');
       return;
     }

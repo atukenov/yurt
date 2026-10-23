@@ -6,13 +6,13 @@
     <div class="text-center mb-8">
       <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" [class.logo-for-dark]="brand.darkLogoShowing()" class="brand-logo w-16 h-16 object-contain mx-auto mb-3" />
       <h1 class="text-2xl font-bold text-stone-800">{{ brand.name() }} Admin</h1>
-      <p class="text-slate-500 text-sm mt-1">Sign in to your account</p>
+      <p class="text-slate-500 text-sm mt-1">{{ 'auth.signInHint' | t }}</p>
     </div>
 
     <form (ngSubmit)="login()" #form="ngForm">
       <div class="space-y-4">
         <div>
-          <label for="admin-username" class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+          <label for="admin-username" class="block text-sm font-medium text-slate-700 mb-1.5">{{ 'auth.username' | t }}</label>
           <input
             id="admin-username"
             type="text"
@@ -21,11 +21,11 @@
             required
             autocomplete="username"
             class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-400 focus:border-transparent outline-none transition-all"
-            placeholder="e.g. admin"
+            [placeholder]="'auth.usernameExample' | t"
           />
         </div>
         <div>
-          <label for="admin-password" class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+          <label for="admin-password" class="block text-sm font-medium text-slate-700 mb-1.5">{{ 'auth.password' | t }}</label>
           <input
             id="admin-password"
             type="password"
@@ -51,7 +51,7 @@
           [fullWidth]="true"
           [loading]="loading()"
         >
-          Sign In
+          {{ 'auth.signIn' | t }}
         </yurt-button>
       </div>
     </form>

@@ -4,6 +4,7 @@ import { YurtApiService } from 'shared-api';
 import { Ingredient } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 interface IngredientRow extends Ingredient {
   qtyInput: number | null;
@@ -21,6 +22,7 @@ interface IngredientRow extends Ingredient {
 export class IngredientsPanelComponent implements OnChanges {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   @Input() locationId = '';
 
@@ -57,15 +59,15 @@ export class IngredientsPanelComponent implements OnChanges {
         this.newName = '';
         this.load();
       },
-      error: () => this.toast.error('Could not add (the name may already exist)'),
+      error: () => this.toast.error(this.lang.t('common.addFailed')),
     });
   }
 
   remove(row: IngredientRow): void {
     const msg =
       row.usedInItems > 0
-        ? `${row.name} is used in ${row.usedInItems} recipe(s). Delete anyway?`
-        : `Delete ${row.name}?`;
+        ? this.lang.t('ing.confirmDeleteUsed', { name: row.name, count: row.usedInItems })
+        : this.lang.t('ing.confirmDelete', { name: row.name });
     if (!confirm(msg)) return;
     this.api.deleteIngredient(row.id).subscribe({ next: () => this.load() });
   }
@@ -81,11 +83,11 @@ export class IngredientsPanelComponent implements OnChanges {
       .subscribe({
         next: (saved) => {
           this.rows.update((list) => list.map((r) => (r.id === saved.id ? this.toRow(saved) : r)));
-          this.toast.success('Saved');
+          this.toast.success(this.lang.t('common.saved'));
         },
         error: () => {
           row.saving = false;
-          this.toast.error('Could not save');
+          this.toast.error(this.lang.t('common.saveFailed'));
         },
       });
   }
