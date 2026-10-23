@@ -34,7 +34,7 @@
           <div class="flex items-start justify-between mb-2">
             <div>
               <p class="font-bold text-stone-800 text-sm">
-                Order #{{ order.id.slice(-6).toUpperCase() }}
+                {{ 'orders.orderNo' | t: { no: order.id.slice(-6).toUpperCase() } }}
               </p>
               <p class="text-xs text-stone-400 mt-0.5">
                 {{ order.createdAt | ldate: 'shortDateTime' }}
@@ -47,12 +47,12 @@
           </div>
 
           <div class="text-xs text-stone-500 mb-2">
-            {{ order.items.length }} item{{ order.items.length > 1 ? 's' : '' }}
+            {{ 'common.items' | t: { count: order.items.length } }}
             @for (item of order.items.slice(0, 2); track item.id) {
               · {{ item.menuItemName }}
             }
             @if (order.items.length > 2) {
-              <span class="text-stone-400">+{{ order.items.length - 2 }} more</span>
+              <span class="text-stone-400">{{ 'common.more' | t: { count: order.items.length - 2 } }}</span>
             }
           </div>
 

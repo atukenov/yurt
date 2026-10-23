@@ -238,7 +238,7 @@
                 <td class="px-6 py-3 text-slate-500">{{ categoryName(item.categoryId) }}</td>
                 <td class="px-6 py-3 text-right font-semibold text-brand-ink">
                   @if (item.variants && item.variants.length > 0) {
-                    from {{ (item.variants | slice:0:1)[0].price | currency2 }}
+                    {{ 'common.fromPrice' | t: { price: ((item.variants | slice:0:1)[0].price | currency2) } }}
                   } @else {
                     {{ item.price | currency2 }}
                   }

@@ -238,7 +238,7 @@ export class MenuListComponent implements OnInit {
           n.delete(item.id);
           return n;
         });
-        this.toast.info('Removed from favorites');
+        this.toast.info(this.langService.t('fav.removed'));
       });
     } else {
       this.api.addFavorite(item.id).subscribe(() => {
@@ -247,7 +247,7 @@ export class MenuListComponent implements OnInit {
           n.add(item.id);
           return n;
         });
-        this.toast.success('Added to favorites ♥');
+        this.toast.success(this.langService.t('fav.added'));
       });
     }
   }
@@ -467,7 +467,7 @@ export class MenuListComponent implements OnInit {
       variantId: variant?.id,
       variantLabel: variant?.label,
     });
-    if (added) this.toast.success(`${item.name} added to cart`);
+    if (added) this.toast.success(this.langService.t('cart.added', { name: item.name }));
   }
 
   catChipClass(active: boolean): string {

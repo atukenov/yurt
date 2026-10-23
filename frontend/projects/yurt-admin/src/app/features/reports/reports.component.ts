@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { YurtApiService } from 'shared-api';
 import { UserReport } from 'shared-models';
 import { ToastService, LocalDatePipe } from 'shared-ui';
+import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 @Component({
@@ -14,6 +15,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 export class ReportsComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   tab = signal<'open' | 'resolved'>('open');
   reports = signal<UserReport[]>([]);
@@ -44,7 +46,7 @@ export class ReportsComponent implements OnInit {
       next: () => {
         this.resolvingId.set(null);
         this.reports.update((list) => list.filter((r) => r.id !== report.id));
-        this.toast.success('Report marked as resolved.');
+        this.toast.success(this.lang.t('reports.resolvedToast'));
       },
       error: () => this.resolvingId.set(null),
     });

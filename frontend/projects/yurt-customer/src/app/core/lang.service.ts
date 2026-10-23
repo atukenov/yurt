@@ -114,6 +114,23 @@ const T: Record<Lang, Record<string, string>> = {
     'group.members': 'Members', 'group.noItems': 'No items yet. Add something!', 'group.addItem': '+ Add Item', 'group.addItemTitle': 'Add Item',
     'group.search': 'Search…', 'group.placing': 'Placing order…', 'group.placeOrder': 'Place Order', 'group.placedToast': 'Order placed! ☕',
     'group.back': 'Back to cart', 'group.close': 'Close', 'group.removeItem': 'Remove item',
+    'common.items.one': '{count} item', 'common.items.other': '{count} items', 'common.more': '+{count} more',
+    'common.fromPrice': 'from {price}', 'orders.orderNo': 'Order #{no}', 'item.backToMenu': '← Back to menu',
+    'item.notHere': 'Not available at your selected location', 'item.selectSize': 'Please select a size', 'news.promo': 'Promo',
+    'news.tapToOpen': 'Tap to open ▶', 'day.1': 'Mon', 'day.2': 'Tue', 'day.3': 'Wed', 'day.4': 'Thu', 'day.5': 'Fri', 'day.6': 'Sat',
+    'day.7': 'Sun', 'auth.errFirstName': 'Enter your first name.', 'auth.errLastName': 'Enter your last name.',
+    'auth.errPhone': 'Enter your 10-digit mobile number.', 'auth.errPin': 'Enter your 4-digit PIN.',
+    'auth.errPinMismatch': 'PINs do not match.', 'auth.errCode': 'Enter the 4-digit code.',
+    'auth.loginFailed': 'Login failed. Please try again.', 'auth.registerFailed': 'Registration failed.',
+    'auth.verifyFailed': 'Verification failed.', 'auth.wrongCode': 'Incorrect code.', 'auth.codeSent': 'Code sent.',
+    'auth.sendCodeFailed': 'Could not send the verification code.', 'auth.resendFailed': 'Could not resend the code.',
+    'auth.devCode': 'Dev code: {code}', 'auth.accountCreated': 'Account created! Welcome to {name} ☕', 'order.notFound': 'Order not found.',
+    'profile.pinFormat': 'Both PINs must be exactly 4 digits.', 'profile.pinChanged': 'PIN changed successfully.',
+    'profile.accountDeleted': 'Account deleted.', 'profile.nameRequired': 'First and last name are required.',
+    'profile.updated': 'Profile updated.', 'profile.signedOut': 'Signed out', 'fav.added': 'Added to favorites ♥',
+    'fav.removed': 'Removed from favorites', 'cart.added': '{name} added to cart', 'cart.addedQty': '{qty}× {name} added to cart',
+    'cart.selectLocationFirst': 'Please select a location first.',
+    'cart.applePayFailed': 'Apple Pay didn’t complete. You can pay at the counter.',
   },
   ru: {
     'profile.spentTotal': 'всего', 'profile.achievementsHint': 'открывайте награды', 'profile.ordersHint': 'история и повтор', 'order.pickup': 'самовывоз',
@@ -226,6 +243,23 @@ const T: Record<Lang, Record<string, string>> = {
     'group.members': 'Участники', 'group.noItems': 'Пока пусто. Добавьте что-нибудь!', 'group.addItem': '+ Добавить', 'group.addItemTitle': 'Добавить в заказ',
     'group.search': 'Поиск…', 'group.placing': 'Оформляем заказ…', 'group.placeOrder': 'Оформить заказ', 'group.placedToast': 'Заказ оформлен! ☕',
     'group.back': 'Назад в корзину', 'group.close': 'Закрыть', 'group.removeItem': 'Убрать позицию',
+    'common.items.one': '{count} позиция', 'common.items.few': '{count} позиции', 'common.items.many': '{count} позиций',
+    'common.items.other': '{count} позиции', 'common.more': '+ ещё {count}', 'common.fromPrice': 'от {price}',
+    'orders.orderNo': 'Заказ №{no}', 'item.backToMenu': '← Назад в меню', 'item.notHere': 'Нет в выбранной кофейне',
+    'item.selectSize': 'Выберите размер', 'news.promo': 'Акция', 'news.tapToOpen': 'Нажмите, чтобы открыть ▶', 'day.1': 'Пн', 'day.2': 'Вт',
+    'day.3': 'Ср', 'day.4': 'Чт', 'day.5': 'Пт', 'day.6': 'Сб', 'day.7': 'Вс', 'auth.errFirstName': 'Введите имя.',
+    'auth.errLastName': 'Введите фамилию.', 'auth.errPhone': 'Введите 10-значный номер телефона.',
+    'auth.errPin': 'Введите 4-значный PIN-код.', 'auth.errPinMismatch': 'PIN-коды не совпадают.', 'auth.errCode': 'Введите 4-значный код.',
+    'auth.loginFailed': 'Не удалось войти. Попробуйте ещё раз.', 'auth.registerFailed': 'Не удалось зарегистрироваться.',
+    'auth.verifyFailed': 'Не удалось подтвердить номер.', 'auth.wrongCode': 'Неверный код.', 'auth.codeSent': 'Код отправлен.',
+    'auth.sendCodeFailed': 'Не удалось отправить код.', 'auth.resendFailed': 'Не удалось отправить код повторно.',
+    'auth.devCode': 'Тестовый код: {code}', 'auth.accountCreated': 'Аккаунт создан! Добро пожаловать в {name} ☕',
+    'order.notFound': 'Заказ не найден.', 'profile.pinFormat': 'Оба PIN-кода должны быть из 4 цифр.',
+    'profile.pinChanged': 'PIN-код изменён.', 'profile.accountDeleted': 'Аккаунт удалён.', 'profile.nameRequired': 'Укажите имя и фамилию.',
+    'profile.updated': 'Профиль обновлён.', 'profile.signedOut': 'Вы вышли из аккаунта', 'fav.added': 'Добавлено в избранное ♥',
+    'fav.removed': 'Удалено из избранного', 'cart.added': '{name} — в корзине', 'cart.addedQty': '{qty}× {name} — в корзине',
+    'cart.selectLocationFirst': 'Сначала выберите кофейню.',
+    'cart.applePayFailed': 'Оплата через Apple Pay не прошла. Можно оплатить на кассе.',
   },
   kk: {
     'profile.spentTotal': 'барлығы', 'profile.achievementsHint': 'марапаттарды ашыңыз', 'profile.ordersHint': 'тарих және қайталау', 'order.pickup': 'өзі алып кету',
@@ -338,6 +372,23 @@ const T: Record<Lang, Record<string, string>> = {
     'group.members': 'Қатысушылар', 'group.noItems': 'Әзірге бос. Бірдеңе қосыңыз!', 'group.addItem': '+ Қосу', 'group.addItemTitle': 'Тапсырысқа қосу',
     'group.search': 'Іздеу…', 'group.placing': 'Тапсырыс берілуде…', 'group.placeOrder': 'Тапсырыс беру', 'group.placedToast': 'Тапсырыс берілді! ☕',
     'group.back': 'Себетке оралу', 'group.close': 'Жабу', 'group.removeItem': 'Позицияны алып тастау',
+    'common.items.one': '{count} позиция', 'common.items.other': '{count} позиция', 'common.more': '+ тағы {count}',
+    'common.fromPrice': '{price} бастап', 'orders.orderNo': 'Тапсырыс №{no}', 'item.backToMenu': '← Мәзірге оралу',
+    'item.notHere': 'Таңдалған кофеханада жоқ', 'item.selectSize': 'Өлшемді таңдаңыз', 'news.promo': 'Акция',
+    'news.tapToOpen': 'Ашу үшін басыңыз ▶', 'day.1': 'Дс', 'day.2': 'Сс', 'day.3': 'Ср', 'day.4': 'Бс', 'day.5': 'Жм', 'day.6': 'Сб',
+    'day.7': 'Жс', 'auth.errFirstName': 'Атыңызды енгізіңіз.', 'auth.errLastName': 'Тегіңізді енгізіңіз.',
+    'auth.errPhone': '10 таңбалы телефон нөмірін енгізіңіз.', 'auth.errPin': '4 таңбалы PIN-кодты енгізіңіз.',
+    'auth.errPinMismatch': 'PIN-кодтар сәйкес келмейді.', 'auth.errCode': '4 таңбалы кодты енгізіңіз.',
+    'auth.loginFailed': 'Кіру мүмкін болмады. Қайталап көріңіз.', 'auth.registerFailed': 'Тіркелу мүмкін болмады.',
+    'auth.verifyFailed': 'Нөмірді растау мүмкін болмады.', 'auth.wrongCode': 'Код қате.', 'auth.codeSent': 'Код жіберілді.',
+    'auth.sendCodeFailed': 'Кодты жіберу мүмкін болмады.', 'auth.resendFailed': 'Кодты қайта жіберу мүмкін болмады.',
+    'auth.devCode': 'Тест коды: {code}', 'auth.accountCreated': 'Аккаунт құрылды! {name} — қош келдіңіз ☕',
+    'order.notFound': 'Тапсырыс табылмады.', 'profile.pinFormat': 'Екі PIN-код та 4 цифрдан тұруы керек.',
+    'profile.pinChanged': 'PIN-код өзгертілді.', 'profile.accountDeleted': 'Аккаунт жойылды.',
+    'profile.nameRequired': 'Аты мен тегін көрсетіңіз.', 'profile.updated': 'Профиль жаңартылды.', 'profile.signedOut': 'Аккаунттан шықтыңыз',
+    'fav.added': 'Таңдаулыларға қосылды ♥', 'fav.removed': 'Таңдаулылардан алынды', 'cart.added': '{name} себетке қосылды',
+    'cart.addedQty': '{qty}× {name} себетке қосылды', 'cart.selectLocationFirst': 'Алдымен кофехананы таңдаңыз.',
+    'cart.applePayFailed': 'Apple Pay арқылы төлем өтпеді. Кассада төлеуге болады.',
   },
 };
 
@@ -356,7 +407,18 @@ export class LangService {
     document.documentElement.lang = lang;
   }
 
-  t(key: string): string {
-    return T[this.lang()][key] ?? key;
+  /**
+   * The text for `key`, with {name} slots filled from `params`.
+   * A number `count` also picks the plural form: `key.one`, `key.few`, `key.many` or `key.other`.
+   */
+  t(key: string, params?: Record<string, string | number>): string {
+    const dict = T[this.lang()];
+    let text = dict[key];
+    if (text === undefined && typeof params?.['count'] === 'number') {
+      const form = new Intl.PluralRules(this.lang()).select(params['count']);
+      text = dict[`${key}.${form}`] ?? dict[`${key}.other`];
+    }
+    text ??= key;
+    return params ? text.replace(/\{(\w+)\}/g, (slot, name) => (name in params ? String(params[name]) : slot)) : text;
   }
 }

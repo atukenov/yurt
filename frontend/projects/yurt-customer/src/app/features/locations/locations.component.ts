@@ -41,7 +41,12 @@ export class LocationsComponent {
   }
 
   scheduleOf(loc: Location): ScheduleInfo {
-    return buildScheduleInfo(loc.workingHours, new Date());
+    const t = (key: string) => this.langService.t(key);
+    return buildScheduleInfo(loc.workingHours, new Date(), {
+      days: [1, 2, 3, 4, 5, 6, 7].map((d) => t(`day.${d}`)),
+      closed: t('loc.closedNow'),
+      closedToday: t('loc.closed'),
+    });
   }
 
   select(loc: Location): void {

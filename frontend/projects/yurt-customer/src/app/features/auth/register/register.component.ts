@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { YurtApiService, AuthStateService, BrandService } from 'shared-api';
 import { ButtonComponent, OtpBoxesComponent, ToastService } from 'shared-ui';
+import { LangService } from '../../../core/lang.service';
 import { TranslatePipe } from '../../../core/translate.pipe';
 
 @Component({
@@ -19,6 +20,7 @@ export class RegisterComponent implements OnDestroy {
   private router = inject(Router);
   private toast = inject(ToastService);
   readonly brand = inject(BrandService);
+  private lang = inject(LangService);
 
   readonly pinInputs = viewChildren<ElementRef>('pinInput');
   readonly confirmInputs = viewChildren<ElementRef>('confirmInput');
@@ -95,23 +97,23 @@ export class RegisterComponent implements OnDestroy {
   onRegister(): void {
     this.error.set('');
     if (!this.firstName.trim()) {
-      this.error.set('Enter your first name.');
+      this.error.set(this.lang.t('auth.errFirstName'));
       return;
     }
     if (!this.lastName.trim()) {
-      this.error.set('Enter your last name.');
+      this.error.set(this.lang.t('auth.errLastName'));
       return;
     }
     if (!/^\d{10}$/.test(this.phoneDigits)) {
-      this.error.set('Enter your 10-digit mobile number.');
+      this.error.set(this.lang.t('auth.errPhone'));
       return;
     }
     if (this.pin4.length !== 4) {
-      this.error.set('Enter a 4-digit PIN.');
+      this.error.set(this.lang.t('auth.errPin'));
       return;
     }
     if (this.pin4 !== this.confirmPin4) {
-      this.error.set('PINs do not match.');
+      this.error.set(this.lang.t('auth.errPinMismatch'));
       return;
     }
 
@@ -130,7 +132,7 @@ export class RegisterComponent implements OnDestroy {
               displayName: res.auth.displayName,
               userType: res.auth.userType,
             });
-            this.toast.success(`Account created! Welcome to ${this.brand.name()} ☕`);
+            this.toast.success(this.lang.t('auth.accountCreated', { name: this.brand.name() }));
             this.router.navigate(['/locations']);
             return;
           }
@@ -140,12 +142,12 @@ export class RegisterComponent implements OnDestroy {
           this.step.set('otp');
           this.startResendCountdown();
           if (res.devCode) {
-            this.toast.success('Dev code: ' + res.devCode);
+            this.toast.success(this.lang.t('auth.devCode', { code: res.devCode }));
           }
         },
         error: (err) => {
           this.loading.set(false);
-          this.error.set(err.error?.title ?? 'Registration failed.');
+          this.error.set(err.error?.title ?? this.lang.t('auth.registerFailed'));
         },
       });
   }
@@ -153,7 +155,7 @@ export class RegisterComponent implements OnDestroy {
   onVerify(): void {
     this.error.set('');
     if (this.otp.length !== 4) {
-      this.error.set('Enter the 4-digit code.');
+      this.error.set(this.lang.t('auth.errCode'));
       return;
     }
 
@@ -167,12 +169,12 @@ export class RegisterComponent implements OnDestroy {
           displayName: res.displayName,
           userType: res.userType,
         });
-        this.toast.success(`Account created! Welcome to ${this.brand.name()} ☕`);
+        this.toast.success(this.lang.t('auth.accountCreated', { name: this.brand.name() }));
         this.router.navigate(['/locations']);
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.title ?? 'Verification failed.');
+        this.error.set(err.error?.title ?? this.lang.t('auth.verifyFailed'));
       },
     });
   }
@@ -188,12 +190,12 @@ export class RegisterComponent implements OnDestroy {
           this.loading.set(false);
           this.otpBoxes()?.clear();
           this.startResendCountdown();
-          if (res.devCode) this.toast.success('Dev code: ' + res.devCode);
-          else this.toast.success('Code sent.');
+          if (res.devCode) this.toast.success(this.lang.t('auth.devCode', { code: res.devCode }));
+          else this.toast.success(this.lang.t('auth.codeSent'));
         },
         error: (err) => {
           this.loading.set(false);
-          this.error.set(err.error?.title ?? 'Could not resend the code.');
+          this.error.set(err.error?.title ?? this.lang.t('auth.resendFailed'));
         },
       });
   }

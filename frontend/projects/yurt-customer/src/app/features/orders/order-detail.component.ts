@@ -90,7 +90,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.loading.set(false);
-        this.toast.error('Order not found.');
+        this.toast.error(this.lang.t('order.notFound'));
       },
     });
     this.signalr.startConnection().then(() => {
@@ -220,7 +220,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
       next: (o) => {
         this.order.set(o);
         this.submittingRating.set(false);
-        this.toast.success('Thanks for your feedback!');
+        this.toast.success(this.lang.t('rating.thanks'));
       },
       error: () => this.submittingRating.set(false),
     });

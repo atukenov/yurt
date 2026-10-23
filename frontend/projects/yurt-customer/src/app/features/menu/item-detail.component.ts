@@ -322,7 +322,7 @@ export class ItemDetailComponent implements OnInit {
     if (!item) return;
     const variant = this.selectedVariant();
     if (item.variants?.length && !variant) {
-      this.toast.warning('Please select a size');
+      this.toast.warning(this.langService.t('item.selectSize'));
       return;
     }
     const selectedToppings = (item.availableToppings ?? [])
@@ -338,7 +338,7 @@ export class ItemDetailComponent implements OnInit {
       variantId: variant?.id,
       variantLabel: variant?.label,
     });
-    this.toast.success(`${this.quantity()}x ${item.name} added to cart`);
+    this.toast.success(this.langService.t('cart.addedQty', { qty: this.quantity(), name: item.name }));
     this.router.navigate(['/menu']);
   }
 
@@ -346,12 +346,12 @@ export class ItemDetailComponent implements OnInit {
     if (this.isFav()) {
       this.api.removeFavorite(this.id).subscribe(() => {
         this.isFav.set(false);
-        this.toast.info('Removed from favorites');
+        this.toast.info(this.langService.t('fav.removed'));
       });
     } else {
       this.api.addFavorite(this.id).subscribe(() => {
         this.isFav.set(true);
-        this.toast.success('Added to favorites ♥');
+        this.toast.success(this.langService.t('fav.added'));
       });
     }
   }

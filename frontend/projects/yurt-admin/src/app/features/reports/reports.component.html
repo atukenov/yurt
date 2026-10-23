@@ -2,26 +2,26 @@
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">{{ 'nav.reports' | t }}</h1>
-      <p class="text-sm text-slate-500 mt-0.5">Customer-submitted problem reports</p>
+      <p class="text-sm text-slate-500 mt-0.5">{{ 'reports.subtitle' | t }}</p>
     </div>
   </div>
 
   <!-- Tabs -->
-  <div class="flex gap-2 mb-6" role="group" aria-label="Report status">
+  <div class="flex gap-2 mb-6" role="group" [attr.aria-label]="'reports.statusGroup' | t">
     <button
       (click)="setTab('open')"
       [attr.aria-pressed]="tab() === 'open'"
       [class]="tab() === 'open'
         ? 'px-4 py-2 rounded-xl bg-brand-500 text-on-brand font-semibold text-sm'
         : 'px-4 py-2 rounded-xl bg-surface border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50'"
-    >Open</button>
+    >{{ 'reports.open' | t }}</button>
     <button
       (click)="setTab('resolved')"
       [attr.aria-pressed]="tab() === 'resolved'"
       [class]="tab() === 'resolved'
         ? 'px-4 py-2 rounded-xl bg-brand-500 text-on-brand font-semibold text-sm'
         : 'px-4 py-2 rounded-xl bg-surface border border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50'"
-    >Resolved</button>
+    >{{ 'reports.resolved' | t }}</button>
   </div>
 
   @if (loading()) {
@@ -36,7 +36,7 @@
     </div>
   } @else if (!reports().length) {
     <div class="bg-surface rounded-2xl border border-slate-100 p-12 text-center">
-      <p class="text-slate-500 font-medium">No {{ tab() === 'open' ? 'open' : 'resolved' }} reports</p>
+      <p class="text-slate-500 font-medium">{{ (tab() === 'open' ? 'reports.noneOpen' : 'reports.noneResolved') | t }}</p>
     </div>
   } @else {
     <div class="space-y-3">
@@ -51,7 +51,7 @@
               </div>
               <p class="text-slate-700 text-sm leading-relaxed">{{ report.text }}</p>
               @if (report.resolvedAt) {
-                <p class="text-xs text-green-500 mt-2">Resolved {{ report.resolvedAt | ldate: 'shortDateTime24' }}</p>
+                <p class="text-xs text-green-500 mt-2">{{ 'reports.resolvedAt' | t: { date: (report.resolvedAt | ldate: 'shortDateTime24') } }}</p>
               }
             </div>
             @if (tab() === 'open') {
@@ -60,7 +60,7 @@
                 [disabled]="resolvingId() === report.id"
                 class="shrink-0 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-50"
               >
-                {{ resolvingId() === report.id ? 'Resolving…' : 'Resolve' }}
+                {{ (resolvingId() === report.id ? 'reports.resolving' : 'reports.resolve') | t }}
               </button>
             }
           </div>

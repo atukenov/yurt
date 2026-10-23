@@ -177,7 +177,7 @@ export class NewsComponent implements OnInit {
       quantity: 1,
       imageUrl: item.imageUrl,
     });
-    if (added) this.toast.success(`${item.name} added to cart`);
+    if (added) this.toast.success(this.lang.t('cart.added', { name: item.name }));
   }
 
   // Base MenuItem.price is a placeholder (often 0) for items sold in size variants —
