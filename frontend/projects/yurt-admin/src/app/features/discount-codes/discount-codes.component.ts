@@ -6,6 +6,7 @@ import { ToastService, LocalDatePipe, LocalNumberPipe } from 'shared-ui';
 import { DiscountCode } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
+import { AdminLangService } from '../../core/lang.service';
 
 @Component({
   selector: 'app-discount-codes',
@@ -16,6 +17,7 @@ import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
 export class DiscountCodesComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
   private confirmSvc = inject(ConfirmService);
 
   codes = signal<DiscountCode[]>([]);
@@ -71,7 +73,7 @@ export class DiscountCodesComponent implements OnInit {
 
   save(): void {
     if (!this.formCode.trim() || !this.formTitle.trim() || this.formValue <= 0) {
-      this.toast.warning('Please fill in all required fields.');
+      this.toast.warning(this.lang.t('discountCodes.fillRequired'));
       return;
     }
     this.saving.set(true);
@@ -96,7 +98,7 @@ export class DiscountCodesComponent implements OnInit {
       next: () => {
         this.saving.set(false);
         this.showForm.set(false);
-        this.toast.success(edit ? 'Discount code updated.' : 'Discount code created.');
+        this.toast.success(edit ? this.lang.t('discountCodes.updated') : this.lang.t('discountCodes.created'));
         this.load();
       },
       error: () => this.saving.set(false),
@@ -104,9 +106,9 @@ export class DiscountCodesComponent implements OnInit {
   }
 
   async delete(code: DiscountCode): Promise<void> {
-    if (!await this.confirmSvc.confirm('Delete Code', `Delete code "${code.code}"?`)) return;
+    if (!await this.confirmSvc.confirm(this.lang.t('discountCodes.deleteTitle'), this.lang.t('common.deleteNamed', { name: code.code }))) return;
     this.api.deleteDiscountCode(code.id).subscribe({
-      next: () => { this.toast.success('Deleted.'); this.load(); },
+      next: () => { this.toast.success(this.lang.t('discountCodes.deleted')); this.load(); },
       error: () => {},
     });
   }

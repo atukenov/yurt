@@ -25,7 +25,7 @@
           <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-4">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="font-mono font-bold text-slate-800 text-lg">v{{ r.version }}</span>
-              @if (first) { <span class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">latest</span> }
+              @if (first) { <span class="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">{{ 'rel.latest' | t }}</span> }
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
                 [class]="r.isMandatory ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'">
                 {{ r.isMandatory ? ('rel.mandatoryShort' | t) : ('rel.optional' | t) }}
@@ -70,7 +70,7 @@
             </div>
           </div>
           <textarea id="rel-notes" rows="6" [(ngModel)]="currentNotes" [name]="'notes'"
-            placeholder="Cancel your order before it's accepted&#10;2GIS directions for accepted orders"
+            [placeholder]="'rel.notesExample' | t"
             class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"></textarea>
           <p class="text-xs text-slate-500 mt-1">{{ 'rel.notesHint' | t }}</p>
         </div>

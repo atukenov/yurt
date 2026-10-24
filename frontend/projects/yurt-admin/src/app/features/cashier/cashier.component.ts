@@ -88,7 +88,7 @@ export class CashierComponent implements OnInit {
     this.api.retryFiscalReceipt(r.id).subscribe({
       next: (saved) => {
         this.busy.set(false);
-        if (saved.status === 'Pending') this.toast.error(saved.lastError || 'Not sent');
+        if (saved.status === 'Pending') this.toast.error(saved.lastError || this.lang.t('common.notSent'));
         this.loadWaitingReceipts();
       },
       error: () => this.busy.set(false),
@@ -126,7 +126,7 @@ export class CashierComponent implements OnInit {
       },
       error: () => {
         this.busy.set(false);
-        this.toast.error('Could not open the shift (one may already be open)');
+        this.toast.error(this.lang.t('cash.openFailed'));
       },
     });
   }
@@ -147,7 +147,7 @@ export class CashierComponent implements OnInit {
         },
         error: () => {
           this.busy.set(false);
-          this.toast.error('Could not save');
+          this.toast.error(this.lang.t('common.saveFailed'));
         },
       });
   }
@@ -155,7 +155,7 @@ export class CashierComponent implements OnInit {
   close(closeWithWaitingReceipts = false): void {
     const s = this.shift();
     if (!s || this.countedCash === null || `${this.countedCash}` === '') return;
-    if (!closeWithWaitingReceipts && !confirm('Close the shift? This cannot be undone.')) return;
+    if (!closeWithWaitingReceipts && !confirm(this.lang.t('cash.confirmClose'))) return;
     this.busy.set(true);
     this.api
       .closeShift(s.id, {
@@ -183,7 +183,7 @@ export class CashierComponent implements OnInit {
             if (confirm(this.lang.t('cash.fiscal.closeAnyway'))) this.close(true);
             return;
           }
-          this.toast.error('Could not close the shift');
+          this.toast.error(this.lang.t('cash.closeFailed'));
         },
       });
   }

@@ -52,7 +52,7 @@
                     <span class="text-brand-ink font-semibold">{{ code.discountValue | lnumber: '1.0-0' }} ₸</span>
                   }
                   @if (code.minOrderAmount) {
-                    <span class="text-xs text-slate-500 ml-1">(min {{ code.minOrderAmount | lnumber: '1.0-0' }} ₸)</span>
+                    <span class="text-xs text-slate-500 ml-1">{{ 'discountCodes.minShort' | t: { amount: (code.minOrderAmount | lnumber: '1.0-0') } }}</span>
                   }
                 </td>
                 <td class="px-4 py-3 text-slate-600">

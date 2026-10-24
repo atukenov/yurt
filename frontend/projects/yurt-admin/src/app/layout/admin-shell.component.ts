@@ -84,7 +84,7 @@ export class AdminShellComponent implements OnDestroy {
   logout(): void {
     this.bluetooth.stop();
     this.auth.logout();
-    this.toast.info('Signed out');
+    this.toast.info(this.langService.t('auth.signedOut'));
     this.router.navigate(['/auth/login']);
   }
 }

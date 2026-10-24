@@ -40,6 +40,33 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
+// Both apps keep <html lang> set to the language the person picked, so this
+// shared code can answer in it without knowing about either app's lang service.
+const MESSAGES: Record<'en' | 'ru' | 'kk', Record<'offline' | 'server' | 'forbidden' | 'failed', string>> = {
+  en: {
+    offline: 'You appear to be offline. Check your connection and try again.',
+    server: 'Something went wrong on our end. Please try again in a moment.',
+    forbidden: "You don't have permission to do that.",
+    failed: 'Request failed ({status}). Please try again.',
+  },
+  ru: {
+    offline: 'Похоже, нет интернета. Проверьте подключение и попробуйте ещё раз.',
+    server: 'Что-то пошло не так на нашей стороне. Попробуйте ещё раз чуть позже.',
+    forbidden: 'У вас нет прав на это действие.',
+    failed: 'Запрос не выполнен ({status}). Попробуйте ещё раз.',
+  },
+  kk: {
+    offline: 'Интернет жоқ сияқты. Байланысты тексеріп, қайталап көріңіз.',
+    server: 'Біз жақта бірдеңе дұрыс болмады. Сәлден соң қайталап көріңіз.',
+    forbidden: 'Бұл әрекетке рұқсатыңыз жоқ.',
+    failed: 'Сұраныс орындалмады ({status}). Қайталап көріңіз.',
+  },
+};
+
+export function errorMessage(key: keyof (typeof MESSAGES)['en'], lang = document.documentElement.lang): string {
+  return (MESSAGES[lang as keyof typeof MESSAGES] ?? MESSAGES.en)[key];
+}
+
 function describeError(err: HttpErrorResponse): string {
   // ASP.NET's ProblemDetails convention (used throughout this API) puts the
   // user-facing message in `title`, with `detail` for extra context.
@@ -47,15 +74,15 @@ function describeError(err: HttpErrorResponse): string {
   if (backendMessage) return backendMessage;
 
   if (err.status === 0) {
-    return 'You appear to be offline. Check your connection and try again.';
+    return errorMessage('offline');
   }
   if (err.status >= 500) {
-    return 'Something went wrong on our end. Please try again in a moment.';
+    return errorMessage('server');
   }
   if (err.status === 403) {
-    return "You don't have permission to do that.";
+    return errorMessage('forbidden');
   }
-  return `Request failed (${err.status}). Please try again.`;
+  return errorMessage('failed').replace('{status}', String(err.status));
 }
 
 // No error-reporting/telemetry sink exists in this codebase yet — this is the

@@ -168,7 +168,7 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.busyId.set(null);
-        this.toast.error('Could not update the order');
+        this.toast.error(this.lang.t('common.orderUpdateFailed'));
       },
     });
   }
@@ -208,19 +208,19 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
         this.newStation = '';
         this.loadRouting();
       },
-      error: () => this.toast.error('Could not add (the name may already exist)'),
+      error: () => this.toast.error(this.lang.t('common.addFailed')),
     });
   }
 
   removeStation(id: string): void {
-    if (!confirm('Delete this station? Its categories will show on every screen again.')) return;
+    if (!confirm(this.lang.t('kitchen.confirmDeleteStation'))) return;
     this.api.deleteStation(id).subscribe({ next: () => this.loadRouting() });
   }
 
   routeCategory(categoryId: string, stationId: string): void {
     this.api.setCategoryStation(categoryId, stationId || null).subscribe({
       next: () => this.loadRouting(),
-      error: () => this.toast.error('Could not save'),
+      error: () => this.toast.error(this.lang.t('common.saveFailed')),
     });
   }
 
@@ -233,7 +233,7 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.busyId.set(null);
-        this.toast.error('Could not update the order');
+        this.toast.error(this.lang.t('common.orderUpdateFailed'));
       },
     });
   }

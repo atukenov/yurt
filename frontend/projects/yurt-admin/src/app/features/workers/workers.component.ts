@@ -5,6 +5,7 @@ import { YurtApiService } from 'shared-api';
 import { ToastService, LocalDatePipe } from 'shared-ui';
 import { WorkerAccount } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 @Component({
   selector: 'app-workers',
@@ -15,6 +16,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 export class WorkersComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   workers = signal<WorkerAccount[]>([]);
   loading = signal(true);
@@ -59,7 +61,7 @@ export class WorkersComponent implements OnInit {
         this.workers.update((list) => [...list, w]);
         this.showCreate.set(false);
         this.createLoading.set(false);
-        this.toast.success('Worker account created.');
+        this.toast.success(this.lang.t('workers.createdToast'));
       },
       error: () => this.createLoading.set(false),
     });
@@ -80,7 +82,7 @@ export class WorkersComponent implements OnInit {
         this.workers.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
         this.editWorker.set(null);
         this.editLoading.set(false);
-        this.toast.success('Worker updated.');
+        this.toast.success(this.lang.t('workers.updatedToast'));
       },
       error: () => this.editLoading.set(false),
     });
@@ -90,7 +92,7 @@ export class WorkersComponent implements OnInit {
     this.api.setWorkerActive(worker.id, !worker.isActive).subscribe({
       next: (updated) => {
         this.workers.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
-        this.toast.success(updated.isActive ? 'Worker activated.' : 'Worker deactivated.');
+        this.toast.success(updated.isActive ? this.lang.t('workers.activatedToast') : this.lang.t('workers.deactivatedToast'));
       },
       error: () => {},
     });
@@ -109,7 +111,7 @@ export class WorkersComponent implements OnInit {
       next: () => {
         this.resetWorker.set(null);
         this.resetLoading.set(false);
-        this.toast.success('Password reset.');
+        this.toast.success(this.lang.t('workers.pwResetToast'));
       },
       error: () => this.resetLoading.set(false),
     });

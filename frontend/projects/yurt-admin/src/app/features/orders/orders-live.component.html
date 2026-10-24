@@ -11,7 +11,7 @@
             class="w-2 h-2 rounded-full animate-pulse"
           ></span>
           <span class="text-xs text-slate-500">{{
-            signalr.connected() ? 'Live' : 'Disconnected'
+            (signalr.connected() ? 'common.live' : 'common.disconnected') | t
           }}</span>
         </div>
       </div>

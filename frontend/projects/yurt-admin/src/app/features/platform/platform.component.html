@@ -210,7 +210,7 @@
                 </div>
               }
             </div>
-            @if ((brand().links ?? []).length < 6) {
+            @if (6 > (brand().links ?? []).length) {
               <button type="button" (click)="addBrandLink()" class="mt-2 text-sm font-semibold text-slate-600 hover:underline">+ {{ 'plat.brandLinkAdd' | t }}</button>
             }
           </div>
@@ -368,7 +368,7 @@
           @if (c.mismatches.length) {
             <ul class="mt-2 text-xs text-slate-600 space-y-0.5">
               @for (m of c.mismatches.slice(0, 10); track m.phone) {
-                <li>{{ m.phone }}: iiko {{ m.iiko }} / {{ 'plat.loyalty.ownWallet' | t }} {{ m.native }}</li>
+                <li>{{ 'plat.loyalty.mismatchLine' | t: { phone: m.phone, iiko: m.iiko, native: m.native } }}</li>
               }
             </ul>
           }

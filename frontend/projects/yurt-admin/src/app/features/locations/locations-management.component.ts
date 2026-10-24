@@ -6,6 +6,7 @@ import { Location, IikoTerminalGroup } from 'shared-models';
 import { ButtonComponent, ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
+import { AdminLangService } from '../../core/lang.service';
 
 export interface WorkingSlot {
   day: number; // 1=Mon … 7=Sun
@@ -55,9 +56,9 @@ export class LocationsManagementComponent implements OnInit {
   private api = inject(YurtApiService);
   readonly modules = inject(ModuleService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
   private confirmSvc = inject(ConfirmService);
 
-  readonly DAY_NAMES = DAY_NAMES;
 
   locations = signal<Location[]>([]);
   loading = signal(true);
@@ -143,12 +144,12 @@ export class LocationsManagementComponent implements OnInit {
       const slots: WorkingSlot[] = JSON.parse(wh);
       if (!Array.isArray(slots)) return wh;
       const open = slots.filter((s) => s.enabled);
-      if (!open.length) return 'Closed';
+      if (!open.length) return this.lang.t('locations.closed');
       const allSame = open.every((s) => s.from === open[0].from && s.to === open[0].to);
-      const names = open.map((s) => DAY_NAMES[s.day - 1]);
+      const names = open.map((s) => this.lang.t(`day.${s.day}`));
       const timeStr = `${open[0].from}–${open[0].to}`;
-      if (open.length === 7) return allSame ? `Daily ${timeStr}` : 'Daily (varied hours)';
-      return allSame ? `${names.join(', ')} ${timeStr}` : `${open.length} days open`;
+      if (open.length === 7) return allSame ? this.lang.t('locations.daily', { time: timeStr }) : this.lang.t('locations.dailyVaried');
+      return allSame ? `${names.join(', ')} ${timeStr}` : this.lang.t('locations.daysOpen', { count: open.length });
     } catch {
       return wh;
     }
@@ -157,7 +158,7 @@ export class LocationsManagementComponent implements OnInit {
   save(): void {
     const f = this.form();
     if (!f.name || !f.address) {
-      this.toast.error('Name and address are required');
+      this.toast.error(this.lang.t('locations.required'));
       return;
     }
     this.saving.set(true);
@@ -184,18 +185,18 @@ export class LocationsManagementComponent implements OnInit {
         }
         this.saving.set(false);
         this.showDialog.set(false);
-        this.toast.success('Location saved');
+        this.toast.success(this.lang.t('locations.saved'));
       },
       error: () => this.saving.set(false),
     });
   }
 
   async deleteLocation(loc: Location): Promise<void> {
-    if (!await this.confirmSvc.confirm('Delete Location', `Delete "${loc.name}"?`)) return;
+    if (!await this.confirmSvc.confirm(this.lang.t('locations.deleteTitle'), this.lang.t('common.deleteNamed', { name: loc.name }))) return;
     this.api.deleteLocation(loc.id).subscribe({
       next: () => {
         this.locations.update((list) => list.filter((l) => l.id !== loc.id));
-        this.toast.success('Location deleted');
+        this.toast.success(this.lang.t('locations.deleted'));
       },
       error: () => {},
     });

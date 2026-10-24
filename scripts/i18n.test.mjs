@@ -60,18 +60,19 @@ for (const app of apps) {
 }
 
 const customerApp = join(repo, 'frontend/projects/yurt-customer/src/app');
+const adminApp = join(repo, 'frontend/projects/yurt-admin/src/app');
 
-test('customer: every key used in a template or component exists', () => {
-  const en = keysByLang('customer').en;
+for (const [app, dir] of [['customer', customerApp], ['admin', adminApp]]) test(`${app}: every key used in a template or component exists`, () => {
+  const en = keysByLang(app).en;
   const unknown = [];
-  for (const f of htmlFiles(customerApp)) {
+  for (const f of htmlFiles(dir)) {
     for (const m of readFileSync(f, 'utf8').matchAll(/'([a-zA-Z0-9]+\.[a-zA-Z0-9.]+)'\s*\|\s*t\b/g)) {
-      if (!en.has(m[1]) && !en.has(`${m[1]}.other`)) unknown.push(`${f.slice(customerApp.length + 1)}: ${m[1]}`);
+      if (!en.has(m[1]) && !en.has(`${m[1]}.other`)) unknown.push(`${f.slice(dir.length + 1)}: ${m[1]}`);
     }
   }
-  for (const f of tsFiles(customerApp)) {
+  for (const f of tsFiles(dir)) {
     for (const m of readFileSync(f, 'utf8').matchAll(/\.t\('([a-zA-Z0-9]+\.[a-zA-Z0-9.]+)'/g)) {
-      if (!en.has(m[1]) && !en.has(`${m[1]}.other`)) unknown.push(`${f.slice(customerApp.length + 1)}: ${m[1]}`);
+      if (!en.has(m[1]) && !en.has(`${m[1]}.other`)) unknown.push(`${f.slice(dir.length + 1)}: ${m[1]}`);
     }
   }
   assert.deepEqual(unknown, []);
@@ -99,7 +100,8 @@ function readableText(html) {
   const out = [];
   // Words in quotes inside {{ }}, like {{ busy ? 'Saving…' : 'Save' }}, unless they go through | t.
   for (const expr of html.matchAll(/\{\{([\s\S]*?)\}\}/g)) {
-    for (const q of expr[1].matchAll(/'([A-Z][a-z][^']*)'(?!\s*\|\s*t\b)/g)) out.push(q[1]);
+    // A value compared with === (like kind === 'Return') is data, not text.
+    for (const q of expr[1].matchAll(/(?<![=!]==\s*)'([A-Z][a-z][^']*)'(?!\s*\|\s*t\b)/g)) out.push(q[1]);
   }
   html = html.replace(/\{\{[\s\S]*?\}\}/g, ' ');
   for (const tag of html.matchAll(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g)) {
@@ -141,32 +143,33 @@ function hardCodedEnglish(dir) {
   return found;
 }
 
-test('customer: templates have no hard-coded English text', () => {
-  assert.deepEqual(hardCodedEnglish(customerApp), []);
-});
+for (const [app, dir] of [['customer', customerApp], ['admin', adminApp]]) {
+  test(`${app}: templates have no hard-coded English text`, () => {
+    assert.deepEqual(hardCodedEnglish(dir), []);
+  });
+}
 
-test('customer: toasts and form errors are translated', () => {
+/** Toasts, form errors, fallbacks and confirm() questions in an app's .ts files that are plain English. */
+function untranslatedMessages(dir) {
   const found = [];
-  for (const f of tsFiles(customerApp)) {
+  for (const f of tsFiles(dir)) {
     const src = readFileSync(f, 'utf8');
     // toast.x('Text'), error.set('Text'), x ?? 'Some text' (a translation key like 'group.x' is fine).
-    for (const m of src.matchAll(/(?:toast\.\w+\(|[eE]rror\.set\(|(\?\?))\s*(['`])((?:[A-Za-z]|\$\{)[^'`]*)\2/g)) {
+    for (const m of src.matchAll(/(?:toast\.\w+\(|[eE]rror\.set\(|confirm\(|(\?\?))\s*(['`])((?:[A-Za-z]|\$\{)[^'`]*)\2/g)) {
       const [, fallback, , text] = m;
-      if (/^[a-z]+\.[a-zA-Z.]+$/.test(text) || (fallback && !text.includes(' '))) continue;
-      found.push(`${f.slice(customerApp.length + 1)}: ${text}`);
+      // CSS classes like 'bg-slate-100 text-slate-700' are not text either.
+      if (/^[a-z]+\.[a-zA-Z.]+$/.test(text) || (fallback && !text.includes(' ')) || /^([a-z]+-[\w-]+\s*)+$/.test(text)) continue;
+      found.push(`${f.slice(dir.length + 1)}: ${text}`);
     }
   }
-  assert.deepEqual(found, []);
-});
+  return found;
+}
 
-// The admin app still has English left (sign-in, menu editor, iiko setup...). This number may only go down:
-// when you translate more, lower it to what the failure message says.
-const adminEnglishLeft = 98;
-
-test('admin: hard-coded English in templates does not grow', () => {
-  const found = hardCodedEnglish(join(repo, 'frontend/projects/yurt-admin/src/app'));
-  assert.ok(found.length <= adminEnglishLeft, `${found.length} English bits in admin templates (limit ${adminEnglishLeft}):\n${found.join('\n')}`);
-});
+for (const [app, dir] of [['customer', customerApp], ['admin', adminApp]]) {
+  test(`${app}: toasts, form errors and confirm questions are translated`, () => {
+    assert.deepEqual(untranslatedMessages(dir), []);
+  });
+}
 
 const groupOrder = join(customerApp, 'features/group-order');
 

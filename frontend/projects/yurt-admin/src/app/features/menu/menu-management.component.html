@@ -24,7 +24,7 @@
       >
         {{ 'menu.allItems' | t }}
       </button>
-      <div cdkDropList aria-label="Categories" (cdkDropListDropped)="dropCategory($event)">
+      <div cdkDropList [attr.aria-label]="'menu.categories' | t" (cdkDropListDropped)="dropCategory($event)">
         @for (cat of categories(); track cat.id; let i = $index) {
           <div
             cdkDrag
@@ -100,7 +100,7 @@
       <button
         (click)="mobileCatOpen.set(true)"
         class="md:hidden text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl px-2.5 py-1.5 transition-colors"
-        aria-label="Categories"
+        [attr.aria-label]="'menu.categories' | t"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -189,9 +189,9 @@
         <div class="p-8 text-center text-slate-500 animate-pulse">{{ 'label.loading' | t }}</div>
       } @else {
         @if (!itemsReorderable() && selectedCategoryId()) {
-          <p class="px-6 pt-3 text-xs text-slate-500">Clear the search to reorder items.</p>
+          <p class="px-6 pt-3 text-xs text-slate-500">{{ 'menu.reorderClearSearch' | t }}</p>
         } @else if (!selectedCategoryId()) {
-          <p class="px-6 pt-3 text-xs text-slate-500">Select a category from the sidebar to reorder its items.</p>
+          <p class="px-6 pt-3 text-xs text-slate-500">{{ 'menu.reorderPickCategory' | t }}</p>
         }
         <table class="w-full text-sm">
           <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
@@ -207,7 +207,7 @@
           <tbody
             class="bg-surface divide-y divide-slate-50"
             cdkDropList
-            aria-label="Items"
+            [attr.aria-label]="'menu.items' | t"
             [cdkDropListDisabled]="!itemsReorderable()"
             (cdkDropListDropped)="dropItem($event)"
           >
@@ -360,22 +360,22 @@
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">EN</span>
               <input type="text" [ngModel]="itemForm().name" (ngModelChange)="patchItemForm('name', $event)"
-                placeholder="Name in English"
-                aria-label="Name (English)"
+                [placeholder]="'menu.f.nameEn' | t"
+                [attr.aria-label]="'menu.f.nameEn' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">RU</span>
               <input type="text" [ngModel]="itemForm().nameRu" (ngModelChange)="patchItemForm('nameRu', $event)"
-                placeholder="Название на русском"
-                aria-label="Name (Russian)"
+                [placeholder]="'menu.f.nameRu' | t"
+                [attr.aria-label]="'menu.f.nameRu' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">KZ</span>
               <input type="text" [ngModel]="itemForm().nameKk" (ngModelChange)="patchItemForm('nameKk', $event)"
-                placeholder="Қазақша атауы"
-                aria-label="Name (Kazakh)"
+                [placeholder]="'menu.f.nameKk' | t"
+                [attr.aria-label]="'menu.f.nameKk' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
             </div>
           </div>
@@ -386,22 +386,22 @@
             <div class="flex gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0 pt-2">EN</span>
               <textarea [ngModel]="itemForm().description" (ngModelChange)="patchItemForm('description', $event)"
-                rows="2" placeholder="Description in English"
-                aria-label="Description (English)"
+                rows="2" [placeholder]="'menu.f.descEn' | t"
+                [attr.aria-label]="'menu.f.descEn' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea>
             </div>
             <div class="flex gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0 pt-2">RU</span>
               <textarea [ngModel]="itemForm().descriptionRu" (ngModelChange)="patchItemForm('descriptionRu', $event)"
-                rows="2" placeholder="Описание на русском"
-                aria-label="Description (Russian)"
+                rows="2" [placeholder]="'menu.f.descRu' | t"
+                [attr.aria-label]="'menu.f.descRu' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea>
             </div>
             <div class="flex gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0 pt-2">KZ</span>
               <textarea [ngModel]="itemForm().descriptionKk" (ngModelChange)="patchItemForm('descriptionKk', $event)"
-                rows="2" placeholder="Қазақша сипаттамасы"
-                aria-label="Description (Kazakh)"
+                rows="2" [placeholder]="'menu.f.descKk' | t"
+                [attr.aria-label]="'menu.f.descKk' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea>
             </div>
           </div>
@@ -436,29 +436,29 @@
         @if (modules.isEnabled('iiko_sync')) {
           <!-- iiko order-push mapping (optional) -->
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">iiko product mapping (optional)</label>
-            <p class="text-xs text-slate-500 mb-2">Maps this item to iiko's catalog so accepted orders can be pushed to iiko as real orders. Leave unmapped to skip iiko for this item.</p>
+            <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.iiko.mapping' | t }}</label>
+            <p class="text-xs text-slate-500 mb-2">{{ 'menu.iiko.mappingHint' | t }}</p>
             <div class="grid grid-cols-2 gap-2">
               <select
-                aria-label="iiko product mapping"
+                [attr.aria-label]="'menu.iiko.product' | t"
                 [ngModel]="itemForm().iikoProductId"
                 (ngModelChange)="onIikoProductChange($event)"
                 class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
               >
-                <option value="">Not mapped</option>
+                <option value="">{{ 'common.notMapped' | t }}</option>
                 @for (p of iikoNomenclature(); track p.productId) {
                   <option [value]="p.productId">{{ p.name }}</option>
                 }
               </select>
               @if (itemForm().variants.length === 0) {
                 <select
-                  aria-label="iiko product size mapping"
+                  [attr.aria-label]="'menu.iiko.productSize' | t"
                   [ngModel]="itemForm().iikoProductSizeId"
                   (ngModelChange)="patchItemForm('iikoProductSizeId', $event)"
                   [disabled]="!selectedIikoProduct()?.sizes?.length"
                   class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none disabled:bg-slate-50 disabled:text-slate-400"
                 >
-                  <option value="">{{ selectedIikoProduct()?.sizes?.length ? 'Select size' : 'No sizes' }}</option>
+                  <option value="">{{ (selectedIikoProduct()?.sizes?.length ? 'menu.iiko.selectSize' : 'menu.iiko.noSizes') | t }}</option>
                   @for (s of selectedIikoProduct()?.sizes ?? []; track s.productSizeId) {
                     <option [value]="s.productSizeId">{{ s.name || s.productSizeId }}</option>
                   }
@@ -470,43 +470,43 @@
         <!-- Size Variants -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-xs font-medium text-slate-600">Size Variants (optional)</label>
+            <label class="block text-xs font-medium text-slate-600">{{ 'menu.sizes.title' | t }}</label>
             <button type="button" (click)="addVariantRow()"
-              class="text-xs text-brand-ink hover:text-brand-ink font-semibold">+ Add size</button>
+              class="text-xs text-brand-ink hover:text-brand-ink font-semibold">{{ 'menu.sizes.add' | t }}</button>
           </div>
-          <p class="text-xs text-slate-500 mb-2">Use for items sold in multiple sizes (e.g. 250ml / 350ml / 450ml). Each size has its own full price. If set, these replace the base price above.</p>
+          <p class="text-xs text-slate-500 mb-2">{{ 'menu.sizes.hint' | t }}</p>
           @if (itemForm().variants.length > 0) {
             <div class="space-y-2 border border-slate-100 rounded-xl p-3 max-h-56 overflow-y-auto">
               @for (v of itemForm().variants; track $index) {
                 <div class="space-y-1">
                   <div class="grid grid-cols-[1fr_1fr_1fr_auto_auto_auto] gap-1.5 items-center">
                     <input type="text" [ngModel]="v.label" (ngModelChange)="patchVariantRow($index, 'label', $event)"
-                      placeholder="EN label (e.g. 250ml)"
-                      aria-label="Variant label (English)"
+                      [placeholder]="'menu.sizes.labelEn' | t"
+                      [attr.aria-label]="'menu.sizes.labelEnAria' | t"
                       class="border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-brand-400 outline-none" />
                     <input type="text" [ngModel]="v.labelRu" (ngModelChange)="patchVariantRow($index, 'labelRu', $event)"
-                      placeholder="RU label"
-                      aria-label="Variant label (Russian)"
+                      [placeholder]="'menu.sizes.labelRu' | t"
+                      [attr.aria-label]="'menu.sizes.labelRuAria' | t"
                       class="border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-brand-400 outline-none" />
                     <input type="number" [ngModel]="v.price" (ngModelChange)="patchVariantRow($index, 'price', +$event)"
-                      placeholder="Price ₸" min="0"
-                      aria-label="Variant price"
+                      [placeholder]="'menu.sizes.price' | t" min="0"
+                      [attr.aria-label]="'menu.sizes.priceAria' | t"
                       class="border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-brand-400 outline-none" />
                     <label class="flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap cursor-pointer">
                       <input type="radio" name="variantDefault" [checked]="v.isDefault" (change)="setVariantDefault($index)"
                         class="text-brand-500 focus:ring-brand-400" />
-                      Default
+                      {{ 'menu.sizes.default' | t }}
                     </label>
-                    <button type="button" aria-label="Remove size" (click)="removeVariantRow($index)"
+                    <button type="button" [attr.aria-label]="'menu.sizes.remove' | t" (click)="removeVariantRow($index)"
                       class="text-red-400 hover:text-red-600 text-sm font-bold px-1">×</button>
                   </div>
                   @if (selectedIikoProduct()?.sizes?.length) {
                     <select [ngModel]="v.iikoProductSizeId" (ngModelChange)="patchVariantRow($index, 'iikoProductSizeId', $event)"
-                      aria-label="iiko size mapping for this variant"
+                      [attr.aria-label]="'menu.iiko.variantSize' | t"
                       class="w-full border border-slate-200 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-brand-400 outline-none">
-                      <option value="">iiko size: not mapped</option>
+                      <option value="">{{ 'menu.iiko.sizeNotMapped' | t }}</option>
                       @for (s of selectedIikoProduct()!.sizes; track s.productSizeId) {
-                        <option [value]="s.productSizeId">iiko size: {{ s.name || s.productSizeId }}</option>
+                        <option [value]="s.productSizeId">{{ 'menu.iiko.sizeName' | t: { name: s.name || s.productSizeId } }}</option>
                       }
                     </select>
                   }
@@ -515,7 +515,7 @@
             </div>
           } @else {
             <div class="text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl py-3 text-center">
-              No size variants — click "+ Add size" to define sizes with individual prices
+              {{ 'menu.sizes.empty' | t }}
             </div>
           }
         </div>
@@ -531,8 +531,8 @@
           />
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Restrict to locations</label>
-          <p class="text-xs text-slate-500 mb-2">Leave empty to show at all locations</p>
+          <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.onlyAt' | t }}</label>
+          <p class="text-xs text-slate-500 mb-2">{{ 'menu.onlyAtHint' | t }}</p>
           <div class="space-y-2 max-h-32 overflow-y-auto border border-slate-100 rounded-xl p-3">
             @for (loc of locations(); track loc.id) {
               <label class="flex items-center gap-2 cursor-pointer">
@@ -592,22 +592,22 @@
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">EN</span>
           <input type="text" [ngModel]="catInput().name" (ngModelChange)="catInput.update(f => ({...f, name: $event}))"
-            placeholder="Category in English"
-            aria-label="Category name (English)"
+            [placeholder]="'menu.f.catEn' | t"
+            [attr.aria-label]="'menu.f.catEn' | t"
             class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">RU</span>
           <input type="text" [ngModel]="catInput().nameRu" (ngModelChange)="catInput.update(f => ({...f, nameRu: $event}))"
-            placeholder="Категория на русском"
-            aria-label="Category name (Russian)"
+            [placeholder]="'menu.f.catRu' | t"
+            [attr.aria-label]="'menu.f.catRu' | t"
             class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">KZ</span>
           <input type="text" [ngModel]="catInput().nameKk" (ngModelChange)="catInput.update(f => ({...f, nameKk: $event}))"
-            placeholder="Қазақша санаты"
-            aria-label="Category name (Kazakh)"
+            [placeholder]="'menu.f.catKk' | t"
+            [attr.aria-label]="'menu.f.catKk' | t"
             class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
         </div>
       </div>
@@ -637,22 +637,22 @@
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">EN</span>
               <input type="text" [ngModel]="toppingForm().name" (ngModelChange)="patchToppingForm('name', $event)"
-                placeholder="e.g. Oat Milk"
-                aria-label="Topping name (English)"
+                [placeholder]="'menu.f.toppingExampleEn' | t"
+                [attr.aria-label]="'menu.f.toppingEn' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">RU</span>
               <input type="text" [ngModel]="toppingForm().nameRu" (ngModelChange)="patchToppingForm('nameRu', $event)"
-                placeholder="напр. Овсяное молоко"
-                aria-label="Topping name (Russian)"
+                [placeholder]="'menu.f.toppingExampleRu' | t"
+                [attr.aria-label]="'menu.f.toppingRu' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold text-slate-500 w-7 shrink-0">KZ</span>
               <input type="text" [ngModel]="toppingForm().nameKk" (ngModelChange)="patchToppingForm('nameKk', $event)"
-                placeholder="мыс. Сұлы сүті"
-                aria-label="Topping name (Kazakh)"
+                [placeholder]="'menu.f.toppingExampleKk' | t"
+                [attr.aria-label]="'menu.f.toppingKk' | t"
                 class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
             </div>
           </div>

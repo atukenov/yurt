@@ -6,6 +6,7 @@ import { Currency2Pipe, CurrencyDecimalPipe, ToastService, LocalDatePipe } from 
 import { CustomerDetail, LoyaltyBalance } from 'shared-models';
 import { environment } from '../../../environments/environment';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { AdminLangService } from '../../core/lang.service';
 
 @Component({
   selector: 'app-customer-detail',
@@ -18,6 +19,7 @@ export class CustomerDetailComponent implements OnInit {
 
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
+  private lang = inject(AdminLangService);
 
   customer = signal<CustomerDetail | null>(null);
   loyalty = signal<LoyaltyBalance | null>(null);
@@ -54,7 +56,7 @@ export class CustomerDetailComponent implements OnInit {
       next: (updated) => {
         this.customer.set(updated);
         this.toggleLoading.set(false);
-        this.toast.success(updated.isActive ? 'Customer activated.' : 'Customer deactivated.');
+        this.toast.success(updated.isActive ? this.lang.t('customers.activatedToast') : this.lang.t('customers.deactivatedToast'));
       },
       error: () => this.toggleLoading.set(false),
     });

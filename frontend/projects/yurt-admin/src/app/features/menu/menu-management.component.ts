@@ -323,15 +323,15 @@ export class MenuManagementComponent implements OnInit {
   saveItem(): void {
     const f = this.itemForm();
     if (!f.name || !f.nameRu || !f.nameKk) {
-      this.toast.error('Name in all 3 languages is required (EN, RU, KZ)');
+      this.toast.error(this.langService.t('menu.nameAll3'));
       return;
     }
     if (!f.price && f.variants.length === 0) {
-      this.toast.error('Enter a price or add size variants');
+      this.toast.error(this.langService.t('menu.priceOrSizes'));
       return;
     }
     if (f.variants.some((v) => !v.label || !v.price)) {
-      this.toast.error('Each size variant must have a label and price');
+      this.toast.error(this.langService.t('menu.sizeIncomplete'));
       return;
     }
     this.saving.set(true);
@@ -368,18 +368,18 @@ export class MenuManagementComponent implements OnInit {
         }
         this.saving.set(false);
         this.showItemDialog.set(false);
-        this.toast.success('Item saved');
+        this.toast.success(this.langService.t('menu.itemSaved'));
       },
       error: () => this.saving.set(false),
     });
   }
 
   async deleteItem(item: MenuItem): Promise<void> {
-    if (!await this.confirmSvc.confirm('Delete Item', `Delete "${item.name}"?`)) return;
+    if (!await this.confirmSvc.confirm(this.langService.t('menu.deleteItemTitle'), this.langService.t('common.deleteNamed', { name: item.name }))) return;
     this.api.adminDeleteMenuItem(item.id).subscribe({
       next: () => {
         this.items.update((list) => list.filter((i) => i.id !== item.id));
-        this.toast.success('Item deleted');
+        this.toast.success(this.langService.t('menu.itemDeleted'));
       },
       error: () => {},
     });
@@ -388,7 +388,7 @@ export class MenuManagementComponent implements OnInit {
   saveCat(): void {
     const f = this.catInput();
     if (!f.name.trim() || !f.nameRu.trim() || !f.nameKk.trim()) {
-      this.toast.error('Category name in all 3 languages is required (EN, RU, KZ)');
+      this.toast.error(this.langService.t('menu.catNameAll3'));
       return;
     }
     this.saving.set(true);
@@ -409,19 +409,19 @@ export class MenuManagementComponent implements OnInit {
         }
         this.saving.set(false);
         this.showCatDialog.set(false);
-        this.toast.success(f.id ? 'Category updated' : 'Category created');
+        this.toast.success(f.id ? this.langService.t('menu.catUpdated') : this.langService.t('menu.catCreated'));
       },
       error: () => this.saving.set(false),
     });
   }
 
   async deleteCat(cat: MenuCategory): Promise<void> {
-    if (!await this.confirmSvc.confirm('Delete Category', `Delete category "${this.localizedCatName(cat)}"?`)) return;
+    if (!await this.confirmSvc.confirm(this.langService.t('menu.deleteCatTitle'), this.langService.t('menu.deleteCatNamed', { name: this.localizedCatName(cat) }))) return;
     this.api.adminDeleteCategory(cat.id).subscribe({
       next: () => {
         this.categories.update((list) => list.filter((c) => c.id !== cat.id));
         if (this.selectedCategoryId() === cat.id) this.selectedCategoryId.set('');
-        this.toast.success('Category deleted');
+        this.toast.success(this.langService.t('menu.catDeleted'));
       },
       error: () => {},
     });
@@ -471,7 +471,7 @@ export class MenuManagementComponent implements OnInit {
   saveTopping(): void {
     const f = this.toppingForm();
     if (!f.name || !f.nameRu || !f.nameKk) {
-      this.toast.error('Topping name in all 3 languages is required (EN, RU, KZ)');
+      this.toast.error(this.langService.t('menu.toppingNameAll3'));
       return;
     }
     this.saving.set(true);
@@ -494,18 +494,18 @@ export class MenuManagementComponent implements OnInit {
         }
         this.saving.set(false);
         this.showToppingDialog.set(false);
-        this.toast.success('Topping saved');
+        this.toast.success(this.langService.t('menu.toppingSaved'));
       },
       error: () => this.saving.set(false),
     });
   }
 
   async deleteTopping(topping: MenuTopping): Promise<void> {
-    if (!await this.confirmSvc.confirm('Delete Topping', `Delete topping "${topping.name}"?`)) return;
+    if (!await this.confirmSvc.confirm(this.langService.t('menu.deleteToppingTitle'), this.langService.t('menu.deleteToppingNamed', { name: topping.name }))) return;
     this.api.adminDeleteTopping(topping.id).subscribe({
       next: () => {
         this.toppings.update((list) => list.filter((t) => t.id !== topping.id));
-        this.toast.success('Topping deleted');
+        this.toast.success(this.langService.t('menu.toppingDeleted'));
       },
       error: () => {},
     });
