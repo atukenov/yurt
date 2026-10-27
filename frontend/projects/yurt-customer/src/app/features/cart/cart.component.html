@@ -240,16 +240,16 @@
               (click)="selectedPaymentMethod.set(PaymentMethod.Card)"
               class="col-span-3 flex items-center justify-center gap-2 py-3 px-3 rounded-2xl border-2 font-semibold text-sm transition-all active:scale-95"
               [class]="selectedPaymentMethod() === PaymentMethod.Card
-                ? 'border-brand-400 bg-white shadow-sm'
-                : 'border-stone-200 bg-white hover:border-stone-300'"
+                ? 'border-brand-400 bg-surface shadow-sm'
+                : 'border-stone-200 bg-surface hover:border-stone-300'"
               [attr.aria-pressed]="selectedPaymentMethod() === PaymentMethod.Card"
             >
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round"
                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
               </svg>
-              <span class="text-stone-800">{{ 'cart.payOnline' | t }}</span>
-              <span class="text-xs font-normal text-stone-500">{{ 'cart.payOnlineHint' | t }}</span>
+              <span style="color:var(--ink-900)">{{ 'cart.payOnline' | t }}</span>
+              <span class="text-xs font-normal" style="color:var(--ink-600)">{{ 'cart.payOnlineHint' | t }}</span>
             </button>
           }
           @for (bank of [
