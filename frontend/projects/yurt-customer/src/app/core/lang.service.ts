@@ -130,7 +130,9 @@ const T: Record<Lang, Record<string, string>> = {
     'profile.updated': 'Profile updated.', 'profile.signedOut': 'Signed out', 'fav.added': 'Added to favorites ♥',
     'fav.removed': 'Removed from favorites', 'cart.added': '{name} added to cart', 'cart.addedQty': '{qty}× {name} added to cart',
     'cart.selectLocationFirst': 'Please select a location first.',
-    'cart.applePayFailed': 'Apple Pay didn’t complete. You can pay at the counter.',
+    'cart.payOnlineFailed': 'The payment page did not open. You can try again from the order or pay at the counter.',
+    'cart.payOnline': 'Pay online', 'cart.payOnlineHint': 'card, Apple Pay, Google Pay',
+    'order.payOnline': 'Pay online now', 'order.paidOnlineThanks': 'Thank you! Your payment is being confirmed.', 'order.payOnlineCancelled': 'Payment cancelled. You can pay again here or at the counter.', 'order.refunded': 'The money was returned to your card.',
   },
   ru: {
     'profile.spentTotal': 'всего', 'profile.achievementsHint': 'открывайте награды', 'profile.ordersHint': 'история и повтор', 'order.pickup': 'самовывоз',
@@ -259,7 +261,9 @@ const T: Record<Lang, Record<string, string>> = {
     'profile.updated': 'Профиль обновлён.', 'profile.signedOut': 'Вы вышли из аккаунта', 'fav.added': 'Добавлено в избранное ♥',
     'fav.removed': 'Удалено из избранного', 'cart.added': '{name} — в корзине', 'cart.addedQty': '{qty}× {name} — в корзине',
     'cart.selectLocationFirst': 'Сначала выберите кофейню.',
-    'cart.applePayFailed': 'Оплата через Apple Pay не прошла. Можно оплатить на кассе.',
+    'cart.payOnlineFailed': 'Страница оплаты не открылась. Можно попробовать ещё раз из заказа или оплатить на кассе.',
+    'cart.payOnline': 'Оплатить онлайн', 'cart.payOnlineHint': 'карта, Apple Pay, Google Pay',
+    'order.payOnline': 'Оплатить онлайн', 'order.paidOnlineThanks': 'Спасибо! Оплата подтверждается.', 'order.payOnlineCancelled': 'Оплата отменена. Можно оплатить ещё раз здесь или на кассе.', 'order.refunded': 'Деньги возвращены на вашу карту.',
   },
   kk: {
     'profile.spentTotal': 'барлығы', 'profile.achievementsHint': 'марапаттарды ашыңыз', 'profile.ordersHint': 'тарих және қайталау', 'order.pickup': 'өзі алып кету',
@@ -388,7 +392,9 @@ const T: Record<Lang, Record<string, string>> = {
     'profile.nameRequired': 'Аты мен тегін көрсетіңіз.', 'profile.updated': 'Профиль жаңартылды.', 'profile.signedOut': 'Аккаунттан шықтыңыз',
     'fav.added': 'Таңдаулыларға қосылды ♥', 'fav.removed': 'Таңдаулылардан алынды', 'cart.added': '{name} себетке қосылды',
     'cart.addedQty': '{qty}× {name} себетке қосылды', 'cart.selectLocationFirst': 'Алдымен кофехананы таңдаңыз.',
-    'cart.applePayFailed': 'Apple Pay арқылы төлем өтпеді. Кассада төлеуге болады.',
+    'cart.payOnlineFailed': 'Төлем беті ашылмады. Тапсырыстан қайта көруге немесе кассада төлеуге болады.',
+    'cart.payOnline': 'Онлайн төлеу', 'cart.payOnlineHint': 'карта, Apple Pay, Google Pay',
+    'order.payOnline': 'Қазір онлайн төлеу', 'order.paidOnlineThanks': 'Рахмет! Төлем расталуда.', 'order.payOnlineCancelled': 'Төлем тоқтатылды. Осы жерден қайта немесе кассада төлеуге болады.', 'order.refunded': 'Ақша картаңызға қайтарылды.',
   },
 };
 

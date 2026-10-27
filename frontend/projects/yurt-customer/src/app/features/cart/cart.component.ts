@@ -2,13 +2,14 @@ import { Component, computed, effect, inject, OnInit, signal } from '@angular/co
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService, AuthStateService, ApplePayService, ModuleService } from 'shared-api';
+import { YurtApiService, AuthStateService, ModuleService } from 'shared-api';
 import { CartItem, LoyaltyBalance, PaymentMethod } from 'shared-models';
 import { CartService } from './cart.service';
 import { ToastService, Currency2Pipe } from 'shared-ui';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { LocationService } from '../../core/location.service';
 import { LangService } from '../../core/lang.service';
+import { OnlinePaymentService } from '../../core/online-payment.service';
 
 @Component({
   selector: 'app-cart',
@@ -22,7 +23,7 @@ export class CartComponent implements OnInit {
   readonly langService = inject(LangService);
   private api = inject(YurtApiService);
   readonly modules = inject(ModuleService);
-  private applePay = inject(ApplePayService);
+  readonly online = inject(OnlinePaymentService);
   private router = inject(Router);
   private toast = inject(ToastService);
 
@@ -33,7 +34,6 @@ export class CartComponent implements OnInit {
 
   loading = signal(false);
   selectedPaymentMethod = signal<PaymentMethod | null>(null);
-  applePayAvailable = signal(false);
   /** Whether the chosen branch offers a payment method (all of them unless the cafe narrowed it). */
   offers = (method: PaymentMethod): boolean => {
     const list = this.locationSvc.paymentMethods();
@@ -89,7 +89,7 @@ export class CartComponent implements OnInit {
       next: (l) => this.loyalty.set(l),
       error: () => {},
     });
-    this.applePay.isAvailable().then((available) => this.applePayAvailable.set(available));
+    this.online.load();
   }
 
   useAllBonus(): void {
@@ -233,14 +233,14 @@ export class CartComponent implements OnInit {
         this.checkoutKey = null;
         this.cart.clear();
 
-        if (paymentMethod === PaymentMethod.ApplePay) {
+        // "Card" in the customer app means paying online now (card, Apple Pay or Google Pay on the provider's page).
+        if (paymentMethod === PaymentMethod.Card && order.total > 0) {
           try {
-            await this.applePay.pay(order.id, order.total);
-            this.toast.success(this.langService.t('group.placedToast'));
+            await this.online.open(order.id);
+            return;
           } catch {
-            // Order already exists (Unpaid) — a cancelled or failed Apple Pay sheet
-            // falls back to paying at the counter, same as any other unpaid order.
-            this.toast.warning(this.langService.t('cart.applePayFailed'));
+            // The order already exists (unpaid): the customer can try again from the order page or pay at the counter.
+            this.toast.warning(this.langService.t('cart.payOnlineFailed'));
           }
         } else {
           this.toast.success(this.langService.t('group.placedToast'));

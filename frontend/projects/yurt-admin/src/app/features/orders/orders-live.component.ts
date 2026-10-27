@@ -294,6 +294,23 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
       });
   }
 
+  refundLoading = signal(false);
+
+  /** Gives an online payment back to the customer's card in full (the server refuses if it was not paid online). */
+  refundOnline(order: Order): void {
+    if (!confirm(this.lang.t('orders.refundConfirm'))) return;
+    this.refundLoading.set(true);
+    this.api.refundOrder(order.id).subscribe({
+      next: (o) => {
+        this.upsertOrder(o);
+        this.paymentStatus = o.paymentStatus;
+        this.refundLoading.set(false);
+        this.toast.success(this.lang.t('orders.refundDone'));
+      },
+      error: () => this.refundLoading.set(false),
+    });
+  }
+
   /** A split payment marks the order paid and keeps the biggest part as its main method. */
   onSplitSaved(order: Order, lines: SplitPaymentLine[]): void {
     const main = [...lines].sort((a, b) => b.amount - a.amount)[0];

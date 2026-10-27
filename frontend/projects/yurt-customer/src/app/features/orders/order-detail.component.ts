@@ -14,6 +14,7 @@ import {
 import { Currency2Pipe, ToastService, LocalDatePipe } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { LangService } from '../../core/lang.service';
+import { OnlinePaymentService } from '../../core/online-payment.service';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
 
@@ -33,6 +34,8 @@ import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
 })
 export class OrderDetailComponent implements OnInit, OnDestroy {
   @Input() id!: string;
+  /** Set by the online payment page when it sends the customer back: "success" or "cancelled". */
+  @Input() payment?: string;
 
   readonly router = inject(Router);
   private api = inject(YurtApiService);
@@ -41,6 +44,8 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
   private signalr = inject(SignalrService);
   private toast = inject(ToastService);
   private lang = inject(LangService);
+  readonly online = inject(OnlinePaymentService);
+  payingOnline = signal(false);
   readonly OrderStatus = OrderStatus;
   readonly PaymentStatus = PaymentStatus;
   readonly PaymentMethod = PaymentMethod;
@@ -75,8 +80,28 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadOrder();
+    this.online.load();
+    if (this.payment === 'success') this.toast.success(this.lang.t('order.paidOnlineThanks'));
+    else if (this.payment === 'cancelled') this.toast.warning(this.lang.t('order.payOnlineCancelled'));
 
     this.signalr.configure(environment.apiUrl);
+  }
+
+  /** An unpaid online-card order that staff have not accepted yet can still be paid online. */
+  canPayOnline(o: Order): boolean {
+    return this.online.available() && o.paymentMethod === PaymentMethod.Card
+      && o.paymentStatus === PaymentStatus.Unpaid && o.status === OrderStatus.Created && o.total > 0;
+  }
+
+  async payOnline(o: Order): Promise<void> {
+    this.payingOnline.set(true);
+    try {
+      await this.online.open(o.id);
+    } catch {
+      this.toast.warning(this.lang.t('cart.payOnlineFailed'));
+    } finally {
+      this.payingOnline.set(false);
+    }
   }
 
   loadOrder(): void {

@@ -225,7 +225,10 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(e => e.Provider).HasConversion<string>().HasMaxLength(50);
         builder.Property(e => e.Currency).HasConversion<string>().HasMaxLength(10);
         builder.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
-        builder.Property(e => e.PaymentUrl).HasMaxLength(500).IsRequired();
+        // Stripe Checkout links can be longer than 500 characters.
+        builder.Property(e => e.PaymentUrl).HasColumnType("text").IsRequired();
+        builder.Property(e => e.ProviderPaymentId).HasMaxLength(255);
+        builder.HasIndex(e => e.ProviderPaymentId);
         builder.Property(e => e.QrCode).HasColumnType("text").IsRequired();
         builder.Property(e => e.RawResponse).HasColumnType("text");
         builder.Property(e => e.Amount).HasPrecision(10, 2);
@@ -539,6 +542,7 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.Property(e => e.Domain).HasMaxLength(255);
         builder.Property(e => e.LoyaltyLedger).HasMaxLength(20);
         builder.Property(e => e.FiscalProvider).HasMaxLength(20);
+        builder.Property(e => e.PaymentProvider).HasMaxLength(20);
         builder.Property(e => e.FiscalSkipMethods).HasMaxLength(200);
         builder.HasIndex(e => e.Domain).IsUnique();
     }

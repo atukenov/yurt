@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
+using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Orders.Services;
+using Yurt.Application.Features.Payments.Services;
 using Yurt.Domain.Enums;
 using Yurt.WebApi.Common;
 
@@ -71,4 +73,13 @@ public class AdminOrdersController : ApiControllerBase
     public async Task<IActionResult> UpdatePayment(
         Guid id, [FromBody] UpdatePaymentDto dto, CancellationToken ct)
         => ToResult(await _orderService.UpdatePaymentAsync(id, dto, ct));
+
+    /// <summary>Give an online (card / Apple Pay / Google Pay) payment back to the customer in full.</summary>
+    [HttpPost("{id:guid}/refund")]
+    public async Task<IActionResult> Refund(Guid id, [FromServices] PaymentService payments, CancellationToken ct)
+    {
+        var result = await payments.RefundOrderAsync(id, ct);
+        if (!result.Succeeded) return ToResult(Result<OrderDto>.Failure(result.Error!, result.StatusCode));
+        return ToResult(await _orderService.GetOrderForAdminAsync(id, ct));
+    }
 }

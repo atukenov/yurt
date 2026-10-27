@@ -4,5 +4,5 @@ namespace Yurt.Application.Common.Interfaces;
 
 public interface IPaymentProviderFactory
 {
-  IPaymentProvider GetProvider(PaymentProvider provider);
+    IPaymentProvider GetProvider(PaymentProvider provider);
 }

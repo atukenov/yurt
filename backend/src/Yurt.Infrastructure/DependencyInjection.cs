@@ -88,9 +88,23 @@ public static class DependencyInjection
         services.AddScoped<IOrdersHubService, OrdersHubService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
 
-        // Payment services
-        services.Configure<PaymentOptions>(configuration.GetSection("Payment"));
+        // Online payments: Stripe, chosen per cafe (Tenant.PaymentProvider), keys in the cafe's secrets
         services.AddHttpClient();
+        // Read when first used, so settings added after startup wiring (tests, hosting) are seen.
+        services.AddSingleton(sp => sp.GetRequiredService<IConfiguration>().GetSection("Stripe").Get<StripeOptions>() ?? new StripeOptions());
+        services.AddHttpClient<StripePaymentProvider>();
+        services.AddScoped<IPaymentProvider>(sp => sp.GetRequiredService<StripePaymentProvider>());
+        services.AddScoped<IPaymentProviderFactory, PaymentProviderFactory>();
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            return new PaymentReturnOptions
+            {
+                AllowedOrigins = config.GetSection("AllowedOrigins").Get<List<string>>() ?? [],
+                CustomerAppUrl = config["Payment:CustomerAppUrl"],
+            };
+        });
+        services.AddScoped<PaymentSettingsService>();
 
         // WhatsApp OTP for customer registration (feature-flagged via Otp:Enabled; secrets via env vars)
         services.AddSingleton(configuration.GetSection("Otp").Get<OtpOptions>() ?? new OtpOptions());
@@ -114,10 +128,6 @@ public static class DependencyInjection
         services.AddScoped<IPushNotificationSender, FcmPushNotificationSender>();
         services.AddScoped<PushNotificationService>();
 
-        // Apple Pay via Freedom Pay (issue #49) — feature-flagged via FreedomPay:Enabled;
-        // the SDK itself runs client-side, this is just the kill switch + Apple Merchant ID
-        services.AddSingleton(configuration.GetSection("FreedomPay").Get<FreedomPayOptions>() ?? new FreedomPayOptions());
-        services.AddScoped<IPaymentProvider, FreedomPayPaymentProvider>();
         services.AddHttpClient<IIikoApiClient, IikoApiClient>();
         services.AddScoped<IikoLoyaltyLedger>();
         services.AddScoped<NativeLoyaltyLedger>();
@@ -129,9 +139,6 @@ public static class DependencyInjection
         services.AddScoped<IikoOrderSyncService>();
         services.AddScoped<IPosOrderSink>(sp => sp.GetRequiredService<IikoOrderSyncService>());
         services.AddScoped<IIikoWebhookValidator, IikoWebhookValidator>();
-        services.AddScoped<IPaymentProvider, KaspiSandboxPaymentProvider>();
-        services.AddScoped<IPaymentProviderFactory, PaymentProviderFactory>();
-        services.AddScoped<IPaymentWebhookValidator, PaymentWebhookValidator>();
 
         // Application services
         services.AddScoped<AnalyticsService>();

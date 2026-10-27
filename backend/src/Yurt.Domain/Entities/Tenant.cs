@@ -27,6 +27,9 @@ public class Tenant : BaseEntity
     /// <summary>Where this cafe's bonus wallet lives: "iiko" or "native". Null keeps today's behaviour (iiko). Phase 6.</summary>
     public string? LoyaltyLedger { get; set; }
 
+    /// <summary>Who takes this cafe's online payments: "stripe". Null = off, customers pay at the counter only.</summary>
+    public string? PaymentProvider { get; set; }
+
     /// <summary>Cloud cash register that gets this cafe's official tax receipts: "webkassa". Null = off (the default). Phase 6.</summary>
     public string? FiscalProvider { get; set; }
 

@@ -50,6 +50,8 @@ const MOCK_API = {
   ],
   '/favorites': [],
   '/promotions/active': [],
+  // The cafe takes online payments (Stripe), so the cart and an unpaid card order show "Pay online".
+  '/payments/config': { provider: 'stripe' },
   '/loyalty/me': { enabled: true, available: true, linked: true, balance: 350, earnPercent: 5 },
   '/auth/me': { id: 'u-1', mobileNumber: '+77001234567', firstName: 'Aru', lastName: 'Sadykova', createdAt: '2026-01-15T10:00:00Z', dateOfBirth: '1997-05-04' },
   '/auth/me/stats': {
@@ -72,6 +74,8 @@ MOCK_API['/orders/o-2'] = {
   paymentStatus: 'Unpaid', paymentMethod: 'KaspiBank', discountCode: undefined, discountAmount: 0, total: 3500,
   loyaltyPointsSpent: 300, loyaltyPointsEarned: 175,
 };
+/** A third: chosen "Pay online" but not paid yet (shows the "Pay online now" button). */
+MOCK_API['/orders/o-3'] = { ...MOCK_API['/orders/o-2'], id: 'o-3', paymentMethod: 'Card', loyaltyPointsSpent: undefined };
 const SIGNED_IN_STORAGE = {
   yurt_user: JSON.stringify({ accessToken: 'a11y', refreshToken: '', userId: 'u-1', displayName: 'Aru', userType: 'Customer' }),
   yurt_location_id: LOCATION.id,
@@ -178,7 +182,7 @@ const APPS = {
   customer: {
     project: 'yurt-customer', prefix: '', viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
     publicScreens: ['/auth/login', '/auth/register'],
-    signedInScreens: ['/menu', '/cart', '/orders/o-1', '/orders/o-2', '/profile'],
+    signedInScreens: ['/menu', '/cart', '/orders/o-1', '/orders/o-2', '/orders/o-3', '/profile'],
     api: MOCK_API, storage: SIGNED_IN_STORAGE,
   },
   admin: {

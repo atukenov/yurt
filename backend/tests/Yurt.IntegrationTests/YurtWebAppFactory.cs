@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
+using Yurt.IntegrationTests.Helpers;
 
 namespace Yurt.IntegrationTests;
 
@@ -14,7 +15,12 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     // Stable constants referenced by all test helpers
     public const string JwtSecret    = "integration-test-jwt-secret-key-at-least-32-chars-ok";
-    public const string WebhookSecret = "integration-test-webhook-secret-32-chars-ok-abc123";
+    // The first cafe's Stripe test account (server-wide settings, like a single-cafe deployment).
+    public const string StripeSecretKey = "sk_test_integration_server_wide";
+    public const string StripeWebhookSecret = "whsec_integration_server_wide_secret";
+
+    /// <summary>Plays the Stripe API for every test; no request leaves the machine.</summary>
+    public FakeStripe Stripe { get; } = new();
 
     public async Task InitializeAsync()
     {
@@ -25,7 +31,6 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // Env-var config takes effect before AddInfrastructure reads the secret.
         // "__" is the hierarchy separator for ASP.NET Core env-var config.
         Environment.SetEnvironmentVariable("Jwt__Secret", JwtSecret);
-        Environment.SetEnvironmentVariable("Payment__WebhookSecret", WebhookSecret);
 
         await _pg.StartAsync();
     }
@@ -35,7 +40,6 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
         await _pg.StopAsync();
         await base.DisposeAsync();
         Environment.SetEnvironmentVariable("Jwt__Secret", null);
-        Environment.SetEnvironmentVariable("Payment__WebhookSecret", null);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -51,13 +55,11 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
                 ["Jwt:Audience"]                             = "YurtTest",
                 ["Jwt:AccessTokenMinutes"]                   = "60",
                 ["Jwt:RefreshTokenDays"]                     = "7",
-                ["Payment:WebhookSecret"]                    = WebhookSecret,
-                ["Payment:WebhookCallbackUrl"]               = "http://test.invalid/webhook",
-                ["Payment:SandboxSecret"]                    = "test-sandbox",
+                ["Stripe:SecretKey"]                         = StripeSecretKey,
+                ["Stripe:WebhookSecret"]                     = StripeWebhookSecret,
+                ["Stripe:ApiBaseUrl"]                        = "https://stripe.test.invalid",
+                ["Payment:CustomerAppUrl"]                   = "https://app.test.invalid",
                 ["Secrets:MasterKey"]                        = Convert.ToBase64String(new byte[32].Select((_, i) => (byte)(i + 1)).ToArray()),
-                // Delay so long the sandbox never fires during a test
-                ["Payment:ProcessingDelaySecondsMin"]        = "99999",
-                ["Payment:ProcessingDelaySecondsMax"]        = "99999",
                 ["AllowedHosts"]                             = "*",
                 // Rate-limit rules in appsettings use old paths that don't match /api/v1/…
                 // so they never fire; disable endpoint mode for belt-and-suspenders
@@ -75,6 +77,10 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
                     s.ImplementationType?.FullName?.EndsWith("FiscalReceiptJob")     == true)
                 .ToList();
             foreach (var d in toRemove) services.Remove(d);
+
+            services.AddHttpClient<Yurt.Infrastructure.Payments.StripePaymentProvider>()
+                .ConfigurePrimaryHttpMessageHandler(() => Stripe)
+                .SetHandlerLifetime(Timeout.InfiniteTimeSpan);
         });
     }
 }

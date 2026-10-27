@@ -22,8 +22,8 @@ public static class TenantSecretKeys
 {
     public static readonly string[] All =
     [
-        "Payment:WebhookSecret",
-        "Payment:SandboxSecret",
+        "Stripe:SecretKey",
+        "Stripe:WebhookSecret",
         "Firebase:ServiceAccountJson",
         "Otp:IdInstance",
         "Otp:ApiTokenInstance",

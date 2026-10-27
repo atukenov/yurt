@@ -51,7 +51,7 @@ Yurt cannot do these for the cafe, because the contract is in the cafe's name:
 ## Still to check
 
 - Exact Webkassa and ReKassa API calls and test accounts (ask both for partner access).
-- Whether Freedom Pay (online card payments in the app) offers its own fiscal receipts, which would let online orders skip the cafe's register.
+- Online card payments in the app go through Stripe, which makes no Kazakh fiscal receipt, so online orders still need the cafe's register.
 - Item codes (НТИН/ГТИН): not needed for cafe food today, but the receipt format has a field for them.
 
 ## Sources

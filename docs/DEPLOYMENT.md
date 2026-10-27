@@ -178,10 +178,10 @@ Jwt__Audience=yurt-clients
 AllowedOrigins__0=https://admin.your-domain.com
 AllowedOrigins__1=capacitor://localhost
 ASPNETCORE_ENVIRONMENT=Production
-Payment__WebhookCallbackUrl=...
-Payment__WebhookSecret=...
-Payment__SandboxSecret=...
+Payment__CustomerAppUrl=https://order.your-domain.com
 ```
+
+Online payments (Stripe) are set up per cafe on the Platform screen; see `docs/stripe-payments.md`.
 
 7. Railway exposes an HTTPS endpoint automatically — note the URL and use it in both frontend environment files.
 

@@ -44,15 +44,6 @@ export enum Currency {
   EUR = 'EUR',
 }
 
-export enum SandboxPaymentBehavior {
-  Default = 'Default',
-  Success = 'Success',
-  Failure = 'Failure',
-  Expired = 'Expired',
-  DuplicateWebhook = 'DuplicateWebhook',
-  NetworkFailure = 'NetworkFailure',
-}
-
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export interface AuthResponse {
@@ -205,8 +196,13 @@ export interface CreateOrderRequest {
 
 export interface CreatePaymentRequest {
   orderId: string;
-  provider: PaymentProvider;
-  sandboxBehavior?: SandboxPaymentBehavior;
+  /** Web address of the app (https only); the payment page sends the customer back there. Left out in the phone apps. */
+  returnUrl?: string;
+}
+
+/** Whether the cafe takes online payments. `provider` is left out when it does not. */
+export interface PaymentConfig {
+  provider?: 'stripe' | null;
 }
 
 export interface PaymentInvoiceResponse {
@@ -221,16 +217,6 @@ export interface PaymentInvoiceResponse {
   createdAt: string;
   expiresAt?: string;
   rawResponse?: string;
-}
-
-export interface ApplePayConfigResponse {
-  enabled: boolean;
-  appleMerchantId: string;
-}
-
-export interface ConfirmApplePayRequest {
-  invoiceId: string;
-  freedomPaymentId: string;
 }
 
 export interface PaymentStatusResponse {
@@ -1026,6 +1012,17 @@ export interface FiscalSettings {
   branches: FiscalBranch[];
   providers: string[];
   credentialsSet: boolean;
+}
+
+export interface PaymentSettings {
+  provider: string | null;
+  providers: string[];
+  secretKeySet: boolean;
+  webhookSecretSet: boolean;
+  /** True with Stripe test keys (sk_test_...): no real money moves. */
+  testMode: boolean;
+  /** Paste this into the cafe's Stripe dashboard (Developers, Webhooks). */
+  webhookUrl: string;
 }
 
 export interface SaveFiscalSettings {

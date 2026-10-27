@@ -32,7 +32,7 @@ Checklist (one-time, done in the hosting dashboard):
    `DATABASE_URL`, `Jwt__Secret` (new random 32+ chars), `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD`,
    `Secrets__MasterKey` (Base64 of 32 random bytes, e.g. `openssl rand -base64 32`; encrypts per-cafe secrets, keep it safe: losing it makes stored secrets unreadable),
    `AllowedOrigins__0..n` (staging frontend URLs), `Otp__Required=false` unless a test OTP channel exists.
-4. Integrations in sandbox mode only: payments (`KaspiSandbox`, `FreedomPay__Enabled=false`),
+4. Integrations in sandbox mode only: payments (Stripe test keys `sk_test_...` per cafe; `Stripe__AllowLiveKeys` left off),
    iiko test organisation (or `Iiko` disabled), a separate Firebase project (`Firebase__Enabled=true` only if
    you want to test pushes with test devices), and `Webkassa__BaseUrl=https://devkkm.webkassa.kz` (Webkassa's
    test server; production uses the default live server).
