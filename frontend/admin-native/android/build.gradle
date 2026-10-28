@@ -22,6 +22,15 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.all {
+        resolutionStrategy {
+            // Force a single Kotlin stdlib version to avoid duplicate-class errors (same as the customer app)
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22',
+                  'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22',
+                  'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+        }
+    }
 }
 
 task clean(type: Delete) {
