@@ -132,6 +132,10 @@ export class YurtApiService {
   setCafeActive(id: string, isActive: boolean): Observable<Cafe> {
     return this.http.put<Cafe>(`${this.api}/platform/cafes/${id}/active`, { isActive });
   }
+  /** ZIP with all of a cafe's data (one CSV per table) for a cafe that leaves Yurt. */
+  exportCafe(id: string): Observable<Blob> {
+    return this.http.get(`${this.api}/platform/cafes/${id}/export`, { responseType: 'blob' });
+  }
   getCafeSecrets(id: string): Observable<CafeSecretStatus[]> {
     return this.http.get<CafeSecretStatus[]>(`${this.api}/platform/cafes/${id}/secrets`);
   }

@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Payments;
 using Yurt.Application.Features.Payments.DTOs;
@@ -96,6 +97,15 @@ public class PlatformController : ApiControllerBase
     [HttpPut("cafes/{id:guid}/active")]
     public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
         => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
+
+    /// <summary>ZIP with all of a cafe's data (one CSV per table, cafe.json, README) for a cafe that leaves Yurt.</summary>
+    [HttpGet("cafes/{id:guid}/export")]
+    public async Task<IActionResult> ExportCafe(Guid id, [FromServices] ICafeDataExporter exporter, CancellationToken ct)
+    {
+        var export = await exporter.ExportAsync(id, ct);
+        if (export is null) return NotFound(new ProblemDetails { Title = "Cafe not found." });
+        return File(export.Content, "application/zip", export.FileName);
+    }
 
     /// <summary>The cafe's online payment provider (Stripe or off) and the webhook address for its Stripe dashboard.</summary>
     [HttpGet("payments")]

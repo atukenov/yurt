@@ -60,6 +60,10 @@
               {{ 'plat.cafeActive' | t }}
             </label>
             <button (click)="openSecrets(c)" class="shrink-0 text-xs font-semibold text-slate-600 underline">{{ 'plat.cafeSecrets' | t }}</button>
+            <button (click)="exportCafe(c)" [disabled]="exportingCafeId() === c.id"
+              class="shrink-0 text-xs font-semibold text-slate-600 underline disabled:opacity-50">
+              {{ (exportingCafeId() === c.id ? 'plat.cafeExporting' : 'plat.cafeExport') | t }}
+            </button>
           </li>
           @if (secretsCafeId() === c.id) {
             <li class="py-3">
