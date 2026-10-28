@@ -35,7 +35,8 @@ Checklist (one-time, done in the hosting dashboard):
 4. Integrations in sandbox mode only: payments (Stripe test keys `sk_test_...` per cafe; `Stripe__AllowLiveKeys` left off),
    iiko test organisation (or `Iiko` disabled), a separate Firebase project (`Firebase__Enabled=true` only if
    you want to test pushes with test devices), and `Webkassa__BaseUrl=https://devkkm.webkassa.kz` (Webkassa's
-   test server; production uses the default live server).
+   test server; production uses the default live server). For ReKassa: `ReKassa__ApiKey` (Yurt's partner key) and
+   `ReKassa__BaseUrl` set to ReKassa's test server while testing.
 5. Two frontend deployments (customer and admin) built with `apiUrl` of the staging backend.
 
 Every release goes to staging first. Promote to production only after the smoke test below passes.

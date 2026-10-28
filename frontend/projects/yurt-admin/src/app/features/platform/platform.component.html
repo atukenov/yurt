@@ -457,6 +457,10 @@
           </label>
         </div>
 
+        @if (fiscalProvider === 'rekassa') {
+          <p class="mt-3 text-sm text-slate-600">{{ 'plat.fiscal.rekassaHint' | t }}</p>
+        }
+
         <p class="mt-4 text-sm text-slate-600">{{ 'plat.fiscal.skip' | t }}</p>
         <div class="mt-1 flex flex-wrap gap-3">
           @for (m of fiscalMethods; track m) {
@@ -471,7 +475,7 @@
           @for (b of f.branches; track b.locationId) {
             <label class="flex items-center gap-3 text-sm">
               <span class="w-40 shrink-0 truncate text-slate-700">{{ b.name }}</span>
-              <input type="text" maxlength="50" [(ngModel)]="fiscalRegisters[b.locationId]" placeholder="SWK00000000"
+              <input type="text" maxlength="50" [(ngModel)]="fiscalRegisters[b.locationId]" [placeholder]="fiscalProvider === 'rekassa' ? 'ZNM' : 'SWK00000000'"
                 class="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2 bg-surface" />
             </label>
           }

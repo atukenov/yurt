@@ -167,6 +167,10 @@ public static class DependencyInjection
         services.AddSingleton<WebkassaTokenCache>();
         services.AddHttpClient<WebkassaFiscalRegistrar>();
         services.AddScoped<IFiscalRegistrar>(sp => sp.GetRequiredService<WebkassaFiscalRegistrar>());
+        services.AddSingleton(configuration.GetSection("ReKassa").Get<ReKassaOptions>() ?? new ReKassaOptions());
+        services.AddSingleton<ReKassaSessionCache>();
+        services.AddHttpClient<ReKassaFiscalRegistrar>();
+        services.AddScoped<IFiscalRegistrar>(sp => sp.GetRequiredService<ReKassaFiscalRegistrar>());
         services.AddScoped<FiscalReceiptService>();
         services.AddScoped<FiscalSettingsService>();
         services.AddScoped<StationService>();
