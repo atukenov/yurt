@@ -192,6 +192,8 @@ export interface CreateOrderRequest {
   paymentMethod?: PaymentMethod;
   discountCode?: string;
   loyaltyPointsToSpend?: number;
+  /** When the guest wants to pick the order up (ISO time). Left out = as soon as possible. */
+  pickupAt?: string;
 }
 
 export interface CreatePaymentRequest {
@@ -457,6 +459,8 @@ export interface Order {
   status: OrderStatus;
   declineReason?: string;
   etaMinutes?: number;
+  /** The pickup time the guest chose (ISO, UTC); null = as soon as possible. */
+  pickupAt?: string | null;
   createdAt: string;
   acceptedAt?: string;
   completedAt?: string;
