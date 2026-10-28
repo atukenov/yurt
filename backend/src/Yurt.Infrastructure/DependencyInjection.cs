@@ -40,6 +40,9 @@ using Yurt.Application.Features.Push;
 using Yurt.Application.Features.Push.Services;
 using Yurt.Infrastructure.Fiscal;
 using Yurt.Infrastructure.Health;
+using Yurt.Infrastructure.Monitoring;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Yurt.Infrastructure.Hubs;
 using Yurt.Infrastructure.Iiko;
 using Yurt.Infrastructure.Messaging;
@@ -196,6 +199,15 @@ public static class DependencyInjection
         services.AddHostedService<IikoOrderSyncRetryService>();
         services.AddHostedService<FiscalReceiptJob>();
         services.AddHostedService<PrintJobService>();
+
+        // Error alerts to Telegram (off until Alerts:TelegramBotToken and Alerts:TelegramChatId are set; docs/monitoring.md)
+        services.AddSingleton(configuration.GetSection("Alerts").Get<AlertOptions>() ?? new AlertOptions());
+        services.AddSingleton<ErrorAlertSink>();
+        services.AddHostedService(sp => new ErrorAlertService(
+            sp.GetRequiredService<ErrorAlertSink>(),
+            sp.GetRequiredService<AlertOptions>(),
+            sp.GetRequiredService<IHostEnvironment>(),
+            sp.GetRequiredService<ILogger<ErrorAlertService>>()));
 
         // JWT Auth — fail-fast secret validation
         var jwtSecret = configuration["Jwt:Secret"];
