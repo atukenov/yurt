@@ -197,7 +197,8 @@ Steps:
   - [x] Network printers (ESC/POS over TCP): kitchen and receipt printers per branch, tied to a station or to all items, print by themselves on accept, test print, job list with retries. Details in `docs/modules.md`.
   - [x] Print agent that runs in the cafe, for servers in the cloud that cannot reach the cafe's network (`scripts/print-agent.mjs`, setup in `docs/print-agent.md`).
   - [x] Cash drawer on the receipt printer: opens on cash payments and with the **Open drawer** button on the Cashier page (per-printer tick). Details in `docs/modules.md`.
-  - [ ] Bluetooth printers (native plugin in the tablet app).
+  - [x] Bluetooth printers through a tablet in Chrome (Web Bluetooth, BLE printers only). Staff guide: `docs/bluetooth-printers.md`.
+  - [x] Bluetooth printers (native plugin in the tablet app): the admin app as an Android tablet / iPad app (`frontend/admin-native`) for classic Bluetooth printers and iPad. Built without hardware; see `docs/tablet-app.md` for what to test.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter. _(Checklist written: `docs/cutover-from-iiko.md`. Using it on the first cafe is Lev's call.)_
 
 ## Open items

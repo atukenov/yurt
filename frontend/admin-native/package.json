@@ -1,0 +1,8 @@
+{
+  "name": "yurt-admin-native",
+  "private": true,
+  "description": "Tablet app shell for the admin app (Capacitor). Uses the packages installed in ../node_modules.",
+  "scripts": {
+    "sync": "npm --prefix .. exec -- ng build yurt-admin --configuration production && npx cap sync"
+  }
+}

@@ -5,16 +5,19 @@ next to the printer does the printing: the admin app on the tablet asks the serv
 seconds and sends them over Bluetooth. It works like the print agent (`docs/print-agent.md`), but on the tablet itself.
 
 ## What you need
-- A tablet (or a Windows or Mac computer) with **Google Chrome**. Android tablets work best.
-  Safari on iPad and iPhone has no Bluetooth for web pages, so an iPad cannot do this.
-- A thermal printer with **Bluetooth Low Energy** ("BLE", "Bluetooth 4.0" or newer). Most cheap 58 mm and 80 mm
-  printers have it. A printer that only has old "classic" Bluetooth does not show up in the list.
+- Either the **Yurt Admin tablet app** on an Android tablet or iPad (see `docs/tablet-app.md`), or a tablet (or a
+  Windows or Mac computer) with **Google Chrome**.
+- In Chrome: a thermal printer with **Bluetooth Low Energy** ("BLE", "Bluetooth 4.0" or newer). A printer that only
+  has old "classic" Bluetooth does not show up in Chrome's list, and Safari on iPad has no Bluetooth for web pages.
+- In the tablet app on Android: classic Bluetooth printers work too (pair the printer in the tablet's Bluetooth
+  settings first). On iPad: Bluetooth Low Energy printers only.
 - The `own_pos` module switched on.
 
 ## Set it up
 1. In the admin app open **Printers** and press **Add printer**. Fill in the name, branch, kind and paper width, and
    tick **Bluetooth, through a tablet in the cafe**. No address is needed.
-2. On the tablet next to the printer, open the admin app in Chrome and sign in (any staff account works).
+2. On the tablet next to the printer, open the tablet app (or the admin app in Chrome) and sign in (any staff account
+   works).
 3. Switch the printer on. On **Printers**, press **Connect this tablet** on that printer, pick the printer in Chrome's
    list and press **Pair**. The printer now shows **Connected to this tablet**.
 4. Press **Test print**. The page prints within a few seconds.
