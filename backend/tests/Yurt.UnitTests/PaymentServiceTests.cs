@@ -1,145 +1,83 @@
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using MockQueryable.NSubstitute;
 using NSubstitute;
 using Yurt.Application.Common.Interfaces;
-using Yurt.Application.Features.Payments;
 using Yurt.Application.Features.Payments.DTOs;
 using Yurt.Application.Features.Payments.Services;
+using Yurt.Domain;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
 namespace Yurt.UnitTests;
 
+/// <summary>When the customer app is offered "pay online", and what happens when a cafe has not set it up.
+/// The full Stripe flow (page, webhooks, refunds) is covered by the integration tests.</summary>
 public class PaymentServiceTests
 {
-    private static (PaymentService svc, IApplicationDbContext db, IOrdersHubService hub) Build(
-        IEnumerable<Payment>? payments = null, bool freedomPayEnabled = true)
+    private static readonly Guid CafeId = Guid.NewGuid();
+
+    private static (PaymentService Svc, IPaymentProvider Stripe) Build(
+        string? cafeProvider, bool moduleOn = true, bool keysSet = true, IEnumerable<Order>? orders = null)
     {
         var db = Substitute.For<IApplicationDbContext>();
-        var set = (payments ?? []).ToList().BuildMockDbSet();
-        db.Payments.Returns(set);
+        var cafe = new Tenant { Id = CafeId, Slug = "cafe", Name = "Cafe", PaymentProvider = cafeProvider };
+        var tenants = new List<Tenant> { cafe }.BuildMockDbSet();
+        var orderSet = (orders ?? []).ToList().BuildMockDbSet();
+        var payments = new List<Payment>().BuildMockDbSet();
+        db.Tenants.Returns(tenants);
+        db.Orders.Returns(orderSet);
+        db.Payments.Returns(payments);
 
-        var hub = Substitute.For<IOrdersHubService>();
-        var providerFactory = Substitute.For<IPaymentProviderFactory>();
-        var webhookValidator = Substitute.For<IPaymentWebhookValidator>();
-        var options = new FreedomPayOptions { Enabled = freedomPayEnabled, AppleMerchantId = "merchant.com.yurt.app" };
-        var logger = Substitute.For<ILogger<PaymentService>>();
+        var tenant = Substitute.For<ITenantContext>();
+        tenant.TenantId.Returns(CafeId);
+        tenant.Slug.Returns("cafe");
 
-        var svc = new PaymentService(db, hub, providerFactory, webhookValidator, options, logger);
-        return (svc, db, hub);
-    }
+        var modules = Substitute.For<IModuleGate>();
+        modules.IsEnabledAsync(ModuleKeys.OnlinePayments, Arg.Any<CancellationToken>()).Returns(moduleOn);
 
-    private static Payment MakePayment(
-        Guid customerId, PaymentRecordStatus status = PaymentRecordStatus.Pending, string invoiceId = "FP-1")
-    {
-        var order = new Order
-        {
-            CustomerUserId = customerId,
-            Status = OrderStatus.Created,
-            PaymentStatus = PaymentStatus.Unpaid,
-        };
-        return new Payment
-        {
-            OrderId = order.Id,
-            Order = order,
-            Provider = PaymentProvider.FreedomPay,
-            InvoiceId = invoiceId,
-            Amount = 1500,
-            Status = status,
-            PaymentUrl = "",
-            QrCode = "",
-        };
+        var stripe = Substitute.For<IPaymentProvider>();
+        stripe.Provider.Returns(PaymentProvider.Stripe);
+        stripe.IsConfiguredAsync(Arg.Any<CancellationToken>()).Returns(keysSet);
+        var factory = Substitute.For<IPaymentProviderFactory>();
+        factory.GetProvider(PaymentProvider.Stripe).Returns(stripe);
+
+        var svc = new PaymentService(db, Substitute.For<IOrdersHubService>(), factory, tenant, modules,
+            Substitute.For<IAuditLogService>(), new PaymentReturnOptions(), NullLogger<PaymentService>.Instance);
+        return (svc, stripe);
     }
 
     [Fact]
-    public void GetApplePayConfig_ReturnsOptionsValues()
+    public async Task Config_IsStripe_OnlyWhenTheModuleIsOn_StripeIsChosen_AndItsKeysAreSet()
     {
-        var (svc, _, _) = Build(freedomPayEnabled: true);
-
-        var config = svc.GetApplePayConfig();
-
-        Assert.True(config.Enabled);
-        Assert.Equal("merchant.com.yurt.app", config.AppleMerchantId);
+        Assert.Equal("stripe", (await Build("stripe").Svc.GetConfigAsync()).Provider);
+        Assert.Null((await Build("stripe", moduleOn: false).Svc.GetConfigAsync()).Provider);
+        Assert.Null((await Build("stripe", keysSet: false).Svc.GetConfigAsync()).Provider);
+        Assert.Null((await Build(null).Svc.GetConfigAsync()).Provider);
     }
 
     [Fact]
-    public async Task ConfirmApplePayAsync_Disabled_ReturnsFailure()
+    public async Task CreatePayment_WhenTheCafeTakesNoOnlinePayments_IsRefused_WithoutCallingStripe()
     {
-        var customerId = Guid.NewGuid();
-        var payment = MakePayment(customerId);
-        var (svc, _, hub) = Build([payment], freedomPayEnabled: false);
+        var customer = Guid.NewGuid();
+        var order = new Order { CustomerUserId = customer, Status = OrderStatus.Created, Total = 1500 };
+        var (svc, stripe) = Build(null, orders: [order]);
 
-        var result = await svc.ConfirmApplePayAsync(customerId, new ConfirmApplePayDto(payment.InvoiceId, "fp-123"));
+        var result = await svc.CreatePaymentAsync(customer, new CreatePaymentDto(order.Id));
 
         Assert.False(result.Succeeded);
         Assert.Equal(422, result.StatusCode);
-        await hub.DidNotReceive().NotifyPaymentSucceededAsync(Arg.Any<Order>(), Arg.Any<CancellationToken>());
+        await stripe.DidNotReceive().CreateInvoiceAsync(Arg.Any<CreatePaymentInvoiceRequest>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ConfirmApplePayAsync_InvoiceNotFound_ReturnsNotFound()
+    public async Task CreatePayment_ForAnAcceptedOrSomeoneElsesOrder_IsRefused()
     {
-        var (svc, _, _) = Build();
+        var customer = Guid.NewGuid();
+        var accepted = new Order { CustomerUserId = customer, Status = OrderStatus.Accepted, Total = 1500 };
+        var (svc, _) = Build("stripe", orders: [accepted]);
 
-        var result = await svc.ConfirmApplePayAsync(Guid.NewGuid(), new ConfirmApplePayDto("missing", "fp-123"));
-
-        Assert.False(result.Succeeded);
-        Assert.Equal(404, result.StatusCode);
-    }
-
-    [Fact]
-    public async Task ConfirmApplePayAsync_WrongCustomer_ReturnsForbidden()
-    {
-        var payment = MakePayment(Guid.NewGuid());
-        var (svc, _, _) = Build([payment]);
-
-        var result = await svc.ConfirmApplePayAsync(Guid.NewGuid(), new ConfirmApplePayDto(payment.InvoiceId, "fp-123"));
-
-        Assert.False(result.Succeeded);
-        Assert.Equal(403, result.StatusCode);
-    }
-
-    [Fact]
-    public async Task ConfirmApplePayAsync_AlreadyPaid_IsIdempotentSuccess()
-    {
-        var customerId = Guid.NewGuid();
-        var payment = MakePayment(customerId, PaymentRecordStatus.Paid);
-        var (svc, db, hub) = Build([payment]);
-
-        var result = await svc.ConfirmApplePayAsync(customerId, new ConfirmApplePayDto(payment.InvoiceId, "fp-123"));
-
-        Assert.True(result.Succeeded);
-        await db.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
-        await hub.DidNotReceive().NotifyPaymentSucceededAsync(Arg.Any<Order>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task ConfirmApplePayAsync_AlreadyFailed_ReturnsConflict()
-    {
-        var customerId = Guid.NewGuid();
-        var payment = MakePayment(customerId, PaymentRecordStatus.Failed);
-        var (svc, _, _) = Build([payment]);
-
-        var result = await svc.ConfirmApplePayAsync(customerId, new ConfirmApplePayDto(payment.InvoiceId, "fp-123"));
-
-        Assert.False(result.Succeeded);
-        Assert.Equal(409, result.StatusCode);
-    }
-
-    [Fact]
-    public async Task ConfirmApplePayAsync_Pending_MarksPaidAndTransitionsOrder()
-    {
-        var customerId = Guid.NewGuid();
-        var payment = MakePayment(customerId);
-        var (svc, db, hub) = Build([payment]);
-
-        var result = await svc.ConfirmApplePayAsync(customerId, new ConfirmApplePayDto(payment.InvoiceId, "fp-123"));
-
-        Assert.True(result.Succeeded);
-        Assert.Equal(PaymentRecordStatus.Paid, payment.Status);
-        Assert.Equal(PaymentStatus.Paid, payment.Order.PaymentStatus);
-        Assert.Equal(OrderStatus.Preparing, payment.Order.Status);
-        await db.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        await hub.Received(1).NotifyPaymentSucceededAsync(payment.Order, Arg.Any<CancellationToken>());
+        Assert.Equal(422, (await svc.CreatePaymentAsync(customer, new CreatePaymentDto(accepted.Id))).StatusCode);
+        Assert.Equal(403, (await svc.CreatePaymentAsync(Guid.NewGuid(), new CreatePaymentDto(accepted.Id))).StatusCode);
+        Assert.Equal(404, (await svc.CreatePaymentAsync(customer, new CreatePaymentDto(Guid.NewGuid()))).StatusCode);
     }
 }

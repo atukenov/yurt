@@ -1,3 +1,4 @@
+using Yurt.Application.Features.Payments.Services;
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
@@ -28,8 +29,9 @@ public class OrderService
     public OrderService(
         IApplicationDbContext db, IOrdersHubService hub, IAuditLogService audit,
         DiscountCodeService discountCodes, LoyaltyService loyalty, IPosOrderSink pos,
-        IModuleGate modules, StockService? stock = null, PrintService? print = null)
+        IModuleGate modules, StockService? stock = null, PrintService? print = null, PaymentService? payments = null)
     {
+        _payments = payments;
         _stock = stock;
         _print = print;
         _db = db;
@@ -40,6 +42,8 @@ public class OrderService
         _pos = pos;
         _modules = modules;
     }
+
+    private readonly PaymentService? _payments;
 
     public const string CustomerCancelReason = "Cancelled by customer";
 
@@ -410,6 +414,9 @@ public class OrderService
         // Give reserved points back to the customer (retried in background on failure)
         await _loyalty.ReleaseHoldForOrderAsync(order, ct);
 
+        // An online payment is given back (or its open payment page closed). Fails open.
+        if (_payments is not null) await _payments.OnOrderDeclinedAsync(order, ct);
+
         // Plain "updated" event: refreshes the admin live list and the customer's view
         // without firing the "your order was declined" push meant for admin declines.
         await _hub.NotifyOrderUpdatedAsync(order, ct);
@@ -433,6 +440,9 @@ public class OrderService
 
         // Give reserved points back to the customer (retried in background on failure)
         await _loyalty.ReleaseHoldForOrderAsync(order, ct);
+
+        // An online payment is given back (or its open payment page closed). Fails open.
+        if (_payments is not null) await _payments.OnOrderDeclinedAsync(order, ct);
 
         await _hub.NotifyOrderDeclinedAsync(order, ct);
         await _audit.LogAsync("OrderDeclined", "Order", orderId.ToString(), dto.Reason, ct);

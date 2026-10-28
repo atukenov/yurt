@@ -16,14 +16,3 @@
 
 .total-pop { animation: totalPop .35s ease; display: inline-block; }
 
-/* Apple's required Apple Pay mark — WebKit renders this natively inside the
-   Capacitor WKWebView, same as it would in Safari; no ApplePaySession JS
-   needed since the actual payment runs through the native plugin instead. */
-.apple-pay-button {
-  -webkit-appearance: -apple-pay-button;
-  -apple-pay-button-type: plain;
-  -apple-pay-button-style: black;
-  width: 100%;
-  height: 44px;
-  border-radius: 14px;
-}

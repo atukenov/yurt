@@ -69,7 +69,7 @@ Module keys and what they cover:
 | `group_orders` | Group orders | Shared carts and join links |
 | `engagement` | Engagement | Ratings, achievements, 2GIS directions |
 | `staff_audit` | Staff and audit | Extra staff accounts/roles, full audit log |
-| `online_payments` | Online payments | Card/Kaspi/Apple Pay providers |
+| `online_payments` | Online payments | Card, Apple Pay and Google Pay through Stripe (per cafe); a local provider can be added later |
 | `verification` | Phone verification | OTP channel (WhatsApp/SMS/Firebase) |
 | `branding` | Branding / white-label app | Own colors, logo, store-listed app |
 
@@ -137,7 +137,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
     - [x] Module licenses, brand, maintenance mode and other platform settings are per cafe (`ModuleLicense` and `PlatformSetting` carry `TenantId`; the module and maintenance gates cache per cafe through `TenantAmbient`). The `/platform` screens act on the cafe of the host they are opened from. A new cafe starts with no rows, which means every module is on (fail-open) until the operator switches one off.
     - [x] Credentials: iiko, payments, Firebase, OTP (were environment variables for the whole deployment). Lev chose encrypted storage in the database (2026-10-17).
       - [x] Storage: `TenantSecret` table, AES-256-GCM with a server master key (`Secrets__MasterKey`, Base64 of 32 random bytes; bound to cafe and key), `ITenantSecrets` (the default cafe falls back to the old environment variables, every other cafe gets nothing from them), write-only `/platform/cafes/{id}/secrets` API and a Secrets panel per cafe. Without the master key nothing can be stored (503) and the first cafe is unaffected.
-      - [x] Payments: the webhook check reads the cafe's own `Payment:WebhookSecret` (a cafe with none accepts no webhooks; the first cafe still uses the environment value). The sandbox payment simulator signs with that cafe's secret and sends an `X-Tenant` header so its callback is checked as the right cafe.
+      - [x] Payments: each cafe takes online payments through its own Stripe account (`Stripe:SecretKey`, `Stripe:WebhookSecret`) and has its own webhook address (`/payments/stripe/webhook/{slug}`); a cafe without a signing secret accepts no webhooks, and the first cafe can still use environment values. Replaced the Kaspi simulator and the Freedom Pay Apple Pay stub (2026-10-27, `docs/stripe-payments.md`).
       - [x] iiko: its settings (key, organisation, loyalty program, payment type, webhook token) are one set for the whole server, so iiko is available to the first cafe only; every other cafe gets "iiko off" in loyalty and order push, a 404 on the iiko admin tools and a rejected iiko webhook. Without this a second cafe would have written its customers into the first cafe's iiko. Per-cafe iiko is not planned, because iiko is being replaced by the self-developed modules (an optional adapter). The iiko keys were taken off the per-cafe secrets list.
       - [x] Firebase push and WhatsApp phone codes: each cafe sends through its own Firebase service account (one cached Firebase app per cafe and credential) and its own WhatsApp (Green API) instance. A cafe without its own credentials sends nothing and never borrows the first cafe's; the first cafe keeps its environment values.
   - [x] `TenantId` is required on every table (NOT NULL, default cafe for old rows); a test fails if a new table has no cafe filter or a nullable `TenantId`.

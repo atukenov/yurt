@@ -2,7 +2,6 @@
  * Public API Surface of shared-api
  */
 
-export * from './lib/apple-pay.service';
 export * from './lib/auth-state.service';
 export * from './lib/auth.interceptor';
 export * from './lib/brand-palette';

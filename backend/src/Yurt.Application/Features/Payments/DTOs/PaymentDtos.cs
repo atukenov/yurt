@@ -2,25 +2,19 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Application.Features.Payments.DTOs;
 
-public enum SandboxPaymentBehavior
-{
-  Default = 0,
-  Success = 1,
-  Failure = 2,
-  Expired = 3,
-  DuplicateWebhook = 4,
-  NetworkFailure = 5
-}
-
-public record CreatePaymentDto(Guid OrderId, PaymentProvider Provider, SandboxPaymentBehavior SandboxBehavior = SandboxPaymentBehavior.Default);
+/// <summary>The customer asks to pay an order online. <paramref name="ReturnUrl"/> is the web address of the app the
+/// customer came from (for example https://order.mycafe.kz); the payment page sends them back there.</summary>
+public record CreatePaymentDto(Guid OrderId, string? ReturnUrl = null);
 
 public record CreatePaymentInvoiceRequest(
+    Guid PaymentId,
     Guid OrderId,
-    Guid CustomerId,
+    string OrderLabel,
     decimal Amount,
     Currency Currency,
-    PaymentProvider Provider,
-    SandboxPaymentBehavior SandboxBehavior);
+    string SuccessUrl,
+    string CancelUrl,
+    string CafeSlug);
 
 public record PaymentInvoiceResponse(
     Guid PaymentId,
@@ -49,15 +43,26 @@ public record PaymentStatusResponse(
     DateTime? UpdatedAt,
     string? RawResponse);
 
-public record ConfirmApplePayDto(string InvoiceId, string FreedomPaymentId);
+/// <summary>What the customer app needs to know: whether this cafe takes online payments, and through whom.</summary>
+public record PaymentConfigResponse(string? Provider);
 
-public record ApplePayConfigResponse(bool Enabled, string AppleMerchantId);
+public enum PaymentWebhookKind { Paid, Failed, Expired, Refunded }
 
-public record ValidatedPaymentWebhook(
-    string InvoiceId,
-    string EventType,
-    decimal Amount,
-    Currency Currency,
-    PaymentProvider Provider,
-    DateTime Timestamp,
-    string RawBody);
+/// <summary>A checked webhook. The payment is found by <paramref name="InvoiceId"/> (the payment page id) or, for
+/// events about the money itself such as a refund, by <paramref name="ProviderPaymentId"/>.</summary>
+public record PaymentWebhookEvent(
+    string EventId,
+    PaymentWebhookKind Kind,
+    string? InvoiceId,
+    string? ProviderPaymentId);
+
+/// <summary>Platform screen: the cafe's online payment provider and whether its keys are in Secrets.</summary>
+public record PaymentSettingsDto(
+    string? Provider,
+    List<string> Providers,
+    bool SecretKeySet,
+    bool WebhookSecretSet,
+    bool TestMode,
+    string WebhookUrl);
+
+public record SavePaymentSettingsDto(string? Provider);

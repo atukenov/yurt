@@ -2,6 +2,8 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Yurt.Application.Features.Fiscal;
+using Yurt.Application.Features.Payments;
+using Yurt.Application.Features.Payments.DTOs;
 using Yurt.Application.Features.Platform;
 using Yurt.WebApi.Common;
 
@@ -95,6 +97,18 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
         => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
 
+    /// <summary>The cafe's online payment provider (Stripe or off) and the webhook address for its Stripe dashboard.</summary>
+    [HttpGet("payments")]
+    public async Task<IActionResult> GetPayments([FromServices] PaymentSettingsService payments, CancellationToken ct)
+        => ToResult(await payments.GetAsync(ServerUrl(), ct));
+
+    [HttpPut("payments")]
+    public async Task<IActionResult> SetPayments([FromServices] PaymentSettingsService payments, [FromBody] SavePaymentSettingsDto dto, CancellationToken ct)
+        => ToResult(await payments.SaveAsync(dto, ServerUrl(), ct));
+
+    /// <summary>Public address of this server (Railway serves https; the forwarded headers carry it).</summary>
+    private string ServerUrl() => _config["PublicApiUrl"] is { Length: > 0 } url ? url : $"{Request.Scheme}://{Request.Host}";
+
     [HttpGet("cafes/{id:guid}/secrets")]
     public async Task<IActionResult> GetCafeSecrets(Guid id, CancellationToken ct)
         => ToResult(await _secrets.ListAsync(id, ct));
@@ -122,8 +136,6 @@ public class PlatformController : ApiControllerBase
         {
             new IntegrationStatusDto("jwt", Set("Jwt:Secret"), true),
             new IntegrationStatusDto("iiko", Set("Iiko:ApiKey") && Set("Iiko:ClientSecret"), On("Iiko:Enabled")),
-            new IntegrationStatusDto("payments_sandbox", Set("Payment:WebhookSecret") && Set("Payment:SandboxSecret"), true),
-            new IntegrationStatusDto("freedompay", true, On("FreedomPay:Enabled")),
             new IntegrationStatusDto("firebase_push", Set("Firebase:ServiceAccountJson"), On("Firebase:Enabled")),
             new IntegrationStatusDto("otp_whatsapp", Set("Otp:IdInstance") && Set("Otp:ApiTokenInstance"), On("Otp:Enabled")),
         });

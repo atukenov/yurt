@@ -18,4 +18,7 @@ public class Payment : BaseEntity, ITenantOwned
   public string QrCode { get; set; } = null!;
   public string? RawResponse { get; set; }
   public DateTime? ExpiresAt { get; set; }
+
+  /// <summary>The provider's id of the money movement (Stripe payment intent, pi_...), known once paid. Refunds use it.</summary>
+  public string? ProviderPaymentId { get; set; }
 }

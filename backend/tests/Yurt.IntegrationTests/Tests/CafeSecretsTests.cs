@@ -74,10 +74,10 @@ public class CafeSecretsTests(YurtWebAppFactory factory)
         var op = await OperatorAsync();
         var cafe = await NewCafeAsync(op);
 
-        // The test server sets Payment:SandboxSecret for the whole deployment.
-        Assert.Equal("test-sandbox", await SecretsFor(Tenant.DefaultId, "default", out var s1).GetAsync("Payment:SandboxSecret"));
+        // The test server sets Stripe:SecretKey for the whole deployment.
+        Assert.Equal(YurtWebAppFactory.StripeSecretKey, await SecretsFor(Tenant.DefaultId, "default", out var s1).GetAsync("Stripe:SecretKey"));
         s1.Dispose();
-        Assert.Null(await SecretsFor(cafe, "x", out var s2).GetAsync("Payment:SandboxSecret"));
+        Assert.Null(await SecretsFor(cafe, "x", out var s2).GetAsync("Stripe:SecretKey"));
         s2.Dispose();
     }
 

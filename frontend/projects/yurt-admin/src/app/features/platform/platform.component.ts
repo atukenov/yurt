@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService, LocalDatePipe } from 'shared-ui';
-import { FiscalSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { FiscalSettings, PaymentSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 
@@ -54,6 +54,7 @@ export class PlatformComponent implements OnInit {
     this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
     this.loadLedger();
     this.loadFiscal();
+    this.loadPayments();
   }
 
   // ── Loyalty wallet (iiko → own wallet) ──
@@ -98,6 +99,36 @@ export class PlatformComponent implements OnInit {
   fiscalRegisters: Record<string, string> = {};
   savingFiscal = signal(false);
   readonly fiscalMethods = ['Cash', 'Card', 'KaspiBank', 'HalykBank', 'FreedomBank', 'ApplePay', 'Other'];
+
+  // ── Online payments (Stripe) ──
+  payments = signal<PaymentSettings | null>(null);
+  paymentProvider = '';
+  savingPayments = signal(false);
+
+  private loadPayments(): void {
+    this.payments.set(null);
+    this.api.getPaymentSettings().subscribe({ next: (p) => this.setPayments(p), error: () => this.payments.set(null) });
+  }
+
+  private setPayments(p: PaymentSettings): void {
+    this.payments.set(p);
+    this.paymentProvider = p.provider ?? '';
+  }
+
+  savePayments(): void {
+    this.savingPayments.set(true);
+    this.api.setPaymentSettings(this.paymentProvider || null).subscribe({
+      next: (saved) => { this.setPayments(saved); this.savingPayments.set(false); this.toast.success(this.lang.t('common.saved')); },
+      error: () => this.savingPayments.set(false),
+    });
+  }
+
+  copyWebhookUrl(url: string): void {
+    navigator.clipboard?.writeText(url).then(
+      () => this.toast.success(this.lang.t('plat.pay.copied')),
+      () => {},
+    );
+  }
 
   private loadFiscal(): void {
     this.fiscal.set(null);
@@ -283,6 +314,7 @@ export class PlatformComponent implements OnInit {
     this.api.getBrand().subscribe({ next: (b) => this.brand.set(b) });
     this.loadLedger();
     this.loadFiscal();
+    this.loadPayments();
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }
 

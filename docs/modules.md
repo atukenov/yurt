@@ -75,12 +75,12 @@ How a gate is built:
 - **Not covered:** loyalty talks to iiko too, but it has its own `loyalty` module.
 - **Depends on:** nothing; replaced by `own_pos` in Phase 6.
 
-### `online_payments` (Apple Pay / Freedom Pay and other online providers)
-- **Covers:** starting a new online payment (`POST /payments/create`) and showing Apple Pay in the customer cart.
-- **How it switches off:** `POST /payments/create` returns `403 {code:"module_disabled"}`; `GET /payments/apple-pay/config` answers `enabled: false` (same as "not configured") so the app hides the Apple Pay button on its own.
-- **Never strands a payment:** payment status, Apple Pay confirm and the provider webhook ignore the module, so a payment that already started still finishes and is recorded.
-- **Keeps working:** the Kaspi / Halyk / Freedom bank choices in the cart are labels for paying at the counter (staff mark the order paid), so they stay in core; an Apple Pay order that was started on an older app falls back to paying at the counter, as it already does when the sheet is cancelled.
-- **Depends on:** nothing. Provider credentials are still configured separately (`FreedomPay:Enabled`, `Payment:*`).
+### `online_payments` (pay online by card, Apple Pay or Google Pay through Stripe)
+- **Covers:** opening a new online payment page (`POST /payments/create`) and showing "Pay online" in the customer cart and on the order page.
+- **How it switches off:** `POST /payments/create` returns `403 {code:"module_disabled"}`; `GET /payments/config` answers with no provider (same as "not set up") so the app hides "Pay online" on its own.
+- **Never strands a payment:** payment status, the Stripe webhook and refunds ignore the module, so a payment that already started still finishes, and money can still be given back.
+- **Keeps working:** the Kaspi / Halyk / Freedom bank choices in the cart are labels for paying at the counter (staff mark the order paid), so they stay in core.
+- **Depends on:** nothing. The provider is chosen and its keys stored per cafe (Platform → Online payments, `Stripe:SecretKey`, `Stripe:WebhookSecret`); see `docs/stripe-payments.md`.
 
 ### `verification` (phone verification code at sign-up and phone change)
 - **Covers:** the one-time code sent when a customer registers or changes their phone number (`AuthService`). Verification is required only when `Otp:Required` is on **and** the module is licensed.

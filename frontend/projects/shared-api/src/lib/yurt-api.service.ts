@@ -5,7 +5,6 @@ import {
   AcceptOrderRequest,
   AddGroupOrderItemRequest,
   AnalyticsResponse,
-  ApplePayConfigResponse,
   AppRelease,
   AppConfig,
   IntegrationStatus,
@@ -19,9 +18,10 @@ import {
   AppUpdateInfo,
   AuditLogEntry,
   AuthResponse,
-  ConfirmApplePayRequest,
   CreateOrderRequest,
   CreatePaymentRequest,
+  PaymentConfig,
+  PaymentSettings,
   CustomerDetail,
   CustomerProfile,
   CustomerStats,
@@ -165,6 +165,13 @@ export class YurtApiService {
   }
   setFiscalSettings(req: SaveFiscalSettings): Observable<FiscalSettings> {
     return this.http.put<FiscalSettings>(`${this.api}/platform/fiscal`, req, this.cafeOptions());
+  }
+
+  getPaymentSettings(): Observable<PaymentSettings> {
+    return this.http.get<PaymentSettings>(`${this.api}/platform/payments`, this.cafeOptions());
+  }
+  setPaymentSettings(provider: string | null): Observable<PaymentSettings> {
+    return this.http.put<PaymentSettings>(`${this.api}/platform/payments`, { provider }, this.cafeOptions());
   }
 
   importLoyalty(): Observable<LoyaltyImportResult> {
@@ -432,12 +439,8 @@ export class YurtApiService {
     return this.http.get<PaymentStatusResponse>(`${this.api}/payments/status/${invoiceId}`);
   }
 
-  getApplePayConfig(): Observable<ApplePayConfigResponse> {
-    return this.http.get<ApplePayConfigResponse>(`${this.api}/payments/apple-pay/config`);
-  }
-
-  confirmApplePay(request: ConfirmApplePayRequest): Observable<PaymentStatusResponse> {
-    return this.http.post<PaymentStatusResponse>(`${this.api}/payments/apple-pay/confirm`, request);
+  getPaymentConfig(): Observable<PaymentConfig> {
+    return this.http.get<PaymentConfig>(`${this.api}/payments/config`);
   }
 
   getOrderHistory(): Observable<Order[]> {
@@ -711,6 +714,11 @@ export class YurtApiService {
 
   updateOrderStatus(id: string, req: UpdateStatusRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/orders/${id}/status`, req);
+  }
+
+  /** Gives an online (Stripe) payment back to the customer in full. */
+  refundOrder(id: string): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/admin/orders/${id}/refund`, {});
   }
 
   updateOrderPayment(id: string, req: UpdatePaymentRequest): Observable<Order> {

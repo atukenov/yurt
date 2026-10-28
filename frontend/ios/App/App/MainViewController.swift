@@ -1,17 +1,8 @@
 import Capacitor
 
-/// Replaces Capacitor's default `CAPBridgeViewController` as the storyboard's root view
-/// controller (see `Main.storyboard`'s `customClass`) solely to register `ApplePayPlugin`.
-///
-/// `ApplePayPlugin` is a local plugin (lives directly in this app target, not a separate
-/// package), so Capacitor's normal auto-discovery can't find it: that mechanism reads
-/// `capacitor.config.json`'s `packageClassList`, which `npx cap sync` regenerates from
-/// scratch by scanning plugin *packages* in node_modules — it never looks at this folder,
-/// and that file is gitignored besides. Registering explicitly here, in committed Swift
-/// code, survives `cap sync` and doesn't depend on an untracked generated file.
-/// See docs/apple-pay-setup.md for the full story (this cost real debugging time once).
+/// The storyboard's root view controller (see `Main.storyboard`'s `customClass`). It used to register a local
+/// Apple Pay plugin; online payments now open the payment provider's page (Stripe) in the phone's browser, where
+/// Apple Pay works without any native code, so nothing is registered here. Kept as the place to register a local
+/// plugin later (`bridge?.registerPluginInstance(...)` in `capacitorDidLoad`).
 class MainViewController: CAPBridgeViewController {
-    override func capacitorDidLoad() {
-        bridge?.registerPluginInstance(ApplePayPlugin())
-    }
 }

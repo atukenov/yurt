@@ -10,7 +10,7 @@ Checklist for putting one cafe's own app in the App Store and Google Play. The b
 - [ ] `cafes/<slug>/cafe.json` (app id, name, version, optional Apple merchant id) committed.
 - [ ] `cafes/<slug>/assets/icon-only.png` (1024x1024) and `splash.png` (2732x2732).
 - [ ] Firebase project for the cafe, with `google-services.json` and `GoogleService-Info.plist` in `cafes/<slug>/secrets/`.
-- [ ] Apple Pay: merchant id created in the Apple Developer account and set as `appleMerchantId`; certificate set up as in `docs/apple-pay-setup.md`.
+- [ ] Online payments: the cafe's Stripe keys and webhook set up as in `docs/stripe-payments.md` (Apple Pay and Google Pay come with Stripe's payment page; no Apple merchant id is needed for it).
 - [ ] Backend for the cafe: Brand saved (name, colours, links), modules switched on, push and payments configured.
 - [ ] Store listing: name, short and full description (EN/RU/KK as needed), screenshots from the branded app (see
       "Store screenshots" below), privacy policy URL, support contact, age rating, and review notes with a test account.
