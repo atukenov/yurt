@@ -36,3 +36,6 @@ GoogleService-Info.plist
 cafes/*/secrets/
 frontend/assets/
 .local/
+
+# Store app builds (scripts/build-app.sh)
+build/apps/

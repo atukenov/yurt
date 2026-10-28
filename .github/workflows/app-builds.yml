@@ -1,0 +1,159 @@
+name: App builds
+
+# Store apps for one cafe from cafes/<cafe>/ (see docs/app-builds.md).
+#  - Run it by hand (Actions > App builds > Run workflow) to get signed builds, and optionally send them to
+#    Google Play (internal testing, as a draft) and TestFlight.
+#  - On pull requests that touch the native apps or the build scripts it makes an unsigned sample-cafe build of both
+#    apps, so a broken native build is noticed before a release day. It uses no secrets.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cafe:
+        description: Cafe folder name in cafes/
+        required: true
+        default: sample-cafe
+      platform:
+        description: Which apps
+        type: choice
+        options: [both, android, ios]
+        default: both
+      upload:
+        description: Also send to Google Play internal testing (draft) and TestFlight
+        type: boolean
+        default: false
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/app-builds.yml
+      - scripts/build-app.sh
+      - scripts/apply-cafe.mjs
+      - cafes/**
+      - frontend/android/**
+      - frontend/ios/**
+      - frontend/capacitor.config.ts
+      - frontend/package-lock.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-builds-${{ github.ref }}-${{ inputs.cafe || 'check' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: '20.x'
+  CAFE: ${{ inputs.cafe || 'sample-cafe' }}
+  # A hand-started run is a release: a missing signing value stops it instead of giving an unsigned app.
+  REQUIRE_SIGNING: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
+
+jobs:
+  android:
+    name: Android (${{ inputs.cafe || 'sample-cafe, unsigned check' }})
+    if: github.event_name == 'pull_request' || inputs.platform != 'ios'
+    runs-on: ubuntu-latest
+    # Cafe-specific secrets (Firebase files, or a cafe's own key) live in the GitHub environment "cafe-<name>" and
+    # win over repository secrets of the same name. Pull request checks use no environment and no secrets.
+    environment: ${{ github.event_name == 'workflow_dispatch' && format('cafe-{0}', inputs.cafe) || '' }}
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ github.event_name == 'workflow_dispatch' && secrets.ANDROID_KEYSTORE_BASE64 || '' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ github.event_name == 'workflow_dispatch' && secrets.ANDROID_KEYSTORE_PASSWORD || '' }}
+          ANDROID_KEY_ALIAS: ${{ github.event_name == 'workflow_dispatch' && secrets.ANDROID_KEY_ALIAS || '' }}
+          ANDROID_KEY_PASSWORD: ${{ github.event_name == 'workflow_dispatch' && secrets.ANDROID_KEY_PASSWORD || '' }}
+          FIREBASE_ANDROID_JSON: ${{ github.event_name == 'workflow_dispatch' && secrets.FIREBASE_ANDROID_JSON || '' }}
+        run: ./scripts/build-app.sh "$CAFE" android
+
+      - name: Keep the files
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CAFE }}-android
+          path: build/apps/${{ env.CAFE }}/
+          retention-days: 14
+
+      - name: Read the app id
+        id: cafe
+        if: inputs.upload
+        run: echo "app_id=$(node -p "require('./cafes/$CAFE/cafe.json').appId")" >> "$GITHUB_OUTPUT"
+
+      # Google only accepts uploads for an app whose first build was uploaded by hand in Play Console.
+      - name: Send to Google Play (internal testing, draft)
+        if: inputs.upload
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ steps.cafe.outputs.app_id }}
+          releaseFiles: build/apps/${{ env.CAFE }}/*.aab
+          track: internal
+          status: draft
+
+  ios:
+    name: iOS (${{ inputs.cafe || 'sample-cafe, unsigned check' }})
+    if: github.event_name == 'pull_request' || inputs.platform != 'android'
+    # GitHub's own Mac machines; free for a public repository.
+    runs-on: macos-26
+    environment: ${{ github.event_name == 'workflow_dispatch' && format('cafe-{0}', inputs.cafe) || '' }}
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        env:
+          APPLE_TEAM_ID: ${{ github.event_name == 'workflow_dispatch' && secrets.APPLE_TEAM_ID || '' }}
+          IOS_CERTIFICATE_P12_BASE64: ${{ github.event_name == 'workflow_dispatch' && secrets.IOS_CERTIFICATE_P12_BASE64 || '' }}
+          IOS_CERTIFICATE_PASSWORD: ${{ github.event_name == 'workflow_dispatch' && secrets.IOS_CERTIFICATE_PASSWORD || '' }}
+          IOS_PROFILE_BASE64: ${{ github.event_name == 'workflow_dispatch' && secrets.IOS_PROFILE_BASE64 || '' }}
+          FIREBASE_IOS_PLIST: ${{ github.event_name == 'workflow_dispatch' && secrets.FIREBASE_IOS_PLIST || '' }}
+        run: ./scripts/build-app.sh "$CAFE" ios
+
+      - name: Keep the files
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CAFE }}-ios
+          path: build/apps/${{ env.CAFE }}/
+          retention-days: 14
+
+      - name: Send to TestFlight
+        if: inputs.upload
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$ASC_KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+          xcrun altool --upload-app --type ios --file build/apps/"$CAFE"/*.ipa --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+          rm -f ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
