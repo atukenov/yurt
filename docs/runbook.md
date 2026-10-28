@@ -25,7 +25,7 @@ Needs Docker with compose and Node 20+. The .NET SDK is not needed. Phone verifi
 Staging is a full copy of production with its own data, so a migration or a new module can be tried
 without touching a live cafe. Nothing in the repo may point staging at production resources.
 
-Checklist (one-time, done in the hosting dashboard):
+Checklist (one-time, done in the hosting dashboard; step-by-step version in `docs/live-server-setup.md`):
 1. Second backend service built from the same repo and `dockerfile`, branch `staging` (or manual deploys).
 2. Its **own** Postgres database. Never share the production `DATABASE_URL`.
 3. Environment variables (same names as production, different values):
