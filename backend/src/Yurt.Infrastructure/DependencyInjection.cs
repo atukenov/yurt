@@ -27,6 +27,7 @@ using Yurt.Application.Features.Reports;
 using Yurt.Application.Features.AppUpdate;
 using Yurt.Application.Features.Modules;
 using Yurt.Application.Features.Platform;
+using Yurt.Application.Features.Tenants;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Shifts;
 using Yurt.Application.Features.Stations;
@@ -150,6 +151,10 @@ public static class DependencyInjection
         services.AddSingleton(configuration.GetSection("Modules").Get<ModuleOptions>() ?? new ModuleOptions());
         services.AddSingleton<IModuleGate, ModuleGate>();
         services.AddSingleton<IMaintenanceGate, MaintenanceGate>();
+        // Limited mode for a cafe that stopped paying (reads Tenant.PaidUntil / LimitedByOperator).
+        services.AddSingleton(configuration.GetSection("Billing").Get<BillingOptions>() ?? new BillingOptions());
+        services.AddScoped<CafeAccessService>();
+        services.AddScoped<CafeAccessSettingsService>();
         services.AddScoped<PlatformService>();
         services.AddScoped<CafeProvisioningService>();
         services.AddSingleton<ISecretProtector, AesGcmSecretProtector>();

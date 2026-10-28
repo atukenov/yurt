@@ -9,6 +9,7 @@ import { ToastService, Currency2Pipe } from 'shared-ui';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { LocationService } from '../../core/location.service';
 import { LangService } from '../../core/lang.service';
+import { StoreStatusService } from '../../core/store-status.service';
 import { OnlinePaymentService } from '../../core/online-payment.service';
 
 @Component({
@@ -29,6 +30,7 @@ export class CartComponent implements OnInit {
 
   private auth = inject(AuthStateService);
   private locationSvc = inject(LocationService);
+  private storeStatus = inject(StoreStatusService);
   readonly locationName = this.locationSvc.locationName;
   readonly PaymentMethod = PaymentMethod;
 
@@ -200,6 +202,8 @@ export class CartComponent implements OnInit {
       this.toast.warning(this.langService.t('cart.empty'));
       return;
     }
+
+    if (!this.storeStatus.guardOrdering()) return;
 
     const paymentMethod = this.selectedPaymentMethod();
     if (!paymentMethod && !this.fullyCoveredByBonus()) {

@@ -2,7 +2,7 @@ import { LocalDatePipe } from 'shared-ui';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { YurtApiService } from 'shared-api';
-import { ModuleStatusInfo } from 'shared-models';
+import { CafeAccess, ModuleStatusInfo } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 @Component({
@@ -15,11 +15,12 @@ export class SubscriptionComponent implements OnInit {
   private api = inject(YurtApiService);
 
   modules = signal<ModuleStatusInfo[]>([]);
+  access = signal<CafeAccess | null>(null);
   loading = signal(true);
 
   ngOnInit(): void {
     this.api.getAdminSubscription().subscribe({
-      next: (s) => { this.modules.set(s.modules); this.loading.set(false); },
+      next: (s) => { this.modules.set(s.modules); this.access.set(s.access ?? null); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }

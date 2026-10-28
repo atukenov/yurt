@@ -375,6 +375,15 @@
 
   <!-- Main content -->
   <main class="flex-1 overflow-hidden flex flex-col min-w-0">
+    @if (modules.orderingPaused()) {
+      <div role="alert" class="shrink-0 bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-800">
+        <span class="font-semibold">{{ 'access.bannerTitle' | t }}</span>
+        {{ 'access.bannerText' | t }}
+        @if (auth.isAdmin) {
+          <a routerLink="/subscription" class="underline font-semibold ml-1">{{ 'access.bannerLink' | t }}</a>
+        }
+      </div>
+    }
     <router-outlet />
   </main>
 </div>

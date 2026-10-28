@@ -153,3 +153,22 @@ Gated so far: the **Kitchen** screen, **Cashier**, **Stock** and **Printers**. O
 - **How it works:** a recipe line says how much of an ingredient one portion uses, for every size or one size. A dish leaves the customer menu when an every-size line needs more than the branch has. An order is refused when any line (size-specific ones included) cannot be covered. Accepting an order lowers the ingredient counts, never below zero.
 - **When off:** same as Stock: endpoints return `403 module_disabled`, counts are not enforced.
 - **Toppings:** a topping can use ingredients too (`GET/PUT /api/v1/admin/ingredients/toppings/{toppingId}`, set on the Recipes tab by picking a topping). Each time a guest adds the topping to an item, that amount is used once per portion ordered. A topping leaves a branch's customer menu when an ingredient it uses is short there, an order with it is refused when the amount cannot be covered, and accepting the order lowers the ingredient. A topping with no ingredient is not counted.
+
+## Limited mode (cafe stopped paying)
+
+Not a module: it applies to the whole cafe, on top of the module gates.
+- **When:** the operator ticks **Limit this cafe now** in /platform (`Tenant.LimitedByOperator`), or the cafe's
+  `Tenant.PaidUntil` is more than `Billing:GraceDays` days ago (default 7). `PaidUntil` null means payment is not
+  tracked and the cafe is never limited by date. Between `PaidUntil` and the end of the grace days the cafe works
+  normally and its admins see a "payment is late" warning on the Subscription page.
+- **What stops:** placing an order (`POST /api/v1/orders`) and starting, joining, filling or checking out a group
+  order. These answer `403 { code: "cafe_limited", title }` (`[BlockWhenCafeLimited]`, `Yurt.WebApi/Common`). The
+  customer app reads `ordering.paused` from `/api/v1/app/config` and shows a "Ordering is paused" popup instead of
+  adding to the cart or checking out.
+- **What keeps working:** sign-in for customers and staff, menus, order history and active orders, bonuses, paying
+  for or cancelling an order placed before, and the whole admin app (staff see a red banner).
+- **Who sets it:** `GET/PUT /api/v1/platform/access` (SuperAdmin, for the chosen cafe; body
+  `{ paidUntil, limitedByOperator }`), shown as the **Limited mode** card on the Platform page. Billing only needs to
+  set `Tenant.PaidUntil` and call `ITenantDirectory.Invalidate()`; nothing here knows how a payment is detected.
+- **Fail-open:** if the cafe list cannot be read, the cafe counts as paid up. Changes apply within the cafe list cache
+  (60 s) or at once when made through /platform.

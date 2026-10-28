@@ -784,6 +784,8 @@ export interface AppRelease {
 export interface AppConfig {
   modules: string[];
   maintenance?: MaintenanceInfo;
+  /** Paused while the cafe is in limited mode (stopped paying Yurt): sign-in and history work, new orders do not. */
+  ordering?: { paused: boolean };
   /** The cafe's brand; absent on servers that predate it (the apps then keep the Yurt default). */
   brand?: BrandConfig;
 }
@@ -878,6 +880,20 @@ export interface ModuleStatusInfo {
 
 export interface SubscriptionInfo {
   modules: ModuleStatusInfo[];
+  /** Absent on servers that predate limited mode. */
+  access?: CafeAccess;
+}
+
+/** Limited mode for a cafe that stopped paying Yurt: sign-in and history work, new customer orders do not. */
+export interface CafeAccess {
+  /** full = paid up or not tracked; grace = paid period over, still taking orders; limited = new orders refused. */
+  state: 'full' | 'grace' | 'limited';
+  /** End of the paid period (UTC). Null = not tracked. */
+  paidUntil: string | null;
+  /** When limited mode starts because of the date (paidUntil + graceDays). */
+  limitedFrom: string | null;
+  limitedByOperator: boolean;
+  graceDays: number;
 }
 
 // ── Discount Codes ────────────────────────────────────────────────────────────
