@@ -5,6 +5,7 @@ import { YurtApiService } from 'shared-api';
 import { Promotion } from 'shared-models';
 import { ToastService, LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
 import { AdminLangService } from '../../core/lang.service';
 
@@ -22,7 +23,7 @@ interface PromotionForm {
 @Component({
   selector: 'app-promotions-management',
   standalone: true,
-  imports: [LocalDatePipe, CommonModule, FormsModule, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, FormsModule, AdminTranslatePipe, PictureUploadComponent],
   templateUrl: './promotions-management.component.html',
   styleUrl: './promotions-management.component.css',
 })

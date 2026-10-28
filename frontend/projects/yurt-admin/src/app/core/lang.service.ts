@@ -29,6 +29,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     // Common labels
     'label.name': 'Name', 'label.description': 'Description', 'label.price': 'Price',
     'label.category': 'Category', 'label.available': 'Available', 'label.active': 'Active', 'label.new': 'New',
+    'pic.upload': 'Upload picture', 'pic.uploading': 'Uploading…', 'pic.hint': 'PNG, JPEG or WebP. Big photos are made smaller.', 'pic.wrongType': 'Only PNG, JPEG and WebP pictures can be uploaded.', 'pic.tooBig': 'The picture is too big (max 2 MB). Try a smaller one.', 'pic.full': 'This cafe has used all its picture space (200 MB).', 'pic.failed': 'Could not upload the picture. Try again.',
     'label.imageUrl': 'Image URL', 'label.yes': 'Yes', 'label.no': 'No', 'label.free': 'Free',
     'label.loading': 'Loading…', 'label.group': 'Group', 'label.categories': 'Categories',
     'label.phone': 'Phone', 'label.address': 'Address', 'label.workingHours': 'Working Hours',
@@ -306,6 +307,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     // Common labels
     'label.name': 'Название', 'label.description': 'Описание', 'label.price': 'Цена',
     'label.category': 'Категория', 'label.available': 'Доступно', 'label.active': 'Активно', 'label.new': 'Новинка',
+    'pic.upload': 'Загрузить картинку', 'pic.uploading': 'Загрузка…', 'pic.hint': 'PNG, JPEG или WebP. Большие фото уменьшаются.', 'pic.wrongType': 'Можно загрузить только картинки PNG, JPEG и WebP.', 'pic.tooBig': 'Картинка слишком большая (макс. 2 МБ). Попробуйте поменьше.', 'pic.full': 'Место для картинок этого заведения закончилось (200 МБ).', 'pic.failed': 'Не удалось загрузить картинку. Попробуйте ещё раз.',
     'label.imageUrl': 'URL изображения', 'label.yes': 'Да', 'label.no': 'Нет',
     'label.free': 'Бесплатно', 'label.loading': 'Загрузка…', 'label.group': 'Группа',
     'label.categories': 'Категории', 'label.phone': 'Телефон', 'label.address': 'Адрес',
@@ -592,6 +594,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     // Common labels
     'label.name': 'Атауы', 'label.description': 'Сипаттама', 'label.price': 'Баға',
     'label.category': 'Санат', 'label.available': 'Қолжетімді', 'label.active': 'Белсенді', 'label.new': 'Жаңа',
+    'pic.upload': 'Сурет жүктеу', 'pic.uploading': 'Жүктелуде…', 'pic.hint': 'PNG, JPEG немесе WebP. Үлкен суреттер кішірейтіледі.', 'pic.wrongType': 'Тек PNG, JPEG және WebP суреттерін жүктеуге болады.', 'pic.tooBig': 'Сурет тым үлкен (ең көбі 2 МБ). Кішірек сурет таңдаңыз.', 'pic.full': 'Бұл мекеменің суреттерге арналған орны таусылды (200 МБ).', 'pic.failed': 'Суретті жүктеу мүмкін болмады. Қайталап көріңіз.',
     'label.imageUrl': 'Сурет URL', 'label.yes': 'Иә', 'label.no': 'Жоқ',
     'label.free': 'Тегін', 'label.loading': 'Жүктелуде…', 'label.group': 'Топ',
     'label.categories': 'Санаттар', 'label.phone': 'Телефон', 'label.address': 'Мекенжай',
