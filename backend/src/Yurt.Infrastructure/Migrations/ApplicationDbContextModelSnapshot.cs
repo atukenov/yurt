@@ -1315,6 +1315,9 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<DateTime?>("PickupAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("RatedAt")
                         .HasColumnType("timestamp with time zone");
 

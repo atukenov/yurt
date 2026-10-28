@@ -47,6 +47,11 @@ public class OrderService
 
     public const string CustomerCancelReason = "Cancelled by customer";
 
+    // A chosen pickup time has to be at least this far ahead when the order arrives (the app offers 20+ minutes,
+    // this leaves room for a slow checkout) and at most this far ahead.
+    public const int MinPickupLeadMinutes = 5;
+    public const int MaxPickupAheadHours = 24;
+
     public async Task<Result<OrderDto>> CreateOrderAsync(
         Guid customerId, CreateOrderDto dto, CancellationToken ct = default)
     {
@@ -83,6 +88,20 @@ public class OrderService
             && await _modules.IsEnabledAsync(ModuleKeys.OwnPos, ct))
             return Result<OrderDto>.Failure("This branch does not accept that payment method.", 422);
 
+        // A pickup time must be a little ahead and no more than a day away. Null = as soon as possible.
+        DateTime? pickupAt = null;
+        if (dto.PickupAt is { } wantedPickup)
+        {
+            pickupAt = wantedPickup.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(wantedPickup, DateTimeKind.Utc)
+                : wantedPickup.ToUniversalTime();
+            var now = DateTime.UtcNow;
+            if (pickupAt < now.AddMinutes(MinPickupLeadMinutes))
+                return Result<OrderDto>.Failure("That pickup time has already passed. Please choose a later time.", 400);
+            if (pickupAt > now.AddHours(MaxPickupAheadHours))
+                return Result<OrderDto>.Failure("Pickup time can be at most one day ahead.", 400);
+        }
+
         // Load menu items
         var itemIds = dto.Items.Select(i => i.MenuItemId).ToList();
         var menuItems = await _db.MenuItems
@@ -117,7 +136,8 @@ public class OrderService
         {
             CustomerUserId = customerId,
             LocationId = dto.LocationId,
-            Status = OrderStatus.Created
+            Status = OrderStatus.Created,
+            PickupAt = pickupAt
         };
 
         var variantIds = dto.Items
@@ -559,6 +579,7 @@ public class OrderService
             o.RatingComment,
             o.IikoOrderSyncStatus,
             o.Location?.TwoGisUrl,
-            o.ReadyStations.Select(r => r.StationId).ToList());
+            o.ReadyStations.Select(r => r.StationId).ToList(),
+            PickupAt: o.PickupAt);
     }
 }
