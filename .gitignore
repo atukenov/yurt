@@ -36,3 +36,6 @@ GoogleService-Info.plist
 cafes/*/secrets/
 frontend/assets/
 .local/
+
+# Webkassa check report (scripts/webkassa-check.mjs)
+webkassa-check-report.json
