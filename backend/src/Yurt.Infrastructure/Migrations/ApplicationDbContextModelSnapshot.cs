@@ -1789,6 +1789,42 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("PhoneVerifications");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.Picture", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Pictures");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.PlatformSetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3047,6 +3083,15 @@ namespace Yurt.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.PhoneVerification", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.Picture", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
                         .WithMany()

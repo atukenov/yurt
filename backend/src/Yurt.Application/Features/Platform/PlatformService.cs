@@ -175,8 +175,10 @@ public class PlatformService
         => string.IsNullOrWhiteSpace(value) || value.Trim().Equals("default", StringComparison.OrdinalIgnoreCase)
             ? null : value.Trim().ToLowerInvariant();
 
+    /// <summary>An https link, or http on this computer (pictures uploaded to a local API, see scripts/dev.sh).</summary>
     private static bool IsHttpsUrl(string value)
-        => value.Length <= 500 && Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps;
+        => value.Length <= 500 && Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttps || (uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback));
 
     /// <summary>An https link whose path ends in a web font extension; the query string is ignored.</summary>
     private static bool IsFontFileUrl(string value)

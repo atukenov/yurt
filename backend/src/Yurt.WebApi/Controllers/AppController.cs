@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.AppUpdate;
+using Yurt.Application.Features.Pictures;
 using Yurt.Application.Features.Platform;
 using Yurt.Application.Features.Tenants;
 using Yurt.Domain;
@@ -18,11 +19,14 @@ public class AppController : ApiControllerBase
     private readonly IModuleGate _modules;
     private readonly IMaintenanceGate _maintenance;
     private readonly PlatformService _platform;
+    private readonly PictureService _pictures;
 
     private readonly CafeAccessService _access;
 
-    public AppController(AppReleaseService releases, IModuleGate modules, IMaintenanceGate maintenance, PlatformService platform, CafeAccessService access)
+    public AppController(AppReleaseService releases, IModuleGate modules, IMaintenanceGate maintenance, PlatformService platform,
+        CafeAccessService access, PictureService pictures)
     {
+        _pictures = pictures;
         _access = access;
         _platform = platform;
         _releases = releases;
@@ -67,5 +71,21 @@ public class AppController : ApiControllerBase
             ordering = new { paused = access.IsLimited },
             brand
         });
+    }
+
+    /// <summary>
+    /// An uploaded picture (logo, menu photo, ...). Public, so the apps can show it before sign-in. The cafe is part of
+    /// the link because an &lt;img&gt; request carries no cafe header; a picture of another cafe is "not found". Pictures
+    /// never change (a new upload gets a new link), so browsers may keep them for a year.
+    /// </summary>
+    [HttpGet("pictures/{tenantId:guid}/{id:guid}")]
+    public async Task<IActionResult> GetPicture(Guid tenantId, Guid id, CancellationToken ct)
+    {
+        var picture = await _pictures.GetAsync(tenantId, id, ct);
+        if (picture is null) return NotFound();
+        Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        // The customer and admin apps run on other addresses than the API.
+        Response.Headers["Cross-Origin-Resource-Policy"] = "cross-origin";
+        return File(picture.Data, picture.ContentType);
     }
 }

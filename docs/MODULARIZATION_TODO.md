@@ -110,6 +110,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 - [x] Serve through `GET /app/config`; apply at app start before first paint (no color flash); cache with stale-while-revalidate. _(Done: `brand` is in the app config, served only while the `branding` module is on; `BrandService` overrides the `--brand-*` variables and caches the last brand in localStorage.)_
 - [x] Replace hard-coded "Altyncup" strings in UI, translations, push/OTP/WhatsApp templates, receipts and emails with `{brand}`. _(Done: apps show the brand name (login, register, shell, receipt, page title, update gate, splash logo fallback); the OTP message uses `{brand}`. Push copy has no brand name.)_
 - [x] Admin page (super admin) to edit brand values with a live preview. _(Done: a Brand section on the Platform page; the preview uses scoped variables, so the real app changes only after Save.)_
+- [x] Picture upload for logos and photos. _(Done: an **Upload picture** button next to the logo, dark logo, icon and splash fields on the Brand screen and next to the menu item and promotion photo fields. The admin app shrinks big photos first; the server takes PNG, JPEG or WebP up to 2 MB (checked by the file's first bytes, so no SVG or HTML), at most 200 MB per cafe, and keeps them in the database table `Pictures`, filtered per cafe like all cafe data. The public link `/api/v1/app/pictures/{cafe id}/{picture id}` serves a picture only under the id of the cafe that owns it and may be cached for a year, since a new upload always gets a new link. Typing a link by hand still works. Not done: removing pictures nobody uses any more.)_
 
 **Native shells (premium own-app)**
 - [x] Per-cafe Capacitor config: app id, app name, icons and splash generated from the logo (script). _(Done: `cafes/<slug>/cafe.json` plus `scripts/apply-cafe.mjs` apply app id, name and version to Android and iOS, and `capacitor.config.ts` reads it with `YURT_CAFE`; icons and splash come from the cafe's `assets/` folder through `--generate`, which runs `@capacitor/assets`. Generating them straight from the Brand logo URL is not done: the source images are supplied per cafe.)_
@@ -198,14 +199,15 @@ Steps:
   - [x] Network printers (ESC/POS over TCP): kitchen and receipt printers per branch, tied to a station or to all items, print by themselves on accept, test print, job list with retries. Details in `docs/modules.md`.
   - [x] Print agent that runs in the cafe, for servers in the cloud that cannot reach the cafe's network (`scripts/print-agent.mjs`, setup in `docs/print-agent.md`).
   - [x] Cash drawer on the receipt printer: opens on cash payments and with the **Open drawer** button on the Cashier page (per-printer tick). Details in `docs/modules.md`.
-  - [ ] Bluetooth printers (native plugin in the tablet app).
+  - [x] Bluetooth printers through a tablet in Chrome (Web Bluetooth, BLE printers only). Staff guide: `docs/bluetooth-printers.md`.
+  - [x] Bluetooth printers (native plugin in the tablet app): the admin app as an Android tablet / iPad app (`frontend/admin-native`) for classic Bluetooth printers and iPad. Built without hardware; see `docs/tablet-app.md` for what to test.
 - [ ] Per-cafe cut-over checklist: run both side by side, compare totals for a week, then switch off the adapter. _(Checklist written: `docs/cutover-from-iiko.md`. Using it on the first cafe is Lev's call.)_
 
 ## Open items
 - [ ] Final prices and bundle contents.
 - [x] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked). _(Done: see "Limited mode" in `docs/modules.md`.)_
 - [x] How SuperAdmin accounts are created: environment variable seed (done in Phase 2).
-- [ ] Data export format for departing cafes.
+- [x] Data export format for departing cafes. _(ZIP with one CSV per table + cafe.json + README; operator downloads it from Platform → Cafes. See `docs/cafe-data-export.md`.)_
 - [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).
 - [x] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan. _(Researched: `docs/fiscal-receipts-kz.md`. Plan: cloud cash register via provider API, Webkassa first. Building it is still to do.)_
 - [ ] Terms of service / data ownership wording.

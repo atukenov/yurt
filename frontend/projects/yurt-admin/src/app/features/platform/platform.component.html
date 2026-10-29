@@ -60,6 +60,10 @@
               {{ 'plat.cafeActive' | t }}
             </label>
             <button (click)="openSecrets(c)" class="shrink-0 text-xs font-semibold text-slate-600 underline">{{ 'plat.cafeSecrets' | t }}</button>
+            <button (click)="exportCafe(c)" [disabled]="exportingCafeId() === c.id"
+              class="shrink-0 text-xs font-semibold text-slate-600 underline disabled:opacity-50">
+              {{ (exportingCafeId() === c.id ? 'plat.cafeExporting' : 'plat.cafeExport') | t }}
+            </button>
           </li>
           @if (secretsCafeId() === c.id) {
             <li class="py-3">
@@ -146,21 +150,25 @@
             <label for="brand-logo" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLogo' | t }}</label>
             <input id="brand-logo" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().logoUrl ?? ''" (ngModelChange)="patchBrand({ logoUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandLogo' | t" [maxSide]="512" [forManagedCafe]="true" (uploaded)="patchBrand({ logoUrl: $event })" />
           </div>
           <div>
             <label for="brand-logo-dark" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLogoDark' | t }}</label>
             <input id="brand-logo-dark" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().logoDarkUrl ?? ''" (ngModelChange)="patchBrand({ logoDarkUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandLogoDark' | t" [maxSide]="512" [forManagedCafe]="true" (uploaded)="patchBrand({ logoDarkUrl: $event })" />
           </div>
           <div>
             <label for="brand-icon" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandIcon' | t }}</label>
             <input id="brand-icon" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().iconUrl ?? ''" (ngModelChange)="patchBrand({ iconUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandIcon' | t" [maxSide]="1024" [forManagedCafe]="true" (uploaded)="patchBrand({ iconUrl: $event })" />
           </div>
           <div>
             <label for="brand-splash" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandSplash' | t }}</label>
             <input id="brand-splash" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().splashUrl ?? ''" (ngModelChange)="patchBrand({ splashUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandSplash' | t" [maxSide]="1600" [forManagedCafe]="true" (uploaded)="patchBrand({ splashUrl: $event })" />
           </div>
           <div>
             <label for="brand-welcome" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandWelcome' | t }}</label>

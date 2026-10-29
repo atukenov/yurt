@@ -1,6 +1,7 @@
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { SKIP_ERROR_TOAST } from './http-error.interceptor';
 import {
   AcceptOrderRequest,
   AddGroupOrderItemRequest,
@@ -147,6 +148,10 @@ export class YurtApiService {
   setCafeActive(id: string, isActive: boolean): Observable<Cafe> {
     return this.http.put<Cafe>(`${this.api}/platform/cafes/${id}/active`, { isActive });
   }
+  /** ZIP with all of a cafe's data (one CSV per table) for a cafe that leaves Yurt. */
+  exportCafe(id: string): Observable<Blob> {
+    return this.http.get(`${this.api}/platform/cafes/${id}/export`, { responseType: 'blob' });
+  }
   getCafeSecrets(id: string): Observable<CafeSecretStatus[]> {
     return this.http.get<CafeSecretStatus[]>(`${this.api}/platform/cafes/${id}/secrets`);
   }
@@ -220,6 +225,23 @@ export class YurtApiService {
   }
   setBrand(req: BrandConfig): Observable<BrandConfig> {
     return this.http.put<BrandConfig>(`${this.api}/platform/brand`, req, this.cafeOptions());
+  }
+
+  // ── Picture upload (logos, menu and promotion photos) ─────────────────────
+  /**
+   * Uploads a PNG, JPEG or WebP picture (max 2 MB) and gives back its full public link, ready for a logo or photo
+   * field. `forManagedCafe` is for the Brand screen, where the operator may be managing another cafe. The caller
+   * shows its own error message, so the general error toast is skipped.
+   */
+  uploadPicture(file: Blob, forManagedCafe = false): Observable<string> {
+    const form = new FormData();
+    form.append('file', file, 'picture');
+    return this.http
+      .post<{ path: string }>(`${this.api}/admin/pictures`, form, {
+        ...(forManagedCafe ? this.cafeOptions() : {}),
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      })
+      .pipe(map((p) => `${this.baseUrl}${p.path}`));
   }
 
   // App releases (what's-new popup / forced update) - operator tool under /platform

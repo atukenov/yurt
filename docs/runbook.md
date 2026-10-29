@@ -111,6 +111,12 @@ Never commit: `google-services.json`, `GoogleService-Info.plist`, signing keys, 
 (all already in `.gitignore`). Per-cafe values live in the hosting provider's environment or, for native builds, in
 `cafes/<name>/secrets/` on the build machine (git-ignored).
 
+## Uploaded pictures
+
+Logos and menu photos uploaded in the admin app are stored in the database (table `Pictures`), so the normal database
+backup covers them and no file storage has to be set up. Each cafe can store up to 200 MB; one picture is at most 2 MB.
+Pictures that are no longer used are not removed automatically yet.
+
 ## Branded app builds
 
 Each cafe with its own store app has a folder `cafes/<slug>/` (see `cafes/README.md`): `cafe.json` holds the app id,

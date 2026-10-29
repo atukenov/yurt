@@ -38,6 +38,7 @@ using Yurt.Application.Features.Stock;
 using Yurt.Application.Features.IikoIntegration.Services;
 using Yurt.Application.Features.Loyalty;
 using Yurt.Application.Features.Loyalty.Services;
+using Yurt.Application.Features.Pictures;
 using Yurt.Application.Features.Push;
 using Yurt.Application.Features.Push.Services;
 using Yurt.Infrastructure.Fiscal;
@@ -165,6 +166,7 @@ public static class DependencyInjection
         services.AddScoped<CafeAccessSettingsService>();
         services.AddScoped<PlatformService>();
         services.AddScoped<CafeProvisioningService>();
+        services.AddScoped<ICafeDataExporter, CafeDataExporter>();
         services.AddSingleton<ISecretProtector, AesGcmSecretProtector>();
         services.AddScoped<ITenantSecrets, TenantSecrets>();
         services.AddScoped<CafeSecretsService>();
@@ -195,6 +197,7 @@ public static class DependencyInjection
         services.AddScoped<PrintService>();
         services.AddScoped<PrintAgentService>();
         services.AddScoped<BluetoothPrintService>();
+        services.AddScoped<PictureService>();
         services.AddScoped<MenuService>();
         services.AddScoped<OrderService>();
         services.AddScoped<PaymentService>();

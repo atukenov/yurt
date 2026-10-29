@@ -1,12 +1,15 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { firstValueFrom } from 'rxjs';
 import { YurtApiService } from 'shared-api';
+import { AdminLangService } from '../lang.service';
 import {
   BluetoothConnector,
   BluetoothPrinterState,
   BluetoothPrintPump,
   WebBluetoothConnector,
 } from './bluetooth-printing';
+import { NativeBluetoothConnector, YurtPrinterPlugin } from './native-printer';
 
 /** Which device each Bluetooth printer was paired with on this tablet, so it reconnects after a reload. */
 const PAIRED_KEY = 'yurt_admin_bluetooth_printers';
@@ -18,7 +21,15 @@ const PAIRED_KEY = 'yurt_admin_bluetooth_printers';
 @Injectable({ providedIn: 'root' })
 export class BluetoothPrintService {
   private api = inject(YurtApiService);
-  private connector: BluetoothConnector = new WebBluetoothConnector();
+  private lang = inject(AdminLangService);
+  /** In the tablet app (frontend/admin-native) its own plugin; in a browser, Chrome's Web Bluetooth. */
+  private connector: BluetoothConnector = Capacitor.isNativePlatform()
+    ? new NativeBluetoothConnector(registerPlugin<YurtPrinterPlugin>('YurtPrinter'), () => ({
+        title: this.lang.t('printers.bt.pickTitle'),
+        cancel: this.lang.t('printers.bt.pickCancel'),
+        none: this.lang.t(Capacitor.getPlatform() === 'ios' ? 'printers.bt.noneIpad' : 'printers.bt.noneAndroid'),
+      }))
+    : new WebBluetoothConnector();
 
   /** Connected printers by printer id: name, pages printed, last error. */
   readonly connected = signal<ReadonlyMap<string, BluetoothPrinterState>>(new Map());
@@ -55,7 +66,7 @@ export class BluetoothPrintService {
     for (const id of [...this.pump.connected.keys()]) this.pump.detach(id);
   }
 
-  /** Shows the browser's Bluetooth list and connects the chosen printer to this printer entry. Run on a tap. */
+  /** Shows the browser's (or the tablet app's) Bluetooth list and connects the chosen printer to this printer entry. Run on a tap. */
   async connect(printerId: string): Promise<string> {
     const link = await this.connector.pick();
     this.pump.attach(printerId, link);

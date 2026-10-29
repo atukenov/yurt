@@ -101,6 +101,15 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
         => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
 
+    /// <summary>ZIP with all of a cafe's data (one CSV per table, cafe.json, README) for a cafe that leaves Yurt.</summary>
+    [HttpGet("cafes/{id:guid}/export")]
+    public async Task<IActionResult> ExportCafe(Guid id, [FromServices] ICafeDataExporter exporter, CancellationToken ct)
+    {
+        var export = await exporter.ExportAsync(id, ct);
+        if (export is null) return NotFound(new ProblemDetails { Title = "Cafe not found." });
+        return File(export.Content, "application/zip", export.FileName);
+    }
+
     /// <summary>Limited mode of the chosen cafe (stopped paying): paid-until date and the hand switch.</summary>
     [HttpGet("access")]
     public async Task<IActionResult> GetAccess([FromServices] CafeAccessSettingsService access, CancellationToken ct)

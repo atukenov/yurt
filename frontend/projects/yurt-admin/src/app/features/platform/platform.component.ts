@@ -6,6 +6,7 @@ import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace,
 import { ToastService, LocalDatePipe } from 'shared-ui';
 import { CafeAccess, FiscalSettings, PaymentSettings, PlatformBilling, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { AdminLangService } from '../../core/lang.service';
 
 interface ModuleEdit {
@@ -18,7 +19,7 @@ interface ModuleEdit {
 @Component({
   selector: 'app-platform',
   standalone: true,
-  imports: [LocalDatePipe, CommonModule, FormsModule, RouterLink, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, FormsModule, RouterLink, AdminTranslatePipe, PictureUploadComponent],
   templateUrl: './platform.component.html',
 })
 export class PlatformComponent implements OnInit {
@@ -293,6 +294,26 @@ export class PlatformComponent implements OnInit {
     });
   }
 
+  exportingCafeId = signal<string | null>(null);
+
+  /** Downloads everything the cafe owns as a ZIP (menu, orders, customers, stock, settings), e.g. when it leaves Yurt. */
+  exportCafe(cafe: Cafe): void {
+    if (!confirm(this.lang.t('plat.cafeExportConfirm', { name: cafe.name }))) return;
+    this.exportingCafeId.set(cafe.id);
+    this.api.exportCafe(cafe.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${cafe.slug}-data-${new Date().toISOString().slice(0, 10)}.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.exportingCafeId.set(null);
+      },
+      error: () => this.exportingCafeId.set(null),
+    });
+  }
+
   // ── Brand ──
   private static readonly DEFAULT_BRAND: BrandConfig = {
     name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, logoDarkUrl: null, supportContact: null, iconUrl: null, splashUrl: null, welcomeText: null, links: [], radius: null, font: null, fontUrl: null,
@@ -322,7 +343,7 @@ export class PlatformComponent implements OnInit {
   paletteWarning = computed(() => paletteWarningFor(this.brand().primaryColor));
   /** True when the font file box has text that is not a usable https font link. */
   fontUrlInvalid = computed(() => !!this.brand().fontUrl?.trim() && !fontFileUrl(this.brand().fontUrl));
-  logoOk = computed(() => /^https:\/\//i.test(this.brand().logoUrl ?? ''));
+  logoOk = computed(() => /^(https:\/\/|http:\/\/(localhost|127\.0\.0\.1)[:/])/i.test(this.brand().logoUrl ?? ''));
   colorsValid = computed(() => !!parseHex(this.brand().primaryColor) && !!parseHex(this.brand().accentColor));
 
   patchBrand(patch: Partial<BrandConfig>): void {
