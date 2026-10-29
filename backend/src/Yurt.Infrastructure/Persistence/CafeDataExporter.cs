@@ -94,7 +94,7 @@ public class CafeDataExporter : ICafeDataExporter
                     await w.WriteAsync(Readme(tenant.Name));
             }
 
-            await _audit.LogAsync("CafeDataExported", "Tenant", tenantId.ToString(), $"Exported all data of cafe '{tenant.Slug}'", ct);
+            await _audit.LogPlatformAsync("CafeDataExported", "Tenant", tenantId.ToString(), $"Exported all data of cafe '{tenant.Slug}'", ct);
             var content = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.DeleteOnClose);
             return new CafeDataExport(content, $"{tenant.Slug}-data-{DateTime.UtcNow:yyyy-MM-dd}.zip");
         }
@@ -116,6 +116,8 @@ public class CafeDataExporter : ICafeDataExporter
             .Where(e => EF.Property<Guid>(e, nameof(ITenantOwned.TenantId)) == tenantId);
         if (typeof(T) == typeof(AdminUser))
             query = query.Where(e => EF.Property<AdminRole>(e, nameof(AdminUser.Role)) != AdminRole.SuperAdmin);
+        if (typeof(T) == typeof(AuditLog)) // the operator's own actions are not the cafe's history
+            query = query.Where(e => !EF.Property<bool>(e, nameof(AuditLog.IsPlatform)));
         if (table.FindProperty(nameof(BaseEntity.CreatedAt)) is not null)
             query = query.OrderBy(e => EF.Property<DateTime>(e, nameof(BaseEntity.CreatedAt)));
 

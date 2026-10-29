@@ -60,7 +60,7 @@ public class LoyaltyImportService(
             }
         }
 
-        await audit.LogAsync("LoyaltyImport", "Tenant", tenant.TenantId.ToString(),
+        await audit.LogPlatformAsync("LoyaltyImport", "Tenant", tenant.TenantId.ToString(),
             $"Imported {imported}, skipped {skipped}, failed {failed}, {points} points", ct);
         return Result<LoyaltyImportDto>.Success(new LoyaltyImportDto(customers, imported, skipped, failed, points));
     }

@@ -56,7 +56,7 @@ public class LoyaltyLedgerSwitchService(
         await db.SaveChangesAsync(ct);
         directory.Invalidate();
 
-        await audit.LogAsync("LoyaltyLedgerSwitched", "Tenant", cafe.Id.ToString(), $"Bonus wallet is now {mode}", ct);
+        await audit.LogPlatformAsync("LoyaltyLedgerSwitched", "Tenant", cafe.Id.ToString(), $"Bonus wallet is now {mode}", ct);
         return Result<LoyaltyLedgerDto>.Success(ToDto(cafe));
     }
 

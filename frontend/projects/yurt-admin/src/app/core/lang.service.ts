@@ -19,6 +19,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'auditLog.action': 'Action', 'auditLog.entity': 'Entity', 'auditLog.details': 'Details',
     'auditLog.noRecords': 'No audit records found.', 'auditLog.loadMore': 'Load more',
     'auditLog.filterEntity': 'Filter by entity type…', 'auditLog.all': 'All',
+    'auditLog.view': 'Whose history', 'auditLog.platform': 'Platform actions',
 
     // Common actions
     'action.add': 'Add', 'action.edit': 'Edit', 'action.delete': 'Delete', 'action.save': 'Save',
@@ -340,6 +341,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'auditLog.action': 'Действие', 'auditLog.entity': 'Объект', 'auditLog.details': 'Детали',
     'auditLog.noRecords': 'Записей не найдено.', 'auditLog.loadMore': 'Загрузить ещё',
     'auditLog.filterEntity': 'Фильтр по типу объекта…', 'auditLog.all': 'Все',
+    'auditLog.view': 'Чья история', 'auditLog.platform': 'Действия платформы',
 
     // Common actions
     'action.add': 'Добавить', 'action.edit': 'Изменить', 'action.delete': 'Удалить',
@@ -671,6 +673,7 @@ const T: Record<AdminLang, Record<string, string>> = {
     'auditLog.action': 'Әрекет', 'auditLog.entity': 'Нысан', 'auditLog.details': 'Мәліметтер',
     'auditLog.noRecords': 'Жазбалар табылмады.', 'auditLog.loadMore': 'Тағы жүктеу',
     'auditLog.filterEntity': 'Нысан түрі бойынша сүзгі…', 'auditLog.all': 'Барлығы',
+    'auditLog.view': 'Кімнің тарихы', 'auditLog.platform': 'Платформа әрекеттері',
 
     // Common actions
     'action.add': 'Қосу', 'action.edit': 'Өзгерту', 'action.delete': 'Жою',

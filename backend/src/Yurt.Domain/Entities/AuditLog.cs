@@ -13,4 +13,10 @@ public class AuditLog : BaseEntity, ITenantOwned
     public string PerformedByUsername { get; set; } = "";
     public string? Details { get; set; }
     public string? IpAddress { get; set; }
+
+    /// <summary>
+    /// A platform operator's action (cafes, keys, licenses, billing, app releases). Only SuperAdmins see these rows;
+    /// a cafe's own admins never do, even when the row sits in their cafe.
+    /// </summary>
+    public bool IsPlatform { get; set; }
 }

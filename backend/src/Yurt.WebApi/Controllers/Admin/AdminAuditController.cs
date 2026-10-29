@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Domain;
+using Yurt.Domain.Enums;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
@@ -15,8 +16,14 @@ namespace Yurt.WebApi.Controllers.Admin;
 [RequireModule(ModuleKeys.StaffAudit)]
 public class AdminAuditController(IApplicationDbContext db) : ControllerBase
 {
+    /// <summary>
+    /// <c>scope=cafe</c>: the history of the request's cafe (a cafe admin's token only ever opens their own cafe; the
+    /// operator picks one with X-Tenant). <c>scope=platform</c>: the operators' own actions across all cafes, SuperAdmin
+    /// only. Without <c>scope</c>, an operator gets the platform history and a cafe admin their cafe's.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAuditLog(
+        [FromQuery] string? scope,
         [FromQuery] string? entityType,
         [FromQuery] Guid? adminId,
         [FromQuery] DateTime? from,
@@ -28,7 +35,20 @@ public class AdminAuditController(IApplicationDbContext db) : ControllerBase
         if (page < 1) page = 1;
         if (pageSize is < 1 or > 200) pageSize = 50;
 
-        var query = db.AuditLogs.AsQueryable();
+        var isOperator = User.IsInRole(nameof(AdminRole.SuperAdmin));
+        bool platform;
+        switch (scope?.Trim().ToLowerInvariant())
+        {
+            case null or "": platform = isOperator; break;
+            case "platform": platform = true; break;
+            case "cafe": platform = false; break;
+            default: return BadRequest(new { error = "scope must be 'cafe' or 'platform'." });
+        }
+        if (platform && !isOperator) return Forbid();
+
+        var query = platform
+            ? db.AuditLogs.IgnoreQueryFilters().Where(a => a.IsPlatform)
+            : db.AuditLogs.Where(a => !a.IsPlatform);
 
         if (!string.IsNullOrWhiteSpace(entityType))
             query = query.Where(a => a.EntityType == entityType);

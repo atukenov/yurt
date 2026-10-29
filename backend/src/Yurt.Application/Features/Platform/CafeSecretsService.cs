@@ -49,7 +49,7 @@ public class CafeSecretsService
             return Result<CafeSecretStatusDto>.Failure("Secrets:MasterKey is not configured on the server, so secrets cannot be stored.", 503);
 
         await _secrets.SetAsync(cafeId, key, value.Trim(), ct);
-        await _audit.LogAsync("CafeSecretSet", "Tenant", cafeId.ToString(), key, ct);
+        await _audit.LogPlatformAsync("CafeSecretSet", "Tenant", cafeId.ToString(), key, ct);
         return Result<CafeSecretStatusDto>.Success(new CafeSecretStatusDto(key, true));
     }
 
@@ -58,7 +58,7 @@ public class CafeSecretsService
         if (!TenantSecretKeys.All.Contains(key))
             return Result<CafeSecretStatusDto>.Failure($"Unknown secret '{key}'.", 404);
         if (await _secrets.ClearAsync(cafeId, key, ct))
-            await _audit.LogAsync("CafeSecretCleared", "Tenant", cafeId.ToString(), key, ct);
+            await _audit.LogPlatformAsync("CafeSecretCleared", "Tenant", cafeId.ToString(), key, ct);
         return Result<CafeSecretStatusDto>.Success(new CafeSecretStatusDto(key, false));
     }
 }

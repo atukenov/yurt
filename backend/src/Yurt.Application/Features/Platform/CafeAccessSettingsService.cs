@@ -48,7 +48,7 @@ public class CafeAccessSettingsService(
         await db.SaveChangesAsync(ct);
         directory.Invalidate();
 
-        await audit.LogAsync("CafeAccessSaved", "Tenant", cafe.Id.ToString(),
+        await audit.LogPlatformAsync("CafeAccessSaved", "Tenant", cafe.Id.ToString(),
             $"paid until {paidUntil?.ToString("yyyy-MM-dd HH:mm") ?? "not tracked"}, limited by hand {(dto.LimitedByOperator ? "on" : "off")}", ct);
         return Result<CafeAccessDto>.Success(ToDto(cafe));
     }

@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService } from 'shared-api';
-import { AuditLogEntry } from 'shared-models';
+import { AuthStateService, YurtApiService } from 'shared-api';
+import { AuditLogEntry, Cafe } from 'shared-models';
 import { LocalDatePipe } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
@@ -17,6 +17,11 @@ const ENTITY_TYPES = ['', 'Order', 'MenuItem', 'MenuCategory', 'MenuTopping', 'A
 })
 export class AuditLogComponent implements OnInit {
   private api = inject(YurtApiService);
+  /** The platform operator sees the platform's own actions, or picks one cafe; a cafe admin only ever sees their cafe. */
+  readonly isOperator = inject(AuthStateService).isSuperAdmin;
+  cafes = signal<Cafe[]>([]);
+  /** '' = platform actions, else the slug of the cafe whose history is shown. */
+  cafeFilter = '';
 
   entries = signal<AuditLogEntry[]>([]);
   loading = signal(true);
@@ -31,12 +36,14 @@ export class AuditLogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.isOperator) this.api.getCafes().subscribe({ next: (c) => this.cafes.set(c), error: () => this.cafes.set([]) });
     this.load();
   }
 
   load(append = false): void {
     this.loading.set(true);
     this.api.getAuditLog({
+      cafe: this.isOperator ? this.cafeFilter || undefined : undefined,
       entityType: this.entityTypeFilter || undefined,
       page: this.page(),
       pageSize: PAGE_SIZE,

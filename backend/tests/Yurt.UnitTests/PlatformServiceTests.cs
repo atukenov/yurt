@@ -48,7 +48,7 @@ public class PlatformServiceTests
         var r = await svc.UpdateModuleAsync(ModuleKeys.Core, new(false, null, ModuleLicenseSource.Manual, null));
         Assert.False(r.Succeeded);
         Assert.Equal(400, r.StatusCode);
-        await audit.DidNotReceiveWithAnyArgs().LogAsync(default!, default!);
+        await audit.DidNotReceiveWithAnyArgs().LogPlatformAsync(default!, default!);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class PlatformServiceTests
         Assert.Equal(ModuleLicenseSource.Paid, existing.Source);
         Assert.Equal("invoice 42", existing.Notes);
         await db.Received().SaveChangesAsync(Arg.Any<CancellationToken>());
-        await audit.Received(1).LogAsync("ModuleLicenseUpdated", "ModuleLicense", ModuleKeys.Push, Arg.Any<string?>(), Arg.Any<CancellationToken>());
+        await audit.Received(1).LogPlatformAsync("ModuleLicenseUpdated", "ModuleLicense", ModuleKeys.Push, Arg.Any<string?>(), Arg.Any<CancellationToken>());
         gate.Received().Invalidate();
     }
 
