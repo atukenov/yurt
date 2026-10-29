@@ -28,10 +28,12 @@ export class SignalrService {
   async startConnection(): Promise<void> {
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected) return;
 
+    // Browsers send no headers on a WebSocket, so the cafe also goes in the address.
+    const tenant = this.tenant ?? this.auth.cafe;
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${this.baseUrl}/hubs/orders`, {
+      .withUrl(`${this.baseUrl}/hubs/orders${tenant ? `?tenant=${encodeURIComponent(tenant)}` : ''}`, {
         accessTokenFactory: () => this.auth.token ?? '',
-        ...(this.tenant ? { headers: { 'X-Tenant': this.tenant } } : {}),
+        ...(tenant ? { headers: { 'X-Tenant': tenant } } : {}),
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)

@@ -7,7 +7,9 @@ public record AuthResponseDto(
     Guid UserId,
     string DisplayName,
     string? Role = null,
-    bool MustChangePassword = false);
+    bool MustChangePassword = false,
+    // Key of the admin's cafe; the admin app sends it as X-Tenant from then on. Null for customers and operators.
+    string? Cafe = null);
 
 public record RefreshRequestDto(string RefreshToken);
 

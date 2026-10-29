@@ -54,6 +54,8 @@ export interface AuthResponse {
   displayName: string;
   role?: string;
   mustChangePassword?: boolean;
+  /** Key of the admin's cafe (admin sign-in only; null for platform operators). */
+  cafe?: string | null;
 }
 
 export interface RegistrationStartResponse {

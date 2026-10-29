@@ -24,7 +24,7 @@ public class TenantMiddleware(RequestDelegate next)
         var (id, slug) = TenantResolver.Resolve(
             tenants, ctx.Request.Host.Host,
             ctx.Request.Headers.Origin.FirstOrDefault(),
-            ctx.Request.Headers[TenantResolver.HeaderName].FirstOrDefault());
+            ctx.Request.Headers[TenantResolver.HeaderName].FirstOrDefault() ?? HubTenant(ctx));
         tenant.Set(id, slug);
         ctx.Items["TenantSlug"] = slug;
         ctx.Items[Yurt.Infrastructure.Hubs.OrdersHub.TenantItem] = id;
@@ -32,4 +32,8 @@ public class TenantMiddleware(RequestDelegate next)
         using (LogContext.PushProperty("Tenant", slug))
             await next(ctx);
     }
+
+    /// <summary>Browsers cannot send headers on a WebSocket, so the live-updates hub takes the cafe key from ?tenant=.</summary>
+    private static string? HubTenant(HttpContext ctx)
+        => ctx.Request.Path.StartsWithSegments("/hubs") ? ctx.Request.Query["tenant"].FirstOrDefault() : null;
 }
