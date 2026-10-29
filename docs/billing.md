@@ -34,6 +34,8 @@ Live keys (`sk_live_...`) are refused until `Stripe__AllowLiveKeys=true`, the sa
 
 ## Details
 
+- Each paid invoice also moves the cafe's `Tenant.PaidUntil` (limited mode, see `docs/modules.md`), so a payment lifts
+  limited mode at once.
 - Data: table `CafeBillings` (one row per cafe): price, currency, modules, Stripe customer and subscription ids,
   status, paid-until date, last payment.
 - The cafe is found from `tenant_id` in the subscription metadata (Yurt sets it at checkout), else from the stored

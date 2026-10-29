@@ -26,6 +26,7 @@ public class OrdersController : ApiControllerBase
 
     /// <summary>Place a new order. Supply an Idempotency-Key header to safely retry.</summary>
     [HttpPost]
+    [BlockWhenCafeLimited]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto dto, CancellationToken ct)
     {
         if (dto.Items == null || dto.Items.Count == 0)

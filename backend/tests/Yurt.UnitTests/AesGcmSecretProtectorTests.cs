@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Yurt.Infrastructure.Services;
 
 namespace Yurt.UnitTests;
@@ -6,7 +7,8 @@ namespace Yurt.UnitTests;
 public class AesGcmSecretProtectorTests
 {
     private static AesGcmSecretProtector With(string? key)
-        => new(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Secrets:MasterKey"] = key }).Build());
+        => new(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Secrets:MasterKey"] = key }).Build(),
+            NullLogger<AesGcmSecretProtector>.Instance);
 
     private static readonly string KeyA = Convert.ToBase64String(Enumerable.Repeat((byte)1, 32).ToArray());
     private static readonly string KeyB = Convert.ToBase64String(Enumerable.Repeat((byte)2, 32).ToArray());

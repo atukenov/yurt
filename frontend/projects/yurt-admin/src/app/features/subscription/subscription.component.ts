@@ -2,8 +2,8 @@ import { LocalDatePipe } from 'shared-ui';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { YurtApiService } from 'shared-api';
-import { CafeBilling, ModuleStatusInfo } from 'shared-models';
 import { ActivatedRoute } from '@angular/router';
+import { CafeAccess, CafeBilling, ModuleStatusInfo } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 
 @Component({
@@ -18,6 +18,7 @@ export class SubscriptionComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   modules = signal<ModuleStatusInfo[]>([]);
+  access = signal<CafeAccess | null>(null);
   loading = signal(true);
   billing = signal<CafeBilling | null>(null);
   /** Back from Stripe's checkout: the payment is confirmed by Stripe's webhook a few seconds later. */
@@ -33,7 +34,7 @@ export class SubscriptionComponent implements OnInit {
 
   private load(): void {
     this.api.getAdminSubscription().subscribe({
-      next: (s) => { this.modules.set(s.modules); this.loading.set(false); },
+      next: (s) => { this.modules.set(s.modules); this.access.set(s.access ?? null); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
     this.api.getCafeBilling().subscribe({ next: (b) => this.billing.set(b), error: () => this.billing.set(null) });

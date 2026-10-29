@@ -376,6 +376,36 @@
       </section>
     }
 
+    <!-- Limited mode (cafe stopped paying) -->
+    @if (access(); as a) {
+      <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
+        <h2 class="font-semibold text-slate-800">{{ 'plat.access.title' | t }}</h2>
+        <p class="text-sm text-slate-500 mt-1">{{ 'plat.access.hint' | t: { days: a.graceDays } }}</p>
+        <p class="mt-3 text-sm">
+          {{ 'plat.fiscal.status' | t }}:
+          <span class="font-semibold px-2 py-0.5 rounded-full" [class]="accessBadge(a.state)">{{ 'plat.access.state.' + a.state | t }}</span>
+          @if (a.state === 'grace' && a.limitedFrom) {
+            <span class="ml-1 text-xs text-amber-700">{{ 'plat.access.limitedFrom' | t }} {{ a.limitedFrom | ldate: 'shortDate' }}</span>
+          }
+        </p>
+        <div class="mt-4 flex flex-wrap items-end gap-4">
+          <label class="block text-sm">
+            <span class="text-slate-600">{{ 'plat.access.paidUntil' | t }}</span>
+            <input type="date" [(ngModel)]="accessPaidUntil" class="mt-1 block rounded-xl border border-slate-200 px-3 py-2 bg-surface" />
+          </label>
+          <button type="button" (click)="accessPaidUntil = ''" class="text-sm text-slate-500 underline pb-2">{{ 'plat.access.notTracked' | t }}</button>
+        </div>
+        <label class="mt-4 flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" [(ngModel)]="accessByHand" />
+          {{ 'plat.access.byHand' | t }}
+        </label>
+        <button type="button" (click)="saveAccess()" [disabled]="savingAccess()"
+          class="mt-4 px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-bold disabled:opacity-50">
+          {{ 'action.save' | t }}
+        </button>
+      </section>
+    }
+
     <!-- Online payments -->
     @if (payments(); as p) {
       <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -527,6 +557,10 @@
           </label>
         </div>
 
+        @if (fiscalProvider === 'rekassa') {
+          <p class="mt-3 text-sm text-slate-600">{{ 'plat.fiscal.rekassaHint' | t }}</p>
+        }
+
         <p class="mt-4 text-sm text-slate-600">{{ 'plat.fiscal.skip' | t }}</p>
         <div class="mt-1 flex flex-wrap gap-3">
           @for (m of fiscalMethods; track m) {
@@ -541,7 +575,7 @@
           @for (b of f.branches; track b.locationId) {
             <label class="flex items-center gap-3 text-sm">
               <span class="w-40 shrink-0 truncate text-slate-700">{{ b.name }}</span>
-              <input type="text" maxlength="50" [(ngModel)]="fiscalRegisters[b.locationId]" placeholder="SWK00000000"
+              <input type="text" maxlength="50" [(ngModel)]="fiscalRegisters[b.locationId]" [placeholder]="fiscalProvider === 'rekassa' ? 'ZNM' : 'SWK00000000'"
                 class="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2 bg-surface" />
             </label>
           }

@@ -19,6 +19,7 @@ namespace Yurt.Application.Features.Billing;
 public class BillingService(
     IApplicationDbContext db,
     ITenantContext tenant,
+    ITenantDirectory directory,
     IBillingGateway gateway,
     IModuleGate modules,
     IAuditLogService audit,
@@ -213,6 +214,10 @@ public class BillingService(
             // A late or repeated webhook for an older month never moves the date back.
             if (row.PaidUntil is null || paidUntil > row.PaidUntil) row.PaidUntil = paidUntil;
 
+            // Limited mode reads the cafe's own paid-until date: a payment lifts it at once.
+            var cafe = await db.Tenants.FirstAsync(t => t.Id == row.TenantId, ct);
+            if (cafe.PaidUntil is null || cafe.PaidUntil < row.PaidUntil) cafe.PaidUntil = row.PaidUntil;
+
             var licenses = await db.ModuleLicenses.ToListAsync(ct);
             foreach (var key in CoveredModules(row))
             {
@@ -230,6 +235,7 @@ public class BillingService(
         }
         await db.SaveChangesAsync(ct);
         modules.Invalidate();
+        directory.Invalidate();
 
         await audit.LogAsync("BillingInvoicePaid", "CafeBilling", row.TenantId.ToString(),
             $"invoice={evt.InvoiceId}; amount={evt.Amount} {row.Currency}; paidUntil={row.PaidUntil:O}", ct);

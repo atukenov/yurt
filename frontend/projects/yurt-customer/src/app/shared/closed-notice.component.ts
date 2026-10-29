@@ -31,11 +31,13 @@ import { TranslatePipe } from '../core/translate.pipe';
     @if (status.noticeVisible()) {
       <div class="wrap" role="alert" aria-live="assertive">
         <div class="pill">
-          <span class="icon" aria-hidden="true">🌙</span>
+          <span class="icon" aria-hidden="true">{{ status.orderingPaused() ? '⏸️' : '🌙' }}</span>
           <div>
-            <div class="title">{{ 'closed.title' | t }}</div>
+            <div class="title">{{ (status.orderingPaused() ? 'paused.title' : 'closed.title') | t }}</div>
             <div class="sub">
-              @if (status.nextOpenAt(); as next) {
+              @if (status.orderingPaused()) {
+                {{ 'paused.hint' | t }}
+              } @else if (status.nextOpenAt(); as next) {
                 {{ 'loc.opensAt' | t }} {{ next }}
               } @else {
                 {{ 'closed.hint' | t }}

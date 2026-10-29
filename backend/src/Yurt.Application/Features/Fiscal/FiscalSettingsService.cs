@@ -9,7 +9,7 @@ namespace Yurt.Application.Features.Fiscal;
 /// <summary>
 /// Operator tool for a cafe's official tax receipts (Phase 6): which cloud cash register, which payment methods to
 /// skip, the VAT rate, and the register number of each branch. The provider login goes in the cafe's encrypted
-/// secrets (Fiscal:Login, Fiscal:Password, Fiscal:ApiKey). Turn it on only on the day the cafe leaves iiko, so no
+/// secrets (Fiscal:Login, Fiscal:Password, Fiscal:ApiKey; ReKassa: Fiscal:Password and Fiscal:Pin). Turn it on only on the day the cafe leaves iiko, so no
 /// sale gets two receipts.
 /// </summary>
 public class FiscalSettingsService(
@@ -86,6 +86,7 @@ public class FiscalSettingsService(
             cafe.FiscalProvider, cafe.FiscalSince,
             FiscalReceiptService.ParseMethods(cafe.FiscalSkipMethods).Select(m => m.ToString()).ToList(),
             cafe.FiscalVatPercent, branches, FiscalProviders.All.ToList(),
-            keys.Contains(FiscalProviders.LoginKey) && keys.Contains(FiscalProviders.PasswordKey));
+            (!FiscalProviders.NeedsLogin(cafe.FiscalProvider) || keys.Contains(FiscalProviders.LoginKey))
+                && keys.Contains(FiscalProviders.PasswordKey));
     }
 }

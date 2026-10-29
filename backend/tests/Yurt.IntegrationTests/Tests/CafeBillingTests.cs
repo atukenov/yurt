@@ -144,6 +144,13 @@ public class CafeBillingTests(YurtWebAppFactory factory)
         }
         Assert.DoesNotContain(licenses, x => x.ModuleKey == ModuleKeys.Push && x.Source == ModuleLicenseSource.Paid);
 
+        // Limited mode reads the cafe's own paid-until date, so a payment lifts it.
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+            Assert.Equal(periodEnd.UtcDateTime, (await db.Tenants.AsNoTracking().SingleAsync(t => t.Id == cafeId)).PaidUntil);
+        }
+
         var platform = await op().GetFromJsonAsync<JsonElement>("/api/v1/platform/billing");
         Assert.Equal("active", platform.GetProperty("status").GetString());
         Assert.Equal(49m, platform.GetProperty("lastPaidAmount").GetDecimal());

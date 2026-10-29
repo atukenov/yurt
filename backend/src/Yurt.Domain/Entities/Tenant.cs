@@ -27,6 +27,13 @@ public class Tenant : BaseEntity
     /// <summary>Where this cafe's bonus wallet lives: "iiko" or "native". Null keeps today's behaviour (iiko). Phase 6.</summary>
     public string? LoyaltyLedger { get; set; }
 
+    /// <summary>End of the period this cafe has paid Yurt for (UTC). Billing sets it. Null = not tracked, so the cafe
+    /// is never limited by date. Past this time plus <c>Billing:GraceDays</c> the cafe is in limited mode.</summary>
+    public DateTime? PaidUntil { get; set; }
+
+    /// <summary>Operator switch: puts the cafe in limited mode by hand, whatever <see cref="PaidUntil"/> says.</summary>
+    public bool LimitedByOperator { get; set; }
+
     /// <summary>Who takes this cafe's online payments: "stripe". Null = off, customers pay at the counter only.</summary>
     public string? PaymentProvider { get; set; }
 
