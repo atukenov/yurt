@@ -14,8 +14,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(addToken(req, auth.token)).pipe(
     catchError((err: HttpErrorResponse) => {
+      // A token issued before the password change still says "must change password" (403).
+      // The flag lives in the database, so a refresh gets a token that reflects it.
+      const staleMustChange =
+        err.status === 403 &&
+        err.error?.title === 'Password change required.' &&
+        !req.url.includes('/auth/change-password');
       if (
-        err.status !== 401 ||
+        (err.status !== 401 && !staleMustChange) ||
         req.url.includes('/auth/refresh') ||
         req.url.includes('/auth/logout')
       ) {

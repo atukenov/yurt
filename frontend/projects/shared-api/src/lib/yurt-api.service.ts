@@ -339,8 +339,8 @@ export class YurtApiService {
     });
   }
 
-  adminChangePassword(currentPassword: string, newPassword: string): Observable<void> {
-    return this.http.post<void>(`${this.api}/admin/auth/change-password`, {
+  adminChangePassword(currentPassword: string, newPassword: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.api}/admin/auth/change-password`, {
       currentPassword,
       newPassword,
     });

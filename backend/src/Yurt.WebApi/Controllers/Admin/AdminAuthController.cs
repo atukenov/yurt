@@ -50,7 +50,7 @@ public class AdminAuthController : ApiControllerBase
         return NoContent();
     }
 
-    /// <summary>Change the authenticated admin's password and clear MustChangePassword flag.</summary>
+    /// <summary>Change the authenticated admin's password, clear MustChangePassword and return fresh tokens.</summary>
     [HttpPost("change-password")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangeAdminPasswordDto dto, CancellationToken ct)
@@ -59,7 +59,8 @@ public class AdminAuthController : ApiControllerBase
         if (!Guid.TryParse(adminIdClaim, out var adminId))
             return Unauthorized();
 
-        var result = await _authService.ChangeAdminPasswordAsync(adminId, dto, ct);
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var result = await _authService.ChangeAdminPasswordAsync(adminId, dto, ip, ct);
         return ToResult(result);
     }
 }

@@ -149,6 +149,34 @@ public class AuthTests(YurtWebAppFactory factory)
     }
 
     [Fact]
+    public async Task AdminChangesPassword_GetsTokenThatOpensAdminEndpoints()
+    {
+        var client = factory.CreateClient();
+        var token = await ApiHelpers.CreateAdminTokenAsync(
+            factory.Services, client,
+            username: "changesadmin", password: "ChangeMe@123",
+            mustChangePassword: true);
+        ApiHelpers.Authorize(client, token);
+
+        var change = await client.PostAsJsonAsync("/api/v1/admin/auth/change-password",
+            new { currentPassword = "ChangeMe@123", newPassword = "NewSecret@456" });
+        change.EnsureSuccessStatusCode();
+        var fresh = await change.Content.ReadFromJsonAsync<ApiHelpers.AuthResult>(ApiHelpers.JsonOpts);
+        Assert.False(fresh!.MustChangePassword);
+
+        // The old token still carries the claim; the returned one does not.
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/v1/admin/locations")).StatusCode);
+        ApiHelpers.Authorize(client, fresh.AccessToken);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/admin/locations")).StatusCode);
+
+        // A refresh with the new refresh token also gives a clean token.
+        var refresh = await client.PostAsJsonAsync("/api/v1/admin/auth/refresh", new { refreshToken = fresh.RefreshToken });
+        refresh.EnsureSuccessStatusCode();
+        var refreshed = await refresh.Content.ReadFromJsonAsync<ApiHelpers.AuthResult>(ApiHelpers.JsonOpts);
+        Assert.False(refreshed!.MustChangePassword);
+    }
+
+    [Fact]
     public async Task WorkerToken_AdminRoleAdminEndpoint_Returns403()
     {
         var client = factory.CreateClient();
