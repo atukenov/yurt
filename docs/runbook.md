@@ -31,7 +31,8 @@ Checklist (one-time, done in the hosting dashboard; step-by-step version in `doc
 3. Environment variables (same names as production, different values):
    `DATABASE_URL`, `Jwt__Secret` (new random 32+ chars), `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD`,
    `Secrets__MasterKey` (Base64 of 32 random bytes, e.g. `openssl rand -base64 32`; encrypts per-cafe secrets, keep it safe: losing it makes stored secrets unreadable),
-   `AllowedOrigins__0..n` (staging frontend URLs), `Otp__Required=false` unless a test OTP channel exists.
+   `AllowedOrigins__0..n` (staging frontend URLs), `Otp__Required=false` unless a test OTP channel exists,
+   and optionally `Alerts__TelegramBotToken` / `Alerts__TelegramChatId` with `Alerts__ServerName=staging` (see `monitoring.md`).
 4. Integrations in sandbox mode only: payments (Stripe test keys `sk_test_...` per cafe; `Stripe__AllowLiveKeys` left off),
    iiko test organisation (or `Iiko` disabled), a separate Firebase project (`Firebase__Enabled=true` only if
    you want to test pushes with test devices), and `Webkassa__BaseUrl=https://devkkm.webkassa.kz` (Webkassa's
@@ -42,11 +43,11 @@ Every release goes to staging first. Promote to production only after the smoke 
 
 ## Smoke test (staging and after every production deploy)
 
-1. `GET /health` returns `Healthy`.
+1. `GET /health/ready` returns `Healthy` (server and database answer).
 2. Admin login works; the menu loads in the admin panel.
 3. Customer app: browse the menu, add to cart, place an order (sandbox payment or cash).
 4. The order appears live in the admin panel and its status can be changed.
-5. API logs show no new `ERR` lines.
+5. API logs show no new `ERR` lines, and the alerts chat got "server started" and no errors (see `monitoring.md`).
 
 ## Backup
 
