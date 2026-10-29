@@ -18,6 +18,8 @@ send it as `X-Tenant`, so it always talks to that cafe even before the cafe has 
 Optional `brand` holds the Brand screen values (`name`, `primaryColor`, `accentColor`, and optionally `welcomeText`,
 `logoUrl`, `links` and so on); only the store screenshot script reads it (see "Store screenshots" in
 `docs/branded-app-release.md`). The live app still takes its brand from the server.
+Optional `storeCaptions` replaces the caption on a store screenshot, per language and screen, e.g.
+`{ "ru": { "menu": "Ваш кофе без очереди" } }`; screens are `menu`, `cart`, `order-status`, `profile`, `sign-in`.
 
 Apply a cafe to the native projects, then build as usual:
 

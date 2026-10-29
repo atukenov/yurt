@@ -57,4 +57,10 @@ NODE_PATH="$(npm root -g)" node scripts/brand-screenshots.mjs --store=<slug> --l
 | `android-phone` | 1080 x 1920   | Google Play Console, Phone screenshots            |
 
 The iOS app is iPhone-only, so no iPad pictures are needed. The menu and order texts are sample data, not the cafe's
-real menu. They are plain app screens, without a frame or a caption on top; add those in a design tool if you want them.
+real menu.
+
+Each picture has a short caption at the top on the cafe's colour, with the app screen below it in a dark phone-like
+frame (the store size stays exact). The captions come in Russian, Kazakh and English. To use your own wording for a
+screen, add `storeCaptions` to `cafe.json`, for example
+`"storeCaptions": { "ru": { "menu": "Ваш кофе без очереди" } }` (screens: `menu`, `cart`, `order-status`, `profile`,
+`sign-in`; up to 60 characters). Add `--no-captions` to get the plain app screens instead.
