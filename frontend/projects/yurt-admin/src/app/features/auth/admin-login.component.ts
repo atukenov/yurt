@@ -6,6 +6,7 @@ import { YurtApiService, AuthStateService, BrandService } from 'shared-api';
 import { ButtonComponent, ToastService } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { homeLink } from '../../layout/admin-nav';
 
 @Component({
   selector: 'app-admin-login',
@@ -45,7 +46,7 @@ export class AdminLoginComponent {
         if (res.mustChangePassword) {
           this.router.navigate(['/auth/change-password']);
         } else {
-          this.router.navigate(['/dashboard']);
+          this.router.navigateByUrl(homeLink(this.auth.isSuperAdmin));
         }
       },
       error: () => {
