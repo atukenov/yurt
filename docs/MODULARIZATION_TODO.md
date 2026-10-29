@@ -204,7 +204,7 @@ Steps:
 - [ ] Final prices and bundle contents.
 - [x] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked). _(Done: see "Limited mode" in `docs/modules.md`.)_
 - [x] How SuperAdmin accounts are created: environment variable seed (done in Phase 2).
-- [ ] Data export format for departing cafes.
+- [x] Data export format for departing cafes. _(ZIP with one CSV per table + cafe.json + README; operator downloads it from Platform → Cafes. See `docs/cafe-data-export.md`.)_
 - [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).
 - [x] `own_pos`: fiscal/legal requirements for receipts and cash registers in Kazakhstan. _(Researched: `docs/fiscal-receipts-kz.md`. Plan: cloud cash register via provider API, Webkassa first. Building it is still to do.)_
 - [ ] Terms of service / data ownership wording.
