@@ -113,7 +113,7 @@ Today the brand is hard-coded: about 49 uses of the accent color `#ffd119` and o
 **Native shells (premium own-app)**
 - [x] Per-cafe Capacitor config: app id, app name, icons and splash generated from the logo (script). _(Done: `cafes/<slug>/cafe.json` plus `scripts/apply-cafe.mjs` apply app id, name and version to Android and iOS, and `capacitor.config.ts` reads it with `YURT_CAFE`; icons and splash come from the cafe's `assets/` folder through `--generate`, which runs `@capacitor/assets`. Generating them straight from the Brand logo URL is not done: the source images are supplied per cafe.)_
 - [x] Per-cafe secrets/config files (Firebase `google-services.json` / `GoogleService-Info.plist`, Apple merchant id) kept outside git and injected at build time. _(Done: the script copies the Firebase files from the git-ignored `cafes/<slug>/secrets/`; the Apple merchant id is a field in `cafe.json` that goes into the iOS entitlements.)_
-- [ ] Build matrix in CI to produce a branded Android/iOS build for one cafe from a config folder.
+- [x] Build matrix in CI to produce a branded Android/iOS build for one cafe from a config folder. _(Done: the "App builds" workflow and `scripts/build-app.sh`, see `docs/app-builds.md`. Signed builds start working once the signing secrets are added on GitHub; pull requests get an unsigned build check.)_
 - [x] Store-listing checklist (screenshots, privacy policy, Apple/Google accounts, review notes) and a release/versioning scheme per cafe. _(Done: `docs/branded-app-release.md`; the version lives in `cafe.json`.)_
 - [x] Store screenshots per cafe. _(Done: `brand-screenshots.mjs --store=<slug> --lang=ru|kk|en` makes the menu, cart, order status, profile and sign-in screens at the App Store iPhone 6.9" and 6.5" sizes and the Google Play phone size, light mode, with sample data in the chosen language. The brand comes from `brand` in `cafe.json` or, with `--api`, from the live server. How to run it is in `docs/branded-app-release.md`. The order screens now show the status in the app's language (it was always English). Not done: captions or device frames, and dates on the profile are still in English.)_
 - [ ] Decide whether branded apps use a separate bundle id per cafe or a shared one with the cafe picker.
@@ -189,7 +189,7 @@ Steps:
   - [x] Print a receipt per order from the order details (browser print, 80 mm layout).
   - [x] Split payments: the cashier pays one order in parts with different methods; the Z report counts each part under its own method. Details in `docs/modules.md`.
   - [x] Per-branch payment method list: tick boxes on the branch dialog; the customer app and the server follow it. Details in `docs/modules.md`.
-  - [x] Official tax receipts through a cloud cash register: `IFiscalRegistrar` slot with a Webkassa adapter, off by default, per-cafe provider/skip methods/VAT and register number per branch, queue with retry, "not fiscalized" badge, fiscal Z report on shift close. Details in `docs/modules.md`. _(The Webkassa calls are not verified yet: needs Webkassa partner docs and a test account. ReKassa adapter not built.)_
+  - [x] Official tax receipts through a cloud cash register: `IFiscalRegistrar` slot with a Webkassa adapter, off by default, per-cafe provider/skip methods/VAT and register number per branch, queue with retry, "not fiscalized" badge, fiscal Z report on shift close. Details in `docs/modules.md`. _(The Webkassa calls are not verified yet: needs Webkassa partner docs and a test account. ReKassa adapter added as a second choice, also off by default and not verified yet: needs ReKassa partner docs and a test account.)_
   - [x] Tax receipt link for the guest: a **Tax receipt** button on the customer order screen and a QR code on receipts printed by network printers, once the receipt went through. Details in `docs/modules.md`.
   - [x] Tax QR code on the browser-printed receipt too, and an optional tick per receipt printer to print the receipt again with the QR code once the tax receipt is sent (off by default). Details in `docs/modules.md`.
 - [ ] Printer support (network/Bluetooth thermal printers) for kitchen tickets and receipts.
@@ -202,7 +202,7 @@ Steps:
 
 ## Open items
 - [ ] Final prices and bundle contents.
-- [ ] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked).
+- [x] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked). _(Done: see "Limited mode" in `docs/modules.md`.)_
 - [x] How SuperAdmin accounts are created: environment variable seed (done in Phase 2).
 - [x] Data export format for departing cafes. _(ZIP with one CSV per table + cafe.json + README; operator downloads it from Platform → Cafes. See `docs/cafe-data-export.md`.)_
 - [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).

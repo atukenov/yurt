@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService, LocalDatePipe } from 'shared-ui';
-import { FiscalSettings, PaymentSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { CafeAccess, FiscalSettings, PaymentSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 
@@ -55,6 +55,7 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadAccess();
   }
 
   // ── Loyalty wallet (iiko → own wallet) ──
@@ -99,6 +100,42 @@ export class PlatformComponent implements OnInit {
   fiscalRegisters: Record<string, string> = {};
   savingFiscal = signal(false);
   readonly fiscalMethods = ['Cash', 'Card', 'KaspiBank', 'HalykBank', 'FreedomBank', 'ApplePay', 'Other'];
+
+  // ── Limited mode (cafe stopped paying) ──
+  access = signal<CafeAccess | null>(null);
+  /** "YYYY-MM-DD" for the date input; '' = not tracked. */
+  accessPaidUntil = '';
+  accessByHand = false;
+  savingAccess = signal(false);
+
+  private loadAccess(): void {
+    this.access.set(null);
+    this.api.getCafeAccess().subscribe({ next: (a) => this.setAccess(a), error: () => this.access.set(null) });
+  }
+
+  private setAccess(a: CafeAccess): void {
+    this.access.set(a);
+    this.accessPaidUntil = a.paidUntil ? a.paidUntil.slice(0, 10) : '';
+    this.accessByHand = a.limitedByOperator;
+  }
+
+  saveAccess(): void {
+    this.savingAccess.set(true);
+    // The paid day counts in full: the period ends at the end of that day (UTC).
+    const paidUntil = this.accessPaidUntil ? `${this.accessPaidUntil}T23:59:59Z` : null;
+    this.api.setCafeAccess({ paidUntil, limitedByOperator: this.accessByHand }).subscribe({
+      next: (saved) => { this.setAccess(saved); this.savingAccess.set(false); this.toast.success(this.lang.t('common.saved')); },
+      error: () => this.savingAccess.set(false),
+    });
+  }
+
+  accessBadge(state: CafeAccess['state']): string {
+    switch (state) {
+      case 'full': return 'bg-emerald-100 text-emerald-700';
+      case 'grace': return 'bg-amber-100 text-amber-700';
+      default: return 'bg-red-100 text-red-700';
+    }
+  }
 
   // ── Online payments (Stripe) ──
   payments = signal<PaymentSettings | null>(null);
@@ -335,6 +372,7 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadAccess();
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }
 

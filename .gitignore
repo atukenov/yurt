@@ -36,3 +36,9 @@ GoogleService-Info.plist
 cafes/*/secrets/
 frontend/assets/
 .local/
+
+# Store app builds (scripts/build-app.sh)
+build/apps/
+
+# Webkassa check report (scripts/webkassa-check.mjs)
+webkassa-check-report.json

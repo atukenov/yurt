@@ -1,16 +1,21 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { ModuleService } from 'shared-api';
 import { LocationService } from './location.service';
 import { buildScheduleInfo } from './schedule';
 
 @Injectable({ providedIn: 'root' })
 export class StoreStatusService {
   private location = inject(LocationService);
+  private modules = inject(ModuleService);
 
   private readonly now = signal(new Date());
   private noticeTimer?: ReturnType<typeof setTimeout>;
 
   /** True while the "we're closed" popup is on screen. */
   readonly noticeVisible = signal(false);
+
+  /** The cafe is in limited mode: no new orders at all, whatever the hours say. */
+  readonly orderingPaused = computed(() => this.modules.orderingPaused());
 
   // With a location picked, use its hours. Without one, ordering is only blocked when
   // every active location is closed (the earliest reopening time is shown).
@@ -34,8 +39,16 @@ export class StoreStatusService {
 
   /** Returns true when ordering is allowed; otherwise shows the closed popup and returns false. */
   guardOpen(): boolean {
+    if (!this.guardOrdering()) return false;
     this.now.set(new Date());
     if (this.isOpen()) return true;
+    this.showNotice();
+    return false;
+  }
+
+  /** Returns true unless the cafe has paused ordering (limited mode); then shows the popup. */
+  guardOrdering(): boolean {
+    if (!this.orderingPaused()) return true;
     this.showNotice();
     return false;
   }

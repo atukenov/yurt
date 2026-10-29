@@ -122,11 +122,13 @@ public class FiscalReceiptService(
     private async Task<SendContext> SendContextAsync(Tenant cafe, CancellationToken ct)
     {
         var registrar = registrars.FirstOrDefault(r => r.Provider == cafe.FiscalProvider);
-        var login = await secrets.GetAsync(FiscalProviders.LoginKey, ct);
+        var needsLogin = FiscalProviders.NeedsLogin(cafe.FiscalProvider);
+        var login = needsLogin ? await secrets.GetAsync(FiscalProviders.LoginKey, ct) : "";
         var password = await secrets.GetAsync(FiscalProviders.PasswordKey, ct);
-        var creds = string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password)
+        var creds = login is null || (needsLogin && string.IsNullOrWhiteSpace(login)) || string.IsNullOrWhiteSpace(password)
             ? null
-            : new FiscalCredentials(login, password, await secrets.GetAsync(FiscalProviders.ApiKeyKey, ct));
+            : new FiscalCredentials(login, password, await secrets.GetAsync(FiscalProviders.ApiKeyKey, ct),
+                await secrets.GetAsync(FiscalProviders.PinKey, ct));
         return new SendContext(registrar, creds);
     }
 
@@ -139,7 +141,7 @@ public class FiscalReceiptService(
         FiscalResult result;
         if (order is null) result = FiscalResult.Fail("The order is missing.");
         else if (context.Registrar is null) result = FiscalResult.Fail($"Unknown fiscal provider '{cafe.FiscalProvider}'.");
-        else if (context.Credentials is null) result = FiscalResult.Fail("The cafe's fiscal login and password are not set (Platform page, secrets).");
+        else if (context.Credentials is null) result = FiscalResult.Fail("The cafe's fiscal login or password is not set (Platform page, secrets).");
         else if (string.IsNullOrEmpty(register)) result = FiscalResult.Fail("This branch has no cash register number yet (Platform page, fiscal receipts).");
         else
         {
@@ -246,7 +248,7 @@ public class FiscalReceiptService(
             .Select(l => l.FiscalRegisterNumber).FirstOrDefaultAsync(ct))?.Trim();
 
         if (context.Registrar is null) return FiscalResult.Fail($"Unknown fiscal provider '{cafe.FiscalProvider}'.");
-        if (context.Credentials is null) return FiscalResult.Fail("The cafe's fiscal login and password are not set.");
+        if (context.Credentials is null) return FiscalResult.Fail("The cafe's fiscal login or password is not set.");
         if (string.IsNullOrEmpty(register)) return FiscalResult.Fail("This branch has no cash register number yet.");
         try { return await context.Registrar.CloseShiftAsync(context.Credentials, register, ct); }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }

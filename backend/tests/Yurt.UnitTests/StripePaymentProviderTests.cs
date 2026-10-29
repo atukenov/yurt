@@ -73,6 +73,9 @@ public class StripePaymentProviderTests
         Assert.Equal("sk_test_123", request.Headers.Authorization!.Parameter);
         Assert.Equal($"checkout-{paymentId}", request.Headers.GetValues("Idempotency-Key").Single());
         Assert.Equal("2024-06-20", request.Headers.GetValues("Stripe-Version").Single());
+        // Stripe refuses expires_at less than 30 minutes after it receives the request, so exactly 30 is too tight.
+        var expiresAt = long.Parse(form.Split('&').Single(p => p.StartsWith("expires_at=")).Split('=')[1]);
+        Assert.True(expiresAt - DateTimeOffset.UtcNow.ToUnixTimeSeconds() > 30 * 60);
     }
 
     [Fact]

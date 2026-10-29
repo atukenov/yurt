@@ -36,6 +36,10 @@ export const DATE_STYLES: Record<string, Record<UiLang, string>> = {
   shortDateTime: { en: 'MMM d · h:mm a', ru: 'd MMM · HH:mm', kk: 'd MMM · HH:mm' },
   // "May 4, 2026 · 3:15 PM"
   longDateTime: { en: 'MMMM d, y · h:mm a', ru: 'd MMMM y · HH:mm', kk: 'd MMMM y · HH:mm' },
+  // "3:15 PM" / "15:15"
+  time: { en: 'h:mm a', ru: 'HH:mm', kk: 'HH:mm' },
+  // "15:15" — staff screens use a 24-hour clock in every language.
+  time24: { en: 'HH:mm', ru: 'HH:mm', kk: 'HH:mm' },
   // "May 4, 15:15" — staff screens use a 24-hour clock in every language.
   shortDateTime24: { en: 'MMM d, HH:mm', ru: 'd MMM, HH:mm', kk: 'd MMM, HH:mm' },
   // "May 4, 2026 15:15"

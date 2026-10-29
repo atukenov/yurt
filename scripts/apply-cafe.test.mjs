@@ -38,7 +38,7 @@ const read = (root, f) => readFileSync(join(root, f), 'utf8');
 test('applies id, name and version to Android and iOS', () => {
   const root = scratch({ appId: 'kz.brew.app', appName: 'Brew & Co', versionName: '2.1.0', versionCode: 7 });
   const { changes } = applyCafe({ root, slug: 'brew' });
-  assert.deepEqual(changes.sort(), native.slice().sort());
+  assert.deepEqual(changes.sort(), [...native, entitlements].sort());
   assert.match(read(root, native[0]), /applicationId "kz\.brew\.app"/);
   assert.match(read(root, native[0]), /versionCode 7/);
   assert.match(read(root, native[0]), /versionName "2\.1\.0"/);
@@ -48,11 +48,14 @@ test('applies id, name and version to Android and iOS', () => {
   assert.match(read(root, native[2]), /<string>Brew &amp; Co<\/string>/);
   assert.equal((read(root, native[3]).match(/PRODUCT_BUNDLE_IDENTIFIER = kz\.brew\.app;/g) ?? []).length >= 2, true);
   assert.match(read(root, native[3]), /MARKETING_VERSION = 2\.1\.0;/);
+  assert.doesNotMatch(read(root, native[3]), /CURRENT_PROJECT_VERSION = (?!7;)/); // iOS build number follows versionCode
 });
 
 test('sets the Apple Pay merchant id only when the cafe has one', () => {
   const without = scratch({ appId: 'kz.brew.app', appName: 'Brew' });
-  assert.ok(!applyCafe({ root: without, slug: 'brew' }).changes.includes(entitlements));
+  assert.ok(applyCafe({ root: without, slug: 'brew' }).changes.includes(entitlements));
+  assert.doesNotMatch(read(without, entitlements), /in-app-payments|merchant\./); // no other cafe's merchant
+  assert.match(read(without, entitlements), /<key>aps-environment<\/key>\s*<string>development<\/string>\s*<\/dict>/);
   const root = scratch({ appId: 'kz.brew.app', appName: 'Brew', appleMerchantId: 'merchant.kz.brew.app' });
   assert.ok(applyCafe({ root, slug: 'brew' }).changes.includes(entitlements));
   assert.match(read(root, entitlements), /<string>merchant\.kz\.brew\.app<\/string>/);

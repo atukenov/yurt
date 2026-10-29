@@ -11,7 +11,8 @@ cafes/<slug>/assets/        committed: icon-only.png (1024x1024), splash.png (27
 
 `cafe.json` fields: `appId` (reverse-DNS, e.g. `kz.mycafe.app`), `appName` (shown under the icon, up to 30 characters),
 optional `versionName` (`1.2.3`), `versionCode` (whole number, Android) and `appleMerchantId`
-(`merchant.kz.mycafe.app`, the Apple Pay merchant in the iOS entitlements; leave it out for a cafe without Apple Pay).
+(`merchant.kz.mycafe.app`, the Apple Pay merchant in the iOS entitlements; leave it out for a cafe without its own
+Apple Pay merchant, and the Apple Pay entitlement is left out of the build). `versionCode` is also the iOS build number.
 Optional `tenant` is the cafe's key on the platform (the slug shown in Platform > Cafes); when set, the app is built to
 send it as `X-Tenant`, so it always talks to that cafe even before the cafe has its own web address.
 Optional `brand` holds the Brand screen values (`name`, `primaryColor`, `accentColor`, and optionally `welcomeText`,
@@ -27,5 +28,6 @@ node scripts/apply-cafe.mjs sample-cafe --generate # also makes every icon and s
 cd frontend && YURT_CAFE=sample-cafe npx cap sync
 ```
 
-Run it on a build machine or CI checkout, not in your everyday working copy: it rewrites tracked native files.
+For a signed store build, use the "App builds" GitHub workflow (`docs/app-builds.md`), which runs all of this.
+Run the script on a build machine or CI checkout, not in your everyday working copy: it rewrites tracked native files.
 `sample-cafe` is an example, not a real cafe.
