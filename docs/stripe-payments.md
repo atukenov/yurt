@@ -69,6 +69,22 @@ After paying (or pressing back) Stripe sends the customer to the order page of t
 If none of these is set, opening the payment page fails with a clear message, so set `Payment__CustomerAppUrl` on
 the server.
 
+## Trying it on your own computer (test keys)
+
+1. Install the Stripe CLI (https://docs.stripe.com/stripe-cli) and run `stripe login`.
+2. Start Yurt with `./scripts/dev.sh` (or `./scripts/dev.sh phone` to also open the customer app on a phone on the
+   same Wi-Fi; the script prints the address to open).
+3. Stripe cannot reach your computer, so let the CLI pass the webhooks on:
+
+   ```
+   stripe listen --forward-to localhost:8080/api/v1/payments/stripe/webhook/default \
+     --events checkout.session.completed,checkout.session.expired,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,charge.refunded
+   ```
+
+   It prints a signing secret (`whsec_...`): use it as `Stripe:WebhookSecret` for the cafe instead of a dashboard
+   endpoint. Keep the command running while you test.
+4. Set up the cafe as above (steps 4 to 6) and pay an order with the test cards.
+
 ## Things to know
 
 - Amounts are sent in tenge (KZT). Stripe's smallest charge is about 0.50 USD, so very small orders can be refused.
