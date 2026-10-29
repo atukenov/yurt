@@ -78,10 +78,60 @@ jobs:
       - name: Fail on dropped or renamed schema objects
         run: ./scripts/check-migrations.sh "origin/${{ github.base_ref }}"
 
+  # ── Tablet app (Android) ──────────────────────────────────────────────────
+  # The admin app as a tablet app with its own Bluetooth printer plugin (frontend/admin-native). Builds an unsigned
+  # debug APK so the Java plugin keeps compiling; the APK is kept for a quick test on a tablet. The iPad app needs a Mac
+  # and is not built here.
+  tablet-android:
+    name: Tablet app — Android build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build admin app
+        working-directory: frontend
+        run: npx ng build yurt-admin --configuration production
+
+      - name: Copy it into the tablet app
+        working-directory: frontend/admin-native
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: frontend/admin-native/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: yurt-admin-tablet-debug-apk
+          path: frontend/admin-native/android/app/build/outputs/apk/debug/*.apk
+
   # ── Frontend ─────────────────────────────────────────────────────────────
   frontend:
     name: Frontend — Build
     runs-on: ubuntu-latest
+    # actions: read lets the screenshot comparison download main's last screenshots.
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - uses: actions/checkout@v4
@@ -98,7 +148,7 @@ jobs:
         run: npm ci
 
       - name: Test native build scripts
-        run: node --test scripts/*.test.mjs
+        run: node --test scripts/*.test.mjs frontend/scripts/*.test.mjs
 
       # Bluetooth printing on the tablet, with a pretend printer (no real Bluetooth in CI).
       - name: Test admin app
@@ -146,12 +196,12 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/a11y/node_modules
         run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/brand-screenshots" --app=admin --a11y --dark --fail
 
-      # Store screenshots for the sample cafe, so the store mode keeps working (not uploaded anywhere).
+      # Store screenshots (with captions) for the sample cafe, so the store mode keeps working; uploaded and compared with the rest.
       - name: Store screenshots (sample cafe)
         working-directory: frontend
         env:
           NODE_PATH: ${{ runner.temp }}/a11y/node_modules
-        run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/store-screenshots" --store=sample-cafe --lang=kk
+        run: node scripts/brand-screenshots.mjs "$RUNNER_TEMP/brand-screenshots/store" --store=sample-cafe --lang=kk
 
       - name: Upload brand screenshots
         uses: actions/upload-artifact@v4
@@ -159,6 +209,30 @@ jobs:
         with:
           name: brand-screenshots
           path: ${{ runner.temp }}/brand-screenshots
+
+      # Picture-by-picture comparison with the screenshots of the last green run on main. It only reports (on the run's
+      # summary page and in the screenshot-changes download); a changed screen is often wanted, so it never fails the build.
+      - name: Compare screenshots with main
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        working-directory: frontend
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NODE_PATH: ${{ runner.temp }}/a11y/node_modules
+        run: |
+          run_id=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push --status success \
+            --limit 1 --json databaseId -q '.[0].databaseId')
+          if [ -z "$run_id" ]; then echo "No green run on main yet; nothing to compare with." | tee -a "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          gh run download "$run_id" -R "$GITHUB_REPOSITORY" -n brand-screenshots -D "$RUNNER_TEMP/screenshots-main"
+          node scripts/compare-screenshots.mjs "$RUNNER_TEMP/screenshots-main" "$RUNNER_TEMP/brand-screenshots" "$RUNNER_TEMP/screenshot-changes"
+
+      - name: Upload screenshot changes
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: screenshot-changes
+          path: ${{ runner.temp }}/screenshot-changes
+          if-no-files-found: ignore
 
       - name: Audit dependencies (non-blocking)
         working-directory: frontend

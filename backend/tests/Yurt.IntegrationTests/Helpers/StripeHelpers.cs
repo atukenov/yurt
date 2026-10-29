@@ -40,6 +40,8 @@ public sealed class FakeStripe : HttpMessageHandler
                 payment_intent = (string?)null,
             };
         }
+        else if (path == "/v1/billing_portal/sessions")
+            answer = new { id = $"bps_{Guid.NewGuid():N}", url = $"https://billing.stripe.com/p/session/{Guid.NewGuid():N}" };
         else if (path.EndsWith("/expire"))
             answer = new { id = path.Split('/')[^2], status = "expired" };
         else if (path == "/v1/refunds")
@@ -77,6 +79,19 @@ internal static class StripeWebhooks
 
     internal static string ChargeRefunded(string paymentIntent)
         => Event("charge.refunded", new { id = $"ch_{Guid.NewGuid():N}", @object = "charge", refunded = true, payment_intent = paymentIntent });
+
+    /// <summary>A webhook to the platform billing address, signed with the platform owner's secret.</summary>
+    internal static HttpRequestMessage BillingRequest(string body, string? secret = null)
+    {
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var msg = new HttpRequestMessage(HttpMethod.Post, "/api/v1/billing/stripe/webhook")
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json"),
+        };
+        msg.Headers.TryAddWithoutValidation("Stripe-Signature",
+            $"t={ts},v1={StripePaymentProvider.Sign(body, ts, secret ?? YurtWebAppFactory.BillingWebhookSecret)}");
+        return msg;
+    }
 
     /// <summary>A webhook request to the cafe's address, signed the way Stripe signs it.</summary>
     internal static HttpRequestMessage Request(string cafeSlug, string body, string secret, DateTimeOffset? at = null)

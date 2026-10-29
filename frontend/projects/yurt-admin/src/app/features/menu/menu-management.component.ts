@@ -7,6 +7,7 @@ import { MenuItem, MenuCategory, MenuTopping, Location, MenuItemVariant, IikoNom
 import { ButtonComponent, ToastService, Currency2Pipe } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
 import { MenuImportComponent } from './menu-import.component';
 
@@ -60,7 +61,7 @@ interface CatInput {
 @Component({
   selector: 'app-menu-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe, MenuImportComponent],
+  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe, MenuImportComponent, PictureUploadComponent],
   templateUrl: './menu-management.component.html',
   styleUrl: './menu-management.component.css',
 })

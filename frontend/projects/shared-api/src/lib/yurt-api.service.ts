@@ -1,6 +1,7 @@
 import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { SKIP_ERROR_TOAST } from './http-error.interceptor';
 import {
   AcceptOrderRequest,
   AddGroupOrderItemRequest,
@@ -23,6 +24,10 @@ import {
   CreatePaymentRequest,
   PaymentConfig,
   PaymentSettings,
+  PlatformBilling,
+  SaveBillingPlan,
+  CafeBilling,
+  CafeAccess,
   CustomerDetail,
   CustomerProfile,
   CustomerStats,
@@ -105,6 +110,17 @@ export class YurtApiService {
   getAdminSubscription(): Observable<SubscriptionInfo> {
     return this.http.get<SubscriptionInfo>(`${this.api}/admin/subscription`);
   }
+  getCafeBilling(): Observable<CafeBilling> {
+    return this.http.get<CafeBilling>(`${this.api}/admin/subscription/billing`);
+  }
+  /** Returns the address of Stripe's page where the owner starts paying monthly by card. */
+  startBillingCheckout(returnUrl: string): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.api}/admin/subscription/billing/checkout`, { returnUrl });
+  }
+  /** Returns the address of Stripe's billing page (card, invoices, cancel). */
+  openBillingPortal(returnUrl: string): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.api}/admin/subscription/billing/portal`, { returnUrl });
+  }
 
   // ── Platform operator tools (SuperAdmin only) ─────────────────────────────
   /** Slug of the cafe the operator is managing; null means the cafe of the host the page was opened from. */
@@ -136,6 +152,10 @@ export class YurtApiService {
   }
   setCafeActive(id: string, isActive: boolean): Observable<Cafe> {
     return this.http.put<Cafe>(`${this.api}/platform/cafes/${id}/active`, { isActive });
+  }
+  /** ZIP with all of a cafe's data (one CSV per table) for a cafe that leaves Yurt. */
+  exportCafe(id: string): Observable<Blob> {
+    return this.http.get(`${this.api}/platform/cafes/${id}/export`, { responseType: 'blob' });
   }
   getCafeSecrets(id: string): Observable<CafeSecretStatus[]> {
     return this.http.get<CafeSecretStatus[]>(`${this.api}/platform/cafes/${id}/secrets`);
@@ -172,11 +192,24 @@ export class YurtApiService {
     return this.http.put<FiscalSettings>(`${this.api}/platform/fiscal`, req, this.cafeOptions());
   }
 
+  getCafeAccess(): Observable<CafeAccess> {
+    return this.http.get<CafeAccess>(`${this.api}/platform/access`, this.cafeOptions());
+  }
+  setCafeAccess(req: { paidUntil: string | null; limitedByOperator: boolean }): Observable<CafeAccess> {
+    return this.http.put<CafeAccess>(`${this.api}/platform/access`, req, this.cafeOptions());
+  }
   getPaymentSettings(): Observable<PaymentSettings> {
     return this.http.get<PaymentSettings>(`${this.api}/platform/payments`, this.cafeOptions());
   }
   setPaymentSettings(provider: string | null): Observable<PaymentSettings> {
     return this.http.put<PaymentSettings>(`${this.api}/platform/payments`, { provider }, this.cafeOptions());
+  }
+
+  getPlatformBilling(): Observable<PlatformBilling> {
+    return this.http.get<PlatformBilling>(`${this.api}/platform/billing`, this.cafeOptions());
+  }
+  setPlatformBilling(req: SaveBillingPlan): Observable<PlatformBilling> {
+    return this.http.put<PlatformBilling>(`${this.api}/platform/billing`, req, this.cafeOptions());
   }
 
   importLoyalty(): Observable<LoyaltyImportResult> {
@@ -197,6 +230,23 @@ export class YurtApiService {
   }
   setBrand(req: BrandConfig): Observable<BrandConfig> {
     return this.http.put<BrandConfig>(`${this.api}/platform/brand`, req, this.cafeOptions());
+  }
+
+  // ── Picture upload (logos, menu and promotion photos) ─────────────────────
+  /**
+   * Uploads a PNG, JPEG or WebP picture (max 2 MB) and gives back its full public link, ready for a logo or photo
+   * field. `forManagedCafe` is for the Brand screen, where the operator may be managing another cafe. The caller
+   * shows its own error message, so the general error toast is skipped.
+   */
+  uploadPicture(file: Blob, forManagedCafe = false): Observable<string> {
+    const form = new FormData();
+    form.append('file', file, 'picture');
+    return this.http
+      .post<{ path: string }>(`${this.api}/admin/pictures`, form, {
+        ...(forManagedCafe ? this.cafeOptions() : {}),
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      })
+      .pipe(map((p) => `${this.baseUrl}${p.path}`));
   }
 
   // App releases (what's-new popup / forced update) - operator tool under /platform

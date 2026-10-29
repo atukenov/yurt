@@ -25,10 +25,12 @@ public class GroupOrderController : ApiControllerBase
     }
 
     [HttpPost]
+    [BlockWhenCafeLimited]
     public async Task<IActionResult> Create([FromBody] CreateGroupCartRequest req, CancellationToken ct)
         => ToResult(await _service.CreateAsync(req.LocationId, _currentUser.UserId!.Value, ct));
 
     [HttpPost("join")]
+    [BlockWhenCafeLimited]
     public async Task<IActionResult> Join([FromBody] JoinGroupCartRequest req, CancellationToken ct)
         => ToResult(await _service.JoinAsync(req.Code, _currentUser.UserId!.Value, ct));
 
@@ -37,6 +39,7 @@ public class GroupOrderController : ApiControllerBase
         => ToResult(await _service.GetAsync(id, _currentUser.UserId!.Value, ct));
 
     [HttpPost("{id:guid}/items")]
+    [BlockWhenCafeLimited]
     public async Task<IActionResult> AddItem(Guid id, [FromBody] AddGroupCartItemRequest req, CancellationToken ct)
         => ToResult(await _service.AddItemAsync(id, _currentUser.UserId!.Value, req, ct));
 
@@ -45,6 +48,7 @@ public class GroupOrderController : ApiControllerBase
         => ToResult(await _service.RemoveItemAsync(id, itemId, _currentUser.UserId!.Value, ct));
 
     [HttpPost("{id:guid}/checkout")]
+    [BlockWhenCafeLimited]
     public async Task<IActionResult> Checkout(Guid id, CancellationToken ct)
         => ToResult(await _service.CheckoutAsync(id, _currentUser.UserId!.Value, ct));
 }

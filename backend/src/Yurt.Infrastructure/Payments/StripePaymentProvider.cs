@@ -28,7 +28,8 @@ public class StripeOptions
     /// <summary>How old a webhook may be (Stripe's own libraries use 5 minutes).</summary>
     public int WebhookToleranceSeconds { get; set; } = 300;
 
-    /// <summary>How long the payment page stays open. Stripe allows 30 minutes to 24 hours.</summary>
+    /// <summary>How long the payment page stays open. Stripe allows 30 minutes to 24 hours, counted from when its server
+    /// gets the request, so one minute is kept off both ends.</summary>
     public int CheckoutMinutes { get; set; } = 30;
 }
 
@@ -61,7 +62,7 @@ public class StripePaymentProvider : IPaymentProvider
     public async Task<PaymentInvoiceResponse> CreateInvoiceAsync(CreatePaymentInvoiceRequest request, CancellationToken cancellationToken = default)
     {
         var key = await SecretKeyAsync(cancellationToken) ?? throw new PaymentProviderException("Stripe is not set up for this cafe.");
-        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(Math.Clamp(_options.CheckoutMinutes, 30, 24 * 60));
+        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(Math.Clamp(_options.CheckoutMinutes, 31, 24 * 60 - 1));
         var form = new List<KeyValuePair<string, string>>
         {
             new("mode", "payment"),

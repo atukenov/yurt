@@ -41,6 +41,11 @@ services:
       # Platform operator (the /platform tools in the admin panel). Must be 12+ characters.
       SEED_SUPERADMIN_USERNAME: superadmin
       SEED_SUPERADMIN_PASSWORD: superadmin12345
+      # The apps that may call the API, and where Stripe's payment page may send the customer back to.
+      # `./scripts/dev.sh phone` adds the computer's Wi-Fi address so a phone can open the customer app.
+      AllowedOrigins__0: http://localhost:4200
+      AllowedOrigins__1: http://localhost:4300
+      AllowedOrigins__2: ${YURT_PHONE_ORIGIN:-http://localhost:4200}
       # Local: no real WhatsApp/SMS provider, so skip phone verification.
       Otp__Required: "false"
     ports:

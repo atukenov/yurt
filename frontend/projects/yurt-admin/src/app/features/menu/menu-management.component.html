@@ -535,6 +535,12 @@
             (ngModelChange)="patchItemForm('imageUrl', $event)"
             class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
           />
+          <div class="flex items-start gap-3">
+            @if (itemForm().imageUrl) {
+              <img [src]="itemForm().imageUrl" alt="" class="mt-1.5 h-12 w-12 rounded-lg object-cover bg-slate-100" />
+            }
+            <app-picture-upload [label]="'label.imageUrl' | t" (uploaded)="patchItemForm('imageUrl', $event)" />
+          </div>
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.onlyAt' | t }}</label>
