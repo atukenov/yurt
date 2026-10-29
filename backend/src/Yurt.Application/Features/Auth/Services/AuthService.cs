@@ -549,21 +549,28 @@ public class AuthService
             new CustomerProfileDto(user.Id, user.MobileNumber, user.FirstName, user.LastName, user.CreatedAt, user.DateOfBirth));
     }
 
-    public async Task<Result<bool>> ChangeAdminPasswordAsync(
-        Guid adminId, ChangeAdminPasswordDto dto, CancellationToken ct = default)
+    // Returns a fresh token pair: the caller's current access token still carries the
+    // must_change_password claim, so without new tokens every admin call keeps getting 403.
+    public async Task<Result<AuthResponseDto>> ChangeAdminPasswordAsync(
+        Guid adminId, ChangeAdminPasswordDto dto, string? ip = null, CancellationToken ct = default)
     {
         var admin = await _db.AdminUsers.FindAsync([adminId], ct);
         if (admin == null)
-            return Result<bool>.NotFound("Admin not found.");
+            return Result<AuthResponseDto>.NotFound("Admin not found.");
 
         if (!_passwordHasher.Verify(dto.CurrentPassword, admin.PasswordHash))
-            return Result<bool>.Failure("Current password is incorrect.", 400);
+            return Result<AuthResponseDto>.Failure("Current password is incorrect.", 400);
 
         admin.PasswordHash = _passwordHasher.Hash(dto.NewPassword);
         admin.MustChangePassword = false;
         await _db.SaveChangesAsync(ct);
 
-        return Result<bool>.Success(true);
+        var role = admin.Role.ToString();
+        var accessToken = _tokenService.GenerateAdminToken(admin.Id, admin.Username, role, mustChangePassword: false);
+        var refreshToken = await CreateRefreshTokenAsync(admin.Id, RefreshTokenUserType.Admin, ip, ct);
+
+        return Result<AuthResponseDto>.Success(
+            new AuthResponseDto(accessToken, refreshToken, "admin", admin.Id, admin.Username, role));
     }
 
     private async Task<AuthResponseDto> IssueTokenPairAsync(

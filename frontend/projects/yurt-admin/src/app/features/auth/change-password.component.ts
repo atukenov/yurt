@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BrandService, YurtApiService } from 'shared-api';
+import { AuthStateService, BrandService, YurtApiService } from 'shared-api';
 import { ButtonComponent } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -87,6 +87,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 export class ChangePasswordComponent {
   readonly brand = inject(BrandService);
   private api = inject(YurtApiService);
+  private auth = inject(AuthStateService);
   private router = inject(Router);
   private lang = inject(AdminLangService);
 
@@ -110,7 +111,9 @@ export class ChangePasswordComponent {
     }
     this.loading.set(true);
     this.api.adminChangePassword(this.currentPassword, this.newPassword).subscribe({
-      next: () => {
+      next: (res) => {
+        // The old token still says "must change password"; swap in the fresh one.
+        this.auth.updateTokens(res.accessToken, res.refreshToken);
         this.loading.set(false);
         this.success.set(true);
         setTimeout(() => this.router.navigate(['/dashboard']), 1500);
