@@ -410,6 +410,16 @@ public class PrintAgentConfiguration : IEntityTypeConfiguration<PrintAgent>
     }
 }
 
+public class PictureConfiguration : IEntityTypeConfiguration<Picture>
+{
+    public void Configure(EntityTypeBuilder<Picture> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.ContentType).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Data).IsRequired();
+    }
+}
+
 public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)

@@ -48,6 +48,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Printer> Printers => Set<Printer>();
     public DbSet<PrintJob> PrintJobs => Set<PrintJob>();
     public DbSet<PrintAgent> PrintAgents => Set<PrintAgent>();
+    public DbSet<Picture> Pictures => Set<Picture>();
     public DbSet<ToppingUse> ToppingUses => Set<ToppingUse>();
     public DbSet<CashMovement> CashMovements => Set<CashMovement>();
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();
