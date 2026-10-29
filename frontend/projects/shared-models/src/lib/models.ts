@@ -835,6 +835,33 @@ export interface CreateCafeRequest {
   adminPassword: string;
 }
 
+/** A problem in a menu spreadsheet. Row 0 means the whole file; `code` is translated in the admin app. */
+export interface MenuImportError {
+  row: number;
+  code: string;
+  value: string | null;
+}
+
+export interface MenuImportPreviewItem {
+  row: number;
+  category: string;
+  name: string;
+  price: number;
+  sizes: string[];
+  exists: boolean;
+}
+
+export interface MenuImportResult {
+  applied: boolean;
+  categoriesNew: number;
+  categoriesExisting: number;
+  itemsNew: number;
+  itemsUpdated: number;
+  sizes: number;
+  errors: MenuImportError[];
+  items: MenuImportPreviewItem[];
+}
+
 export interface MaintenanceInfo {
   enabled: boolean;
   message: string;

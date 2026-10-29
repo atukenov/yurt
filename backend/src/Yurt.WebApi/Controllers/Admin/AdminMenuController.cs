@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using Yurt.Application.Features.Menu.DTOs;
+using Yurt.Application.Features.Menu.Import;
 using Yurt.Application.Features.Menu.Services;
 using Yurt.WebApi.Common;
 
@@ -14,8 +15,44 @@ namespace Yurt.WebApi.Controllers.Admin;
 public class AdminMenuController : ApiControllerBase
 {
     private readonly MenuService _menuService;
+    private readonly MenuImportService _import;
 
-    public AdminMenuController(MenuService menuService) => _menuService = menuService;
+    public AdminMenuController(MenuService menuService, MenuImportService import)
+    {
+        _menuService = menuService;
+        _import = import;
+    }
+
+    // ── IMPORT FROM EXCEL ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Checks a menu spreadsheet (.xlsx or .csv) and, with <c>apply=true</c>, saves it when it has no problems.
+    /// Problems come back by row with a code the admin app translates; nothing is saved while there are any.
+    /// </summary>
+    [HttpPost("import")]
+    [RequestSizeLimit(MenuImportService.MaxFileBytes + 64 * 1024)]
+    public async Task<IActionResult> Import(IFormFile? file, [FromQuery] bool apply, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new ProblemDetails { Title = "Choose a file to upload." });
+        if (file.Length > MenuImportService.MaxFileBytes)
+            return BadRequest(new ProblemDetails { Title = "The file is larger than 5 MB." });
+
+        // The zip reader needs to seek, so the upload is copied to memory (at most 5 MB).
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, ct);
+        ms.Position = 0;
+        return Ok(await _import.ImportAsync(ms, file.FileName, apply, ct));
+    }
+
+    /// <summary>An empty menu spreadsheet with the column names in the given language and a few sample rows.</summary>
+    [HttpGet("import/template")]
+    public IActionResult ImportTemplate([FromQuery] string? lang)
+    {
+        var l = lang is "ru" or "kk" ? lang : "en";
+        return File(MenuImportService.Template(l),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"menu-template-{l}.xlsx");
+    }
 
     // ── CATEGORIES ──────────────────────────────────────────────────────────────
 

@@ -12,6 +12,7 @@ import {
   Cafe,
   CafeSecretStatus,
   CreateCafeRequest,
+  MenuImportResult,
   BrandConfig,
   PlatformModule,
   UpdateModuleLicenseRequest,
@@ -110,7 +111,11 @@ export class YurtApiService {
   platformCafe: string | null = null;
 
   private cafeOptions(): { headers?: Record<string, string> } {
-    return this.platformCafe ? { headers: { 'X-Tenant': this.platformCafe } } : {};
+    return this.forCafe(this.platformCafe);
+  }
+
+  private forCafe(slug: string | null | undefined): { headers?: Record<string, string> } {
+    return slug ? { headers: { 'X-Tenant': slug } } : {};
   }
 
   getPlatformModules(): Observable<PlatformModule[]> {
@@ -299,8 +304,9 @@ export class YurtApiService {
     return this.http.get<Location[]>(`${this.api}/admin/locations`);
   }
 
-  createLocation(data: Partial<Location>): Observable<Location> {
-    return this.http.post<Location>(`${this.api}/admin/locations`, data);
+  /** `cafe` is the key of another cafe (operator only, for the new-cafe wizard); leave it out for this cafe. */
+  createLocation(data: Partial<Location>, cafe?: string): Observable<Location> {
+    return this.http.post<Location>(`${this.api}/admin/locations`, data, this.forCafe(cafe));
   }
 
   updateLocation(id: string, data: Partial<Location>): Observable<Location> {
@@ -312,6 +318,27 @@ export class YurtApiService {
   }
 
   // ── Menu ───────────────────────────────────────────────────────────────────
+  /**
+   * Checks a menu spreadsheet, or with `apply` saves it (only when it has no problems). `cafe` is the key of another
+   * cafe (operator only, for the new-cafe wizard); leave it out for this cafe.
+   */
+  importMenu(file: File, apply: boolean, cafe?: string): Observable<MenuImportResult> {
+    const body = new FormData();
+    body.append('file', file, file.name);
+    return this.http.post<MenuImportResult>(`${this.api}/admin/menu/import`, body, {
+      ...this.forCafe(cafe),
+      params: new HttpParams().set('apply', apply),
+    });
+  }
+
+  /** The menu spreadsheet template with column names in `lang`. */
+  getMenuTemplate(lang: string): Observable<Blob> {
+    return this.http.get(`${this.api}/admin/menu/import/template`, {
+      params: new HttpParams().set('lang', lang),
+      responseType: 'blob',
+    });
+  }
+
   getCategories(lang?: string, locationId?: string): Observable<MenuCategory[]> {
     let params = new HttpParams();
     if (lang) params = params.set('lang', lang);

@@ -90,4 +90,42 @@ public class CafeProvisioningTests(YurtWebAppFactory factory)
         var res = await client.PostAsJsonAsync("/api/v1/platform/cafes", NewCafe(Guid.NewGuid().ToString("N")[..8]));
         Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
     }
+    [Fact]
+    public async Task Operator_CanSetUpTheNewCafe_BranchAndMenuFromASpreadsheet()
+    {
+        var op = await OperatorAsync();
+        var id = Guid.NewGuid().ToString("N")[..8];
+        Assert.Equal(HttpStatusCode.OK, (await op.PostAsJsonAsync("/api/v1/platform/cafes", NewCafe(id))).StatusCode);
+        HttpRequestMessage ForNewCafe(HttpMethod method, string url, HttpContent? body = null)
+        {
+            var req = new HttpRequestMessage(method, url) { Content = body };
+            req.Headers.Add("X-Tenant", $"new-{id}");
+            return req;
+        }
+
+        var branch = await op.SendAsync(ForNewCafe(HttpMethod.Post, "/api/v1/admin/locations",
+            JsonContent.Create(new { name = "Main", address = "Abay 1", workingHours = "", contactPhone = "+77010000000" })));
+        Assert.Equal(HttpStatusCode.Created, branch.StatusCode);
+
+        var template = await op.GetAsync("/api/v1/admin/menu/import/template?lang=ru");
+        Assert.Equal(HttpStatusCode.OK, template.StatusCode);
+        var file = await template.Content.ReadAsByteArrayAsync();
+
+        MultipartFormDataContent Upload() => new() { { new ByteArrayContent(file), "file", "menu.xlsx" } };
+        var check = await op.SendAsync(ForNewCafe(HttpMethod.Post, "/api/v1/admin/menu/import", Upload()));
+        var checkBody = await check.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+        Assert.False(checkBody.GetProperty("applied").GetBoolean());
+        Assert.Equal(2, checkBody.GetProperty("itemsNew").GetInt32());
+
+        var saved = await op.SendAsync(ForNewCafe(HttpMethod.Post, "/api/v1/admin/menu/import?apply=true", Upload()));
+        Assert.True((await saved.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>()).GetProperty("applied").GetBoolean());
+
+        var items = await (await op.SendAsync(ForNewCafe(HttpMethod.Get, "/api/v1/admin/menu/items")))
+            .Content.ReadFromJsonAsync<List<System.Text.Json.JsonElement>>();
+        Assert.Equal(["Капучино", "Круассан"], items!.Select(i => i.GetProperty("name").GetString()).Order());
+
+        // The default cafe's menu did not get the new cafe's dishes.
+        var defaultItems = await op.GetFromJsonAsync<List<System.Text.Json.JsonElement>>("/api/v1/admin/menu/items");
+        Assert.DoesNotContain(defaultItems!, i => i.GetProperty("name").GetString() == "Круассан");
+    }
 }

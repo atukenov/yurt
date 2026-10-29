@@ -8,6 +8,7 @@ import { ButtonComponent, ToastService, Currency2Pipe } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
+import { MenuImportComponent } from './menu-import.component';
 
 interface VariantRow {
   label: string;
@@ -59,7 +60,7 @@ interface CatInput {
 @Component({
   selector: 'app-menu-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe],
+  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe, MenuImportComponent],
   templateUrl: './menu-management.component.html',
   styleUrl: './menu-management.component.css',
 })
@@ -78,6 +79,7 @@ export class MenuManagementComponent implements OnInit {
   toppings = signal<MenuTopping[]>([]);
   locations = signal<Location[]>([]);
   loading = signal(true);
+  showImport = signal(false);
   saving = signal(false);
   showItemDialog = signal(false);
   showCatDialog = signal(false);

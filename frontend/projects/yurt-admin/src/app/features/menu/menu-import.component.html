@@ -1,0 +1,85 @@
+<div class="space-y-4">
+  <p class="text-sm text-slate-600">{{ 'imp.hint' | t }}</p>
+
+  <div class="flex flex-wrap items-center gap-2">
+    <button type="button" (click)="downloadTemplate()"
+      class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+      {{ 'imp.template' | t }}
+    </button>
+    <label class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 cursor-pointer"
+      [class.opacity-50]="busy()">
+      {{ 'imp.choose' | t }}
+      <input type="file" class="sr-only" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+        [disabled]="busy()" (change)="pick($event)" />
+    </label>
+    @if (file(); as f) {
+      <span class="text-sm text-slate-600 truncate max-w-60">{{ f.name }}</span>
+    }
+  </div>
+
+  @if (busy()) {
+    <p class="text-sm text-slate-500" role="status">{{ 'imp.checking' | t }}</p>
+  }
+
+  @if (result(); as r) {
+    @if (r.applied) {
+      <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-tone-green" role="status">
+        {{ 'imp.done' | t }}
+        {{ 'imp.newItems' | t }}: {{ r.itemsNew }} · {{ 'imp.updatedItems' | t }}: {{ r.itemsUpdated }} · {{ 'imp.newCats' | t }}: {{ r.categoriesNew }}
+      </div>
+    } @else if (r.errors.length > 0) {
+      <div class="rounded-xl border border-red-200 p-4" role="alert">
+        <p class="text-sm font-semibold text-tone-red">{{ 'imp.problems' | t }}</p>
+        <ul class="mt-2 space-y-1 text-sm text-slate-700 max-h-64 overflow-y-auto">
+          @for (e of r.errors; track $index) {
+            <li>
+              @if (e.row > 0) {
+                <span class="font-semibold">{{ 'imp.row' | t: { row: e.row } }}:</span>
+              }
+              {{ errorText(e) }}
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <div class="rounded-xl border border-slate-200 p-4 space-y-3">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div><div class="text-xl font-bold text-slate-800">{{ r.itemsNew }}</div><div class="text-xs text-slate-500">{{ 'imp.newItems' | t }}</div></div>
+          <div><div class="text-xl font-bold text-slate-800">{{ r.itemsUpdated }}</div><div class="text-xs text-slate-500">{{ 'imp.updatedItems' | t }}</div></div>
+          <div><div class="text-xl font-bold text-slate-800">{{ r.categoriesNew }}</div><div class="text-xs text-slate-500">{{ 'imp.newCats' | t }}</div></div>
+          <div><div class="text-xl font-bold text-slate-800">{{ r.sizes }}</div><div class="text-xs text-slate-500">{{ 'imp.sizes' | t }}</div></div>
+        </div>
+        <ul class="divide-y divide-slate-100 text-sm max-h-72 overflow-y-auto">
+          @for (i of r.items.slice(0, previewLimit); track i.row) {
+            <li class="flex items-center justify-between gap-3 py-1.5">
+              <span class="min-w-0 truncate">
+                <span class="text-slate-500">{{ i.category }} · </span>
+                <span class="font-medium text-slate-800">{{ i.name }}</span>
+                @if (i.sizes.length > 0) {
+                  <span class="text-slate-500"> ({{ i.sizes.join(', ') }})</span>
+                }
+                @if (i.exists) {
+                  <span class="ml-1 text-xs font-semibold text-tone-amber">{{ 'imp.willUpdate' | t }}</span>
+                }
+              </span>
+              <span class="shrink-0 text-slate-700">{{ i.price | currency2 }}</span>
+            </li>
+          }
+        </ul>
+        @if (r.items.length > previewLimit) {
+          <p class="text-xs text-slate-500">{{ 'imp.more' | t: { count: r.items.length - previewLimit } }}</p>
+        }
+        <div class="flex flex-wrap gap-2">
+          <button type="button" (click)="apply()" [disabled]="busy()"
+            class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 disabled:opacity-50">
+            {{ 'imp.apply' | t }}
+          </button>
+          <button type="button" (click)="reset()" [disabled]="busy()"
+            class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            {{ 'action.cancel' | t }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
