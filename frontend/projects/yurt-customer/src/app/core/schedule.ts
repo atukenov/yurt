@@ -138,3 +138,43 @@ export function buildScheduleInfo(wh: string, now: Date, words: ScheduleWords = 
   return { isOpen: todayOpen, todayLabel, nextOpenAt, weekSummary };
 }
 
+
+/**
+ * Pickup times a guest can choose today, every `stepMin` minutes: from `leadMin` minutes after `now` (rounded up to
+ * the step) to the branch's closing time. Before opening, the first slot is the opening time. Hours we cannot read
+ * give slots for the next few hours, up to midnight. A branch closed for the rest of today gives none.
+ */
+export function pickupSlots(wh: string, now: Date, stepMin = 15, leadMin = 20): Date[] {
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  const atToday = (min: number) => {
+    const d = new Date(now);
+    d.setHours(0, min, 0, 0);
+    return d;
+  };
+
+  const slots = parseSlots(wh);
+  let opensAt: Date;
+  let closesAt: Date;
+  if (!slots) {
+    opensAt = now;
+    closesAt = new Date(Math.min(now.getTime() + LEGACY_HOURS_AHEAD * 3_600_000, midnight.getTime()));
+  } else {
+    const jsDay = now.getDay();
+    const today = slots.find((s) => s.day === (jsDay === 0 ? 7 : jsDay));
+    if (!today?.enabled) return [];
+    const from = toMin(today.from);
+    const to = toMin(today.to);
+    opensAt = atToday(from);
+    // "22:00 – 02:00" closes after midnight.
+    closesAt = atToday(to <= from ? to + 24 * 60 : to);
+  }
+
+  const stepMs = stepMin * 60_000;
+  const earliest = Math.max(now.getTime() + leadMin * 60_000, opensAt.getTime());
+  const out: Date[] = [];
+  for (let t = Math.ceil(earliest / stepMs) * stepMs; t <= closesAt.getTime(); t += stepMs) out.push(new Date(t));
+  return out;
+}
+
+const LEGACY_HOURS_AHEAD = 6;
