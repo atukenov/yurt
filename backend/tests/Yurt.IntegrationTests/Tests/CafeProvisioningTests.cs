@@ -23,7 +23,7 @@ public class CafeProvisioningTests(YurtWebAppFactory factory)
     };
 
     [Fact]
-    public async Task CreatedCafe_HasItsOwnAdmin_WhoCanLogInOnlyThere()
+    public async Task CreatedCafe_HasItsOwnAdmin_WhoseSignInOnlyWorksThere()
     {
         var op = await OperatorAsync();
         var id = Guid.NewGuid().ToString("N")[..8];
@@ -37,8 +37,25 @@ public class CafeProvisioningTests(YurtWebAppFactory factory)
         onNewCafe.DefaultRequestHeaders.Add("X-Tenant", $"new-{id}");
         Assert.Equal(HttpStatusCode.OK, (await onNewCafe.PostAsJsonAsync("/api/v1/admin/auth/login", login)).StatusCode);
 
-        // The same login does not exist on the default cafe.
-        Assert.NotEqual(HttpStatusCode.OK, (await factory.CreateClient().PostAsJsonAsync("/api/v1/admin/auth/login", login)).StatusCode);
+        // One admin panel address serves every cafe: signing in there finds the admin's own cafe.
+        var shared = await factory.CreateClient().PostAsJsonAsync("/api/v1/admin/auth/login", login);
+        Assert.Equal(HttpStatusCode.OK, shared.StatusCode);
+        var auth = await shared.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+        Assert.Equal($"new-{id}", auth.GetProperty("cafe").GetString());
+        var token = auth.GetProperty("accessToken").GetString()!;
+
+        // The token is bound to the new cafe: good there, refused on the default cafe.
+        var asOwner = factory.CreateClient();
+        ApiHelpers.Authorize(asOwner, token);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await asOwner.GetAsync("/api/v1/admin/menu/categories")).StatusCode);
+        asOwner.DefaultRequestHeaders.Add("X-Tenant", $"new-{id}");
+        // Past the cafe check; only the first-login password change still stands in the way.
+        Assert.Equal(HttpStatusCode.Forbidden, (await asOwner.GetAsync("/api/v1/admin/menu/categories")).StatusCode);
+
+        // The refresh token belongs to the new cafe as well.
+        var refresh = await onNewCafe.PostAsJsonAsync("/api/v1/admin/auth/refresh",
+            new { refreshToken = auth.GetProperty("refreshToken").GetString() });
+        Assert.Equal(HttpStatusCode.OK, refresh.StatusCode);
 
         var list = await op.GetFromJsonAsync<List<System.Text.Json.JsonElement>>("/api/v1/platform/cafes");
         Assert.Contains(list!, c => c.GetProperty("slug").GetString() == $"new-{id}");

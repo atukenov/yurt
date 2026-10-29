@@ -40,6 +40,7 @@ export class AdminLoginComponent {
           displayName: res.displayName,
           userType: 'admin',
           role: res.role,
+          cafe: res.cafe ?? null,
         });
         if (res.mustChangePassword) {
           this.router.navigate(['/auth/change-password']);

@@ -18,6 +18,8 @@ public class AuthService
     private readonly IOtpSender _otpSender;
     private readonly OtpOptions _otpOptions;
     private readonly IModuleGate _modules;
+    private readonly ITenantContext _tenant;
+    private readonly ITenantDirectory _tenants;
     private readonly ILogger<AuthService> _logger;
 
     private const int MaxFailedAttempts = 5;
@@ -30,6 +32,8 @@ public class AuthService
         IOtpSender otpSender,
         OtpOptions otpOptions,
         IModuleGate modules,
+        ITenantContext tenant,
+        ITenantDirectory tenants,
         ILogger<AuthService> logger)
     {
         _db = db;
@@ -38,6 +42,8 @@ public class AuthService
         _otpSender = otpSender;
         _otpOptions = otpOptions;
         _modules = modules;
+        _tenant = tenant;
+        _tenants = tenants;
         _logger = logger;
     }
 
@@ -263,18 +269,32 @@ public class AuthService
     public async Task<Result<AuthResponseDto>> LoginAdminAsync(
         AdminLoginDto dto, string? ip = null, CancellationToken ct = default)
     {
-        var admin = await _db.AdminUsers
+        // Usernames are unique across all cafes, so one admin panel address serves every cafe: the login finds the
+        // admin's own cafe and signs in there, whatever cafe the address belongs to.
+        var admin = await _db.AdminUsers.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Username == dto.Username && u.IsActive, ct);
 
         if (admin == null || !_passwordHasher.Verify(dto.Password, admin.PasswordHash))
             return Result<AuthResponseDto>.Failure("Invalid credentials.", 401);
+
+        string? cafe = null;
+        if (admin.Role != AdminRole.SuperAdmin)
+        {
+            var tenant = (await _tenants.GetActiveAsync(ct)).FirstOrDefault(t => t.Id == admin.TenantId);
+            // A switched-off cafe cannot sign in. The default cafe is always allowed, like the tenant resolver does.
+            if (tenant is null && admin.TenantId != Tenant.DefaultId)
+                return Result<AuthResponseDto>.Failure("Invalid credentials.", 401);
+            cafe = tenant?.Slug ?? Tenant.DefaultSlug;
+            // The token, refresh token and everything after belong to the admin's cafe.
+            _tenant.Set(admin.TenantId, cafe);
+        }
 
         var role = admin.Role.ToString();
         var accessToken = _tokenService.GenerateAdminToken(admin.Id, admin.Username, role, admin.MustChangePassword);
         var refreshToken = await CreateRefreshTokenAsync(admin.Id, RefreshTokenUserType.Admin, ip, ct);
 
         return Result<AuthResponseDto>.Success(
-            new AuthResponseDto(accessToken, refreshToken, "admin", admin.Id, admin.Username, role, admin.MustChangePassword));
+            new AuthResponseDto(accessToken, refreshToken, "admin", admin.Id, admin.Username, role, admin.MustChangePassword, cafe));
     }
 
     public async Task<Result<AuthResponseDto>> RefreshAsync(
@@ -348,7 +368,8 @@ public class AuthService
 
             await _db.SaveChangesAsync(ct);
             return Result<AuthResponseDto>.Success(
-                new AuthResponseDto(accessToken, newRefreshValue, "admin", admin.Id, admin.Username, role, admin.MustChangePassword));
+                new AuthResponseDto(accessToken, newRefreshValue, "admin", admin.Id, admin.Username, role, admin.MustChangePassword,
+                    admin.Role == AdminRole.SuperAdmin ? null : _tenant.Slug));
         }
     }
 

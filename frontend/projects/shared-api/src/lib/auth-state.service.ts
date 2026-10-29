@@ -8,6 +8,8 @@ export interface AuthUser {
   displayName: string;
   userType: string;
   role?: string;
+  /** Key of the cafe this admin belongs to; sent as X-Tenant so one admin panel address serves every cafe. */
+  cafe?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +36,9 @@ export class AuthStateService {
   /** Cafe admin or platform operator (SuperAdmin has every admin permission). */
   get isAdmin(): boolean {
     return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'SuperAdmin';
+  }
+  get cafe(): string | null {
+    return this.currentUser?.cafe ?? null;
   }
   get isSuperAdmin(): boolean {
     return this.currentUser?.role === 'SuperAdmin';
