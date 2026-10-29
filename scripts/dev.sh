@@ -33,6 +33,14 @@ stop_frontend() {
   done
 }
 
+# Start a command in the background in its own process group, so stop_frontend can kill it together
+# with the children it spawns. `set -m` (job control) does this in any bash, including the old bash 3.2
+# on macOS, which has no `setsid` command.
+start_bg() { # name, command...
+  local name="$1"; shift
+  (cd "$ROOT/frontend" || exit 1; set -m; "$@" </dev/null >"$STATE/$name.log" 2>&1 & echo $! >"$STATE/$name.pid")
+}
+
 wait_for() { # url, label, tries
   local url="$1" label="$2" tries="${3:-90}"
   for ((i = 0; i < tries; i++)); do
@@ -89,12 +97,10 @@ if [[ "$cmd" != "--no-frontend" ]]; then
   echo "▶ Starting the customer app and the admin panel…"
   CUSTOMER_HOST=localhost
   [[ "$cmd" == "phone" ]] && CUSTOMER_HOST=0.0.0.0
-  (cd frontend && setsid npx ng serve yurt-customer --configuration local --host "$CUSTOMER_HOST" --port "$CUSTOMER_PORT" \
-      >"$STATE/customer.log" 2>&1 & echo $! >"$STATE/customer.pid")
-  (cd frontend && setsid npx ng serve yurt-admin --configuration local --port "$ADMIN_PORT" \
-      >"$STATE/admin.log" 2>&1 & echo $! >"$STATE/admin.pid")
-  wait_for "http://localhost:$CUSTOMER_PORT" "customer app" 120 || true
-  wait_for "http://localhost:$ADMIN_PORT" "admin panel" 120 || true
+  start_bg customer npx ng serve yurt-customer --configuration local --host "$CUSTOMER_HOST" --port "$CUSTOMER_PORT"
+  start_bg admin npx ng serve yurt-admin --configuration local --port "$ADMIN_PORT"
+  wait_for "http://localhost:$CUSTOMER_PORT" "customer app" 120 || tail -n 20 "$STATE/customer.log" >&2 || true
+  wait_for "http://localhost:$ADMIN_PORT" "admin panel" 120 || tail -n 20 "$STATE/admin.log" >&2 || true
 fi
 
 cat <<EOF
