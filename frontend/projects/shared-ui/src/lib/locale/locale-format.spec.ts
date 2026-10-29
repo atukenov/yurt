@@ -28,6 +28,12 @@ describe('formatLocalDate', () => {
     expect(formatLocalDate(may4, 'shortDateTime', 'kk')).toBe('4 мам. · 15:07');
   });
 
+  it('writes a time of day alone (pickup times)', () => {
+    expect(formatLocalDate(may4, 'time', 'en')).toBe('3:07 PM');
+    expect(formatLocalDate(may4, 'time', 'ru')).toBe('15:07');
+    expect(formatLocalDate(may4, 'time24', 'en')).toBe('15:07');
+  });
+
   it('treats an unknown style as a plain pattern', () => {
     expect(formatLocalDate(may4, 'dd.MM HH:mm', 'ru')).toBe('04.05 15:07');
   });

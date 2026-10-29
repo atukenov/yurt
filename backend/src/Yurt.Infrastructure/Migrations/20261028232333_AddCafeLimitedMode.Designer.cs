@@ -12,8 +12,8 @@ using Yurt.Infrastructure.Persistence;
 namespace Yurt.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261028232613_AddPictures")]
-    partial class AddPictures
+    [Migration("20261028232333_AddCafeLimitedMode")]
+    partial class AddCafeLimitedMode
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1720,42 +1720,6 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("PhoneVerifications");
                 });
 
-            modelBuilder.Entity("Yurt.Domain.Entities.Picture", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<byte[]>("Data")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<int>("Size")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("TenantId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("Pictures");
-                });
-
             modelBuilder.Entity("Yurt.Domain.Entities.PlatformSetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2329,6 +2293,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("LimitedByOperator")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LoyaltyLedger")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -2337,6 +2304,9 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("PaidUntil")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PaymentProvider")
                         .HasMaxLength(20)
@@ -2999,15 +2969,6 @@ namespace Yurt.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.PhoneVerification", b =>
-                {
-                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Yurt.Domain.Entities.Picture", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
                         .WithMany()

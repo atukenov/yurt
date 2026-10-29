@@ -27,6 +27,7 @@ using Yurt.Application.Features.Reports;
 using Yurt.Application.Features.AppUpdate;
 using Yurt.Application.Features.Modules;
 using Yurt.Application.Features.Platform;
+using Yurt.Application.Features.Tenants;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Shifts;
 using Yurt.Application.Features.Stations;
@@ -41,6 +42,9 @@ using Yurt.Application.Features.Push;
 using Yurt.Application.Features.Push.Services;
 using Yurt.Infrastructure.Fiscal;
 using Yurt.Infrastructure.Health;
+using Yurt.Infrastructure.Monitoring;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Yurt.Infrastructure.Hubs;
 using Yurt.Infrastructure.Iiko;
 using Yurt.Infrastructure.Messaging;
@@ -151,8 +155,13 @@ public static class DependencyInjection
         services.AddSingleton(configuration.GetSection("Modules").Get<ModuleOptions>() ?? new ModuleOptions());
         services.AddSingleton<IModuleGate, ModuleGate>();
         services.AddSingleton<IMaintenanceGate, MaintenanceGate>();
+        // Limited mode for a cafe that stopped paying (reads Tenant.PaidUntil / LimitedByOperator).
+        services.AddSingleton(configuration.GetSection("Billing").Get<BillingOptions>() ?? new BillingOptions());
+        services.AddScoped<CafeAccessService>();
+        services.AddScoped<CafeAccessSettingsService>();
         services.AddScoped<PlatformService>();
         services.AddScoped<CafeProvisioningService>();
+        services.AddScoped<ICafeDataExporter, CafeDataExporter>();
         services.AddSingleton<ISecretProtector, AesGcmSecretProtector>();
         services.AddScoped<ITenantSecrets, TenantSecrets>();
         services.AddScoped<CafeSecretsService>();
@@ -168,6 +177,10 @@ public static class DependencyInjection
         services.AddSingleton<WebkassaTokenCache>();
         services.AddHttpClient<WebkassaFiscalRegistrar>();
         services.AddScoped<IFiscalRegistrar>(sp => sp.GetRequiredService<WebkassaFiscalRegistrar>());
+        services.AddSingleton(configuration.GetSection("ReKassa").Get<ReKassaOptions>() ?? new ReKassaOptions());
+        services.AddSingleton<ReKassaSessionCache>();
+        services.AddHttpClient<ReKassaFiscalRegistrar>();
+        services.AddScoped<IFiscalRegistrar>(sp => sp.GetRequiredService<ReKassaFiscalRegistrar>());
         services.AddScoped<FiscalReceiptService>();
         services.AddScoped<FiscalSettingsService>();
         services.AddScoped<StationService>();
@@ -198,6 +211,15 @@ public static class DependencyInjection
         services.AddHostedService<IikoOrderSyncRetryService>();
         services.AddHostedService<FiscalReceiptJob>();
         services.AddHostedService<PrintJobService>();
+
+        // Error alerts to Telegram (off until Alerts:TelegramBotToken and Alerts:TelegramChatId are set; docs/monitoring.md)
+        services.AddSingleton(configuration.GetSection("Alerts").Get<AlertOptions>() ?? new AlertOptions());
+        services.AddSingleton<ErrorAlertSink>();
+        services.AddHostedService(sp => new ErrorAlertService(
+            sp.GetRequiredService<ErrorAlertSink>(),
+            sp.GetRequiredService<AlertOptions>(),
+            sp.GetRequiredService<IHostEnvironment>(),
+            sp.GetRequiredService<ILogger<ErrorAlertService>>()));
 
         // JWT Auth — fail-fast secret validation
         var jwtSecret = configuration["Jwt:Secret"];

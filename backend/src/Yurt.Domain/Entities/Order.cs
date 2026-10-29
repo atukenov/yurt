@@ -12,6 +12,8 @@ public class Order : BaseEntity, ITenantOwned
     public OrderStatus Status { get; set; } = OrderStatus.Created;
     public string? DeclineReason { get; set; }
     public int? EtaMinutes { get; set; }
+    // When the guest asked to pick the order up (UTC). Null = as soon as possible.
+    public DateTime? PickupAt { get; set; }
     public DateTime? AcceptedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 

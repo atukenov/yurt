@@ -6,6 +6,8 @@
 #   ./scripts/dev.sh reset      stop and delete the local database
 #   ./scripts/dev.sh logs       follow API logs
 #   ./scripts/dev.sh --no-frontend   only Postgres + API
+#   ./scripts/dev.sh phone      like start, but a phone on the same Wi-Fi can open the customer app too
+#                               (for trying Apple Pay / Google Pay on a real phone)
 #
 # Needs: Docker (with compose) and Node 20+. The .NET SDK is NOT required, the API builds in Docker.
 set -euo pipefail
@@ -55,7 +57,12 @@ case "$cmd" in
   logs)
     exec docker compose logs -f api ;;
   start | --no-frontend) ;;
-  *) echo "usage: $0 [start|stop|reset|logs|--no-frontend]" >&2; exit 1 ;;
+  phone)
+    # The computer's address on the Wi-Fi (macOS first, then Linux).
+    LAN_IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || true)"
+    [[ -n "$LAN_IP" ]] || { echo "error: could not find this computer's Wi-Fi address" >&2; exit 1; }
+    export YURT_PHONE_ORIGIN="http://$LAN_IP:$CUSTOMER_PORT" ;;
+  *) echo "usage: $0 [start|stop|reset|logs|--no-frontend|phone]" >&2; exit 1 ;;
 esac
 
 need docker
@@ -80,7 +87,9 @@ if [[ "$cmd" != "--no-frontend" ]]; then
 
   stop_frontend
   echo "▶ Starting the customer app and the admin panel…"
-  (cd frontend && setsid npx ng serve yurt-customer --configuration local --port "$CUSTOMER_PORT" \
+  CUSTOMER_HOST=localhost
+  [[ "$cmd" == "phone" ]] && CUSTOMER_HOST=0.0.0.0
+  (cd frontend && setsid npx ng serve yurt-customer --configuration local --host "$CUSTOMER_HOST" --port "$CUSTOMER_PORT" \
       >"$STATE/customer.log" 2>&1 & echo $! >"$STATE/customer.pid")
   (cd frontend && setsid npx ng serve yurt-admin --configuration local --port "$ADMIN_PORT" \
       >"$STATE/admin.log" 2>&1 & echo $! >"$STATE/admin.pid")
@@ -98,3 +107,6 @@ Yurt is running locally:
 
 Stop with ./scripts/dev.sh stop, wipe the database with ./scripts/dev.sh reset.
 EOF
+if [[ "$cmd" == "phone" ]]; then
+  echo "On a phone on the same Wi-Fi, open the customer app at $YURT_PHONE_ORIGIN"
+fi

@@ -4,6 +4,7 @@ using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.AppUpdate;
 using Yurt.Application.Features.Pictures;
 using Yurt.Application.Features.Platform;
+using Yurt.Application.Features.Tenants;
 using Yurt.Domain;
 using Yurt.WebApi.Common;
 
@@ -20,10 +21,13 @@ public class AppController : ApiControllerBase
     private readonly PlatformService _platform;
     private readonly PictureService _pictures;
 
+    private readonly CafeAccessService _access;
+
     public AppController(AppReleaseService releases, IModuleGate modules, IMaintenanceGate maintenance, PlatformService platform,
-        PictureService pictures)
+        CafeAccessService access, PictureService pictures)
     {
         _pictures = pictures;
+        _access = access;
         _platform = platform;
         _releases = releases;
         _modules = modules;
@@ -39,7 +43,7 @@ public class AppController : ApiControllerBase
         => Ok(await _releases.GetUpdateInfoAsync(ct));
 
     /// <summary>
-    /// Runtime configuration for the apps: the keys of the enabled modules and the maintenance flag. Public (needed before login).
+    /// Runtime configuration for the apps: the keys of the enabled modules, the maintenance flag and whether ordering is paused. Public (needed before login).
     /// A missing or failing lookup reports everything enabled, so old and new clients keep working.
     /// </summary>
     [HttpGet("config")]
@@ -47,6 +51,7 @@ public class AppController : ApiControllerBase
     {
         var statuses = await _modules.GetStatusesAsync(ct);
         var maintenance = await _maintenance.GetAsync(ct);
+        var access = await _access.GetAsync(ct);
         // The saved brand applies only while the branding module is on; otherwise the Yurt default is served.
         var brand = BrandDto.Default;
         try
@@ -62,6 +67,8 @@ public class AppController : ApiControllerBase
         {
             modules = statuses.Where(s => s.IsEnabled).Select(s => s.Key).ToList(),
             maintenance = new { enabled = maintenance.Enabled, message = maintenance.Message },
+            // Limited mode (cafe stopped paying): the apps keep sign-in and history but do not offer ordering.
+            ordering = new { paused = access.IsLimited },
             brand
         });
     }

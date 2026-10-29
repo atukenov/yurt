@@ -23,6 +23,7 @@ import {
   CreatePaymentRequest,
   PaymentConfig,
   PaymentSettings,
+  CafeAccess,
   CustomerDetail,
   CustomerProfile,
   CustomerStats,
@@ -133,6 +134,10 @@ export class YurtApiService {
   setCafeActive(id: string, isActive: boolean): Observable<Cafe> {
     return this.http.put<Cafe>(`${this.api}/platform/cafes/${id}/active`, { isActive });
   }
+  /** ZIP with all of a cafe's data (one CSV per table) for a cafe that leaves Yurt. */
+  exportCafe(id: string): Observable<Blob> {
+    return this.http.get(`${this.api}/platform/cafes/${id}/export`, { responseType: 'blob' });
+  }
   getCafeSecrets(id: string): Observable<CafeSecretStatus[]> {
     return this.http.get<CafeSecretStatus[]>(`${this.api}/platform/cafes/${id}/secrets`);
   }
@@ -168,6 +173,12 @@ export class YurtApiService {
     return this.http.put<FiscalSettings>(`${this.api}/platform/fiscal`, req, this.cafeOptions());
   }
 
+  getCafeAccess(): Observable<CafeAccess> {
+    return this.http.get<CafeAccess>(`${this.api}/platform/access`, this.cafeOptions());
+  }
+  setCafeAccess(req: { paidUntil: string | null; limitedByOperator: boolean }): Observable<CafeAccess> {
+    return this.http.put<CafeAccess>(`${this.api}/platform/access`, req, this.cafeOptions());
+  }
   getPaymentSettings(): Observable<PaymentSettings> {
     return this.http.get<PaymentSettings>(`${this.api}/platform/payments`, this.cafeOptions());
   }

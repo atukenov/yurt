@@ -9,8 +9,11 @@ public record FiscalReceiptDto(
 
 public record FiscalBranchDto(Guid LocationId, string Name, string? RegisterNumber);
 
-/// <param name="Provider">"webkassa", or null when fiscal receipts are off.</param>
-/// <param name="CredentialsSet">Whether the cafe's Fiscal:Login and Fiscal:Password secrets are stored.</param>
+/// <param name="Provider">"webkassa" or "rekassa", or null when fiscal receipts are off.</param>
+/// <param name="CredentialsSet">
+/// Whether the secrets the provider needs are stored: Fiscal:Login and Fiscal:Password, or only Fiscal:Password for
+/// ReKassa.
+/// </param>
 public record FiscalSettingsDto(
     string? Provider, DateTime? Since, List<string> SkipMethods, int? VatPercent,
     List<FiscalBranchDto> Branches, List<string> Providers, bool CredentialsSet);

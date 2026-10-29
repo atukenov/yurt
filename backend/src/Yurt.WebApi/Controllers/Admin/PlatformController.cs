@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Payments;
 using Yurt.Application.Features.Payments.DTOs;
@@ -25,8 +26,9 @@ public class PlatformController : ApiControllerBase
     private readonly LoyaltyImportService _loyaltyImport;
     private readonly LoyaltyLedgerSwitchService _ledgerSwitch;
     private readonly IConfiguration _config;
+    private readonly ISecretProtector _protector;
 
-    public PlatformController(PlatformService platform, CafeProvisioningService cafes, CafeSecretsService secrets, LoyaltyImportService loyaltyImport, LoyaltyLedgerSwitchService ledgerSwitch, IConfiguration config)
+    public PlatformController(PlatformService platform, CafeProvisioningService cafes, CafeSecretsService secrets, LoyaltyImportService loyaltyImport, LoyaltyLedgerSwitchService ledgerSwitch, IConfiguration config, ISecretProtector protector)
     {
         _platform = platform;
         _cafes = cafes;
@@ -34,6 +36,7 @@ public class PlatformController : ApiControllerBase
         _loyaltyImport = loyaltyImport;
         _ledgerSwitch = ledgerSwitch;
         _config = config;
+        _protector = protector;
     }
 
     [HttpGet("modules")]
@@ -97,6 +100,24 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
         => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
 
+    /// <summary>ZIP with all of a cafe's data (one CSV per table, cafe.json, README) for a cafe that leaves Yurt.</summary>
+    [HttpGet("cafes/{id:guid}/export")]
+    public async Task<IActionResult> ExportCafe(Guid id, [FromServices] ICafeDataExporter exporter, CancellationToken ct)
+    {
+        var export = await exporter.ExportAsync(id, ct);
+        if (export is null) return NotFound(new ProblemDetails { Title = "Cafe not found." });
+        return File(export.Content, "application/zip", export.FileName);
+    }
+
+    /// <summary>Limited mode of the chosen cafe (stopped paying): paid-until date and the hand switch.</summary>
+    [HttpGet("access")]
+    public async Task<IActionResult> GetAccess([FromServices] CafeAccessSettingsService access, CancellationToken ct)
+        => ToResult(await access.GetAsync(ct));
+
+    [HttpPut("access")]
+    public async Task<IActionResult> SetAccess([FromServices] CafeAccessSettingsService access, [FromBody] SaveCafeAccessDto dto, CancellationToken ct)
+        => ToResult(await access.SaveAsync(dto, ct));
+
     /// <summary>The cafe's online payment provider (Stripe or off) and the webhook address for its Stripe dashboard.</summary>
     [HttpGet("payments")]
     public async Task<IActionResult> GetPayments([FromServices] PaymentSettingsService payments, CancellationToken ct)
@@ -135,6 +156,8 @@ public class PlatformController : ApiControllerBase
         return Ok(new[]
         {
             new IntegrationStatusDto("jwt", Set("Jwt:Secret"), true),
+            new IntegrationStatusDto("secrets_master_key", _protector.IsAvailable, true),
+            new IntegrationStatusDto("payment_return_url", Set("Payment:CustomerAppUrl"), true),
             new IntegrationStatusDto("iiko", Set("Iiko:ApiKey") && Set("Iiko:ClientSecret"), On("Iiko:Enabled")),
             new IntegrationStatusDto("firebase_push", Set("Firebase:ServiceAccountJson"), On("Firebase:Enabled")),
             new IntegrationStatusDto("otp_whatsapp", Set("Otp:IdInstance") && Set("Otp:ApiTokenInstance"), On("Otp:Enabled")),

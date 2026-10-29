@@ -30,5 +30,6 @@ public static class TenantSecretKeys
         "Fiscal:Login",
         "Fiscal:Password",
         "Fiscal:ApiKey",
+        "Fiscal:Pin",
     ];
 }

@@ -25,28 +25,30 @@ Needs Docker with compose and Node 20+. The .NET SDK is not needed. Phone verifi
 Staging is a full copy of production with its own data, so a migration or a new module can be tried
 without touching a live cafe. Nothing in the repo may point staging at production resources.
 
-Checklist (one-time, done in the hosting dashboard):
+Checklist (one-time, done in the hosting dashboard; step-by-step version in `docs/live-server-setup.md`):
 1. Second backend service built from the same repo and `dockerfile`, branch `staging` (or manual deploys).
 2. Its **own** Postgres database. Never share the production `DATABASE_URL`.
 3. Environment variables (same names as production, different values):
    `DATABASE_URL`, `Jwt__Secret` (new random 32+ chars), `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD`,
    `Secrets__MasterKey` (Base64 of 32 random bytes, e.g. `openssl rand -base64 32`; encrypts per-cafe secrets, keep it safe: losing it makes stored secrets unreadable),
-   `AllowedOrigins__0..n` (staging frontend URLs), `Otp__Required=false` unless a test OTP channel exists.
+   `AllowedOrigins__0..n` (staging frontend URLs), `Otp__Required=false` unless a test OTP channel exists,
+   and optionally `Alerts__TelegramBotToken` / `Alerts__TelegramChatId` with `Alerts__ServerName=staging` (see `monitoring.md`).
 4. Integrations in sandbox mode only: payments (Stripe test keys `sk_test_...` per cafe; `Stripe__AllowLiveKeys` left off),
    iiko test organisation (or `Iiko` disabled), a separate Firebase project (`Firebase__Enabled=true` only if
    you want to test pushes with test devices), and `Webkassa__BaseUrl=https://devkkm.webkassa.kz` (Webkassa's
-   test server; production uses the default live server).
+   test server; production uses the default live server). For ReKassa: `ReKassa__ApiKey` (Yurt's partner key) and
+   `ReKassa__BaseUrl` set to ReKassa's test server while testing.
 5. Two frontend deployments (customer and admin) built with `apiUrl` of the staging backend.
 
 Every release goes to staging first. Promote to production only after the smoke test below passes.
 
 ## Smoke test (staging and after every production deploy)
 
-1. `GET /health` returns `Healthy`.
+1. `GET /health/ready` returns `Healthy` (server and database answer).
 2. Admin login works; the menu loads in the admin panel.
 3. Customer app: browse the menu, add to cart, place an order (sandbox payment or cash).
 4. The order appears live in the admin panel and its status can be changed.
-5. API logs show no new `ERR` lines.
+5. API logs show no new `ERR` lines, and the alerts chat got "server started" and no errors (see `monitoring.md`).
 
 ## Backup
 

@@ -170,6 +170,11 @@
                   >
                     {{ waitMinutes(order) }} {{ 'kitchen.min' | t }}
                   </p>
+                  @if (order.pickupAt) {
+                    <p class="text-sm font-bold text-brand-ink">
+                      {{ 'orders.pickupAt' | t: { time: (order.pickupAt | ldate: 'time24') } }}
+                    </p>
+                  }
                   @if (order.etaMinutes != null) {
                     <p class="text-xs text-slate-500">
                       {{ 'kitchen.eta' | t }} {{ order.etaMinutes }}
