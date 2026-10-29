@@ -9,6 +9,17 @@
         </svg>
         {{ locationName() }}
       </span>
+      @if (table(); as t) {
+        <span style="margin-top:8px;display:flex;justify-content:center">
+          <span style="font-size:12.5px;font-weight:700;color:var(--ink-900);background:var(--brand-50);border-radius:999px;padding:5px 6px 5px 12px;display:inline-flex;align-items:center;gap:8px">
+            <span aria-hidden="true">🍽️</span>
+            {{ 'table.orderTo' | t: { table: t.label } }}
+            <button (click)="leaveTable()"
+              style="background:var(--surface-card);border:none;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:700;color:var(--ink-600);cursor:pointer;font-family:inherit;min-height:24px"
+              class="active:scale-95 transition-transform">{{ 'table.pickupInstead' | t }}</button>
+          </span>
+        </span>
+      }
     } @else {
       <button (click)="goToLocations()"
         style="font-size:12px;font-weight:700;color:#b45309;background:#fef3c7;border:none;border-radius:999px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:inherit"
@@ -318,7 +329,9 @@
       <div class="text-center mb-5">
         <div class="text-5xl mb-3">🛒</div>
         <h3 class="text-lg font-bold text-stone-800">{{ 'cart.confirmTitle' | t }}</h3>
-        <p class="text-sm text-stone-500 mt-1.5 leading-relaxed">{{ 'cart.confirmMsg' | t }}</p>
+        <p class="text-sm text-stone-500 mt-1.5 leading-relaxed">
+          {{ table() ? ('table.confirm' | t: { table: table()!.label }) : ('cart.confirmMsg' | t) }}
+        </p>
       </div>
       <div class="flex gap-3">
         <button (click)="showConfirm.set(false)"

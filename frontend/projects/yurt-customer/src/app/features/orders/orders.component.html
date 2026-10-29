@@ -39,7 +39,7 @@
               <p class="text-xs text-stone-400 mt-0.5">
                 {{ order.createdAt | ldate: 'shortDateTime' }}
               </p>
-              <p class="text-xs text-stone-500 mt-0.5 font-medium">📍 {{ order.locationName }}</p>
+              <p class="text-xs text-stone-500 mt-0.5 font-medium">📍 {{ order.locationName }}@if (order.tableLabel) { · {{ 'table.label' | t: { table: order.tableLabel } }}}</p>
             </div>
             <yurt-badge [variant]="order.status | orderStatusColor">
               {{ ('status.' + order.status) | t }}

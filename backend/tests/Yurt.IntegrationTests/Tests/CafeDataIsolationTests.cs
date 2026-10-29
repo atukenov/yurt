@@ -22,7 +22,7 @@ public class CafeDataIsolationTests(YurtWebAppFactory factory)
     private sealed record OtherCafe(
         Guid TenantId, Guid Location, Guid Category, Guid Item, Guid Topping, Guid Ingredient, Guid Station,
         Guid Printer, Guid PrintJob, Guid Shift, Guid DiscountCode, Guid Promotion, Guid Customer, Guid Order,
-        Guid Report, Guid Worker, string Name);
+        Guid Report, Guid Worker, Guid Table, string TableCode, string Name);
 
     private ApplicationDbContext DbFor(Guid tenantId, out IServiceScope scope)
     {
@@ -55,6 +55,7 @@ public class CafeDataIsolationTests(YurtWebAppFactory factory)
         var topping = new MenuTopping { Name = name, Price = 10 };
         var ingredient = new Ingredient { Name = name, Unit = "g" };
         var station = new Station { Name = name };
+        var table = new DiningTable { Location = location, Label = "1", Code = $"I{Guid.NewGuid():N}"[..10].ToUpperInvariant() };
         var printer = new Printer { Location = location, Name = name, Host = "10.0.0.9" };
         var job = new PrintJob { Printer = printer, Data = [1] };
         var shift = new Shift { Location = location, OpenedBy = "b", OpeningCash = 0 };
@@ -64,14 +65,14 @@ public class CafeDataIsolationTests(YurtWebAppFactory factory)
         var order = new Order { CustomerUser = customer, Location = location, Subtotal = 100, Total = 100 };
         var report = new UserReport { Customer = customer, Text = name };
         var worker = new AdminUser { Username = $"iso-{Guid.NewGuid():N}"[..16], PasswordHash = "x", Role = AdminRole.Admin, IsActive = true };
-        dbB.AddRange(location, category, item, topping, ingredient, station, printer, job, shift, code, promo, customer, order, report, worker);
+        dbB.AddRange(location, category, item, topping, ingredient, station, table, printer, job, shift, code, promo, customer, order, report, worker);
         dbB.IngredientStocks.Add(new IngredientStock { Ingredient = ingredient, Location = location, Quantity = 5 });
         dbB.RecipeLines.Add(new RecipeLine { MenuItem = item, Ingredient = ingredient, Quantity = 1 });
         dbB.MenuItemStocks.Add(new MenuItemStock { MenuItem = item, Location = location, Quantity = 3 });
         await dbB.SaveChangesAsync();
 
         return new OtherCafe(tenantId, location.Id, category.Id, item.Id, topping.Id, ingredient.Id, station.Id, printer.Id,
-            job.Id, shift.Id, code.Id, promo.Id, customer.Id, order.Id, report.Id, worker.Id, name);
+            job.Id, shift.Id, code.Id, promo.Id, customer.Id, order.Id, report.Id, worker.Id, table.Id, table.Code, name);
     }
 
     private async Task<HttpClient> AdminOfFirstCafeAsync()
@@ -113,6 +114,11 @@ public class CafeDataIsolationTests(YurtWebAppFactory factory)
             (HttpMethod.Put, $"/api/v1/admin/stock/{b.Item}/{b.Location}", new { quantity = 999 }),
             (HttpMethod.Delete, $"/api/v1/admin/stations/{b.Station}", null),
             (HttpMethod.Put, $"/api/v1/admin/stations/categories/{b.Category}", new { stationId = (Guid?)null }),
+            (HttpMethod.Post, "/api/v1/admin/tables", new { locationId = b.Location, labels = new[] { "Hacked" } }),
+            (HttpMethod.Put, $"/api/v1/admin/tables/{b.Table}", new { label = "Hacked" }),
+            (HttpMethod.Post, $"/api/v1/admin/tables/{b.Table}/new-code", null),
+            (HttpMethod.Delete, $"/api/v1/admin/tables/{b.Table}", null),
+            (HttpMethod.Get, $"/api/v1/tables/{b.TableCode}", null),
             (HttpMethod.Put, $"/api/v1/admin/printers/{b.Printer}", new { locationId = b.Location, name = "Hacked", kind = "Receipt", host = "10.0.0.1", port = 9100, lineWidth = 48, codeTable = 17, language = "ru" }),
             (HttpMethod.Delete, $"/api/v1/admin/printers/{b.Printer}", null),
             (HttpMethod.Post, $"/api/v1/admin/printers/{b.Printer}/test", null),
@@ -148,6 +154,7 @@ public class CafeDataIsolationTests(YurtWebAppFactory factory)
                 leaks.Add($"{method} {url} -> {(int)response.StatusCode}");
         }
         Assert.True(leaks.Count == 0, "Reached another cafe's row: " + string.Join("; ", leaks));
+        Assert.Equal("[]", await admin.GetStringAsync($"/api/v1/admin/tables?locationId={b.Location}"));
 
         // The loyalty card answers "no card" rather than 404, exactly as for an id that exists nowhere.
         Assert.Equal(await admin.GetStringAsync($"/api/v1/admin/customers/{Guid.NewGuid()}/loyalty"),
@@ -166,6 +173,9 @@ public class CafeDataIsolationTests(YurtWebAppFactory factory)
         Assert.Equal(1, await db.RecipeLines.CountAsync(r => r.MenuItemId == b.Item));
         Assert.Equal(3, (await db.MenuItemStocks.SingleAsync(s => s.MenuItemId == b.Item)).Quantity);
         Assert.True(await db.Stations.AnyAsync(s => s.Id == b.Station));
+        var table = await db.DiningTables.SingleAsync(t => t.Id == b.Table);
+        Assert.Equal(("1", b.TableCode), (table.Label, table.Code));
+        Assert.Equal(1, await db.DiningTables.CountAsync(t => t.LocationId == b.Location));
         Assert.Equal(b.Name, (await db.Printers.SingleAsync(p => p.Id == b.Printer)).Name);
         Assert.Equal(0, await db.PrintJobs.CountAsync(j => j.PrinterId == b.Printer && j.Id != b.PrintJob));
         Assert.False(await db.PrintAgents.AnyAsync(a => a.LocationId == b.Location));

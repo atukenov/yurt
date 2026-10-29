@@ -79,6 +79,19 @@ public class StationConfiguration : IEntityTypeConfiguration<Station>
     }
 }
 
+public class DiningTableConfiguration : IEntityTypeConfiguration<DiningTable>
+{
+    public void Configure(EntityTypeBuilder<DiningTable> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Label).HasMaxLength(30).IsRequired();
+        builder.Property(e => e.Code).HasMaxLength(16).IsRequired();
+        builder.HasIndex(e => e.Code).IsUnique();
+        builder.HasIndex(e => new { e.LocationId, e.Label }).IsUnique();
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
 {
     public void Configure(EntityTypeBuilder<MenuItem> builder)
@@ -132,6 +145,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(e => e.DiscountCode).WithMany(d => d.Orders)
             .HasForeignKey(e => e.DiscountCodeId).OnDelete(DeleteBehavior.SetNull);
+        builder.Property(e => e.TableLabel).HasMaxLength(30);
+        // Deleting a table keeps its orders; they still show the label.
+        builder.HasOne<DiningTable>().WithMany().HasForeignKey(e => e.DiningTableId).OnDelete(DeleteBehavior.SetNull);
     }
 }
 

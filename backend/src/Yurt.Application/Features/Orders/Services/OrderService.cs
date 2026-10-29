@@ -76,6 +76,17 @@ public class OrderService
         if (dto.Items == null || dto.Items.Count == 0)
             return Result<OrderDto>.Failure("Order must have at least one item.", 400);
 
+        // Ordered to a table by its QR code (table_ordering). The code must belong to this branch; while the module is off
+        // the order is an ordinary pickup order.
+        DiningTable? table = null;
+        if (!string.IsNullOrWhiteSpace(dto.TableCode) && await _modules.IsEnabledAsync(ModuleKeys.TableOrdering, ct))
+        {
+            var code = dto.TableCode.Trim().ToUpperInvariant();
+            table = await _db.DiningTables.FirstOrDefaultAsync(t => t.Code == code && t.LocationId == dto.LocationId, ct);
+            if (table is null)
+                return Result<OrderDto>.Failure("This table is not found at this branch. Scan the QR code on the table again.", 400);
+        }
+
         // A branch can offer only some payment methods (own POS). "Other" is the group-order placeholder.
         if (dto.PaymentMethod is { } wantedMethod && wantedMethod != PaymentMethod.Other
             && Yurt.Application.Features.Locations.Services.LocationService.OfferedMethods(location.PaymentMethods) is { } offered
@@ -117,6 +128,8 @@ public class OrderService
         {
             CustomerUserId = customerId,
             LocationId = dto.LocationId,
+            DiningTableId = table?.Id,
+            TableLabel = table?.Label,
             Status = OrderStatus.Created
         };
 
@@ -559,6 +572,7 @@ public class OrderService
             o.RatingComment,
             o.IikoOrderSyncStatus,
             o.Location?.TwoGisUrl,
-            o.ReadyStations.Select(r => r.StationId).ToList());
+            o.ReadyStations.Select(r => r.StationId).ToList(),
+            TableLabel: o.TableLabel);
     }
 }

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { BrandService } from 'shared-api';
-import { FiscalReceipt, Order, OrderItem, SplitPaymentLine } from 'shared-models';
+import { DiningTable, FiscalReceipt, Order, OrderItem, SplitPaymentLine } from 'shared-models';
 import { AdminLangService } from './lang.service';
 
 /**
@@ -24,6 +24,34 @@ export class ReceiptService {
   /** Prints a kitchen ticket: the items to make (already filtered for a station), notes in bold, no prices. */
   printTicket(order: Order, items: OrderItem[], stationName?: string): void {
     this.printHtml(this.ticketHtml(order, items, stationName));
+  }
+
+  /** Prints the QR codes of tables to stick on them: one card per table with the cafe name, the code and the table name. */
+  printTableQrCodes(tables: DiningTable[], branchName: string): void {
+    const t = (k: string, p?: Record<string, string>) => this.lang.t(k, p);
+    const esc = (s: string | null | undefined) =>
+      (s ?? '').replace(
+        /[&<>"']/g,
+        (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
+      );
+    const cards = tables
+      .filter((x) => x.qrSvg)
+      .map(
+        (x) => `<div class="card"><p class="brand">${esc(this.brand.name())}</p>
+          <img src="${x.qrSvg}" alt=""><p class="table">${esc(t('tables.tableN', { table: x.label }))}</p>
+          <p class="hint">${esc(t('tables.scanToOrder'))}</p><p class="small">${esc(branchName)}</p></div>`,
+      )
+      .join('');
+    this.printHtml(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(t('tables.title'))}</title><style>
+      @page { size: A4; margin: 10mm; }
+      body { font-family: system-ui, sans-serif; margin: 0; color: #000; }
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8mm; }
+      .card { border: 1px dashed #999; border-radius: 4mm; padding: 6mm; text-align: center; break-inside: avoid; }
+      .card img { width: 55mm; height: 55mm; }
+      .brand { font-size: 16pt; font-weight: 700; margin: 0 0 3mm; }
+      .table { font-size: 22pt; font-weight: 800; margin: 3mm 0 1mm; }
+      .hint { font-size: 12pt; margin: 0; } .small { font-size: 9pt; color: #555; margin: 2mm 0 0; }
+    </style></head><body><div class="grid">${cards}</div></body></html>`);
   }
 
   private printHtml(html: string): void {
@@ -109,7 +137,7 @@ export class ReceiptService {
       .qr { width: 36mm; height: 36mm; image-rendering: pixelated; }
     </style></head><body>
       <h1>${esc(this.brand.name())}</h1>
-      <p class="c">${esc(order.locationName)}<br>${esc(when)}<br>#${esc(order.id.slice(0, 8).toUpperCase())}</p>
+      <p class="c">${esc(order.locationName)}<br>${esc(when)}<br>#${esc(order.id.slice(0, 8).toUpperCase())}${order.tableLabel ? `<br><b>${esc(this.lang.t('tables.tableN', { table: order.tableLabel }))}</b>` : ''}</p>
       <hr><table>${lines}</table><hr><table>${totals}</table><hr>
       ${split.length > 1 ? `<table>${split.map((p) => row(p.method, money(p.amount))).join('')}</table><hr>` : ''}
       <p class="c">${esc(split.length > 1 ? '' : order.paymentMethod ? t('receipt.method') + ': ' + order.paymentMethod : '')}<br>${esc(t('receipt.thanks'))}</p>
@@ -146,6 +174,7 @@ export class ReceiptService {
       small { color: #333; font-size: 13px; }
     </style></head><body>
       <h1>#${esc(order.id.slice(0, 8).toUpperCase())}</h1>
+      ${order.tableLabel ? `<h1>${esc(this.lang.t('tables.tableN', { table: order.tableLabel }))}</h1>` : ''}
       <p>${esc(stationName ?? '')}${stationName ? ' · ' : ''}${esc(when)}</p>
       <p>${esc(order.customerName)}</p>
       <ul>${lines}</ul>

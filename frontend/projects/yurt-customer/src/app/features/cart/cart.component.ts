@@ -10,6 +10,7 @@ import { TranslatePipe } from '../../core/translate.pipe';
 import { LocationService } from '../../core/location.service';
 import { LangService } from '../../core/lang.service';
 import { OnlinePaymentService } from '../../core/online-payment.service';
+import { TableService } from '../../core/table.service';
 
 @Component({
   selector: 'app-cart',
@@ -30,6 +31,14 @@ export class CartComponent implements OnInit {
   private auth = inject(AuthStateService);
   private locationSvc = inject(LocationService);
   readonly locationName = this.locationSvc.locationName;
+  private tableSvc = inject(TableService);
+  /** The table the guest scanned (table_ordering); null = pick up at the counter. */
+  readonly table = computed(() => (this.modules.isEnabled('table_ordering') ? this.tableSvc.table() : null));
+
+  /** The guest wants to pick the order up at the counter instead. */
+  leaveTable(): void {
+    this.tableSvc.clear();
+  }
   readonly PaymentMethod = PaymentMethod;
 
   loading = signal(false);
@@ -224,9 +233,10 @@ export class CartComponent implements OnInit {
     if (!this.checkoutKey) this.checkoutKey = crypto.randomUUID();
 
     const loyaltyPointsToSpend = this.appliedBonus() > 0 ? this.appliedBonus() : undefined;
+    const tableCode = this.modules.isEnabled('table_ordering') ? this.tableSvc.current()?.code : undefined;
 
     this.api.createOrder(
-      { locationId, items, paymentMethod: paymentMethod ?? undefined, discountCode, loyaltyPointsToSpend },
+      { locationId, items, paymentMethod: paymentMethod ?? undefined, discountCode, loyaltyPointsToSpend, tableCode },
       this.checkoutKey,
     ).subscribe({
       next: async (order) => {

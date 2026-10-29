@@ -32,6 +32,7 @@ public interface IApplicationDbContext
     DbSet<OrderPayment> OrderPayments { get; }
     DbSet<FiscalReceipt> FiscalReceipts { get; }
     DbSet<Station> Stations { get; }
+    DbSet<DiningTable> DiningTables { get; }
     DbSet<OrderStationReady> OrderStationReadies { get; }
     DbSet<Printer> Printers { get; }
     DbSet<PrintJob> PrintJobs { get; }

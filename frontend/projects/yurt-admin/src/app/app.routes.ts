@@ -46,6 +46,11 @@ export const routes: Routes = [
           import('./features/printers/printers.component').then((m) => m.PrintersComponent),
       },
       {
+        path: 'tables',
+        canActivate: [moduleGuard('table_ordering', '/orders')],
+        loadComponent: () => import('./features/tables/tables.component').then((m) => m.TablesComponent),
+      },
+      {
         path: 'stock',
         canActivate: [moduleGuard('own_pos', '/orders')],
         loadComponent: () =>
