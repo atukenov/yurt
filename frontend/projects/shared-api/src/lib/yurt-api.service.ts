@@ -23,6 +23,9 @@ import {
   CreatePaymentRequest,
   PaymentConfig,
   PaymentSettings,
+  PlatformBilling,
+  SaveBillingPlan,
+  CafeBilling,
   CafeAccess,
   CustomerDetail,
   CustomerProfile,
@@ -106,6 +109,17 @@ export class YurtApiService {
   getAdminSubscription(): Observable<SubscriptionInfo> {
     return this.http.get<SubscriptionInfo>(`${this.api}/admin/subscription`);
   }
+  getCafeBilling(): Observable<CafeBilling> {
+    return this.http.get<CafeBilling>(`${this.api}/admin/subscription/billing`);
+  }
+  /** Returns the address of Stripe's page where the owner starts paying monthly by card. */
+  startBillingCheckout(returnUrl: string): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.api}/admin/subscription/billing/checkout`, { returnUrl });
+  }
+  /** Returns the address of Stripe's billing page (card, invoices, cancel). */
+  openBillingPortal(returnUrl: string): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.api}/admin/subscription/billing/portal`, { returnUrl });
+  }
 
   // ── Platform operator tools (SuperAdmin only) ─────────────────────────────
   /** Slug of the cafe the operator is managing; null means the cafe of the host the page was opened from. */
@@ -184,6 +198,13 @@ export class YurtApiService {
   }
   setPaymentSettings(provider: string | null): Observable<PaymentSettings> {
     return this.http.put<PaymentSettings>(`${this.api}/platform/payments`, { provider }, this.cafeOptions());
+  }
+
+  getPlatformBilling(): Observable<PlatformBilling> {
+    return this.http.get<PlatformBilling>(`${this.api}/platform/billing`, this.cafeOptions());
+  }
+  setPlatformBilling(req: SaveBillingPlan): Observable<PlatformBilling> {
+    return this.http.put<PlatformBilling>(`${this.api}/platform/billing`, req, this.cafeOptions());
   }
 
   importLoyalty(): Observable<LoyaltyImportResult> {

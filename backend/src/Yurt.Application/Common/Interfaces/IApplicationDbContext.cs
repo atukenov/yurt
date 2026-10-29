@@ -48,6 +48,7 @@ public interface IApplicationDbContext
     DbSet<AppRelease> AppReleases { get; }
     DbSet<CustomerDeviceToken> CustomerDeviceTokens { get; }
     DbSet<ModuleLicense> ModuleLicenses { get; }
+    DbSet<CafeBilling> CafeBillings { get; }
     DbSet<Tenant> Tenants { get; }
     DbSet<PlatformSetting> PlatformSettings { get; }
     DbSet<TenantSecret> TenantSecrets { get; }

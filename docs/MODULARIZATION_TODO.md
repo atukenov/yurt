@@ -8,7 +8,8 @@ Decisions and background: https://github.com/atukenov/altyncup/issues/52 (and it
 ## Decisions already made
 - Keep the module list below (Engagement and Staff & audit stay separate add-ons).
 - Sell **bundles + add-ons** (Starter / Pro / Business) with usage-based extras.
-- **Manual invoicing** first; the owner sets expiry dates by hand. No billing integration yet.
+- **Manual invoicing** first; the owner sets expiry dates by hand. Since 2026-10: optional monthly card billing through
+  the owner's own Stripe account moves expiry dates automatically (`docs/billing.md`); manual dates still work.
 - White-label: shared app with per-cafe colors/logo by default; **own store app only for premium**.
 - Cancellation: keep all data, switch paid modules off after a grace period.
 - Super-admin tools live **inside the admin panel** (`/platform`), `SuperAdmin` role only.

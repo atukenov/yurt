@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService, LocalDatePipe } from 'shared-ui';
-import { CafeAccess, FiscalSettings, PaymentSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { CafeAccess, FiscalSettings, PaymentSettings, PlatformBilling, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { AdminLangService } from '../../core/lang.service';
@@ -56,6 +56,7 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadBilling();
     this.loadAccess();
   }
 
@@ -158,6 +159,39 @@ export class PlatformComponent implements OnInit {
     this.api.setPaymentSettings(this.paymentProvider || null).subscribe({
       next: (saved) => { this.setPayments(saved); this.savingPayments.set(false); this.toast.success(this.lang.t('common.saved')); },
       error: () => this.savingPayments.set(false),
+    });
+  }
+
+  // ── Monthly billing (platform owner's Stripe account) ──
+  billing = signal<PlatformBilling | null>(null);
+  billingPrice: number | null = null;
+  billingCurrency = 'usd';
+  billingModules: Record<string, boolean> = {};
+  savingBilling = signal(false);
+
+  private loadBilling(): void {
+    this.billing.set(null);
+    this.api.getPlatformBilling().subscribe({ next: (b) => this.setBilling(b), error: () => this.billing.set(null) });
+  }
+
+  private setBilling(b: PlatformBilling): void {
+    this.billing.set(b);
+    this.billingPrice = b.monthlyPrice;
+    this.billingCurrency = b.currency;
+    this.billingModules = Object.fromEntries(b.availableModules.map((k) => [k, b.modules.includes(k)]));
+  }
+
+  saveBilling(): void {
+    const b = this.billing();
+    if (!b) return;
+    this.savingBilling.set(true);
+    this.api.setPlatformBilling({
+      monthlyPrice: this.billingPrice === null || (this.billingPrice as unknown) === '' ? null : Number(this.billingPrice),
+      currency: this.billingCurrency,
+      modules: b.availableModules.filter((k) => this.billingModules[k]),
+    }).subscribe({
+      next: (saved) => { this.setBilling(saved); this.savingBilling.set(false); this.toast.success(this.lang.t('common.saved')); },
+      error: () => this.savingBilling.set(false),
     });
   }
 
@@ -373,6 +407,7 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadBilling();
     this.loadAccess();
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }

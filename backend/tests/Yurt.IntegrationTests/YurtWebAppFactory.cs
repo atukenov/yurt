@@ -18,6 +18,9 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
     // The first cafe's Stripe test account (server-wide settings, like a single-cafe deployment).
     public const string StripeSecretKey = "sk_test_integration_server_wide";
     public const string StripeWebhookSecret = "whsec_integration_server_wide_secret";
+    // The platform owner's own Stripe account, which bills the cafes monthly.
+    public const string BillingSecretKey = "sk_test_integration_platform_billing";
+    public const string BillingWebhookSecret = "whsec_integration_platform_billing";
 
     /// <summary>Plays the Stripe API for every test; no request leaves the machine.</summary>
     public FakeStripe Stripe { get; } = new();
@@ -58,6 +61,8 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
                 ["Stripe:SecretKey"]                         = StripeSecretKey,
                 ["Stripe:WebhookSecret"]                     = StripeWebhookSecret,
                 ["Stripe:ApiBaseUrl"]                        = "https://stripe.test.invalid",
+                ["Billing:Stripe:SecretKey"]                 = BillingSecretKey,
+                ["Billing:Stripe:WebhookSecret"]             = BillingWebhookSecret,
                 ["Payment:CustomerAppUrl"]                   = "https://app.test.invalid",
                 ["Secrets:MasterKey"]                        = Convert.ToBase64String(new byte[32].Select((_, i) => (byte)(i + 1)).ToArray()),
                 ["AllowedHosts"]                             = "*",
@@ -79,6 +84,9 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
             foreach (var d in toRemove) services.Remove(d);
 
             services.AddHttpClient<Yurt.Infrastructure.Payments.StripePaymentProvider>()
+                .ConfigurePrimaryHttpMessageHandler(() => Stripe)
+                .SetHandlerLifetime(Timeout.InfiniteTimeSpan);
+            services.AddHttpClient<Yurt.Infrastructure.Payments.StripeBillingGateway>()
                 .ConfigurePrimaryHttpMessageHandler(() => Stripe)
                 .SetHandlerLifetime(Timeout.InfiniteTimeSpan);
         });
