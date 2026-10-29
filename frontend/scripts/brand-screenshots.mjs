@@ -16,6 +16,11 @@
 // The brand comes from the live server's app config when --api is given (sent with the cafe's `tenant`), otherwise from
 // the optional `brand` object in cafe.json (same fields as the Brand screen). Files land in
 // <outDir>/<slug>/<lang>/<device>/01-menu.png and so on, at the exact pixel sizes the stores accept (STORE_DEVICES).
+// Each store picture has a short caption on top, on the brand colour, with the app screen below it (STORE_CAPTIONS has the
+// texts; a cafe can replace any of them with `storeCaptions` in cafe.json). --no-captions makes plain screens instead.
+//
+// The browser clock is fixed (FIXED_NOW), so the same app makes the same pictures every day and compare-screenshots.mjs
+// only reports real changes.
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join, normalize } from 'node:path';
@@ -30,8 +35,12 @@ const failOnIssues = args.includes('--fail');
 const storeSlug = args.find((a) => a.startsWith('--store='))?.slice(8);
 const lang = args.find((a) => a.startsWith('--lang='))?.slice(7) ?? 'ru';
 const apiBase = args.find((a) => a.startsWith('--api='))?.slice(6);
+const captions = !args.includes('--no-captions');
 const out = args.find((a) => !a.startsWith('--')) ?? join(process.cwd(), storeSlug ? 'store-screenshots' : 'brand-screenshots');
 let failures = 0;
+
+/** "Now" for the browser: a few minutes after the sample order was placed, so its timer shows a believable wait. */
+const FIXED_NOW = new Date('2026-10-21T09:05:00Z');
 
 const LOCATION = { id: 'loc-1', name: 'Main Street', address: '1 Main Street', workingHours: '', contactPhone: '+7 700 000 00 01', isActive: true };
 const ITEM = (id, name, price, extra = {}) => ({
@@ -167,6 +176,21 @@ export const STORE_DEVICES = {
   'ios-6.5in': { viewport: { width: 414, height: 896 }, deviceScaleFactor: 3 }, // 1242 x 2688
   'android-phone': { viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 }, // 1080 x 1920
 };
+/** Caption on each store picture, per screen and app language. */
+export const STORE_CAPTIONS = {
+  en: {
+    menu: 'Order ahead from the menu', cart: 'Pay the way you like', 'order-status': 'See when your order is ready',
+    profile: 'Earn bonuses with every order', 'sign-in': 'Sign in with your phone number',
+  },
+  ru: {
+    menu: 'Закажите заранее из меню', cart: 'Оплачивайте как удобно', 'order-status': 'Узнайте, когда заказ готов',
+    profile: 'Копите бонусы с каждым заказом', 'sign-in': 'Вход по номеру телефона',
+  },
+  kk: {
+    menu: 'Мәзірден алдын ала тапсырыс беріңіз', cart: 'Ыңғайлы тәсілмен төлеңіз', 'order-status': 'Тапсырысыңыз қашан дайын екенін біліңіз',
+    profile: 'Әр тапсырыстан бонус жинаңыз', 'sign-in': 'Телефон нөмірімен кіру',
+  },
+};
 /** Store mode screens in listing order; the number becomes the file name prefix. */
 const STORE_SCREENS = [
   { name: 'menu', path: '/menu', signedIn: true },
@@ -212,8 +236,11 @@ export const BRANDS = {
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.mp4': 'video/mp4' };
 
-/** The cafe's brand for store mode: from the live server with --api, otherwise `brand` in cafe.json. */
-async function storeBrand(slug) {
+/**
+ * The cafe's brand and captions for store mode. The brand comes from the live server with --api, otherwise `brand` in
+ * cafe.json; captions are STORE_CAPTIONS with the cafe's own `storeCaptions` ({ "ru": { "menu": "..." } }) on top.
+ */
+async function storeCafe(slug) {
   const { readCafe } = await import('../../scripts/apply-cafe.mjs');
   const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..');
   const cafe = readCafe(repoRoot, slug);
@@ -231,7 +258,12 @@ async function storeBrand(slug) {
   }
   if (typeof brand.name !== 'string' || !/^#[0-9a-f]{6}$/i.test(brand.primaryColor ?? '') || !/^#[0-9a-f]{6}$/i.test(brand.accentColor ?? ''))
     throw new Error('brand needs a name and primaryColor / accentColor like #1d4ed8.');
-  return brand;
+  const own = cafe.storeCaptions?.[lang] ?? {};
+  for (const [screen, text] of Object.entries(own)) {
+    if (!STORE_SCREENS.some((s) => s.name === screen)) throw new Error(`storeCaptions.${lang}.${screen}: unknown screen; use ${STORE_SCREENS.map((s) => s.name).join(', ')}.`);
+    if (typeof text !== 'string' || !text.trim() || text.length > 60) throw new Error(`storeCaptions.${lang}.${screen} must be text of up to 60 characters.`);
+  }
+  return { brand, captions: { ...STORE_CAPTIONS[lang], ...own } };
 }
 
 /** What to shoot: per brand, a signed-out and a signed-in pass, each with its screens, screen size and file names. */
@@ -244,7 +276,7 @@ async function plan() {
         .map((path) => ({ path, file: join(out, `${app.prefix}${slug}${path.replace(/\//g, '-')}${dark ? '-dark' : ''}.png`) })),
     })));
   }
-  const brand = await storeBrand(storeSlug);
+  const { brand, captions: texts } = await storeCafe(storeSlug);
   const api = localize(app.api, lang);
   api['/orders/o-1'].paymentMethod = 'KaspiBank'; // shows the bank's name and logo instead of the plain "Card"
   // Storage values are JSON text themselves, so each is parsed, translated and written back.
@@ -254,7 +286,8 @@ async function plan() {
   return Object.entries(STORE_DEVICES).flatMap(([device, size]) => [false, true].map((signedIn) => ({
     slug: storeSlug, brand, signedIn, lang, theme: 'light', ...size, fullPage: false, api, storage,
     screens: STORE_SCREENS.map((s, i) => ({ ...s, n: i + 1 })).filter((s) => s.signedIn === signedIn).map((s) => ({
-      path: s.path, prepare: s.prepare, file: join(out, storeSlug, lang, device, `${String(s.n).padStart(2, '0')}-${s.name}.png`),
+      path: s.path, prepare: s.prepare, caption: captions ? texts[s.name] : undefined,
+      file: join(out, storeSlug, lang, device, `${String(s.n).padStart(2, '0')}-${s.name}.png`),
     })),
   })));
 }
@@ -321,6 +354,40 @@ async function checkHeroText(page, label, isDefaultBrand) {
   for (const l of low) console.log(`    ${l}`);
 }
 
+/**
+ * Turns the current screen into a store picture: the caption at the top on the brand gradient, the screen below it in a
+ * dark rounded frame running off the bottom edge. It is drawn over the app page itself, so it has the brand's own
+ * colours and font, and it keeps the screen size, so the picture keeps the exact store pixel size.
+ */
+async function showCaption(page, caption) {
+  const shot = `data:image/png;base64,${(await page.screenshot({ animations: 'disabled' })).toString('base64')}`;
+  await page.evaluate(async ([src, text]) => {
+    const root = getComputedStyle(document.documentElement);
+    const ctx = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d', { willReadFrequently: true });
+    ctx.fillStyle = root.getPropertyValue('--brand-500').trim();
+    ctx.fillRect(0, 0, 1, 1);
+    const lum = [...ctx.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((v) => v / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+    // White or near-black, whichever reads better on the brand colour (the header's own text colour may not, on Yurt yellow).
+    const ink = 1.05 / (lum + 0.05) >= (lum + 0.05) / (0.0098 + 0.05) ? '#ffffff' : '#1c1917';
+    const box = document.createElement('div');
+    box.style.cssText = `position: fixed; inset: 0; z-index: 2147483647; overflow: hidden; display: flex; flex-direction: column;
+      align-items: center; background: linear-gradient(160deg, var(--brand-500), var(--brand-600));
+      font-family: ${getComputedStyle(document.body).fontFamily};`;
+    const title = document.createElement('h1');
+    title.textContent = text;
+    title.style.cssText = `box-sizing: border-box; height: 23%; margin: 0; padding: 0 7%; display: flex; align-items: center;
+      justify-content: center; text-align: center; color: ${ink}; font-size: 7.6vw; font-weight: 800; line-height: 1.15;`;
+    const img = new Image();
+    img.src = src;
+    img.style.cssText = `width: 80%; flex: none; border: 2.2vw solid #1c1917; border-radius: 9vw;
+      box-shadow: 0 3vw 10vw rgb(0 0 0 / 0.35);`;
+    await img.decode();
+    box.append(title, img);
+    document.body.append(box);
+  }, [shot, caption]);
+}
+
 async function main() {
   if (!existsSync(join(root, 'index.html'))) throw new Error(`Build first: ${root} not found (ng build ${app.project} --configuration production).`);
   const { chromium } = createRequire(import.meta.url)('playwright');
@@ -330,6 +397,7 @@ async function main() {
   try {
     for (const job of await plan()) {
       const context = await browser.newContext({ viewport: job.viewport, deviceScaleFactor: job.deviceScaleFactor });
+      await context.clock.setFixedTime(FIXED_NOW);
       await context.addInitScript(([b, language, theme, extra]) => {
         localStorage.setItem('yurt.brand', JSON.stringify(b));
         localStorage.setItem('yurt_lang', language);
@@ -344,7 +412,7 @@ async function main() {
         if (body === undefined && process.env.LOG_API) console.log(`    unmocked ${r.request().method()} ${path}`);
         return body === undefined ? r.abort() : r.fulfill({ json: body });
       });
-      for (const { path, file, prepare } of job.screens) {
+      for (const { path, file, prepare, caption } of job.screens) {
         await page.goto(base + path, { waitUntil: 'load' });
         await page.waitForTimeout(2500); // intro video falls back, splash dismisses
         if (prepare) {
@@ -354,9 +422,11 @@ async function main() {
           await page.waitForTimeout(300);
         }
         mkdirSync(dirname(file), { recursive: true });
-        await page.screenshot({ path: file, fullPage: job.fullPage });
+        if (caption) await showCaption(page, caption);
+        // Animations (the pulsing "online" dot) are stopped, so two runs give the same picture.
+        await page.screenshot({ path: file, fullPage: job.fullPage, animations: 'disabled' });
         console.log(file);
-        if (a11y) {
+        if (a11y && !caption) {
           await checkContrast(page, `${app.prefix}${job.slug}${path}`);
           await checkHeroText(page, `${app.prefix}${job.slug}${path}`, job.slug === 'yurt');
         }
