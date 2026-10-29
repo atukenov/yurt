@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService, LocalDatePipe } from 'shared-ui';
-import { FiscalSettings, PaymentSettings, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { CafeAccess, FiscalSettings, PaymentSettings, PlatformBilling, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { AdminLangService } from '../../core/lang.service';
 
 interface ModuleEdit {
@@ -18,7 +19,7 @@ interface ModuleEdit {
 @Component({
   selector: 'app-platform',
   standalone: true,
-  imports: [LocalDatePipe, CommonModule, FormsModule, RouterLink, AdminTranslatePipe],
+  imports: [LocalDatePipe, CommonModule, FormsModule, RouterLink, AdminTranslatePipe, PictureUploadComponent],
   templateUrl: './platform.component.html',
 })
 export class PlatformComponent implements OnInit {
@@ -55,6 +56,8 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadBilling();
+    this.loadAccess();
   }
 
   // ── Loyalty wallet (iiko → own wallet) ──
@@ -100,6 +103,42 @@ export class PlatformComponent implements OnInit {
   savingFiscal = signal(false);
   readonly fiscalMethods = ['Cash', 'Card', 'KaspiBank', 'HalykBank', 'FreedomBank', 'ApplePay', 'Other'];
 
+  // ── Limited mode (cafe stopped paying) ──
+  access = signal<CafeAccess | null>(null);
+  /** "YYYY-MM-DD" for the date input; '' = not tracked. */
+  accessPaidUntil = '';
+  accessByHand = false;
+  savingAccess = signal(false);
+
+  private loadAccess(): void {
+    this.access.set(null);
+    this.api.getCafeAccess().subscribe({ next: (a) => this.setAccess(a), error: () => this.access.set(null) });
+  }
+
+  private setAccess(a: CafeAccess): void {
+    this.access.set(a);
+    this.accessPaidUntil = a.paidUntil ? a.paidUntil.slice(0, 10) : '';
+    this.accessByHand = a.limitedByOperator;
+  }
+
+  saveAccess(): void {
+    this.savingAccess.set(true);
+    // The paid day counts in full: the period ends at the end of that day (UTC).
+    const paidUntil = this.accessPaidUntil ? `${this.accessPaidUntil}T23:59:59Z` : null;
+    this.api.setCafeAccess({ paidUntil, limitedByOperator: this.accessByHand }).subscribe({
+      next: (saved) => { this.setAccess(saved); this.savingAccess.set(false); this.toast.success(this.lang.t('common.saved')); },
+      error: () => this.savingAccess.set(false),
+    });
+  }
+
+  accessBadge(state: CafeAccess['state']): string {
+    switch (state) {
+      case 'full': return 'bg-emerald-100 text-emerald-700';
+      case 'grace': return 'bg-amber-100 text-amber-700';
+      default: return 'bg-red-100 text-red-700';
+    }
+  }
+
   // ── Online payments (Stripe) ──
   payments = signal<PaymentSettings | null>(null);
   paymentProvider = '';
@@ -120,6 +159,39 @@ export class PlatformComponent implements OnInit {
     this.api.setPaymentSettings(this.paymentProvider || null).subscribe({
       next: (saved) => { this.setPayments(saved); this.savingPayments.set(false); this.toast.success(this.lang.t('common.saved')); },
       error: () => this.savingPayments.set(false),
+    });
+  }
+
+  // ── Monthly billing (platform owner's Stripe account) ──
+  billing = signal<PlatformBilling | null>(null);
+  billingPrice: number | null = null;
+  billingCurrency = 'usd';
+  billingModules: Record<string, boolean> = {};
+  savingBilling = signal(false);
+
+  private loadBilling(): void {
+    this.billing.set(null);
+    this.api.getPlatformBilling().subscribe({ next: (b) => this.setBilling(b), error: () => this.billing.set(null) });
+  }
+
+  private setBilling(b: PlatformBilling): void {
+    this.billing.set(b);
+    this.billingPrice = b.monthlyPrice;
+    this.billingCurrency = b.currency;
+    this.billingModules = Object.fromEntries(b.availableModules.map((k) => [k, b.modules.includes(k)]));
+  }
+
+  saveBilling(): void {
+    const b = this.billing();
+    if (!b) return;
+    this.savingBilling.set(true);
+    this.api.setPlatformBilling({
+      monthlyPrice: this.billingPrice === null || (this.billingPrice as unknown) === '' ? null : Number(this.billingPrice),
+      currency: this.billingCurrency,
+      modules: b.availableModules.filter((k) => this.billingModules[k]),
+    }).subscribe({
+      next: (saved) => { this.setBilling(saved); this.savingBilling.set(false); this.toast.success(this.lang.t('common.saved')); },
+      error: () => this.savingBilling.set(false),
     });
   }
 
@@ -222,6 +294,26 @@ export class PlatformComponent implements OnInit {
     });
   }
 
+  exportingCafeId = signal<string | null>(null);
+
+  /** Downloads everything the cafe owns as a ZIP (menu, orders, customers, stock, settings), e.g. when it leaves Yurt. */
+  exportCafe(cafe: Cafe): void {
+    if (!confirm(this.lang.t('plat.cafeExportConfirm', { name: cafe.name }))) return;
+    this.exportingCafeId.set(cafe.id);
+    this.api.exportCafe(cafe.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${cafe.slug}-data-${new Date().toISOString().slice(0, 10)}.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.exportingCafeId.set(null);
+      },
+      error: () => this.exportingCafeId.set(null),
+    });
+  }
+
   // ── Brand ──
   private static readonly DEFAULT_BRAND: BrandConfig = {
     name: 'Yurt', primaryColor: '#ffd119', accentColor: '#ea580c', logoUrl: null, logoDarkUrl: null, supportContact: null, iconUrl: null, splashUrl: null, welcomeText: null, links: [], radius: null, font: null, fontUrl: null,
@@ -251,7 +343,7 @@ export class PlatformComponent implements OnInit {
   paletteWarning = computed(() => paletteWarningFor(this.brand().primaryColor));
   /** True when the font file box has text that is not a usable https font link. */
   fontUrlInvalid = computed(() => !!this.brand().fontUrl?.trim() && !fontFileUrl(this.brand().fontUrl));
-  logoOk = computed(() => /^https:\/\//i.test(this.brand().logoUrl ?? ''));
+  logoOk = computed(() => /^(https:\/\/|http:\/\/(localhost|127\.0\.0\.1)[:/])/i.test(this.brand().logoUrl ?? ''));
   colorsValid = computed(() => !!parseHex(this.brand().primaryColor) && !!parseHex(this.brand().accentColor));
 
   patchBrand(patch: Partial<BrandConfig>): void {
@@ -315,6 +407,8 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadBilling();
+    this.loadAccess();
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
   }
 

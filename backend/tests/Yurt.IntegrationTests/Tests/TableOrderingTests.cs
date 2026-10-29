@@ -86,6 +86,17 @@ public class TableOrderingTests(YurtWebAppFactory factory)
             items = new[] { new { menuItemId = itemId, quantity = 1, toppings = Array.Empty<object>() } },
         });
 
+        // A table order is brought over as soon as it is made: a pickup time sent along is dropped.
+        var withTime = await customer.PostAsJsonAsync("/api/v1/orders", new
+        {
+            locationId = LocationId, paymentMethod = "Cash", tableCode = code, pickupAt = DateTime.UtcNow.AddHours(1),
+            items = new[] { new { menuItemId = itemId, quantity = 1, toppings = Array.Empty<object>() } },
+        });
+        Assert.Equal(HttpStatusCode.Created, withTime.StatusCode);
+        var timed = await withTime.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(HasTable(timed));
+        Assert.False(timed.TryGetProperty("pickupAt", out var at) && at.ValueKind != JsonValueKind.Null);
+
         var placed = await Place(code);
         Assert.Equal(HttpStatusCode.Created, placed.StatusCode);
         var order = await placed.Content.ReadFromJsonAsync<JsonElement>();

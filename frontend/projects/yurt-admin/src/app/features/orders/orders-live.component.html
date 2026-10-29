@@ -101,6 +101,11 @@
                 <p class="text-xs text-slate-500 mt-0.5">
                   {{ order.createdAt | ldate: 'HH:mm' }} · {{ 'common.items' | t: { count: totalQty(order) } }}
                 </p>
+                @if (order.pickupAt) {
+                  <p class="text-xs font-semibold text-brand-ink mt-0.5">
+                    {{ 'orders.pickupAt' | t: { time: (order.pickupAt | ldate: 'time24') } }}
+                  </p>
+                }
               </div>
               <div class="flex-shrink-0 flex flex-col items-end gap-1">
                 <yurt-badge [variant]="order.status | orderStatusColor" class="text-xs">
@@ -152,6 +157,11 @@
               </div>
             }
             <p class="text-slate-500 text-sm">{{ o.createdAt | ldate: 'dateTime24' }}</p>
+            @if (o.pickupAt) {
+              <p class="text-base font-bold text-brand-ink mt-1">
+                {{ 'orders.pickupAt' | t: { time: (o.pickupAt | ldate: 'time24') } }}
+              </p>
+            }
           </div>
           <div class="flex flex-col items-end gap-1.5">
             <yurt-badge [variant]="o.status | orderStatusColor" class="text-sm">
@@ -208,6 +218,9 @@
                 aria-label="{{ 'orders.eta' | t }}"
                 class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
               >
+                @if (o.pickupAt) {
+                  <option value="pickup">{{ 'orders.etaByPickup' | t: { time: (o.pickupAt | ldate: 'time24') } }}</option>
+                }
                 <option value="10">{{ 'common.minutes' | t: { count: 10 } }}</option>
                 <option value="15">{{ 'common.minutes' | t: { count: 15 } }}</option>
                 <option value="20">{{ 'common.minutes' | t: { count: 20 } }}</option>

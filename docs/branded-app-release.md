@@ -14,16 +14,18 @@ Checklist for putting one cafe's own app in the App Store and Google Play. The b
 - [ ] Backend for the cafe: Brand saved (name, colours, links), modules switched on, push and payments configured.
 - [ ] Store listing: name, short and full description (EN/RU/KK as needed), screenshots from the branded app (see
       "Store screenshots" below), privacy policy URL, support contact, age rating, and review notes with a test account.
-- [ ] Android signing key created and backed up outside git (`key.properties`); iOS signing set up in Xcode.
+- [ ] Signing secrets added on GitHub once (Android upload key, Apple Distribution certificate), plus this cafe's
+      `cafe-<slug>` environment with its iOS provisioning profile and Firebase files; see `docs/app-builds.md`.
 
 ## Every release
 
 - [ ] Bump `versionName` (and `versionCode` for Android) in `cafes/<slug>/cafe.json`.
-- [ ] On the build machine: `node scripts/apply-cafe.mjs <slug> --generate`, then build the web app and
-      `YURT_CAFE=<slug> npx cap sync`.
-- [ ] Build, sign and upload as in the platform deploy docs; test on a real device: sign-in, order, push, payment.
+- [ ] On GitHub: **Actions > App builds > Run workflow** with the cafe's folder name (see `docs/app-builds.md`); it
+      applies the cafe, builds and signs both apps, and can send them to Play internal testing and TestFlight.
+      (By hand instead: `scripts/build-app.sh <slug> android|ios` on a spare checkout, or the platform deploy docs.)
+- [ ] Test on a real device: sign-in, order, push, payment.
 - [ ] Publish an app release entry in the admin panel so older app versions show the update popup.
-- [ ] Discard the changes the script made to tracked native files (they belong to this cafe only).
+- [ ] When building by hand: discard the changes the script made to tracked native files (they belong to this cafe only).
 
 ## Store screenshots
 
@@ -55,8 +57,10 @@ NODE_PATH="$(npm root -g)" node scripts/brand-screenshots.mjs --store=<slug> --l
 | `android-phone` | 1080 x 1920   | Google Play Console, Phone screenshots            |
 
 The iOS app is iPhone-only, so no iPad pictures are needed. The menu and order texts are sample data, not the cafe's
-real menu. They are plain app screens, without a frame or a caption on top; add those in a design tool if you want them.
+real menu.
 
-## Not automated yet
-
-- A CI build matrix that produces the signed apps from a cafe folder (needs signing secrets and a macOS runner).
+Each picture has a short caption at the top on the cafe's colour, with the app screen below it in a dark phone-like
+frame (the store size stays exact). The captions come in Russian, Kazakh and English. To use your own wording for a
+screen, add `storeCaptions` to `cafe.json`, for example
+`"storeCaptions": { "ru": { "menu": "Ваш кофе без очереди" } }` (screens: `menu`, `cart`, `order-status`, `profile`,
+`sign-in`; up to 60 characters). Add `--no-captions` to get the plain app screens instead.

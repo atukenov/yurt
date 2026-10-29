@@ -1,21 +1,23 @@
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService, AuthStateService, ModuleService } from 'shared-api';
 import { CartItem, LoyaltyBalance, PaymentMethod } from 'shared-models';
 import { CartService } from './cart.service';
-import { ToastService, Currency2Pipe } from 'shared-ui';
+import { ToastService, Currency2Pipe, LocalDatePipe } from 'shared-ui';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { LocationService } from '../../core/location.service';
 import { LangService } from '../../core/lang.service';
+import { StoreStatusService } from '../../core/store-status.service';
 import { OnlinePaymentService } from '../../core/online-payment.service';
 import { TableService } from '../../core/table.service';
+import { pickupSlots } from '../../core/schedule';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule, Currency2Pipe, TranslatePipe],
+  imports: [CommonModule, FormsModule, Currency2Pipe, LocalDatePipe, TranslatePipe],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.css',
 })
@@ -27,9 +29,11 @@ export class CartComponent implements OnInit {
   readonly online = inject(OnlinePaymentService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
   private auth = inject(AuthStateService);
   private locationSvc = inject(LocationService);
+  private storeStatus = inject(StoreStatusService);
   readonly locationName = this.locationSvc.locationName;
   private tableSvc = inject(TableService);
   /** The table the guest scanned (table_ordering); null = pick up at the counter. */
@@ -49,6 +53,13 @@ export class CartComponent implements OnInit {
     return !list || list.includes(method);
   };
   private checkoutKey: string | null = null;
+
+  // Pickup time: as soon as possible (default) or a time later today, picked from the branch's opening hours.
+  private readonly now = signal(new Date());
+  readonly pickupLater = signal(false);
+  readonly pickupAt = signal<string | null>(null);
+  readonly pickupTimes = computed(() =>
+    pickupSlots(this.locationSvc.workingHours(), this.now()).map((d) => d.toISOString()));
 
   // iiko loyalty — pay with bonus points
   loyalty = signal<LoyaltyBalance | null>(null);
@@ -81,6 +92,13 @@ export class CartComponent implements OnInit {
       const picked = this.selectedPaymentMethod();
       if (picked && !this.offers(picked)) this.selectedPaymentMethod.set(null);
     });
+    // Keep the chosen pickup time one that can still be picked (the list moves on as time passes).
+    effect(() => {
+      const times = this.pickupTimes();
+      if (!times.length) this.pickupLater.set(false);
+      const picked = this.pickupAt();
+      if (!picked || !times.includes(picked)) this.pickupAt.set(times[0] ?? null);
+    });
     effect(() => {
       const value = this.payableTotal();
       if (value === this.lastPayableTotal) return;
@@ -99,6 +117,13 @@ export class CartComponent implements OnInit {
       error: () => {},
     });
     this.online.load();
+    const tick = setInterval(() => this.now.set(new Date()), 60_000);
+    this.destroyRef.onDestroy(() => clearInterval(tick));
+  }
+
+  choosePickupLater(later: boolean): void {
+    this.now.set(new Date());
+    this.pickupLater.set(later);
   }
 
   useAllBonus(): void {
@@ -157,6 +182,7 @@ export class CartComponent implements OnInit {
       this.goToLocations();
       return;
     }
+    this.now.set(new Date());
     this.showConfirm.set(true);
   }
 
@@ -210,10 +236,27 @@ export class CartComponent implements OnInit {
       return;
     }
 
+    if (!this.storeStatus.guardOrdering()) return;
+
     const paymentMethod = this.selectedPaymentMethod();
     if (!paymentMethod && !this.fullyCoveredByBonus()) {
       this.toast.warning(this.langService.t('cart.payRequired'));
       return;
+    }
+
+    // A chosen time that went by while the guest was deciding: move to the next one and let them check it.
+    let pickupAt: string | undefined;
+    if (this.pickupLater() && !this.table()) {
+      const picked = this.pickupAt();
+      this.now.set(new Date());
+      const times = this.pickupTimes();
+      if (!picked || !times.includes(picked)) {
+        this.pickupAt.set(times[0] ?? null);
+        if (!times.length) this.pickupLater.set(false);
+        this.toast.warning(this.langService.t('cart.pickupPassed'));
+        return;
+      }
+      pickupAt = picked;
     }
 
     this.loading.set(true);
@@ -236,7 +279,7 @@ export class CartComponent implements OnInit {
     const tableCode = this.modules.isEnabled('table_ordering') ? this.tableSvc.current()?.code : undefined;
 
     this.api.createOrder(
-      { locationId, items, paymentMethod: paymentMethod ?? undefined, discountCode, loyaltyPointsToSpend, tableCode },
+      { locationId, items, paymentMethod: paymentMethod ?? undefined, discountCode, loyaltyPointsToSpend, pickupAt, tableCode },
       this.checkoutKey,
     ).subscribe({
       next: async (order) => {

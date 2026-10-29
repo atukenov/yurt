@@ -118,6 +118,11 @@ export const routes: Routes = [
               import('./features/platform/platform.component').then((m) => m.PlatformComponent),
           },
           {
+            path: 'new-cafe',
+            loadComponent: () =>
+              import('./features/platform/cafe-wizard.component').then((m) => m.CafeWizardComponent),
+          },
+          {
             path: 'app-releases',
             loadComponent: () =>
               import('./features/app-releases/app-releases.component').then((m) => m.AppReleasesComponent),

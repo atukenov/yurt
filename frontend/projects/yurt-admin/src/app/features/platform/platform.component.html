@@ -46,8 +46,16 @@
 
     <!-- Cafes -->
     <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
-      <h2 class="font-semibold text-slate-800">{{ 'plat.cafes' | t }}</h2>
-      <p class="text-sm text-slate-500 mt-1">{{ 'plat.cafesHint' | t }}</p>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 class="font-semibold text-slate-800">{{ 'plat.cafes' | t }}</h2>
+          <p class="text-sm text-slate-500 mt-1">{{ 'plat.cafesHint' | t }}</p>
+        </div>
+        <a routerLink="/platform/new-cafe"
+          class="shrink-0 px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600">
+          {{ 'wiz.open' | t }}
+        </a>
+      </div>
       <ul class="mt-4 divide-y divide-slate-100">
         @for (c of cafes(); track c.id) {
           <li class="flex items-center justify-between gap-3 py-2 text-sm">
@@ -60,6 +68,10 @@
               {{ 'plat.cafeActive' | t }}
             </label>
             <button (click)="openSecrets(c)" class="shrink-0 text-xs font-semibold text-slate-600 underline">{{ 'plat.cafeSecrets' | t }}</button>
+            <button (click)="exportCafe(c)" [disabled]="exportingCafeId() === c.id"
+              class="shrink-0 text-xs font-semibold text-slate-600 underline disabled:opacity-50">
+              {{ (exportingCafeId() === c.id ? 'plat.cafeExporting' : 'plat.cafeExport') | t }}
+            </button>
           </li>
           @if (secretsCafeId() === c.id) {
             <li class="py-3">
@@ -146,21 +158,25 @@
             <label for="brand-logo" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLogo' | t }}</label>
             <input id="brand-logo" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().logoUrl ?? ''" (ngModelChange)="patchBrand({ logoUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandLogo' | t" [maxSide]="512" [forManagedCafe]="true" (uploaded)="patchBrand({ logoUrl: $event })" />
           </div>
           <div>
             <label for="brand-logo-dark" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandLogoDark' | t }}</label>
             <input id="brand-logo-dark" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().logoDarkUrl ?? ''" (ngModelChange)="patchBrand({ logoDarkUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandLogoDark' | t" [maxSide]="512" [forManagedCafe]="true" (uploaded)="patchBrand({ logoDarkUrl: $event })" />
           </div>
           <div>
             <label for="brand-icon" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandIcon' | t }}</label>
             <input id="brand-icon" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().iconUrl ?? ''" (ngModelChange)="patchBrand({ iconUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandIcon' | t" [maxSide]="1024" [forManagedCafe]="true" (uploaded)="patchBrand({ iconUrl: $event })" />
           </div>
           <div>
             <label for="brand-splash" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandSplash' | t }}</label>
             <input id="brand-splash" type="url" maxlength="500" placeholder="https://" [ngModel]="brand().splashUrl ?? ''" (ngModelChange)="patchBrand({ splashUrl: $event })"
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+            <app-picture-upload [label]="'plat.brandSplash' | t" [maxSide]="1600" [forManagedCafe]="true" (uploaded)="patchBrand({ splashUrl: $event })" />
           </div>
           <div>
             <label for="brand-welcome" class="block text-xs font-semibold text-slate-500 mb-1">{{ 'plat.brandWelcome' | t }}</label>
@@ -376,6 +392,36 @@
       </section>
     }
 
+    <!-- Limited mode (cafe stopped paying) -->
+    @if (access(); as a) {
+      <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
+        <h2 class="font-semibold text-slate-800">{{ 'plat.access.title' | t }}</h2>
+        <p class="text-sm text-slate-500 mt-1">{{ 'plat.access.hint' | t: { days: a.graceDays } }}</p>
+        <p class="mt-3 text-sm">
+          {{ 'plat.fiscal.status' | t }}:
+          <span class="font-semibold px-2 py-0.5 rounded-full" [class]="accessBadge(a.state)">{{ 'plat.access.state.' + a.state | t }}</span>
+          @if (a.state === 'grace' && a.limitedFrom) {
+            <span class="ml-1 text-xs text-amber-700">{{ 'plat.access.limitedFrom' | t }} {{ a.limitedFrom | ldate: 'shortDate' }}</span>
+          }
+        </p>
+        <div class="mt-4 flex flex-wrap items-end gap-4">
+          <label class="block text-sm">
+            <span class="text-slate-600">{{ 'plat.access.paidUntil' | t }}</span>
+            <input type="date" [(ngModel)]="accessPaidUntil" class="mt-1 block rounded-xl border border-slate-200 px-3 py-2 bg-surface" />
+          </label>
+          <button type="button" (click)="accessPaidUntil = ''" class="text-sm text-slate-500 underline pb-2">{{ 'plat.access.notTracked' | t }}</button>
+        </div>
+        <label class="mt-4 flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" [(ngModel)]="accessByHand" />
+          {{ 'plat.access.byHand' | t }}
+        </label>
+        <button type="button" (click)="saveAccess()" [disabled]="savingAccess()"
+          class="mt-4 px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-bold disabled:opacity-50">
+          {{ 'action.save' | t }}
+        </button>
+      </section>
+    }
+
     <!-- Online payments -->
     @if (payments(); as p) {
       <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -423,6 +469,76 @@
       </section>
     }
 
+    <!-- Monthly billing of this cafe (platform owner's Stripe account) -->
+    @if (billing(); as b) {
+      <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
+        <h2 class="font-semibold text-slate-800">{{ 'plat.bill.title' | t }}</h2>
+        <p class="text-sm text-slate-500 mt-1">{{ 'plat.bill.hint' | t }}</p>
+        <p class="mt-3 text-sm">
+          {{ 'plat.fiscal.status' | t }}:
+          <span class="font-semibold px-2 py-0.5 rounded-full"
+            [class]="b.status === 'active' ? 'bg-emerald-100 text-emerald-700' : b.status === 'past_due' || b.status === 'unpaid' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'">
+            {{ 'bill.status.' + (b.status ?? 'none') | t }}
+          </span>
+          @if (b.cancelAtPeriodEnd) { <span class="ml-1 text-xs text-amber-700">{{ 'bill.cancelling' | t }}</span> }
+          @if (b.keysSet) {
+            <span class="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class]="b.testMode ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">
+              {{ (b.testMode ? 'plat.pay.testMode' : 'plat.pay.liveMode') | t }}
+            </span>
+          }
+        </p>
+        @if (b.paidUntil) {
+          <p class="mt-1 text-sm text-slate-600">{{ 'bill.paidUntil' | t }} {{ b.paidUntil | ldate: 'shortDate' }}
+            @if (b.lastPaidAmount !== null) { · {{ 'bill.lastPaid' | t }} {{ b.lastPaidAmount }} {{ b.currency.toUpperCase() }} }
+          </p>
+        }
+        @if (!b.keysSet) {
+          <p class="mt-2 text-sm text-amber-700">{{ 'plat.bill.noKeys' | t }}</p>
+        }
+
+        <div class="mt-4 flex flex-wrap gap-3">
+          <label class="block text-sm w-40">
+            <span class="text-slate-600">{{ 'plat.bill.price' | t }}</span>
+            <input type="number" min="0" step="0.01" [(ngModel)]="billingPrice"
+              class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 bg-surface" />
+          </label>
+          <label class="block text-sm w-28">
+            <span class="text-slate-600">{{ 'plat.bill.currency' | t }}</span>
+            <select [(ngModel)]="billingCurrency" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 bg-surface">
+              @for (c of b.currencies; track c) { <option [value]="c">{{ c.toUpperCase() }}</option> }
+            </select>
+          </label>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">{{ 'plat.bill.priceHint' | t }}</p>
+
+        <p class="mt-4 text-sm text-slate-600">{{ 'plat.bill.modules' | t }}</p>
+        <div class="mt-1 grid sm:grid-cols-2 gap-1">
+          @for (k of b.availableModules; track k) {
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="billingModules[k]" />
+              {{ 'sub.module.' + k | t }}
+            </label>
+          }
+        </div>
+
+        <p class="mt-4 text-sm text-slate-600">{{ 'plat.bill.webhook' | t }}</p>
+        <div class="mt-1 flex items-center gap-2">
+          <code class="flex-1 min-w-0 truncate rounded-xl border border-slate-200 px-3 py-2 text-xs bg-slate-50">{{ b.webhookUrl }}</code>
+          <button type="button" (click)="copyWebhookUrl(b.webhookUrl)"
+            class="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300">
+            {{ 'plat.pay.copy' | t }}
+          </button>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">{{ 'plat.bill.events' | t }}</p>
+
+        <button type="button" (click)="saveBilling()" [disabled]="savingBilling()"
+          class="mt-4 px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-bold disabled:opacity-50">
+          {{ 'action.save' | t }}
+        </button>
+      </section>
+    }
+
     <!-- Official tax receipts -->
     @if (fiscal(); as f) {
       <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -457,6 +573,10 @@
           </label>
         </div>
 
+        @if (fiscalProvider === 'rekassa') {
+          <p class="mt-3 text-sm text-slate-600">{{ 'plat.fiscal.rekassaHint' | t }}</p>
+        }
+
         <p class="mt-4 text-sm text-slate-600">{{ 'plat.fiscal.skip' | t }}</p>
         <div class="mt-1 flex flex-wrap gap-3">
           @for (m of fiscalMethods; track m) {
@@ -471,7 +591,7 @@
           @for (b of f.branches; track b.locationId) {
             <label class="flex items-center gap-3 text-sm">
               <span class="w-40 shrink-0 truncate text-slate-700">{{ b.name }}</span>
-              <input type="text" maxlength="50" [(ngModel)]="fiscalRegisters[b.locationId]" placeholder="SWK00000000"
+              <input type="text" maxlength="50" [(ngModel)]="fiscalRegisters[b.locationId]" [placeholder]="fiscalProvider === 'rekassa' ? 'ZNM' : 'SWK00000000'"
                 class="flex-1 min-w-0 rounded-xl border border-slate-200 px-3 py-2 bg-surface" />
             </label>
           }

@@ -6,9 +6,73 @@
       <p class="text-sm text-slate-500 mt-1">{{ 'sub.subtitle' | t }}</p>
     </div>
 
+    @if (billing(); as b) {
+      @if (b.monthlyPrice !== null || b.status) {
+        <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 class="font-semibold text-slate-800">{{ 'bill.title' | t }}</h2>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class]="b.status === 'active' ? 'bg-emerald-100 text-emerald-700' : b.status === 'past_due' || b.status === 'unpaid' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'">
+              {{ 'bill.status.' + (b.status ?? 'none') | t }}
+            </span>
+            @if (b.testMode) {
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">{{ 'plat.pay.testMode' | t }}</span>
+            }
+          </div>
+          @if (b.monthlyPrice !== null) {
+            <p class="text-sm text-slate-600 mt-2">{{ 'bill.price' | t }} <span class="font-semibold">{{ b.monthlyPrice }} {{ b.currency.toUpperCase() }}</span></p>
+          }
+          @if (b.paidUntil) {
+            <p class="text-sm text-slate-600 mt-1">{{ 'bill.paidUntil' | t }} {{ b.paidUntil | ldate: 'shortDate' }}</p>
+          }
+          @if (b.cancelAtPeriodEnd) {
+            <p class="text-sm text-amber-700 mt-1">{{ 'bill.cancelling' | t }}</p>
+          }
+          @if (justPaid()) {
+            <p class="text-sm text-emerald-700 mt-2">{{ 'bill.thanks' | t }}</p>
+          }
+          @if (b.status === 'past_due' || b.status === 'unpaid') {
+            <p class="text-sm text-amber-700 mt-2">{{ 'bill.pastDue' | t }}</p>
+          }
+          <div class="mt-4 flex flex-wrap gap-2">
+            @if (b.canSubscribe) {
+              <button type="button" (click)="payByCard()" [disabled]="redirecting()"
+                class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-bold disabled:opacity-50">
+                {{ 'bill.payByCard' | t }}
+              </button>
+            }
+            @if (b.canManage) {
+              <button type="button" (click)="manageBilling()" [disabled]="redirecting()"
+                class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 disabled:opacity-50">
+                {{ 'bill.manage' | t }}
+              </button>
+            }
+          </div>
+          <p class="text-xs text-slate-500 mt-3">{{ 'bill.hint' | t }}</p>
+        </div>
+      }
+    }
+
     @if (loading()) {
       <p class="text-slate-500 text-sm">{{ 'label.loading' | t }}</p>
     } @else {
+      @if (access(); as a) {
+        @if (a.state !== 'full') {
+          <div role="status" class="mb-4 rounded-2xl border px-4 py-3 text-sm"
+            [class]="a.state === 'limited' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800'">
+            @if (a.state === 'limited') {
+              <p class="font-semibold">{{ 'access.limitedTitle' | t }}</p>
+              <p class="mt-1">{{ 'access.limitedText' | t }}</p>
+            } @else {
+              <p class="font-semibold">{{ 'access.graceTitle' | t }}</p>
+              <p class="mt-1">{{ 'access.graceText' | t }} {{ a.limitedFrom | ldate: 'shortDate' }}</p>
+            }
+          </div>
+        }
+        @if (a.paidUntil) {
+          <p class="mb-4 text-sm text-slate-600">{{ 'access.paidUntil' | t }} {{ a.paidUntil | ldate: 'shortDate' }}</p>
+        }
+      }
       <div class="space-y-2">
         @for (m of modules(); track m.key) {
           <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm px-4 py-3">

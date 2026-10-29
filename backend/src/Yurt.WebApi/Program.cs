@@ -8,6 +8,7 @@ using System.Security.Claims;
 using Serilog;
 using Yurt.Infrastructure;
 using Yurt.Infrastructure.Hubs;
+using Yurt.Infrastructure.Monitoring;
 using Yurt.Infrastructure.Persistence;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Diagnostics;
@@ -18,9 +19,10 @@ using Yurt.WebApi.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Serilog ───────────────────────────────────────────────────────────────────
-builder.Host.UseSerilog((ctx, lc) =>
+builder.Host.UseSerilog((ctx, services, lc) =>
     lc.ReadFrom.Configuration(ctx.Configuration)
-      .Enrich.FromLogContext());
+      .Enrich.FromLogContext()
+      .WriteTo.Sink(services.GetRequiredService<ErrorAlertSink>())); // Telegram alerts, off until configured
 
 // ── Infrastructure (DB, Auth, SignalR, Services) ──────────────────────────────
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -98,11 +100,34 @@ builder.Services.AddInMemoryRateLimiting();
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Liveness probe — raw middleware, absolute first position ──────────────────
+// ── Health probes — raw middleware, absolute first position ──────────────────
 // Must be before UseForwardedHeaders, UseHsts, Serilog, rate limiting, and auth.
-// Nothing in the pipeline can interfere with it.
+// Nothing in the pipeline can interfere with them.
+//   /health        liveness: the process answers (hosting restarts the container when it doesn't)
+//   /health/ready  readiness: the database answers too; the outside uptime check watches this one
 app.Use(async (ctx, next) =>
 {
+    if (ctx.Request.Path.StartsWithSegments("/health/ready"))
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
+        HealthReport report;
+        try
+        {
+            report = await ctx.RequestServices.GetRequiredService<HealthCheckService>()
+                .CheckHealthAsync(r => r.Tags.Contains("ready"), timeout.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            report = new HealthReport(new Dictionary<string, HealthReportEntry>(), HealthStatus.Unhealthy, TimeSpan.FromSeconds(5));
+        }
+        var healthy = report.Status == HealthStatus.Healthy;
+        ctx.Response.StatusCode = healthy ? 200 : 503;
+        ctx.Response.ContentType = "text/plain";
+        ctx.Response.Headers.CacheControl = "no-store";
+        await ctx.Response.WriteAsync(healthy ? "Healthy" : "Unhealthy");
+        return;
+    }
     if (ctx.Request.Path.StartsWithSegments("/health"))
     {
         ctx.Response.StatusCode = 200;
@@ -141,7 +166,10 @@ app.UseExceptionHandler(opts =>
             await ctx.Response.WriteAsJsonAsync(new ProblemDetails { Status = 404, Title = "Not found.", Instance = ctx.Request.Path });
             return;
         }
-        logger.LogError(ex, "Unhandled exception for {Method} {Path}", ctx.Request.Method, ctx.Request.Path);
+        // The request's own log scope is gone by now; carry the cafe and request id over for the error alert.
+        using (Serilog.Context.LogContext.PushProperty("Tenant", ctx.Items["TenantSlug"] as string))
+        using (Serilog.Context.LogContext.PushProperty("CorrelationId", ctx.Items["CorrelationId"] as string))
+            logger.LogError(ex, "Unhandled exception for {Method} {Path}", ctx.Request.Method, ctx.Request.Path);
 
         ctx.Response.StatusCode = 500;
         ctx.Response.ContentType = "application/problem+json";

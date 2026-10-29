@@ -109,6 +109,13 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     effect(() => {
       const o = this.selectedOrder();
       if (o) this.paymentStatus = o.paymentStatus;
+      // An order for a set time is ready by that time unless staff pick another ETA.
+      if (o?.status === OrderStatus.Created && o.pickupAt && o.id !== this.etaOrderId) {
+        this.etaOrderId = o.id;
+        this.etaPresetValue = 'pickup';
+        this.useCustomEta = false;
+        this.etaInput = this.minutesUntilPickup(o);
+      }
       if ((o?.id ?? null) !== this.fiscalOrderId) {
         this.fiscalOrderId = o?.id ?? null;
         this.loadOrderFiscal();
@@ -144,8 +151,20 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     });
   }
 
+  private etaOrderId: string | null = null;
+
+  /** Whole minutes from now until the guest's pickup time, at least 1. */
+  minutesUntilPickup(order: Order): number {
+    if (!order.pickupAt) return this.etaInput;
+    return Math.max(1, Math.ceil((new Date(order.pickupAt).getTime() - Date.now()) / 60_000));
+  }
+
   onEtaPresetChange(val: string): void {
-    if (val === 'custom') {
+    if (val === 'pickup') {
+      this.useCustomEta = false;
+      const o = this.selectedOrder();
+      if (o) this.etaInput = this.minutesUntilPickup(o);
+    } else if (val === 'custom') {
       this.useCustomEta = true;
     } else {
       this.useCustomEta = false;
@@ -242,6 +261,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
 
   acceptOrder(order: Order): void {
     this.actionLoading.set(true);
+    if (this.etaPresetValue === 'pickup' && order.pickupAt) this.etaInput = this.minutesUntilPickup(order);
     this.api.acceptOrder(order.id, { etaMinutes: this.etaInput }).subscribe({
       next: (o) => {
         this.upsertOrder(o);

@@ -103,6 +103,23 @@ public class EscPosTests
     }
 
     [Fact]
+    public void Ticket_ShowsThePickupTimeOnlyWhenTheGuestChoseOne()
+    {
+        var printer = new Printer { Name = "Kitchen", LineWidth = 32, CodeTable = 17, Language = "ru" };
+        var order = new Order
+        {
+            Items = [new OrderItem { MenuItemName = "Латте", Quantity = 1 }],
+            CreatedAt = new DateTime(2026, 10, 21, 7, 5, 0, DateTimeKind.Utc),
+        };
+
+        Assert.DoesNotContain("Выдать к", Cp866.GetString(PrintLayouts.Ticket(printer, order, order.Items.ToList(), null)));
+
+        order.PickupAt = new DateTime(2026, 10, 21, 9, 30, 0, DateTimeKind.Utc);
+        var ticket = Cp866.GetString(PrintLayouts.Ticket(printer, order, order.Items.ToList(), null));
+        Assert.Contains("Выдать к 14:30", ticket); // Almaty time, UTC+5
+    }
+
+    [Fact]
     public void QrCode_StoresTheLinkWithItsLength_ThenPrintsIt()
     {
         var url = new string('a', 300);

@@ -75,7 +75,7 @@
         {{ ('status.' + o.status) | t }}
       </h2>
       <p style="font-size:12px;font-weight:600;color:var(--ink-500);margin-top:3px">
-        {{ o.locationName }} · {{ o.tableLabel ? ('table.label' | t: { table: o.tableLabel }) : ('order.pickup' | t) }}
+        {{ o.locationName }} · {{ o.tableLabel ? ('table.label' | t: { table: o.tableLabel }) : o.pickupAt ? ('order.pickupAt' | t: { time: (o.pickupAt | ldate: 'time') }) : ('order.pickup' | t) }}
       </p>
 
       <!-- 2GIS directions — once the cafe has accepted the order -->

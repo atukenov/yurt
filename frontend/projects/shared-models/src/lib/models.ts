@@ -192,6 +192,8 @@ export interface CreateOrderRequest {
   paymentMethod?: PaymentMethod;
   discountCode?: string;
   loyaltyPointsToSpend?: number;
+  /** When the guest wants to pick the order up (ISO time). Left out = as soon as possible. */
+  pickupAt?: string;
   /** Code of the table QR the guest scanned (table_ordering); left out for a pickup order. */
   tableCode?: string;
 }
@@ -479,6 +481,8 @@ export interface Order {
   status: OrderStatus;
   declineReason?: string;
   etaMinutes?: number;
+  /** The pickup time the guest chose (ISO, UTC); null = as soon as possible. */
+  pickupAt?: string | null;
   createdAt: string;
   acceptedAt?: string;
   completedAt?: string;
@@ -808,6 +812,8 @@ export interface AppRelease {
 export interface AppConfig {
   modules: string[];
   maintenance?: MaintenanceInfo;
+  /** Paused while the cafe is in limited mode (stopped paying Yurt): sign-in and history work, new orders do not. */
+  ordering?: { paused: boolean };
   /** The cafe's brand; absent on servers that predate it (the apps then keep the Yurt default). */
   brand?: BrandConfig;
 }
@@ -859,6 +865,33 @@ export interface CreateCafeRequest {
   adminPassword: string;
 }
 
+/** A problem in a menu spreadsheet. Row 0 means the whole file; `code` is translated in the admin app. */
+export interface MenuImportError {
+  row: number;
+  code: string;
+  value: string | null;
+}
+
+export interface MenuImportPreviewItem {
+  row: number;
+  category: string;
+  name: string;
+  price: number;
+  sizes: string[];
+  exists: boolean;
+}
+
+export interface MenuImportResult {
+  applied: boolean;
+  categoriesNew: number;
+  categoriesExisting: number;
+  itemsNew: number;
+  itemsUpdated: number;
+  sizes: number;
+  errors: MenuImportError[];
+  items: MenuImportPreviewItem[];
+}
+
 export interface MaintenanceInfo {
   enabled: boolean;
   message: string;
@@ -902,6 +935,20 @@ export interface ModuleStatusInfo {
 
 export interface SubscriptionInfo {
   modules: ModuleStatusInfo[];
+  /** Absent on servers that predate limited mode. */
+  access?: CafeAccess;
+}
+
+/** Limited mode for a cafe that stopped paying Yurt: sign-in and history work, new customer orders do not. */
+export interface CafeAccess {
+  /** full = paid up or not tracked; grace = paid period over, still taking orders; limited = new orders refused. */
+  state: 'full' | 'grace' | 'limited';
+  /** End of the paid period (UTC). Null = not tracked. */
+  paidUntil: string | null;
+  /** When limited mode starts because of the date (paidUntil + graceDays). */
+  limitedFrom: string | null;
+  limitedByOperator: boolean;
+  graceDays: number;
 }
 
 // ── Discount Codes ────────────────────────────────────────────────────────────
@@ -1047,6 +1094,48 @@ export interface PaymentSettings {
   testMode: boolean;
   /** Paste this into the cafe's Stripe dashboard (Developers, Webhooks). */
   webhookUrl: string;
+}
+
+/** A cafe's monthly plan on the platform owner's Stripe account (Platform screen). */
+export interface PlatformBilling {
+  monthlyPrice: number | null;
+  currency: string;
+  /** Modules a paid month extends. */
+  modules: string[];
+  availableModules: string[];
+  currencies: string[];
+  /** Stripe subscription status (active, past_due, canceled, ...); null = never started. */
+  status: string | null;
+  cancelAtPeriodEnd: boolean;
+  paidUntil: string | null;
+  lastPaidAt: string | null;
+  lastPaidAmount: number | null;
+  stripeCustomer: boolean;
+  /** Billing:Stripe:SecretKey and Billing:Stripe:WebhookSecret are set on the server. */
+  keysSet: boolean;
+  testMode: boolean;
+  /** Paste this into the platform owner's Stripe dashboard (Developers, Webhooks). */
+  webhookUrl: string;
+}
+
+export interface SaveBillingPlan {
+  monthlyPrice: number | null;
+  currency: string;
+  modules: string[];
+}
+
+/** The cafe's monthly payment as its owner sees it on the Subscription page. */
+export interface CafeBilling {
+  monthlyPrice: number | null;
+  currency: string;
+  modules: string[];
+  status: string | null;
+  cancelAtPeriodEnd: boolean;
+  paidUntil: string | null;
+  lastPaidAt: string | null;
+  canSubscribe: boolean;
+  canManage: boolean;
+  testMode: boolean;
 }
 
 export interface SaveFiscalSettings {

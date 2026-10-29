@@ -37,6 +37,7 @@ public interface IApplicationDbContext
     DbSet<Printer> Printers { get; }
     DbSet<PrintJob> PrintJobs { get; }
     DbSet<PrintAgent> PrintAgents { get; }
+    DbSet<Picture> Pictures { get; }
     DbSet<ToppingUse> ToppingUses { get; }
     DbSet<CashMovement> CashMovements { get; }
     DbSet<Ingredient> Ingredients { get; }
@@ -48,6 +49,7 @@ public interface IApplicationDbContext
     DbSet<AppRelease> AppReleases { get; }
     DbSet<CustomerDeviceToken> CustomerDeviceTokens { get; }
     DbSet<ModuleLicense> ModuleLicenses { get; }
+    DbSet<CafeBilling> CafeBillings { get; }
     DbSet<Tenant> Tenants { get; }
     DbSet<PlatformSetting> PlatformSettings { get; }
     DbSet<TenantSecret> TenantSecrets { get; }

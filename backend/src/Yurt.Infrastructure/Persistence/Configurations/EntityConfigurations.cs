@@ -426,6 +426,16 @@ public class PrintAgentConfiguration : IEntityTypeConfiguration<PrintAgent>
     }
 }
 
+public class PictureConfiguration : IEntityTypeConfiguration<Picture>
+{
+    public void Configure(EntityTypeBuilder<Picture> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.ContentType).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Data).IsRequired();
+    }
+}
+
 public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
 {
     public void Configure(EntityTypeBuilder<Ingredient> builder)
@@ -573,6 +583,24 @@ public class ModuleLicenseConfiguration : IEntityTypeConfiguration<ModuleLicense
         builder.HasIndex(e => new { e.TenantId, e.ModuleKey }).IsUnique();
         builder.Property(e => e.Source).HasConversion<string>().HasMaxLength(20);
         builder.Property(e => e.Notes).HasMaxLength(1000);
+    }
+}
+
+public class CafeBillingConfiguration : IEntityTypeConfiguration<CafeBilling>
+{
+    public void Configure(EntityTypeBuilder<CafeBilling> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasIndex(e => e.TenantId).IsUnique();
+        builder.Property(e => e.MonthlyPrice).HasPrecision(18, 2);
+        builder.Property(e => e.LastPaidAmount).HasPrecision(18, 2);
+        builder.Property(e => e.Currency).HasMaxLength(3).IsRequired();
+        builder.Property(e => e.ModuleKeys).HasMaxLength(500);
+        builder.Property(e => e.StripeCustomerId).HasMaxLength(100);
+        builder.Property(e => e.StripeSubscriptionId).HasMaxLength(100);
+        builder.HasIndex(e => e.StripeSubscriptionId);
+        builder.Property(e => e.Status).HasMaxLength(30);
+        builder.Property(e => e.LastInvoiceId).HasMaxLength(100);
     }
 }
 
