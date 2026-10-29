@@ -25,6 +25,8 @@ import {
   PaymentConfig,
   PaymentSettings,
   PlatformBilling,
+  ModulePlan,
+  SaveModulePlan,
   SaveBillingPlan,
   CafeBilling,
   CafeAccess,
@@ -207,6 +209,12 @@ export class YurtApiService {
     return this.http.put<PaymentSettings>(`${this.api}/platform/payments`, { provider }, this.cafeOptions());
   }
 
+  getModulePlan(): Observable<ModulePlan> {
+    return this.http.get<ModulePlan>(`${this.api}/platform/module-plan`, this.cafeOptions());
+  }
+  saveModulePlan(req: SaveModulePlan): Observable<ModulePlan> {
+    return this.http.put<ModulePlan>(`${this.api}/platform/module-plan`, req, this.cafeOptions());
+  }
   getPlatformBilling(): Observable<PlatformBilling> {
     return this.http.get<PlatformBilling>(`${this.api}/platform/billing`, this.cafeOptions());
   }

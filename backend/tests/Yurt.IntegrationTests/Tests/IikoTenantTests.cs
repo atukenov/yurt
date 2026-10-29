@@ -23,6 +23,10 @@ public class IikoTenantTests(YurtWebAppFactory factory)
         var other = factory.CreateClient();
         ApiHelpers.Authorize(other, token);
         other.DefaultRequestHeaders.Add("X-Tenant", $"iik-{id}");
+        // A new cafe starts with only core on; switch the iiko module on so the cafe check itself is what answers.
+        var plan = await other.PutAsJsonAsync("/api/v1/platform/module-plan",
+            new { currency = "usd", modules = new[] { new { key = "iiko_sync", on = true, price = (decimal?)null } } });
+        Assert.True(plan.IsSuccessStatusCode, await plan.Content.ReadAsStringAsync());
 
         Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync("/api/v1/admin/iiko/terminal-groups")).StatusCode);
 

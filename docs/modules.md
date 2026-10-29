@@ -2,7 +2,10 @@
 
 Reference for the paid modules once they are gated (Phase 3 of `MODULARIZATION_TODO.md`). One module is gated per
 release. A disabled module answers `403 { code: "module_disabled", module: "<key>" }`; its screens disappear from the
-apps; its data is never deleted. Everything is on by default (fail-open).
+apps; its data is never deleted. A cafe without license rows has everything on (fail-open), which keeps the first cafe
+working as before. A cafe opened from Platform → Cafes (or the new-cafe wizard) starts with **only core on**: every other
+module gets a switched-off row until the operator turns it on in Platform → Modules and monthly price (see
+`docs/billing.md`).
 
 How a gate is built:
 1. Backend: `[RequireModule(ModuleKeys.X)]` on the controller or action (`Yurt.WebApi/Common/RequireModuleAttribute.cs`).

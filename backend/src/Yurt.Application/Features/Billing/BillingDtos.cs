@@ -38,3 +38,19 @@ public record CafeBillingDto(
 public record BillingRedirectRequest(string? ReturnUrl);
 
 public record BillingRedirectDto(string Url);
+
+/// <summary>One module on the Platform screen: switched on for the cafe, and its monthly price (null = not priced).</summary>
+public record ModulePlanItemDto(string Key, bool On, decimal? Price);
+
+/// <summary>The cafe's modules and what they cost per month. <see cref="Total"/> is core plus every switched-on
+/// module; <see cref="MonthlyPrice"/> is what the cafe is charged (the total, or a price typed by hand).</summary>
+public record ModulePlanDto(
+    List<ModulePlanItemDto> Modules,
+    string Currency,
+    List<string> Currencies,
+    decimal Total,
+    decimal? MonthlyPrice,
+    bool PriceByHand);
+
+/// <summary>Modules not listed keep their state and price. Without <see cref="PriceByHand"/> the monthly price is the total.</summary>
+public record SaveModulePlanDto(List<ModulePlanItemDto>? Modules, string? Currency, bool PriceByHand, decimal? MonthlyPrice);

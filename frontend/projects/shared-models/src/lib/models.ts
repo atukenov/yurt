@@ -1120,6 +1120,31 @@ export interface PlatformBilling {
   webhookUrl: string;
 }
 
+/** One module on the Platform screen: on for the cafe, and its monthly price (null = not priced). */
+export interface ModulePlanItem {
+  key: string;
+  on: boolean;
+  price: number | null;
+}
+
+/** The cafe's modules and what they cost per month. `total` = core + every switched-on module. */
+export interface ModulePlan {
+  modules: ModulePlanItem[];
+  currency: string;
+  currencies: string[];
+  total: number;
+  /** What the cafe is charged: the total, or a price typed by hand. Null = no plan. */
+  monthlyPrice: number | null;
+  priceByHand: boolean;
+}
+
+export interface SaveModulePlan {
+  modules: ModulePlanItem[];
+  currency: string;
+  priceByHand: boolean;
+  monthlyPrice: number | null;
+}
+
 export interface SaveBillingPlan {
   monthlyPrice: number | null;
   currency: string;
