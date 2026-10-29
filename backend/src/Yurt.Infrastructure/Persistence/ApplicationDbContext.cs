@@ -59,6 +59,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AppRelease> AppReleases => Set<AppRelease>();
     public DbSet<CustomerDeviceToken> CustomerDeviceTokens => Set<CustomerDeviceToken>();
     public DbSet<ModuleLicense> ModuleLicenses => Set<ModuleLicense>();
+    public DbSet<CafeBilling> CafeBillings => Set<CafeBilling>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<TenantSecret> TenantSecrets => Set<TenantSecret>();

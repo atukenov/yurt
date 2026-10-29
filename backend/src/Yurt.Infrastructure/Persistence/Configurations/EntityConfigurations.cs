@@ -560,6 +560,24 @@ public class ModuleLicenseConfiguration : IEntityTypeConfiguration<ModuleLicense
     }
 }
 
+public class CafeBillingConfiguration : IEntityTypeConfiguration<CafeBilling>
+{
+    public void Configure(EntityTypeBuilder<CafeBilling> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasIndex(e => e.TenantId).IsUnique();
+        builder.Property(e => e.MonthlyPrice).HasPrecision(18, 2);
+        builder.Property(e => e.LastPaidAmount).HasPrecision(18, 2);
+        builder.Property(e => e.Currency).HasMaxLength(3).IsRequired();
+        builder.Property(e => e.ModuleKeys).HasMaxLength(500);
+        builder.Property(e => e.StripeCustomerId).HasMaxLength(100);
+        builder.Property(e => e.StripeSubscriptionId).HasMaxLength(100);
+        builder.HasIndex(e => e.StripeSubscriptionId);
+        builder.Property(e => e.Status).HasMaxLength(30);
+        builder.Property(e => e.LastInvoiceId).HasMaxLength(100);
+    }
+}
+
 public class PlatformSettingConfiguration : IEntityTypeConfiguration<PlatformSetting>
 {
     public void Configure(EntityTypeBuilder<PlatformSetting> builder)

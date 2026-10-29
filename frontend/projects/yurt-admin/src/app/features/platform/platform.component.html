@@ -423,6 +423,76 @@
       </section>
     }
 
+    <!-- Monthly billing of this cafe (platform owner's Stripe account) -->
+    @if (billing(); as b) {
+      <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">
+        <h2 class="font-semibold text-slate-800">{{ 'plat.bill.title' | t }}</h2>
+        <p class="text-sm text-slate-500 mt-1">{{ 'plat.bill.hint' | t }}</p>
+        <p class="mt-3 text-sm">
+          {{ 'plat.fiscal.status' | t }}:
+          <span class="font-semibold px-2 py-0.5 rounded-full"
+            [class]="b.status === 'active' ? 'bg-emerald-100 text-emerald-700' : b.status === 'past_due' || b.status === 'unpaid' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'">
+            {{ 'bill.status.' + (b.status ?? 'none') | t }}
+          </span>
+          @if (b.cancelAtPeriodEnd) { <span class="ml-1 text-xs text-amber-700">{{ 'bill.cancelling' | t }}</span> }
+          @if (b.keysSet) {
+            <span class="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+              [class]="b.testMode ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">
+              {{ (b.testMode ? 'plat.pay.testMode' : 'plat.pay.liveMode') | t }}
+            </span>
+          }
+        </p>
+        @if (b.paidUntil) {
+          <p class="mt-1 text-sm text-slate-600">{{ 'bill.paidUntil' | t }} {{ b.paidUntil | ldate: 'shortDate' }}
+            @if (b.lastPaidAmount !== null) { · {{ 'bill.lastPaid' | t }} {{ b.lastPaidAmount }} {{ b.currency.toUpperCase() }} }
+          </p>
+        }
+        @if (!b.keysSet) {
+          <p class="mt-2 text-sm text-amber-700">{{ 'plat.bill.noKeys' | t }}</p>
+        }
+
+        <div class="mt-4 flex flex-wrap gap-3">
+          <label class="block text-sm w-40">
+            <span class="text-slate-600">{{ 'plat.bill.price' | t }}</span>
+            <input type="number" min="0" step="0.01" [(ngModel)]="billingPrice"
+              class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 bg-surface" />
+          </label>
+          <label class="block text-sm w-28">
+            <span class="text-slate-600">{{ 'plat.bill.currency' | t }}</span>
+            <select [(ngModel)]="billingCurrency" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 bg-surface">
+              @for (c of b.currencies; track c) { <option [value]="c">{{ c.toUpperCase() }}</option> }
+            </select>
+          </label>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">{{ 'plat.bill.priceHint' | t }}</p>
+
+        <p class="mt-4 text-sm text-slate-600">{{ 'plat.bill.modules' | t }}</p>
+        <div class="mt-1 grid sm:grid-cols-2 gap-1">
+          @for (k of b.availableModules; track k) {
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="billingModules[k]" />
+              {{ 'sub.module.' + k | t }}
+            </label>
+          }
+        </div>
+
+        <p class="mt-4 text-sm text-slate-600">{{ 'plat.bill.webhook' | t }}</p>
+        <div class="mt-1 flex items-center gap-2">
+          <code class="flex-1 min-w-0 truncate rounded-xl border border-slate-200 px-3 py-2 text-xs bg-slate-50">{{ b.webhookUrl }}</code>
+          <button type="button" (click)="copyWebhookUrl(b.webhookUrl)"
+            class="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300">
+            {{ 'plat.pay.copy' | t }}
+          </button>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">{{ 'plat.bill.events' | t }}</p>
+
+        <button type="button" (click)="saveBilling()" [disabled]="savingBilling()"
+          class="mt-4 px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-bold disabled:opacity-50">
+          {{ 'action.save' | t }}
+        </button>
+      </section>
+    }
+
     <!-- Official tax receipts -->
     @if (fiscal(); as f) {
       <section class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-5">

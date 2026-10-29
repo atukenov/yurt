@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Yurt.Application.Features.Billing;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Payments;
 using Yurt.Application.Features.Payments.DTOs;
@@ -105,6 +106,15 @@ public class PlatformController : ApiControllerBase
     [HttpPut("payments")]
     public async Task<IActionResult> SetPayments([FromServices] PaymentSettingsService payments, [FromBody] SavePaymentSettingsDto dto, CancellationToken ct)
         => ToResult(await payments.SaveAsync(dto, ServerUrl(), ct));
+
+    /// <summary>The cafe's monthly price on the platform owner's Stripe account, the modules it covers, and its status.</summary>
+    [HttpGet("billing")]
+    public async Task<IActionResult> GetBilling([FromServices] BillingService billing, CancellationToken ct)
+        => Ok(await billing.GetPlatformAsync(ServerUrl(), ct));
+
+    [HttpPut("billing")]
+    public async Task<IActionResult> SetBilling([FromServices] BillingService billing, [FromBody] SaveBillingPlanDto dto, CancellationToken ct)
+        => ToResult(await billing.SavePlanAsync(dto, ServerUrl(), ct));
 
     /// <summary>Public address of this server (Railway serves https; the forwarded headers carry it).</summary>
     private string ServerUrl() => _config["PublicApiUrl"] is { Length: > 0 } url ? url : $"{Request.Scheme}://{Request.Host}";

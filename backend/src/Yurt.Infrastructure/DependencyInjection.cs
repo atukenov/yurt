@@ -19,6 +19,7 @@ using Yurt.Application.Features.Customers;
 using Yurt.Application.Features.GroupOrders;
 using Yurt.Application.Features.Workers;
 using Yurt.Application.Features.Payments;
+using Yurt.Application.Features.Billing;
 using Yurt.Application.Features.Payments.Services;
 using Yurt.Application.Features.Promotions.Services;
 using Yurt.Application.Features.DiscountCodes.Services;
@@ -105,6 +106,10 @@ public static class DependencyInjection
             };
         });
         services.AddScoped<PaymentSettingsService>();
+        // Monthly cafe billing on the platform owner's own Stripe account (Billing:Stripe:* settings)
+        services.AddHttpClient<StripeBillingGateway>();
+        services.AddScoped<IBillingGateway>(sp => sp.GetRequiredService<StripeBillingGateway>());
+        services.AddScoped<BillingService>();
 
         // WhatsApp OTP for customer registration (feature-flagged via Otp:Enabled; secrets via env vars)
         services.AddSingleton(configuration.GetSection("Otp").Get<OtpOptions>() ?? new OtpOptions());
