@@ -72,13 +72,19 @@ export function applyCafe({ root, slug, dryRun = false }) {
     must(t, /(<key>CFBundleDisplayName<\/key>\s*<string>)[^<]*/, `$1${xml(cafe.appName)}`, 'CFBundleDisplayName'));
   edit('frontend/ios/App/App.xcodeproj/project.pbxproj', (t) => {
     t = must(t, /PRODUCT_BUNDLE_IDENTIFIER = [^;]*;/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cafe.appId};`, 'PRODUCT_BUNDLE_IDENTIFIER');
-    return cafe.versionName ? must(t, /MARKETING_VERSION = [^;]*;/g, `MARKETING_VERSION = ${cafe.versionName};`, 'MARKETING_VERSION') : t;
+    if (cafe.versionName) t = must(t, /MARKETING_VERSION = [^;]*;/g, `MARKETING_VERSION = ${cafe.versionName};`, 'MARKETING_VERSION');
+    // The iOS build number, like Android's versionCode, must go up with every store upload.
+    if (cafe.versionCode) t = must(t, /CURRENT_PROJECT_VERSION = [^;]*;/g, `CURRENT_PROJECT_VERSION = ${cafe.versionCode};`, 'CURRENT_PROJECT_VERSION');
+    return t;
   });
 
-  if (cafe.appleMerchantId) {
-    edit('frontend/ios/App/App/App.entitlements', (t) =>
-      must(t, /(<key>com\.apple\.developer\.in-app-payments<\/key>\s*<array>\s*<string>)[^<]*/, `$1${cafe.appleMerchantId}`, 'in-app-payments merchant id'));
-  }
+  // Without a merchant id the Apple Pay entitlement is dropped, so the build is not signed with another cafe's merchant
+  // (Apple Pay through Stripe's payment page needs none).
+  edit('frontend/ios/App/App/App.entitlements', (t) => {
+    const merchant = /(<key>com\.apple\.developer\.in-app-payments<\/key>\s*<array>\s*<string>)[^<]*/;
+    if (cafe.appleMerchantId) return must(t, merchant, `$1${cafe.appleMerchantId}`, 'in-app-payments merchant id');
+    return t.replace(/\s*<key>com\.apple\.developer\.in-app-payments<\/key>\s*<array>[\s\S]*?<\/array>/, '');
+  });
 
   if (cafe.tenant) {
     for (const app of ['yurt-customer', 'yurt-admin']) {

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 using Yurt.Application.Common.Interfaces;
@@ -16,7 +17,7 @@ public class AesGcmSecretProtector : ISecretProtector
     private const int NonceSize = 12, TagSize = 16;
     private readonly byte[]? _key;
 
-    public AesGcmSecretProtector(IConfiguration configuration)
+    public AesGcmSecretProtector(IConfiguration configuration, ILogger<AesGcmSecretProtector> logger)
     {
         var raw = configuration["Secrets:MasterKey"];
         if (string.IsNullOrWhiteSpace(raw)) return;
@@ -26,6 +27,10 @@ public class AesGcmSecretProtector : ISecretProtector
             if (bytes.Length == 32) _key = bytes;
         }
         catch (FormatException) { /* treated as not configured */ }
+
+        // A value that is set but unusable is ignored, so say so loudly instead of failing later on the first save.
+        if (_key is null)
+            logger.LogWarning("Secrets:MasterKey is set but is not Base64 of 32 bytes (create one with: openssl rand -base64 32). Cafe secrets cannot be stored or read.");
     }
 
     public bool IsAvailable => _key is not null;

@@ -21,11 +21,13 @@ public class FiscalReceiptTests(YurtWebAppFactory factory)
         public bool Fail { get; set; }
         public List<FiscalReceiptRequest> Sent { get; } = [];
         public List<string> ShiftsClosed { get; } = [];
-        public string Provider => FiscalProviders.Webkassa;
+        public List<FiscalCredentials> Logins { get; } = [];
+        public string Provider { get; init; } = FiscalProviders.Webkassa;
 
         public Task<FiscalResult> SendReceiptAsync(FiscalCredentials credentials, FiscalReceiptRequest receipt, CancellationToken ct = default)
         {
             if (Fail) return Task.FromResult(FiscalResult.Fail("Webkassa is down"));
+            Logins.Add(credentials);
             Sent.Add(receipt);
             return Task.FromResult(FiscalResult.Ok($"CHK{Sent.Count}", "https://ofd.example/t/1"));
         }
@@ -432,5 +434,35 @@ public class FiscalReceiptTests(YurtWebAppFactory factory)
         var off = await settings.SaveAsync(new SaveFiscalSettingsDto("none", null, null, null));
         Assert.Null(off.Data!.Provider);
         Assert.Equal("SWK7", Assert.Single(off.Data.Branches).RegisterNumber); // branches left out = unchanged
+    }
+
+    [Fact]
+    public async Task ReKassa_NeedsNoLogin_OnlyThePasswordAndTheRegistersSerial()
+    {
+        var cafe = await NewCafeAsync();
+        using (var scope = ScopeFor(cafe))
+        {
+            var secrets = scope.ServiceProvider.GetRequiredService<ITenantSecrets>();
+            var settings = Settings(scope);
+            var on = await settings.SaveAsync(new SaveFiscalSettingsDto("ReKassa", null, null,
+                [new FiscalBranchInputDto(cafe.LocationId, "RK0001")]));
+            Assert.Equal("rekassa", on.Data!.Provider);
+            Assert.False(on.Data.CredentialsSet);
+
+            await secrets.SetAsync(cafe.Id, FiscalProviders.PasswordKey, "app-pw");
+            await secrets.SetAsync(cafe.Id, FiscalProviders.PinKey, "1234");
+            Assert.True((await settings.GetAsync()).Data!.CredentialsSet);
+        }
+        var orderId = await AddOrderAsync(cafe);
+        var registrar = new FakeRegistrar { Provider = FiscalProviders.ReKassa };
+
+        await RunAsync(cafe, registrar);
+
+        Assert.Equal(FiscalReceiptStatus.Sent, Assert.Single(await ReceiptsAsync(cafe, orderId)).Status);
+        Assert.Equal("RK0001", Assert.Single(registrar.Sent).RegisterNumber);
+        var creds = Assert.Single(registrar.Logins);
+        Assert.Equal("", creds.Login);
+        Assert.Equal("app-pw", creds.Password);
+        Assert.Equal("1234", creds.Pin);
     }
 }
