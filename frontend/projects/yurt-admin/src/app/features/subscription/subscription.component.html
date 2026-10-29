@@ -9,6 +9,23 @@
     @if (loading()) {
       <p class="text-slate-500 text-sm">{{ 'label.loading' | t }}</p>
     } @else {
+      @if (access(); as a) {
+        @if (a.state !== 'full') {
+          <div role="status" class="mb-4 rounded-2xl border px-4 py-3 text-sm"
+            [class]="a.state === 'limited' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-amber-50 border-amber-200 text-amber-800'">
+            @if (a.state === 'limited') {
+              <p class="font-semibold">{{ 'access.limitedTitle' | t }}</p>
+              <p class="mt-1">{{ 'access.limitedText' | t }}</p>
+            } @else {
+              <p class="font-semibold">{{ 'access.graceTitle' | t }}</p>
+              <p class="mt-1">{{ 'access.graceText' | t }} {{ a.limitedFrom | ldate: 'shortDate' }}</p>
+            }
+          </div>
+        }
+        @if (a.paidUntil) {
+          <p class="mb-4 text-sm text-slate-600">{{ 'access.paidUntil' | t }} {{ a.paidUntil | ldate: 'shortDate' }}</p>
+        }
+      }
       <div class="space-y-2">
         @for (m of modules(); track m.key) {
           <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm px-4 py-3">

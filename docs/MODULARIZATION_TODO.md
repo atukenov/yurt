@@ -202,7 +202,7 @@ Steps:
 
 ## Open items
 - [ ] Final prices and bundle contents.
-- [ ] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked).
+- [x] Define the "limited core" state after a cafe stops paying (e.g. login and order history stay, new orders blocked). _(Done: see "Limited mode" in `docs/modules.md`.)_
 - [x] How SuperAdmin accounts are created: environment variable seed (done in Phase 2).
 - [ ] Data export format for departing cafes.
 - [ ] `own_pos`: which hardware to support first (receipt printer model, cash drawer, tablets for the kitchen).

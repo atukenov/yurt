@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { YurtApiService } from 'shared-api';
 import { TranslatePipe } from '../../core/translate.pipe';
+import { StoreStatusService } from '../../core/store-status.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -13,6 +14,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './group-order-join.component.html',
 })
 export class GroupOrderJoinComponent implements OnInit {
+  private storeStatus = inject(StoreStatusService);
   private api = inject(YurtApiService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -30,6 +32,7 @@ export class GroupOrderJoinComponent implements OnInit {
   join(): void {
     const trimmed = this.code.trim().toUpperCase();
     if (trimmed.length !== 6) { this.error.set('group.codeLength'); return; }
+    if (!this.storeStatus.guardOrdering()) return;
     this.error.set('');
     this.loading.set(true);
     this.api.joinGroupOrder(trimmed).subscribe({

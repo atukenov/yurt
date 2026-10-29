@@ -25,6 +25,9 @@ export class ModuleService {
   /** Set while the operator has maintenance mode on; the apps show a notice. Never persisted. */
   readonly maintenance = signal<MaintenanceInfo | null>(null);
 
+  /** True while the cafe is in limited mode: the customer app keeps sign-in and history but stops new orders. */
+  readonly orderingPaused = signal(false);
+
   /** Reads the cache synchronously, then refreshes from the server. Safe to call more than once. */
   load(): void {
     this.api.getAppConfig().subscribe({
@@ -32,6 +35,7 @@ export class ModuleService {
         this.enabledKeys.set(new Set(cfg.modules));
         this.writeCache(cfg.modules);
         this.maintenance.set(cfg.maintenance?.enabled ? cfg.maintenance : null);
+        this.orderingPaused.set(cfg.ordering?.paused === true);
         this.brand.set(cfg.brand);
       },
       error: () => { /* keep the cached/unknown state: fail-open */ },

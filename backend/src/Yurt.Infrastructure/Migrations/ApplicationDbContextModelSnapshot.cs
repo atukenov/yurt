@@ -2290,6 +2290,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("LimitedByOperator")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LoyaltyLedger")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -2298,6 +2301,9 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("PaidUntil")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PaymentProvider")
                         .HasMaxLength(20)

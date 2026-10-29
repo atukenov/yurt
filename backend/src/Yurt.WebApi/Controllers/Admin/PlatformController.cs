@@ -100,6 +100,15 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
         => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
 
+    /// <summary>Limited mode of the chosen cafe (stopped paying): paid-until date and the hand switch.</summary>
+    [HttpGet("access")]
+    public async Task<IActionResult> GetAccess([FromServices] CafeAccessSettingsService access, CancellationToken ct)
+        => ToResult(await access.GetAsync(ct));
+
+    [HttpPut("access")]
+    public async Task<IActionResult> SetAccess([FromServices] CafeAccessSettingsService access, [FromBody] SaveCafeAccessDto dto, CancellationToken ct)
+        => ToResult(await access.SaveAsync(dto, ct));
+
     /// <summary>The cafe's online payment provider (Stripe or off) and the webhook address for its Stripe dashboard.</summary>
     [HttpGet("payments")]
     public async Task<IActionResult> GetPayments([FromServices] PaymentSettingsService payments, CancellationToken ct)
