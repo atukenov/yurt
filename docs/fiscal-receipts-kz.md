@@ -30,7 +30,7 @@ Both Webkassa and ReKassa give the full API documentation and a test account to 
 
 ## Recommendation
 
-1. **Add a small "fiscal receipt" slot to own_pos**, the same way `IPosOrderSink` and `ILoyaltyLedger` work: an interface (for example `IFiscalRegistrar` with `OpenShift`, `SendSale`, `SendReturn`, `CloseShift`) with one adapter per provider. Build **Webkassa first**, ReKassa second.
+1. **Add a small "fiscal receipt" slot to own_pos**, the same way `IPosOrderSink` and `ILoyaltyLedger` work: an interface (for example `IFiscalRegistrar` with `OpenShift`, `SendSale`, `SendReturn`, `CloseShift`) with one adapter per provider. Build **Webkassa first**, ReKassa second. _(Both are built now and off by default; neither is verified against the real service yet.)_
 2. **Per cafe and per branch settings:**
    - On the cafe: which provider (`none`, `webkassa`, `rekassa`). `none` is the default and keeps today's behaviour.
    - The provider login or API key goes in the cafe's encrypted secrets (the same store as payment keys, see `Secrets__MasterKey` in `docs/runbook.md`).

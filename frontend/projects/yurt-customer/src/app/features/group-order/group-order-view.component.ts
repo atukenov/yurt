@@ -8,6 +8,7 @@ import { Currency2Pipe, ToastService } from 'shared-ui';
 import { AddGroupOrderItemRequest, GroupCart, GroupCartItem, GroupCartStatus, MenuItem } from 'shared-models';
 import { TranslatePipe } from '../../core/translate.pipe';
 import { LangService } from '../../core/lang.service';
+import { StoreStatusService } from '../../core/store-status.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -25,6 +26,7 @@ export class GroupOrderViewComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private toast = inject(ToastService);
   private lang = inject(LangService);
+  private storeStatus = inject(StoreStatusService);
   private destroy$ = new Subject<void>();
 
   cart = signal<GroupCart | null>(null);
@@ -119,6 +121,7 @@ export class GroupOrderViewComponent implements OnInit, OnDestroy {
   }
 
   placeOrder(): void {
+    if (!this.storeStatus.guardOrdering()) return;
     this.checkoutLoading.set(true);
     this.api.checkoutGroupOrder(this.id).subscribe({
       next: (order) => {

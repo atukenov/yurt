@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SignalrService, YurtApiService } from 'shared-api';
 import { Location, Order, OrderItem, OrderStatus, Station, StationRouting } from 'shared-models';
-import { ToastService } from 'shared-ui';
+import { LocalDatePipe, ToastService } from 'shared-ui';
 import { environment } from '../../../environments/environment';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { SoundService } from '../../core/sound.service';
@@ -24,7 +24,7 @@ interface KitchenColumn {
 @Component({
   selector: 'app-kitchen-display',
   standalone: true,
-  imports: [FormsModule, AdminTranslatePipe],
+  imports: [FormsModule, AdminTranslatePipe, LocalDatePipe],
   templateUrl: './kitchen-display.component.html',
 })
 export class KitchenDisplayComponent implements OnInit, OnDestroy {

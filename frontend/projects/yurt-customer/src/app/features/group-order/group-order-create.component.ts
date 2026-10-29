@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { YurtApiService } from 'shared-api';
 import { Location } from 'shared-models';
 import { TranslatePipe } from '../../core/translate.pipe';
+import { StoreStatusService } from '../../core/store-status.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -13,6 +14,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './group-order-create.component.html',
 })
 export class GroupOrderCreateComponent implements OnInit {
+  private storeStatus = inject(StoreStatusService);
   private api = inject(YurtApiService);
   private router = inject(Router);
 
@@ -32,6 +34,7 @@ export class GroupOrderCreateComponent implements OnInit {
   create(): void {
     const id = this.selectedId();
     if (!id) return;
+    if (!this.storeStatus.guardOrdering()) return;
     this.loading.set(true);
     this.api.createGroupOrder(id).subscribe({
       next: (cart) => this.router.navigate(['/group-order', cart.id]),
