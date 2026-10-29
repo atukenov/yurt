@@ -85,6 +85,10 @@ MOCK_API['/orders/o-2'] = {
 };
 /** A third: chosen "Pay online" but not paid yet (shows the "Pay online now" button). */
 MOCK_API['/orders/o-3'] = { ...MOCK_API['/orders/o-2'], id: 'o-3', paymentMethod: 'Card', loyaltyPointsSpent: undefined };
+/** A fourth: ordered to table 5 by its QR code, ready (staff bring it over, no 2GIS route). */
+MOCK_API['/orders/o-4'] = { ...MOCK_API['/orders/o-1'], id: 'o-4', status: 'Ready', tableLabel: '5' };
+/** The guest scanned the QR code of table 5 (table_ordering), so the cart says the order goes to that table. */
+const TABLE = { code: 'ABCDEFGH23', label: '5', locationId: LOCATION.id, locationName: LOCATION.name };
 const SIGNED_IN_STORAGE = {
   yurt_user: JSON.stringify({ accessToken: 'a11y', refreshToken: '', userId: 'u-1', displayName: 'Aru', userType: 'Customer' }),
   yurt_location_id: LOCATION.id,
@@ -94,6 +98,9 @@ const SIGNED_IN_STORAGE = {
     { menuItemId: 'm-4', name: 'Croissant', price: 900, quantity: 1, notes: 'Warm it up' },
   ]),
 };
+// Store screenshots show a plain pickup order; the brand and a11y checks also cover the table chip in the cart.
+const storeMode = args.some((a) => a.startsWith('--store='));
+if (!storeMode) SIGNED_IN_STORAGE.yurt_table = JSON.stringify({ ...TABLE, at: Date.now() });
 
 /** Fake answers for the admin screens, keyed like MOCK_API. */
 const ADMIN_ORDER = (id, status, extra = {}) => ({
@@ -104,7 +111,7 @@ const ADMIN_MOCK_API = {
   '/admin/locations': [LOCATION, { ...LOCATION, id: 'loc-2', name: 'Riverside', address: '5 River Road' }],
   '/admin/orders': {
     total: 4, page: 1, pageSize: 50, items: [
-      ADMIN_ORDER('o-11', 'Created', { paymentStatus: 'Unpaid', etaMinutes: undefined, acceptedAt: undefined }),
+      ADMIN_ORDER('o-11', 'Created', { paymentStatus: 'Unpaid', etaMinutes: undefined, acceptedAt: undefined, tableLabel: '5' }),
       ADMIN_ORDER('o-12', 'Preparing', { items: [{ ...MOCK_API['/orders/o-1'].items[0], notes: 'Oat milk' }] }),
       ADMIN_ORDER('o-13', 'Ready', { readyStationIds: ['st-1'] }),
       ADMIN_ORDER('o-14', 'Completed', { completedAt: '2026-10-21T09:20:00Z' }),
@@ -138,6 +145,11 @@ const ADMIN_MOCK_API = {
     cashSales: 15000, cashIn: 0, cashOut: 2000, expectedCash: 33000, difference: null, movements: [],
   },
   '/admin/iiko/nomenclature': [],
+  '/admin/tables': ['1', '2', 'Terrace 1'].map((label, i) => ({
+    id: `tb-${i}`, locationId: 'loc-1', label, code: `CODE${i}ABCDE`, link: `https://order.example.kz/t/CODE${i}ABCDE`,
+    // A stand-in picture: the real QR code comes from the server.
+    qrSvg: `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4"><path d="M0 0h2v2H0zM2 2h2v2H2z"/></svg>').toString('base64')}`,
+  })),
   '/admin/customers': {
     total: 2, page: 1, pageSize: 50, items: [
       { id: 'u-1', phone: '+77001234567', displayName: 'Aru Sadykova', registeredAt: '2026-01-15T10:00:00Z', orderCount: 24, totalSpent: 52800 },
@@ -206,13 +218,13 @@ const APPS = {
   customer: {
     project: 'yurt-customer', prefix: '', viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
     publicScreens: ['/auth/login', '/auth/register'],
-    signedInScreens: ['/menu', '/cart', '/orders/o-1', '/orders/o-2', '/orders/o-3', '/profile'],
+    signedInScreens: ['/menu', '/cart', '/orders/o-1', '/orders/o-2', '/orders/o-3', '/orders/o-4', '/profile'],
     api: MOCK_API, storage: SIGNED_IN_STORAGE,
   },
   admin: {
     project: 'yurt-admin', prefix: 'admin-', viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1,
     publicScreens: ['/auth/login'],
-    signedInScreens: ['/orders', '/kitchen', '/cashier', '/menu', '/stock', '/customers'],
+    signedInScreens: ['/orders', '/kitchen', '/cashier', '/menu', '/stock', '/customers', '/tables'],
     api: ADMIN_MOCK_API, storage: ADMIN_STORAGE,
   },
 };

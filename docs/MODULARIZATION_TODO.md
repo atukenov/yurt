@@ -73,6 +73,7 @@ Module keys and what they cover:
 | `online_payments` | Online payments | Card, Apple Pay and Google Pay through Stripe (per cafe); a local provider can be added later |
 | `verification` | Phone verification | OTP channel (WhatsApp/SMS/Firebase) |
 | `branding` | Branding / white-label app | Own colors, logo, store-listed app |
+| `table_ordering` | Order at the table (QR) | Tables with QR codes; guests order to their table |
 
 Indicative prices (placeholders, validate locally): Core 15–25k ₸/mo, Multi-location +8–12k per extra branch,
 Marketing 7–10k, Loyalty 15–25k, iiko sync 10–20k, Push 5–8k, Analytics 8–12k, Group orders 4–6k,

@@ -81,6 +81,17 @@ public class OrderService
         if (dto.Items == null || dto.Items.Count == 0)
             return Result<OrderDto>.Failure("Order must have at least one item.", 400);
 
+        // Ordered to a table by its QR code (table_ordering). The code must belong to this branch; while the module is off
+        // the order is an ordinary pickup order.
+        DiningTable? table = null;
+        if (!string.IsNullOrWhiteSpace(dto.TableCode) && await _modules.IsEnabledAsync(ModuleKeys.TableOrdering, ct))
+        {
+            var code = dto.TableCode.Trim().ToUpperInvariant();
+            table = await _db.DiningTables.FirstOrDefaultAsync(t => t.Code == code && t.LocationId == dto.LocationId, ct);
+            if (table is null)
+                return Result<OrderDto>.Failure("This table is not found at this branch. Scan the QR code on the table again.", 400);
+        }
+
         // A branch can offer only some payment methods (own POS). "Other" is the group-order placeholder.
         if (dto.PaymentMethod is { } wantedMethod && wantedMethod != PaymentMethod.Other
             && Yurt.Application.Features.Locations.Services.LocationService.OfferedMethods(location.PaymentMethods) is { } offered
@@ -90,7 +101,8 @@ public class OrderService
 
         // A pickup time must be a little ahead and no more than a day away. Null = as soon as possible.
         DateTime? pickupAt = null;
-        if (dto.PickupAt is { } wantedPickup)
+        // A table order is brought over as soon as it is made, so a pickup time does not apply.
+        if (dto.PickupAt is { } wantedPickup && table is null)
         {
             pickupAt = wantedPickup.Kind == DateTimeKind.Unspecified
                 ? DateTime.SpecifyKind(wantedPickup, DateTimeKind.Utc)
@@ -136,6 +148,8 @@ public class OrderService
         {
             CustomerUserId = customerId,
             LocationId = dto.LocationId,
+            DiningTableId = table?.Id,
+            TableLabel = table?.Label,
             Status = OrderStatus.Created,
             PickupAt = pickupAt
         };
@@ -580,6 +594,7 @@ public class OrderService
             o.IikoOrderSyncStatus,
             o.Location?.TwoGisUrl,
             o.ReadyStations.Select(r => r.StationId).ToList(),
-            PickupAt: o.PickupAt);
+            PickupAt: o.PickupAt,
+            TableLabel: o.TableLabel);
     }
 }

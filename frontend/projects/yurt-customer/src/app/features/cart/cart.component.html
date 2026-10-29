@@ -9,6 +9,17 @@
         </svg>
         {{ locationName() }}
       </span>
+      @if (table(); as t) {
+        <span style="margin-top:8px;display:flex;justify-content:center">
+          <span style="font-size:12.5px;font-weight:700;color:var(--ink-900);background:var(--brand-50);border-radius:999px;padding:5px 6px 5px 12px;display:inline-flex;align-items:center;gap:8px">
+            <span aria-hidden="true">🍽️</span>
+            {{ 'table.orderTo' | t: { table: t.label } }}
+            <button (click)="leaveTable()"
+              style="background:var(--surface-card);border:none;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:700;color:var(--ink-600);cursor:pointer;font-family:inherit;min-height:24px"
+              class="active:scale-95 transition-transform">{{ 'table.pickupInstead' | t }}</button>
+          </span>
+        </span>
+      }
     } @else {
       <button (click)="goToLocations()"
         style="font-size:12px;font-weight:700;color:#b45309;background:#fef3c7;border:none;border-radius:999px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:inherit"
@@ -227,6 +238,8 @@
         </div>
       </div>
 
+      <!-- A guest at a table gets the order brought now, so there is no pickup time to choose -->
+      @if (!table()) {
       <!-- Pickup time: as soon as possible, or a time later today within the branch's hours -->
       <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.12em">{{ 'cart.pickupWhen' | t }}</p>
       <div class="grid grid-cols-2 gap-2" role="group" [attr.aria-label]="'cart.pickupWhen' | t">
@@ -262,6 +275,7 @@
         </label>
       } @else if (!pickupTimes().length) {
         <p style="margin:8px 4px 0;font-size:11.5px;font-weight:600;color:var(--ink-500)">{{ 'cart.pickupNoTimes' | t }}</p>
+      }
       }
 
       <!-- Payment method selection — not needed when bonuses cover the full total -->
@@ -355,8 +369,10 @@
       <div class="text-center mb-5">
         <div class="text-5xl mb-3">🛒</div>
         <h3 class="text-lg font-bold text-stone-800">{{ 'cart.confirmTitle' | t }}</h3>
-        <p class="text-sm text-stone-500 mt-1.5 leading-relaxed">{{ 'cart.confirmMsg' | t }}</p>
-        @if (pickupLater() && pickupAt()) {
+        <p class="text-sm text-stone-500 mt-1.5 leading-relaxed">
+          {{ table() ? ('table.confirm' | t: { table: table()!.label }) : ('cart.confirmMsg' | t) }}
+        </p>
+        @if (!table() && pickupLater() && pickupAt()) {
           <p class="text-sm font-bold mt-2" style="color:var(--ink-900)">{{ 'order.pickupAt' | t: { time: (pickupAt() | ldate: 'time') } }}</p>
         }
       </div>

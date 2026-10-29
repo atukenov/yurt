@@ -100,6 +100,15 @@ How a gate is built:
 - **Dark mode logo:** shown instead of the logo while the app is in dark mode; empty means the normal logo is used.
 - **Depends on:** nothing.
 
+### `table_ordering` (order by QR at the table)
+- **Covers:** the Tables page in the admin app (`/api/v1/admin/tables`: add tables to a branch, rename, new QR code, delete) and the public `GET /api/v1/tables/{code}` the customer app calls after a scan.
+- **How it works:** each table has a random 10-character code. Its QR code opens `<customer app>/t/<code>`, which picks the branch and remembers the table on the phone for 4 hours (or until the guest picks another branch or presses "Pick up instead"). The cart shows "To table 5", and `POST /orders` takes a `tableCode`. The order keeps the table name (`tableLabel`), shown on live orders, the kitchen screen, printed tickets and receipts, and the guest's order screen (no 2GIS route for a table order).
+- **QR address:** the cafe's own web address (Platform page), otherwise `Payment__CustomerAppUrl` on the server. Without either the page shows the tables but no QR codes.
+- **Printing:** "Print all QR codes" prints an A4 sheet, two cards per row (cafe name, QR code, table name). "New QR code" makes the old sticker stop working.
+- **When off:** both endpoints return `403 module_disabled`, the Tables page and link are hidden, the cart shows no table, and an order sent with a `tableCode` becomes an ordinary pickup order.
+- **Existing data:** tables and the table names on past orders stay and show again when the module is back on. Deleting a table keeps its orders' table name.
+- **Depends on:** nothing.
+
 ### `own_pos` (self-developed POS, shipped one feature at a time)
 Gated so far: the **Kitchen** screen, **Cashier**, **Stock** and **Printers**. Other `own_pos` features are added here as they ship.
 - **Kitchen screen:** admin route `/kitchen` and menu entry. A tablet page per branch with three columns (New, Preparing, Ready) of the accepted orders, oldest first, with items, toppings, notes and the wait time (red when past the promised minutes). One big button per card moves it on (Start, Ready, Handed over). It uses the same order API and live events as Live Orders, so no backend gate is needed and nothing changes for customers.

@@ -194,6 +194,8 @@ export interface CreateOrderRequest {
   loyaltyPointsToSpend?: number;
   /** When the guest wants to pick the order up (ISO time). Left out = as soon as possible. */
   pickupAt?: string;
+  /** Code of the table QR the guest scanned (table_ordering); left out for a pickup order. */
+  tableCode?: string;
 }
 
 export interface CreatePaymentRequest {
@@ -327,6 +329,26 @@ export interface ShiftReport {
   expectedCash: number;
   difference?: number | null;
   movements: CashMovement[];
+}
+
+/** A table in a branch with its QR code (table_ordering). */
+export interface DiningTable {
+  id: string;
+  locationId: string;
+  label: string;
+  code: string;
+  /** The address the QR code opens; null while the cafe has no customer app address. */
+  link: string | null;
+  /** The QR code as an SVG data link, ready for an img tag; null with no link. */
+  qrSvg: string | null;
+}
+
+/** The table behind a scanned QR code. */
+export interface TableLookup {
+  code: string;
+  label: string;
+  locationId: string;
+  locationName: string;
 }
 
 export interface Station {
@@ -482,6 +504,8 @@ export interface Order {
   fiscalReceiptUrl?: string | null;
   /** Link to the tax receipt of the refund, when the order was refunded after its receipt went out. */
   fiscalReturnUrl?: string | null;
+  /** The table the guest ordered to by its QR code (table_ordering); empty for a pickup order. */
+  tableLabel?: string | null;
 }
 
 export enum IikoOrderSyncStatus {

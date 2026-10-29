@@ -16,21 +16,21 @@ public static class PrintLayouts
             ["subtotal"] = "Подытог", ["discount"] = "Скидка", ["total"] = "Итого", ["bonus"] = "Оплачено бонусами",
             ["paid"] = "К оплате", ["method"] = "Оплата", ["thanks"] = "Спасибо!", ["test"] = "Тестовая печать",
             ["testOk"] = "Принтер работает", ["currency"] = "тг", ["Cash"] = "Наличные", ["Card"] = "Карта", ["Other"] = "Другое",
-            ["fiscal"] = "Фискальный чек", ["fiscalScan"] = "Отсканируйте, чтобы открыть чек", ["pickup"] = "Выдать к",
+            ["fiscal"] = "Фискальный чек", ["fiscalScan"] = "Отсканируйте, чтобы открыть чек", ["pickup"] = "Выдать к", ["table"] = "Стол",
         },
         ["kk"] = new()
         {
             ["subtotal"] = "Аралық сома", ["discount"] = "Жеңілдік", ["total"] = "Барлығы", ["bonus"] = "Бонуспен төленді",
             ["paid"] = "Төлеуге", ["method"] = "Төлем", ["thanks"] = "Рахмет!", ["test"] = "Сынақ басып шығару",
             ["testOk"] = "Принтер жұмыс істейді", ["currency"] = "тг", ["Cash"] = "Қолма-қол", ["Card"] = "Карта", ["Other"] = "Басқа",
-            ["fiscal"] = "Фискалдық чек", ["fiscalScan"] = "Чекті ашу үшін сканерлеңіз", ["pickup"] = "Беру уақыты",
+            ["fiscal"] = "Фискалдық чек", ["fiscalScan"] = "Чекті ашу үшін сканерлеңіз", ["pickup"] = "Беру уақыты", ["table"] = "Үстел",
         },
         ["en"] = new()
         {
             ["subtotal"] = "Subtotal", ["discount"] = "Discount", ["total"] = "Total", ["bonus"] = "Paid with bonus",
             ["paid"] = "To pay", ["method"] = "Payment", ["thanks"] = "Thank you!", ["test"] = "Test print",
             ["testOk"] = "The printer works", ["currency"] = "KZT", ["Cash"] = "Cash", ["Card"] = "Card", ["Other"] = "Other",
-            ["fiscal"] = "Tax receipt", ["fiscalScan"] = "Scan to open the receipt", ["pickup"] = "Pickup at",
+            ["fiscal"] = "Tax receipt", ["fiscalScan"] = "Scan to open the receipt", ["pickup"] = "Pickup at", ["table"] = "Table",
         },
     };
 
@@ -44,13 +44,15 @@ public static class PrintLayouts
     /// </summary>
     public static byte[] Ticket(Printer printer, Order order, IReadOnlyList<OrderItem> items, string? stationName)
     {
+        var w = Words.GetValueOrDefault(printer.Language) ?? Words["ru"];
         var p = new EscPos(printer.LineWidth, printer.CodeTable);
         p.Center().Big(true).Bold(true).Line($"#{ShortId(order.Id)}", p.Width / 2).Big(false).Bold(false);
+        // Staff carry a table order over instead of calling the guest, so the table stands out.
+        if (!string.IsNullOrWhiteSpace(order.TableLabel)) p.Big(true).Bold(true).Line($"{w["table"]} {order.TableLabel}", p.Width / 2).Big(false).Bold(false);
         var when = Local(order.AcceptedAt ?? order.CreatedAt).ToString("HH:mm", CultureInfo.InvariantCulture);
         p.Line(string.IsNullOrWhiteSpace(stationName) ? when : $"{stationName} · {when}");
         if (order.PickupAt is { } pickupAt)
         {
-            var w = Words.GetValueOrDefault(printer.Language) ?? Words["ru"];
             p.Bold(true).Line($"{w["pickup"]} {Local(pickupAt).ToString("HH:mm", CultureInfo.InvariantCulture)}").Bold(false);
         }
         if (CustomerName(order) is { Length: > 0 } name) p.Line(name);
@@ -82,6 +84,7 @@ public static class PrintLayouts
         p.Line(order.Location?.Name ?? "");
         p.Line(Local(order.CompletedAt ?? order.CreatedAt).ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture));
         p.Line($"#{ShortId(order.Id)}");
+        if (!string.IsNullOrWhiteSpace(order.TableLabel)) p.Bold(true).Line($"{w["table"]} {order.TableLabel}").Bold(false);
         p.Left().Rule();
         foreach (var item in order.Items)
         {

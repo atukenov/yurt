@@ -17,12 +17,13 @@ public static class ModuleKeys
     public const string OnlinePayments = "online_payments";
     public const string Verification = "verification";
     public const string Branding = "branding";
+    public const string TableOrdering = "table_ordering";
 
     /// <summary>Every known module, in display order.</summary>
     public static readonly IReadOnlyList<string> All =
     [
         Core, MultiLocation, Marketing, Loyalty, IikoSync, OwnPos, Push, Analytics,
-        GroupOrders, Engagement, StaffAudit, OnlinePayments, Verification, Branding
+        GroupOrders, Engagement, StaffAudit, OnlinePayments, Verification, Branding, TableOrdering
     ];
 
     public static bool IsKnown(string key) => All.Contains(key);

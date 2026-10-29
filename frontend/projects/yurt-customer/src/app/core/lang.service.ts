@@ -4,7 +4,7 @@ export type Lang = 'en' | 'ru' | 'kk';
 
 const T: Record<Lang, Record<string, string>> = {
   en: {
-    'profile.spentTotal': 'total', 'profile.achievementsHint': 'unlock rewards', 'profile.ordersHint': 'history and reorder', 'order.pickup': 'pickup',
+    'profile.spentTotal': 'total', 'profile.achievementsHint': 'unlock rewards', 'profile.ordersHint': 'history and reorder', 'order.pickup': 'pickup', 'table.welcome': 'You are at table {table}. We will bring your order to you.', 'table.notFound': 'This table QR code no longer works. Please ask the staff.', 'table.orderTo': 'To table {table}', 'table.pickupInstead': 'Pick up instead', 'table.confirm': 'We will bring your order to table {table}. Place it?', 'table.label': 'table {table}', 'table.ready': 'bringing it to you',
     'a11y.back': 'Back', 'a11y.close': 'Close', 'a11y.search': 'Search', 'a11y.closeSearch': 'Close search', 'a11y.toggleFavorite': 'Add to or remove from saved',
     'a11y.removeFavorite': 'Remove from saved', 'a11y.decrease': 'Decrease', 'a11y.increase': 'Increase', 'a11y.pinEntry': 'PIN entry',
     'nav.menu': 'Menu', 'nav.cart': 'Cart', 'nav.orders': 'Orders', 'nav.saved': 'Saved', 'nav.profile': 'Profile', 'nav.news': 'News',
@@ -139,7 +139,7 @@ const T: Record<Lang, Record<string, string>> = {
     'order.payOnline': 'Pay online now', 'order.paidOnlineThanks': 'Thank you! Your payment is being confirmed.', 'order.payOnlineCancelled': 'Payment cancelled. You can pay again here or at the counter.', 'order.refunded': 'The money was returned to your card.',
   },
   ru: {
-    'profile.spentTotal': 'всего', 'profile.achievementsHint': 'открывайте награды', 'profile.ordersHint': 'история и повтор', 'order.pickup': 'самовывоз',
+    'profile.spentTotal': 'всего', 'profile.achievementsHint': 'открывайте награды', 'profile.ordersHint': 'история и повтор', 'order.pickup': 'самовывоз', 'table.welcome': 'Вы за столом {table}. Заказ принесём к вам.', 'table.notFound': 'Этот QR-код стола больше не работает. Обратитесь к персоналу.', 'table.orderTo': 'К столу {table}', 'table.pickupInstead': 'Заберу сам', 'table.confirm': 'Принесём заказ к столу {table}. Оформить?', 'table.label': 'стол {table}', 'table.ready': 'несём к вам',
     'a11y.back': 'Назад', 'a11y.close': 'Закрыть', 'a11y.search': 'Поиск', 'a11y.closeSearch': 'Закрыть поиск', 'a11y.toggleFavorite': 'Добавить в избранное или убрать',
     'a11y.removeFavorite': 'Убрать из избранного', 'a11y.decrease': 'Уменьшить', 'a11y.increase': 'Увеличить', 'a11y.pinEntry': 'Ввод PIN-кода',
     'nav.menu': 'Меню', 'nav.cart': 'Корзина', 'nav.orders': 'Заказы', 'nav.saved': 'Избранное', 'nav.profile': 'Профиль', 'nav.news': 'Новости',
@@ -274,7 +274,7 @@ const T: Record<Lang, Record<string, string>> = {
     'order.payOnline': 'Оплатить онлайн', 'order.paidOnlineThanks': 'Спасибо! Оплата подтверждается.', 'order.payOnlineCancelled': 'Оплата отменена. Можно оплатить ещё раз здесь или на кассе.', 'order.refunded': 'Деньги возвращены на вашу карту.',
   },
   kk: {
-    'profile.spentTotal': 'барлығы', 'profile.achievementsHint': 'марапаттарды ашыңыз', 'profile.ordersHint': 'тарих және қайталау', 'order.pickup': 'өзі алып кету',
+    'profile.spentTotal': 'барлығы', 'profile.achievementsHint': 'марапаттарды ашыңыз', 'profile.ordersHint': 'тарих және қайталау', 'order.pickup': 'өзі алып кету', 'table.welcome': 'Үстел {table}. Тапсырысыңызды өзіңізге әкелеміз.', 'table.notFound': 'Бұл үстелдің QR-коды енді жұмыс істемейді. Қызметкерге хабарласыңыз.', 'table.orderTo': 'Үстел {table}', 'table.pickupInstead': 'Өзім аламын', 'table.confirm': 'Тапсырысыңызды үстелге әкелеміз (үстел {table}). Рәсімдейміз бе?', 'table.label': 'үстел {table}', 'table.ready': 'сізге әкеле жатырмыз',
     'a11y.back': 'Артқа', 'a11y.close': 'Жабу', 'a11y.search': 'Іздеу', 'a11y.closeSearch': 'Іздеуді жабу', 'a11y.toggleFavorite': 'Сақталғандарға қосу немесе алып тастау',
     'a11y.removeFavorite': 'Сақталғандардан алып тастау', 'a11y.decrease': 'Азайту', 'a11y.increase': 'Көбейту', 'a11y.pinEntry': 'PIN-кодты енгізу',
     'nav.menu': 'Мәзір', 'nav.cart': 'Себет', 'nav.orders': 'Тапсырыстар', 'nav.saved': 'Сақталған', 'nav.profile': 'Профиль', 'nav.news': 'Жаңалықтар',

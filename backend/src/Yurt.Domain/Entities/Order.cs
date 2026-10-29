@@ -9,6 +9,12 @@ public class Order : BaseEntity, ITenantOwned
 
     public Guid CustomerUserId { get; set; }
     public Guid LocationId { get; set; }
+
+    // The table the guest ordered to by scanning its QR code (table_ordering). Null = pick up at the counter. The label is
+    // kept on the order so it still reads right after the table is renamed or deleted.
+    public Guid? DiningTableId { get; set; }
+    public string? TableLabel { get; set; }
+
     public OrderStatus Status { get; set; } = OrderStatus.Created;
     public string? DeclineReason { get; set; }
     public int? EtaMinutes { get; set; }

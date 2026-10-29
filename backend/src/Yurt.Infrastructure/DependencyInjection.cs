@@ -32,6 +32,7 @@ using Yurt.Application.Features.Tenants;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Shifts;
 using Yurt.Application.Features.Stations;
+using Yurt.Application.Features.Tables;
 using Yurt.Application.Features.Printing;
 using Yurt.Infrastructure.Printing;
 using Yurt.Application.Features.Stock;
@@ -189,6 +190,7 @@ public static class DependencyInjection
         services.AddScoped<FiscalReceiptService>();
         services.AddScoped<FiscalSettingsService>();
         services.AddScoped<StationService>();
+        services.AddScoped<TableService>();
         services.AddScoped<StationReadyService>();
         services.AddSingleton<PrintQueueSignal>();
         services.AddSingleton<IPrinterTransport, TcpPrinterTransport>();

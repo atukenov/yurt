@@ -44,6 +44,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<OrderPayment> OrderPayments => Set<OrderPayment>();
     public DbSet<FiscalReceipt> FiscalReceipts => Set<FiscalReceipt>();
     public DbSet<Station> Stations => Set<Station>();
+    public DbSet<DiningTable> DiningTables => Set<DiningTable>();
     public DbSet<OrderStationReady> OrderStationReadies => Set<OrderStationReady>();
     public DbSet<Printer> Printers => Set<Printer>();
     public DbSet<PrintJob> PrintJobs => Set<PrintJob>();

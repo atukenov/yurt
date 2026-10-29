@@ -50,7 +50,7 @@ public class OrdersHubService : IOrdersHubService
             .Group($"customer:{order.CustomerUserId}")
             .SendAsync("OrderUpdated", dto, ct);
 
-        var copy = StatusPushCopy(order.Status);
+        var copy = StatusPushCopy(order.Status, order.TableLabel);
         if (copy != null)
         {
             await _push.SendOrderStatusPushAsync(
@@ -80,8 +80,10 @@ public class OrdersHubService : IOrdersHubService
     /// <summary>Short fixed Russian copy per status — the backend has no persisted
     /// per-customer language preference today, matching the frontend's own
     /// default-language fallback. Null (Created and any other value) sends no push.</summary>
-    private static (string Title, string Body)? StatusPushCopy(OrderStatus status) => status switch
+    private static (string Title, string Body)? StatusPushCopy(OrderStatus status, string? table) => status switch
     {
+        // A table order is carried over by staff, so the guest does not come to the counter.
+        OrderStatus.Ready when !string.IsNullOrWhiteSpace(table) => ("Заказ готов", $"Несём ваш заказ к столу {table}"),
         OrderStatus.Accepted => ("Заказ принят", "Ваш заказ принят и готовится"),
         OrderStatus.Preparing => ("Заказ готовится", "Ваш заказ готовится"),
         OrderStatus.Ready => ("Заказ готов", "Ваш заказ готов к выдаче"),

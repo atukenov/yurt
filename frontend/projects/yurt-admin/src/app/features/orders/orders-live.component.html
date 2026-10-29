@@ -95,6 +95,9 @@
                 <p class="text-xs font-medium text-slate-700 truncate mt-0.5">
                   {{ order.customerName }}
                 </p>
+                @if (order.tableLabel) {
+                  <p class="text-xs font-bold text-brand-ink mt-0.5">🍽️ {{ 'tables.tableN' | t: { table: order.tableLabel } }}</p>
+                }
                 <p class="text-xs text-slate-500 mt-0.5">
                   {{ order.createdAt | ldate: 'HH:mm' }} · {{ 'common.items' | t: { count: totalQty(order) } }}
                 </p>
@@ -140,6 +143,11 @@
               {{ 'orders.orderNo' | t: { no: o.id.slice(-6).toUpperCase() } }}
             </h2>
             <p class="text-slate-800 text-sm font-semibold">{{ o.customerName }}</p>
+            @if (o.tableLabel) {
+              <p class="mt-1 inline-block rounded-lg bg-brand-50 px-2.5 py-1 text-base font-bold text-brand-ink">
+                🍽️ {{ 'tables.tableN' | t: { table: o.tableLabel } }} · {{ 'tables.bringIt' | t }}
+              </p>
+            }
             @if (o.customerPhone) {
               <div class="mt-1">
                 <span class="text-xs text-slate-500">{{ 'label.phone' | t }}</span>

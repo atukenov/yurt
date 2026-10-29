@@ -2,7 +2,7 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Application.Features.Orders.DTOs;
 
-public record CreateOrderDto(Guid LocationId, List<OrderItemInputDto> Items, PaymentMethod? PaymentMethod = null, string? DiscountCode = null, string? IdempotencyKey = null, decimal? LoyaltyPointsToSpend = null, DateTime? PickupAt = null);
+public record CreateOrderDto(Guid LocationId, List<OrderItemInputDto> Items, PaymentMethod? PaymentMethod = null, string? DiscountCode = null, string? IdempotencyKey = null, decimal? LoyaltyPointsToSpend = null, DateTime? PickupAt = null, string? TableCode = null);
 public record OrderItemInputDto(Guid MenuItemId, int Quantity, List<OrderItemToppingInputDto>? Toppings = null, string? Notes = null, Guid? VariantId = null);
 public record OrderItemToppingInputDto(Guid ToppingId, string ToppingName, decimal Price);
 
@@ -43,7 +43,9 @@ public record OrderDto(
     string? FiscalReceiptUrl = null,
     string? FiscalReturnUrl = null,
     // When the guest wants to pick the order up (UTC); null = as soon as possible.
-    DateTime? PickupAt = null);
+    DateTime? PickupAt = null,
+    // The table the guest ordered to by its QR code (table_ordering); null = pick up at the counter.
+    string? TableLabel = null);
 
 public record OrderItemDto(
     Guid Id,

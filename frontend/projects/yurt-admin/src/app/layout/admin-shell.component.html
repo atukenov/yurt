@@ -85,6 +85,23 @@
         </a>
         }
 
+        @if (modules.isEnabled('table_ordering')) {
+        <a
+          routerLink="/tables"
+          routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
+          ariaCurrentWhenActive="page"
+          [title]="collapsed() ? ('nav.tables' | t) : ''"
+          [attr.aria-label]="'nav.tables' | t"
+          [class]="collapsed() ? 'justify-center px-0' : 'px-3'"
+          class="flex items-center gap-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors text-sm"
+        >
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z" />
+          </svg>
+          @if (!collapsed()) { <span class="truncate">{{ 'nav.tables' | t }}</span> }
+        </a>
+        }
+
         @if (modules.isEnabled('own_pos')) {
         <a
           routerLink="/printers"

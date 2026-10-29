@@ -10,6 +10,11 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    // The QR code on a table opens this; it works signed in or not.
+    path: 't/:code',
+    loadComponent: () => import('./features/table/table-link.component').then((m) => m.TableLinkComponent),
+  },
+  {
     path: 'auth',
     canActivateChild: [noAuthGuard],
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),

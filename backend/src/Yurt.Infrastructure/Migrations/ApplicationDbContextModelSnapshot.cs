@@ -394,6 +394,52 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("CustomerUsers");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.DiningTable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("LocationId", "Label")
+                        .IsUnique();
+
+                    b.ToTable("DiningTables");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.DiscountCode", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1326,6 +1372,9 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid?>("DiningTableId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal>("DiscountAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(10, 2)
@@ -1405,6 +1454,10 @@ namespace Yurt.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<string>("TableLabel")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<Guid>("TenantId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
@@ -1418,6 +1471,8 @@ namespace Yurt.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DiningTableId");
 
                     b.HasIndex("DiscountCodeId");
 
@@ -2630,6 +2685,23 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.DiningTable", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.DiscountCode", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
@@ -2949,6 +3021,11 @@ namespace Yurt.Infrastructure.Migrations
                         .HasForeignKey("CustomerUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.DiningTable", null)
+                        .WithMany()
+                        .HasForeignKey("DiningTableId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Yurt.Domain.Entities.DiscountCode", "DiscountCode")
                         .WithMany("Orders")

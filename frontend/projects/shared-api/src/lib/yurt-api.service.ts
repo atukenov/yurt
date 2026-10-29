@@ -51,6 +51,8 @@ import {
   StockAlerts,
   StockChange,
   Station,
+  DiningTable,
+  TableLookup,
   StationRouting,
   Printer,
   SavePrinter,
@@ -671,6 +673,35 @@ export class YurtApiService {
 
   setStockAlertPhones(phones: string[]): Observable<StockAlertPhone[]> {
     return this.http.put<StockAlertPhone[]>(`${this.api}/admin/stock/alert-phones`, { phones });
+  }
+
+  // ── Tables with QR codes (table_ordering) ─────────────────────────────────
+
+  lookupTable(code: string): Observable<TableLookup> {
+    // The table screen says itself when a code is not found.
+    return this.http.get<TableLookup>(`${this.api}/tables/${encodeURIComponent(code)}`, {
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
+  }
+
+  getTables(locationId: string): Observable<DiningTable[]> {
+    return this.http.get<DiningTable[]>(`${this.api}/admin/tables`, { params: new HttpParams().set('locationId', locationId) });
+  }
+
+  createTables(locationId: string, labels: string[]): Observable<DiningTable[]> {
+    return this.http.post<DiningTable[]>(`${this.api}/admin/tables`, { locationId, labels });
+  }
+
+  renameTable(id: string, label: string): Observable<DiningTable> {
+    return this.http.put<DiningTable>(`${this.api}/admin/tables/${id}`, { label });
+  }
+
+  newTableCode(id: string): Observable<DiningTable> {
+    return this.http.post<DiningTable>(`${this.api}/admin/tables/${id}/new-code`, {});
+  }
+
+  deleteTable(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/tables/${id}`);
   }
 
   getStationRouting(): Observable<StationRouting> {
