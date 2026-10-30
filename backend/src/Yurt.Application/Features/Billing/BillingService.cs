@@ -64,6 +64,7 @@ public class BillingService(
             db.CafeBillings.Add(row);
         }
         row.MonthlyPrice = dto.MonthlyPrice;
+        row.PriceByHand = true;
         row.Currency = currency;
         // Every billable module ticked is the same as "all", and stays "all" when new modules are added later.
         row.ModuleKeys = keys.Count == 0 || keys.Count == BillableModules.Count ? null : string.Join(",", keys);
@@ -258,8 +259,9 @@ public class BillingService(
     private static bool IsRunning(CafeBilling? row)
         => row is { StripeSubscriptionId: not null, Status: { } status } && RunningStatuses.Contains(status);
 
-    private static List<string> CoveredModules(CafeBilling? row)
-        => string.IsNullOrEmpty(row?.ModuleKeys)
+    /// <summary>Modules a paid month extends: null = every billable module (older plans), empty = none.</summary>
+    internal static List<string> CoveredModules(CafeBilling? row)
+        => row?.ModuleKeys is null
             ? BillableModules
             : row.ModuleKeys.Split(',', StringSplitOptions.RemoveEmptyEntries).Where(BillableModules.Contains).ToList();
 

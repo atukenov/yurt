@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
-import { ToastService, LocalDatePipe } from 'shared-ui';
-import { CafeAccess, FiscalSettings, PaymentSettings, PlatformBilling, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { ToastService, LocalDatePipe, LocalNumberPipe } from 'shared-ui';
+import { CafeAccess, FiscalSettings, ModulePlan, PaymentSettings, PlatformBilling, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { AdminLangService } from '../../core/lang.service';
+import { groupModules, planTotal } from './module-groups';
 
 interface ModuleEdit {
   enabled: boolean;
@@ -19,7 +20,7 @@ interface ModuleEdit {
 @Component({
   selector: 'app-platform',
   standalone: true,
-  imports: [LocalDatePipe, CommonModule, FormsModule, RouterLink, AdminTranslatePipe, PictureUploadComponent],
+  imports: [LocalDatePipe, LocalNumberPipe, CommonModule, FormsModule, RouterLink, AdminTranslatePipe, PictureUploadComponent],
   templateUrl: './platform.component.html',
 })
 export class PlatformComponent implements OnInit {
@@ -56,8 +57,129 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadPlan();
     this.loadBilling();
     this.loadAccess();
+  }
+
+  // ── Modules and their monthly price (one save switches modules and sets what the monthly payment covers) ──
+  plan = signal<ModulePlan | null>(null);
+  planOn: Record<string, boolean> = {};
+  planPrice: Record<string, number | null> = {};
+  planCurrency = 'usd';
+  planByHand = false;
+  planMonthlyPrice: number | null = null;
+  savingPlan = signal(false);
+  moduleGroups = computed(() => groupModules((this.plan()?.modules ?? []).map((m) => m.key)));
+  openGroups = signal<ReadonlySet<string>>(new Set(['basics']));
+  /** Module whose dates and notes are shown. */
+  detailsKey = signal<string | null>(null);
+
+  private loadPlan(): void {
+    this.api.getModulePlan().subscribe({ next: (p) => this.setPlan(p), error: () => this.plan.set(null) });
+  }
+
+  private setPlan(p: ModulePlan): void {
+    this.plan.set(p);
+    this.planOn = Object.fromEntries(p.modules.map((m) => [m.key, m.on]));
+    this.planPrice = Object.fromEntries(p.modules.map((m) => [m.key, m.price]));
+    this.planCurrency = p.currency;
+    this.planByHand = p.priceByHand;
+    this.planMonthlyPrice = p.priceByHand ? p.monthlyPrice : null;
+  }
+
+  moduleStatus(key: string): PlatformModule | undefined {
+    return this.modules().find((m) => m.key === key);
+  }
+
+  isGroupOpen(key: string): boolean {
+    return this.openGroups().has(key);
+  }
+
+  toggleGroup(key: string): void {
+    this.openGroups.update((open) => {
+      const next = new Set(open);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  }
+
+  setAllGroups(open: boolean): void {
+    this.openGroups.set(new Set(open ? this.moduleGroups().map((g) => g.key) : []));
+  }
+
+  toggleModule(key: string): void {
+    if (key === 'core') return;
+    this.planOn[key] = !this.planOn[key];
+  }
+
+  toggleDetails(key: string): void {
+    this.detailsKey.update((k) => (k === key ? null : key));
+  }
+
+  private priceOf(key: string): number | null {
+    const v = this.planPrice[key] as unknown;
+    return v === null || v === undefined || v === '' ? null : Number(v);
+  }
+
+  private planItems(keys: string[]) {
+    return keys.map((key) => ({ key, on: key === 'core' || !!this.planOn[key], price: this.priceOf(key) }));
+  }
+
+  planTotal(): number {
+    return planTotal(this.planItems(Object.keys(this.planOn)));
+  }
+
+  groupTotal(keys: string[]): number {
+    return planTotal(this.planItems(keys));
+  }
+
+  groupOnCount(keys: string[]): number {
+    return keys.filter((k) => k === 'core' || this.planOn[k]).length;
+  }
+
+  /** What the cafe will be charged with the current choices. */
+  chargedPrice(): number | null {
+    if (this.planByHand) return this.planMonthlyPrice === null || (this.planMonthlyPrice as unknown) === '' ? null : Number(this.planMonthlyPrice);
+    const total = this.planTotal();
+    return total > 0 ? total : null;
+  }
+
+  planDirty(): boolean {
+    const p = this.plan();
+    if (!p) return false;
+    return p.currency !== this.planCurrency
+      || p.priceByHand !== this.planByHand
+      || (this.planByHand && p.monthlyPrice !== this.chargedPrice())
+      || p.modules.some((m) => m.key !== 'core' && (m.on !== !!this.planOn[m.key] || m.price !== this.priceOf(m.key)))
+      || p.modules.some((m) => m.key === 'core' && m.price !== this.priceOf(m.key));
+  }
+
+  resetPlan(): void {
+    const p = this.plan();
+    if (p) this.setPlan(p);
+  }
+
+  savePlan(): void {
+    const p = this.plan();
+    if (!p) return;
+    this.savingPlan.set(true);
+    this.api.saveModulePlan({
+      modules: this.planItems(p.modules.map((m) => m.key)),
+      currency: this.planCurrency,
+      priceByHand: this.planByHand,
+      monthlyPrice: this.planByHand ? this.chargedPrice() : null,
+    }).subscribe({
+      next: (saved) => {
+        this.setPlan(saved);
+        this.savingPlan.set(false);
+        // Module states, dependency warnings and the billing card all follow the plan.
+        this.api.getPlatformModules().subscribe((list) => this.setModules(list));
+        this.loadBilling();
+        this.toast.success(this.lang.t('common.saved'));
+      },
+      error: () => this.savingPlan.set(false),
+    });
   }
 
   // ── Loyalty wallet (iiko → own wallet) ──
@@ -163,36 +285,11 @@ export class PlatformComponent implements OnInit {
   }
 
   // ── Monthly billing (platform owner's Stripe account) ──
+  // Price and covered modules are set in the Modules section; this card shows the Stripe side.
   billing = signal<PlatformBilling | null>(null);
-  billingPrice: number | null = null;
-  billingCurrency = 'usd';
-  billingModules: Record<string, boolean> = {};
-  savingBilling = signal(false);
 
   private loadBilling(): void {
-    this.billing.set(null);
-    this.api.getPlatformBilling().subscribe({ next: (b) => this.setBilling(b), error: () => this.billing.set(null) });
-  }
-
-  private setBilling(b: PlatformBilling): void {
-    this.billing.set(b);
-    this.billingPrice = b.monthlyPrice;
-    this.billingCurrency = b.currency;
-    this.billingModules = Object.fromEntries(b.availableModules.map((k) => [k, b.modules.includes(k)]));
-  }
-
-  saveBilling(): void {
-    const b = this.billing();
-    if (!b) return;
-    this.savingBilling.set(true);
-    this.api.setPlatformBilling({
-      monthlyPrice: this.billingPrice === null || (this.billingPrice as unknown) === '' ? null : Number(this.billingPrice),
-      currency: this.billingCurrency,
-      modules: b.availableModules.filter((k) => this.billingModules[k]),
-    }).subscribe({
-      next: (saved) => { this.setBilling(saved); this.savingBilling.set(false); this.toast.success(this.lang.t('common.saved')); },
-      error: () => this.savingBilling.set(false),
-    });
+    this.api.getPlatformBilling().subscribe({ next: (b) => this.billing.set(b), error: () => this.billing.set(null) });
   }
 
   copyWebhookUrl(url: string): void {
@@ -407,6 +504,7 @@ export class PlatformComponent implements OnInit {
     this.loadLedger();
     this.loadFiscal();
     this.loadPayments();
+    this.loadPlan();
     this.loadBilling();
     this.loadAccess();
     this.api.getIntegrationStatus().subscribe({ next: (i) => this.integrations.set(i) });
@@ -444,6 +542,7 @@ export class PlatformComponent implements OnInit {
       next: () => {
         // Re-read the whole list so dependency warnings for other modules refresh too.
         this.api.getPlatformModules().subscribe((list) => this.setModules(list));
+        this.loadPlan();
         this.savingKey.set(null);
         this.toast.success(this.lang.t('common.saved'));
       },

@@ -48,6 +48,15 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> UpdateModule(string key, [FromBody] UpdateModuleLicenseDto dto, CancellationToken ct)
         => ToResult(await _platform.UpdateModuleAsync(key, dto, ct));
 
+    /// <summary>The cafe's modules with their monthly prices; saving switches modules and sets what the monthly payment covers.</summary>
+    [HttpGet("module-plan")]
+    public async Task<IActionResult> GetModulePlan([FromServices] ModulePlanService plan, CancellationToken ct)
+        => Ok(await plan.GetAsync(ct));
+
+    [HttpPut("module-plan")]
+    public async Task<IActionResult> SaveModulePlan([FromServices] ModulePlanService plan, [FromBody] SaveModulePlanDto dto, CancellationToken ct)
+        => ToResult(await plan.SaveAsync(dto, ct));
+
     [HttpGet("maintenance")]
     public async Task<IActionResult> GetMaintenance(CancellationToken ct)
         => Ok(await _platform.GetMaintenanceAsync(ct));

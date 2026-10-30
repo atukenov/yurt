@@ -116,6 +116,7 @@ public static class DependencyInjection
         services.AddHttpClient<StripeBillingGateway>();
         services.AddScoped<IBillingGateway>(sp => sp.GetRequiredService<StripeBillingGateway>());
         services.AddScoped<BillingService>();
+        services.AddScoped<ModulePlanService>();
 
         // WhatsApp OTP for customer registration (feature-flagged via Otp:Enabled; secrets via env vars)
         services.AddSingleton(configuration.GetSection("Otp").Get<OtpOptions>() ?? new OtpOptions());

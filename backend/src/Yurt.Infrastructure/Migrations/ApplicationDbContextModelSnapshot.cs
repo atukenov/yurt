@@ -206,12 +206,19 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("ModulePrices")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<decimal?>("MonthlyPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime?>("PaidUntil")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("PriceByHand")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Status")
                         .HasMaxLength(30)

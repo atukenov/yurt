@@ -11,8 +11,9 @@ namespace Yurt.Application.Features.Platform;
 
 /// <summary>
 /// Operator tool to open a new cafe on the shared database: the cafe row, its first admin (who must change the
-/// password at first login) and a starting brand with the cafe's name. Menu and locations are left empty; the new
-/// admin fills them in. Every change is audited and the cafe list cache is cleared so the new address works at once.
+/// password at first login) and a starting brand with the cafe's name. Only the core module is on; every other module
+/// starts switched off until the operator turns it on (and prices it) on the Platform screen. Menu and locations are
+/// left empty; the new admin fills them in. Every change is audited and the cafe list cache is cleared so the new address works at once.
 /// </summary>
 public class CafeProvisioningService
 {
@@ -81,6 +82,17 @@ public class CafeProvisioningService
             Key = PlatformSettingKeys.Brand,
             Value = JsonSerializer.Serialize(brand, BrandJson),
         });
+        foreach (var key in ModuleKeys.All.Where(k => k != ModuleKeys.Core))
+        {
+            _db.ModuleLicenses.Add(new ModuleLicense
+            {
+                TenantId = tenant.Id,
+                ModuleKey = key,
+                Enabled = false,
+                Source = ModuleLicenseSource.Manual,
+                Notes = "Off when the cafe was opened",
+            });
+        }
         await _db.SaveChangesAsync(ct);
         _directory.Invalidate();
 

@@ -17,8 +17,16 @@ public class CafeBilling : BaseEntity, ITenantOwned
     /// <summary>Lowercase ISO code Stripe uses: "usd", "eur" or "kzt".</summary>
     public string Currency { get; set; } = "usd";
 
-    /// <summary>Comma-separated module keys a payment extends. Null = every module except core.</summary>
+    /// <summary>Comma-separated module keys a payment extends. Null = every module except core; empty = none.</summary>
     public string? ModuleKeys { get; set; }
+
+    /// <summary>Monthly price of each module as JSON (<c>{"core":20,"marketing":10}</c>); core is the base fee.
+    /// Null = no prices set yet.</summary>
+    public string? ModulePrices { get; set; }
+
+    /// <summary>True: <see cref="MonthlyPrice"/> was typed by the operator. False: it is the sum of the prices of core
+    /// and the switched-on modules, worked out again on every save of the module plan.</summary>
+    public bool PriceByHand { get; set; }
 
     public string? StripeCustomerId { get; set; }
     public string? StripeSubscriptionId { get; set; }

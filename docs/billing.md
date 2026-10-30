@@ -5,8 +5,10 @@ online order payments (`online_payments`), where customers pay into **the cafe's
 
 ## How it works
 
-1. On **Platform → Monthly billing** (cafe picked at the top) the owner sets the cafe's monthly price, the currency
-   (USD, EUR or KZT) and which modules a paid month covers (default: every module except core).
+1. On **Platform → Modules and monthly price** (cafe picked at the top) the owner switches modules on or off and gives
+   each one a monthly price, in USD, EUR or KZT. Core is always on and its price is the base fee. The monthly price is
+   core plus every module that is on, unless the owner ticks *Set the monthly price by hand* (for a discount). One
+   save does both: the cafe can use exactly the modules that are on, and a paid month covers exactly those.
 2. The cafe's admin opens **Subscription** and presses **Pay monthly by card**. Stripe's own page takes the card
    (Apple Pay / Google Pay too, if switched on in Stripe) and starts a monthly subscription.
 3. Every time Stripe charges the card (`invoice.paid`), Yurt sets the covered modules to *on*, source *Paid*, valid
@@ -36,8 +38,12 @@ Live keys (`sk_live_...`) are refused until `Stripe__AllowLiveKeys=true`, the sa
 
 - Each paid invoice also moves the cafe's `Tenant.PaidUntil` (limited mode, see `docs/modules.md`), so a payment lifts
   limited mode at once.
-- Data: table `CafeBillings` (one row per cafe): price, currency, modules, Stripe customer and subscription ids,
-  status, paid-until date, last payment.
+- Data: table `CafeBillings` (one row per cafe): price, currency, modules (`ModuleKeys`: null = every module, for plans
+  saved before module prices; empty = none), module prices (`ModulePrices`, JSON), whether the price was typed by hand
+  (`PriceByHand`), Stripe customer and subscription ids, status, paid-until date, last payment.
+- API: `GET/PUT /api/v1/platform/module-plan` (SuperAdmin). Modules not sent keep their state and price. Switching a
+  module on that has run out gives it the paid-until date (or no end date when the cafe does not pay by card yet).
+  The older `PUT /api/v1/platform/billing` still works and marks the price as typed by hand.
 - The cafe is found from `tenant_id` in the subscription metadata (Yurt sets it at checkout), else from the stored
   subscription or customer id. An `invoice.paid` that matches no cafe answers 409 so Stripe sends it again later.
 - A price change applies to new subscriptions only. Change a running one in the Stripe dashboard.
