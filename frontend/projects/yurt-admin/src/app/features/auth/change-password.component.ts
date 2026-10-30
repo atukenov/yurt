@@ -6,6 +6,7 @@ import { AuthStateService, BrandService, YurtApiService } from 'shared-api';
 import { ButtonComponent } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
+import { homeLink } from '../../layout/admin-nav';
 
 @Component({
   selector: 'app-change-password',
@@ -116,7 +117,7 @@ export class ChangePasswordComponent {
         this.auth.updateTokens(res.accessToken, res.refreshToken);
         this.loading.set(false);
         this.success.set(true);
-        setTimeout(() => this.router.navigate(['/dashboard']), 1500);
+        setTimeout(() => this.router.navigateByUrl(homeLink(this.auth.isSuperAdmin)), 1500);
       },
       error: (err) => {
         this.loading.set(false);
