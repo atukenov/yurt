@@ -9,6 +9,8 @@ const CACHE_KEY = 'yurt.brand';
 /** The built-in Yurt colours live in shared-ui theme/brand.css; a brand with these values changes nothing. */
 const DEFAULT_PRIMARY = '#ffd119';
 const DEFAULT_ACCENT = '#ea580c';
+/** The platform's own look: the Yurt name, colours, logo, font and corners. */
+const NEUTRAL_BRAND: BrandConfig = { name: 'Yurt', primaryColor: DEFAULT_PRIMARY, accentColor: DEFAULT_ACCENT };
 const STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
 
 /**
@@ -42,17 +44,37 @@ export class BrandService {
   readonly welcomeText = signal<string | null>(null);
   /** Social / website links (https only) for the profile screen. */
   readonly links = signal<BrandLink[]>([]);
+  /** True while the neutral Yurt look is forced (admin panel signed out or used by the platform operator). */
+  readonly neutral = signal(false);
   private defaultIconHref: string | null = null;
+  /** The last brand from the server or cache, re-applied when the neutral look is switched off. */
+  private latest: BrandConfig | null = null;
 
   constructor() {
     const cached = this.readCache();
-    if (cached) this.apply(cached, false);
+    if (cached) {
+      this.latest = cached;
+      this.apply(cached, false);
+    }
   }
 
-  /** Applies the brand from the server and remembers it for the next start. */
+  /** Applies the brand from the server and remembers it for the next start (kept aside while the neutral look is on). */
   set(brand: BrandConfig | undefined | null): void {
     if (!brand) return;
+    this.latest = brand;
+    if (this.neutral()) return;
     this.apply(brand, true);
+  }
+
+  /**
+   * Shows the plain Yurt look instead of the cafe's brand (on), or brings the cafe's brand back (off). The admin panel
+   * uses it: it belongs to the platform, so only a signed-in cafe admin sees their cafe's colours there.
+   */
+  useNeutral(on: boolean): void {
+    if (this.neutral() === on) return;
+    this.neutral.set(on);
+    if (on) this.apply(NEUTRAL_BRAND, false);
+    else if (this.latest) this.apply(this.latest, false);
   }
 
   private apply(brand: BrandConfig, persist: boolean): void {

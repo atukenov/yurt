@@ -42,3 +42,42 @@ describe('BrandService logo', () => {
     expect(brand.logo()).toBeNull();
   });
 });
+
+describe('BrandService neutral look', () => {
+  let brand: BrandService;
+  const blue = { name: 'Blue Cafe', primaryColor: '#1d4ed8', accentColor: '#0ea5e9', logoUrl: 'https://cdn.example.com/logo.png', radius: 'square' };
+  const root = () => document.documentElement.style;
+
+  beforeEach(() => {
+    try { localStorage.clear(); } catch { /* no storage */ }
+    TestBed.configureTestingModule({});
+    brand = TestBed.inject(BrandService);
+    brand.useNeutral(false);
+  });
+
+  it('replaces the cafe brand with the Yurt look and brings it back', () => {
+    brand.set(blue);
+    expect(root().getPropertyValue('--brand-500')).not.toBe('');
+
+    brand.useNeutral(true);
+    expect(brand.name()).toBe('Yurt');
+    expect(brand.logo()).toBeNull();
+    expect(root().getPropertyValue('--brand-500')).toBe('');
+    expect(root().getPropertyValue('--radius-scale')).toBe('');
+
+    brand.useNeutral(false);
+    expect(brand.name()).toBe('Blue Cafe');
+    expect(brand.logo()).toBe('https://cdn.example.com/logo.png');
+    expect(root().getPropertyValue('--brand-500')).not.toBe('');
+  });
+
+  it('keeps a brand that arrives while neutral for later, without showing it', () => {
+    brand.useNeutral(true);
+    brand.set(blue);
+    expect(brand.name()).toBe('Yurt');
+    expect(root().getPropertyValue('--brand-500')).toBe('');
+
+    brand.useNeutral(false);
+    expect(brand.name()).toBe('Blue Cafe');
+  });
+});
