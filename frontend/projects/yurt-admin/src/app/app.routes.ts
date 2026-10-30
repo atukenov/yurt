@@ -38,6 +38,11 @@ export const routes: Routes = [
               import('./features/platform/cafe-wizard.component').then((m) => m.CafeWizardComponent),
           },
           {
+            path: 'go-live',
+            loadComponent: () =>
+              import('./features/platform/go-live.component').then((m) => m.GoLiveComponent),
+          },
+          {
             path: 'app-releases',
             loadComponent: () =>
               import('./features/app-releases/app-releases.component').then((m) => m.AppReleasesComponent),

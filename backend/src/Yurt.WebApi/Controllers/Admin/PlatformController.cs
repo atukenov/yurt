@@ -161,6 +161,17 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> ClearCafeSecret(Guid id, string key, CancellationToken ct)
         => ToResult(await _secrets.ClearAsync(id, key, ct));
 
+    /// <summary>What the chosen cafe still needs before it goes live, with the server settings every cafe shares.
+    /// Only says set or missing; never returns a secret value.</summary>
+    [HttpGet("go-live")]
+    public async Task<IActionResult> GetGoLive([FromServices] GoLiveChecklistService checklist, CancellationToken ct)
+    {
+        var alerts = !string.IsNullOrWhiteSpace(_config["Alerts:TelegramBotToken"]) && !string.IsNullOrWhiteSpace(_config["Alerts:TelegramChatId"]);
+        return await checklist.GetAsync(alerts, ct) is { } dto
+            ? Ok(dto)
+            : NotFound(new ProblemDetails { Title = "Cafe not found." });
+    }
+
     /// <summary>Whether each integration has its secrets configured. Never returns the values.</summary>
     [HttpGet("integrations")]
     public IActionResult GetIntegrations()

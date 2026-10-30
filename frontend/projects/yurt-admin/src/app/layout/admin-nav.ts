@@ -68,6 +68,7 @@ const ICON = {
   subscription: ['M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
   platform: ['M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'],
   newCafe: ['M12 4v16m8-8H4'],
+  goLive: ['M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
   appReleases: ['M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z'],
 };
 
@@ -129,6 +130,7 @@ const PLATFORM_NAV: NavGroupDef[] = [
     items: [
       { link: '/platform', label: 'nav.platform', icon: ICON.platform, exact: true },
       { link: '/platform/new-cafe', label: 'wiz.title', icon: ICON.newCafe },
+      { link: '/platform/go-live', label: 'nav.goLive', icon: ICON.goLive },
       { link: '/platform/app-releases', label: 'nav.appReleases', icon: ICON.appReleases },
     ],
   },
