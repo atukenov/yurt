@@ -42,6 +42,7 @@ How a gate is built:
 - **Covers:** `/api/v1/admin/workers/*` (create, edit, activate/deactivate staff accounts) and `GET /api/v1/admin/audit-log`; the admin **Staff** and **Audit log** pages and menu entries.
 - **When off:** those endpoints return `403 module_disabled`, the pages redirect to Orders and the menu entries are hidden.
 - **Keeps working:** existing staff accounts can still sign in and work orders (the module only covers managing accounts). The audit log keeps being written in the background so the history is complete when the module is switched back on; only reading it is gated.
+- **Who sees what:** a cafe admin sees only their own cafe's history. Platform operator actions (cafes, keys, licenses, maintenance, brand, billing, fiscal and payment settings, app releases, exports) are written with `IsPlatform` and only SuperAdmins see them: the operator's Audit log opens on **Platform actions** (all cafes, `scope=platform`) and can pick one cafe to see that cafe's own history (`scope=cafe` + `X-Tenant`). New platform-only actions must use `IAuditLogService.LogPlatformAsync`.
 - **Depends on:** nothing.
 
 ### `multi_location` (more than one branch)

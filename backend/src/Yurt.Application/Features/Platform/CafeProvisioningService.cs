@@ -84,7 +84,7 @@ public class CafeProvisioningService
         await _db.SaveChangesAsync(ct);
         _directory.Invalidate();
 
-        await _audit.LogAsync("CafeCreated", "Tenant", tenant.Id.ToString(), $"Opened cafe '{slug}'", ct);
+        await _audit.LogPlatformAsync("CafeCreated", "Tenant", tenant.Id.ToString(), $"Opened cafe '{slug}'", ct);
         return Result<CafeDto>.Success(new CafeDto(tenant.Id, slug, name, domain, true));
     }
 
@@ -99,7 +99,7 @@ public class CafeProvisioningService
         await _db.SaveChangesAsync(ct);
         _directory.Invalidate();
 
-        await _audit.LogAsync(isActive ? "CafeEnabled" : "CafeDisabled", "Tenant", id.ToString(), null, ct);
+        await _audit.LogPlatformAsync(isActive ? "CafeEnabled" : "CafeDisabled", "Tenant", id.ToString(), null, ct);
         return Result<CafeDto>.Success(new CafeDto(tenant.Id, tenant.Slug, tenant.Name, tenant.Domain, tenant.IsActive));
     }
 }

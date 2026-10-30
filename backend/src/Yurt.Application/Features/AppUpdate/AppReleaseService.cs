@@ -62,7 +62,7 @@ public class AppReleaseService
         Apply(release, dto);
         _db.AppReleases.Add(release);
         await _db.SaveChangesAsync(ct);
-        await _audit.LogAsync("AppReleaseCreated", "AppRelease", release.Id.ToString(), release.Version, ct);
+        await _audit.LogPlatformAsync("AppReleaseCreated", "AppRelease", release.Id.ToString(), release.Version, ct);
         return Result<AppReleaseDto>.Success(MapToDto(release), 201);
     }
 
@@ -81,7 +81,7 @@ public class AppReleaseService
         Apply(release, dto);
         release.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
-        await _audit.LogAsync("AppReleaseUpdated", "AppRelease", id.ToString(), release.Version, ct);
+        await _audit.LogPlatformAsync("AppReleaseUpdated", "AppRelease", id.ToString(), release.Version, ct);
         return Result<AppReleaseDto>.Success(MapToDto(release));
     }
 
@@ -92,7 +92,7 @@ public class AppReleaseService
         var version = release.Version;
         _db.AppReleases.Remove(release);
         await _db.SaveChangesAsync(ct);
-        await _audit.LogAsync("AppReleaseDeleted", "AppRelease", id.ToString(), version, ct);
+        await _audit.LogPlatformAsync("AppReleaseDeleted", "AppRelease", id.ToString(), version, ct);
         return Result<bool>.Success(true);
     }
 

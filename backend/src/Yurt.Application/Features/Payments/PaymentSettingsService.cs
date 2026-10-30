@@ -44,7 +44,7 @@ public class PaymentSettingsService(
         await db.SaveChangesAsync(ct);
         directory.Invalidate();
 
-        await audit.LogAsync("PaymentSettingsSaved", "Tenant", cafe.Id.ToString(), $"provider {provider ?? "none"}", ct);
+        await audit.LogPlatformAsync("PaymentSettingsSaved", "Tenant", cafe.Id.ToString(), $"provider {provider ?? "none"}", ct);
         return Result<PaymentSettingsDto>.Success(await ToDtoAsync(cafe, serverUrl, ct));
     }
 

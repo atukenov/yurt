@@ -69,7 +69,7 @@ public class BillingService(
         row.ModuleKeys = keys.Count == 0 || keys.Count == BillableModules.Count ? null : string.Join(",", keys);
         await db.SaveChangesAsync(ct);
 
-        await audit.LogAsync("BillingPlanSaved", "CafeBilling", tenant.TenantId.ToString(),
+        await audit.LogPlatformAsync("BillingPlanSaved", "CafeBilling", tenant.TenantId.ToString(),
             $"price={row.MonthlyPrice?.ToString() ?? "none"} {row.Currency}; modules={row.ModuleKeys ?? "all"}", ct);
         return Result<PlatformBillingDto>.Success(ToPlatformDto(row, serverUrl));
     }
@@ -179,14 +179,14 @@ public class BillingService(
             case BillingEventKind.CheckoutCompleted:
                 row.Status ??= "incomplete";
                 await db.SaveChangesAsync(ct);
-                await audit.LogAsync("BillingSubscribed", "CafeBilling", row.TenantId.ToString(), evt.SubscriptionId, ct);
+                await audit.LogPlatformAsync("BillingSubscribed", "CafeBilling", row.TenantId.ToString(), evt.SubscriptionId, ct);
                 break;
 
             case BillingEventKind.SubscriptionChanged:
                 row.Status = evt.Status;
                 row.CancelAtPeriodEnd = evt.CancelAtPeriodEnd;
                 await db.SaveChangesAsync(ct);
-                await audit.LogAsync("BillingSubscriptionChanged", "CafeBilling", row.TenantId.ToString(),
+                await audit.LogPlatformAsync("BillingSubscriptionChanged", "CafeBilling", row.TenantId.ToString(),
                     $"status={evt.Status}; cancelAtPeriodEnd={evt.CancelAtPeriodEnd}", ct);
                 break;
 
@@ -195,7 +195,7 @@ public class BillingService(
                 break;
 
             case BillingEventKind.InvoicePaymentFailed:
-                await audit.LogAsync("BillingPaymentFailed", "CafeBilling", row.TenantId.ToString(), evt.InvoiceId, ct);
+                await audit.LogPlatformAsync("BillingPaymentFailed", "CafeBilling", row.TenantId.ToString(), evt.InvoiceId, ct);
                 break;
         }
         return Result.Success();
@@ -237,7 +237,7 @@ public class BillingService(
         modules.Invalidate();
         directory.Invalidate();
 
-        await audit.LogAsync("BillingInvoicePaid", "CafeBilling", row.TenantId.ToString(),
+        await audit.LogPlatformAsync("BillingInvoicePaid", "CafeBilling", row.TenantId.ToString(),
             $"invoice={evt.InvoiceId}; amount={evt.Amount} {row.Currency}; paidUntil={row.PaidUntil:O}", ct);
     }
 

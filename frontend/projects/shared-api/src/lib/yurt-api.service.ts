@@ -986,7 +986,12 @@ export class YurtApiService {
   }
 
   // ── Audit Log ───────────────────────────────────────────────────────────────
+  /**
+   * The cafe admin always gets their own cafe's history. The operator gets the platform's own actions, or with
+   * `cafe` (a slug) that cafe's history.
+   */
   getAuditLog(params: {
+    cafe?: string;
     entityType?: string;
     adminId?: string;
     from?: string;
@@ -995,6 +1000,7 @@ export class YurtApiService {
     pageSize?: number;
   }): Observable<{ total: number; page: number; pageSize: number; items: AuditLogEntry[] }> {
     let httpParams = new HttpParams();
+    if (params.cafe) httpParams = httpParams.set('scope', 'cafe');
     if (params.entityType) httpParams = httpParams.set('entityType', params.entityType);
     if (params.adminId) httpParams = httpParams.set('adminId', params.adminId);
     if (params.from) httpParams = httpParams.set('from', params.from);
@@ -1003,7 +1009,7 @@ export class YurtApiService {
     if (params.pageSize) httpParams = httpParams.set('pageSize', params.pageSize);
     return this.http.get<{ total: number; page: number; pageSize: number; items: AuditLogEntry[] }>(
       `${this.api}/admin/audit-log`,
-      { params: httpParams },
+      { params: httpParams, ...this.forCafe(params.cafe) },
     );
   }
 

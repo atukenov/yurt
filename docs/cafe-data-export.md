@@ -9,7 +9,7 @@ A cafe owns its data. When it leaves, the platform operator gives it everything 
 3. Send the ZIP to the cafe owner over a safe channel: it holds customers' phone numbers and names.
 
 Server side this is `GET /api/v1/platform/cafes/{id}/export` (SuperAdmin only). Every export is written to the
-audit log as `CafeDataExported`. The export does not switch the cafe off or delete anything; do that separately
+platform audit log as `CafeDataExported` (operators see it, the cafe does not); the cafe's exported audit log leaves out platform rows. The export does not switch the cafe off or delete anything; do that separately
 with the **Active** switch once the cafe has its file.
 
 ## What is in the ZIP

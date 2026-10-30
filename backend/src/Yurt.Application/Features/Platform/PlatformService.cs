@@ -68,7 +68,7 @@ public class PlatformService
         // Stock counting hides sold-out items from the cached menu only while own_pos is on.
         if (key == ModuleKeys.OwnPos && _menuCache != null) await _menuCache.InvalidateAllMenuAsync();
 
-        await _audit.LogAsync("ModuleLicenseUpdated", "ModuleLicense", key,
+        await _audit.LogPlatformAsync("ModuleLicenseUpdated", "ModuleLicense", key,
             $"enabled={license.Enabled}; validUntil={license.ValidUntil:O}; source={license.Source}", ct);
 
         var all = await GetModulesAsync(ct);
@@ -92,7 +92,7 @@ public class PlatformService
         await _db.SaveChangesAsync(ct);
         _maintenance.Invalidate();
 
-        await _audit.LogAsync(dto.Enabled ? "MaintenanceEnabled" : "MaintenanceDisabled", "PlatformSetting",
+        await _audit.LogPlatformAsync(dto.Enabled ? "MaintenanceEnabled" : "MaintenanceDisabled", "PlatformSetting",
             PlatformSettingKeys.MaintenanceEnabled, message.Length == 0 ? null : message, ct);
         return Result<MaintenanceDto>.Success(new MaintenanceDto(dto.Enabled, message));
     }
@@ -141,7 +141,7 @@ public class PlatformService
 
         await UpsertAsync(PlatformSettingKeys.Brand, JsonSerializer.Serialize(brand, BrandJson), ct);
         await _db.SaveChangesAsync(ct);
-        await _audit.LogAsync("BrandUpdated", "PlatformSetting", PlatformSettingKeys.Brand,
+        await _audit.LogPlatformAsync("BrandUpdated", "PlatformSetting", PlatformSettingKeys.Brand,
             $"name={brand.Name}; primary={brand.PrimaryColor}; accent={brand.AccentColor}", ct);
         return Result<BrandDto>.Success(brand);
     }

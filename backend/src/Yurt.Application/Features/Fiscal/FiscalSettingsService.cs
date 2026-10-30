@@ -72,7 +72,7 @@ public class FiscalSettingsService(
         await db.SaveChangesAsync(ct);
         directory.Invalidate();
 
-        await audit.LogAsync("FiscalSettingsSaved", "Tenant", cafe.Id.ToString(),
+        await audit.LogPlatformAsync("FiscalSettingsSaved", "Tenant", cafe.Id.ToString(),
             $"provider {provider ?? "none"}, skip {cafe.FiscalSkipMethods ?? "none"}, VAT {dto.VatPercent?.ToString() ?? "none"}", ct);
         return Result<FiscalSettingsDto>.Success(await ToDtoAsync(cafe, ct));
     }

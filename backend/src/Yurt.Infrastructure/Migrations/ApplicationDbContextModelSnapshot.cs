@@ -148,6 +148,9 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<bool>("IsPlatform")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("PerformedByAdminId")
                         .HasColumnType("uuid");
 

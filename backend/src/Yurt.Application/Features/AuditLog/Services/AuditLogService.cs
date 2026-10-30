@@ -14,9 +14,17 @@ public class AuditLogService : IAuditLogService
         _currentUser = currentUser;
     }
 
-    public async Task LogAsync(
+    public Task LogAsync(
         string action, string entityType, string? entityId = null,
         string? details = null, CancellationToken ct = default)
+        => AddAsync(action, entityType, entityId, details, isPlatform: false, ct);
+
+    public Task LogPlatformAsync(
+        string action, string entityType, string? entityId = null,
+        string? details = null, CancellationToken ct = default)
+        => AddAsync(action, entityType, entityId, details, isPlatform: true, ct);
+
+    private async Task AddAsync(string action, string entityType, string? entityId, string? details, bool isPlatform, CancellationToken ct)
     {
         _db.AuditLogs.Add(new Domain.Entities.AuditLog
         {
@@ -25,7 +33,8 @@ public class AuditLogService : IAuditLogService
             EntityId = entityId,
             PerformedByAdminId = _currentUser.UserId,
             PerformedByUsername = _currentUser.Username ?? "system",
-            Details = details
+            Details = details,
+            IsPlatform = isPlatform
         });
         await _db.SaveChangesAsync(ct);
     }
