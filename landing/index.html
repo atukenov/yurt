@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yurt для кофеен</title>
+<meta name="description" content="Своё приложение для заказов в кофейне: меню, предзаказ, QR на столах, бонусы, кухня и принтеры. Без комиссии с заказов, от 19 900 ₸ в месяц.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { scroll-behavior: smooth; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+/* Layout: a steppe-sky band with the order on a phone and a printed kitchen ticket, then plain sections on wool-white; one gold ornament line ties them together. */
+:root {
+  --bg: #f3f6f6;
+  --surface: #ffffff;
+  --surface-2: #e8eff0;
+  --ink: #0f2a33;
+  --muted: #4b636b;
+  --line: #d3dfe1;
+  --sky: #007f96;
+  --sky-deep: #0b4f5e;
+  --sun: #f5b800;
+  --on-sun: #1d1a0c;
+  --paper: #fffdf7;
+  --paper-ink: #1b1b1b;
+  --good: #1f7a4d;
+  --hero-bg: #0d3a45;
+  --hero-ink: #eef7f8;
+  --hero-muted: #a9c7cd;
+  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body: "Onest", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1b20; --surface: #11282f; --surface-2: #16323a; --ink: #e8f2f3; --muted: #9db4ba; --line: #24434c;
+    --sky: #3cc6dc; --sky-deep: #8fdbe7; --sun: #ffc933; --on-sun: #1d1a0c; --paper: #f4f1e8; --paper-ink: #1b1b1b;
+    --good: #5fd39a; --hero-bg: #082a32; --hero-ink: #eef7f8; --hero-muted: #93b6bd; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1b20; --surface: #11282f; --surface-2: #16323a; --ink: #e8f2f3; --muted: #9db4ba; --line: #24434c;
+  --sky: #3cc6dc; --sky-deep: #8fdbe7; --sun: #ffc933; --on-sun: #1d1a0c; --paper: #f4f1e8; --paper-ink: #1b1b1b;
+  --good: #5fd39a; --hero-bg: #082a32; --hero-ink: #eef7f8; --hero-muted: #93b6bd; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 17px; line-height: 1.55; }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.12; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 18px; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--sky); }
+:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band { padding-block: clamp(56px, 8vw, 96px); }
+.eyebrow { font-family: var(--f-mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sky); }
+.lead { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 62ch; }
+.num { font-variant-numeric: tabular-nums; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font: 600 16px/1 var(--f-body); padding: 15px 22px; border-radius: 999px; text-decoration: none; border: 2px solid transparent; cursor: pointer; }
+.btn-sun { background: var(--sun); color: var(--on-sun); }
+.btn-sun:hover { filter: brightness(1.06); }
+.btn-ghost { border-color: currentColor; color: inherit; background: transparent; }
+
+/* header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--hero-bg); color: var(--hero-ink); border-bottom: 1px solid rgba(255,255,255,.08); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--hero-bg); }
+.top .wrap { display: flex; align-items: center; gap: 24px; padding-block: 14px; }
+.logo { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; font: 800 20px var(--f-display); letter-spacing: .02em; }
+.logo svg { width: 34px; height: 34px; }
+.nav { display: flex; gap: 22px; margin-left: auto; font-size: 15px; }
+.nav a { color: var(--hero-muted); text-decoration: none; }
+.nav a:hover { color: var(--hero-ink); }
+.top .btn { padding: 10px 16px; font-size: 15px; }
+@media (max-width: 820px) { .nav { display: none; } .top .btn { margin-left: auto; } }
+
+/* hero */
+.hero { background: var(--hero-bg); color: var(--hero-ink); overflow: hidden; }
+.hero .wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; padding-block: clamp(48px, 7vw, 88px) clamp(40px, 6vw, 72px); }
+.hero h1 { font-size: clamp(32px, 4.4vw, 52px); font-weight: 800; letter-spacing: -0.02em; }
+.hero h1 em { font-style: normal; color: var(--sun); }
+.hero .lead { color: var(--hero-muted); margin-top: 22px; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.hero .facts { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 36px; font-size: 15px; color: var(--hero-muted); }
+.hero .facts b { color: var(--hero-ink); font-weight: 600; }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } }
+
+.stage { position: relative; display: flex; justify-content: center; align-items: flex-start; gap: 0; min-height: 520px; }
+.phone { width: 270px; max-width: 100%; background: #0a0f12; border-radius: 40px; padding: 12px; box-shadow: 0 30px 60px rgba(0,0,0,.35); position: relative; z-index: 2; }
+.screen { background: #fbfaf7; color: #1b2a2e; border-radius: 30px; overflow: hidden; font-size: 13px; }
+.scr-head { background: var(--sun); color: var(--on-sun); padding: 26px 18px 16px; }
+.scr-head small { font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; opacity: .75; }
+.scr-head strong { display: block; font: 700 17px var(--f-display); margin-top: 4px; }
+.status { padding: 16px 18px; border-bottom: 1px solid #ece8de; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 10px; }
+.steps i { height: 5px; border-radius: 3px; background: #e2ddd0; display: block; }
+.steps i.on { background: #1f7a4d; }
+.status .big { font: 700 22px var(--f-display); margin-top: 10px; color: #1b2a2e; }
+.status .sub { color: #5b6a6e; }
+.items { padding: 12px 18px; display: grid; gap: 10px; }
+.it { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; }
+.it span { color: #6b777a; font-size: 12px; grid-column: 1; }
+.it b { font-weight: 600; }
+.it .p { grid-row: 1; grid-column: 2; font-family: var(--f-mono); font-weight: 700; font-size: 12.5px; }
+.total { display: flex; justify-content: space-between; margin: 4px 18px 18px; padding-top: 12px; border-top: 1px dashed #d8d2c4; font-weight: 700; }
+.total .p { font-family: var(--f-mono); }
+.pill { display: inline-block; background: #e5f3ec; color: #1f7a4d; font-weight: 600; border-radius: 999px; padding: 3px 10px; font-size: 12px; margin-top: 8px; }
+
+.ticket { width: 220px; background: var(--paper); color: var(--paper-ink); font-family: var(--f-mono); font-size: 12px; line-height: 1.5; padding: 18px 16px 22px; margin-left: -56px; margin-top: 120px; transform: rotate(4deg); box-shadow: 0 18px 40px rgba(0,0,0,.3); position: relative; z-index: 1;
+  -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0/12px 100% repeat-x; mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0/12px 100% repeat-x; }
+.ticket .c { text-align: center; }
+.ticket .xl { font-size: 18px; font-weight: 700; }
+.ticket hr { border: 0; border-top: 1px dashed #999; margin: 8px 0; }
+.ticket .row { display: flex; justify-content: space-between; gap: 8px; }
+.ticket .qr { width: 64px; height: 64px; margin: 10px auto 4px; display: block; }
+@media (max-width: 560px) { .stage { min-height: 0; flex-direction: column; align-items: center; } .ticket { margin: -40px 0 0 60px; transform: rotate(3deg); } }
+
+/* ornament (koshkar muiz) */
+.orn { height: 22px; background: var(--bg); color: var(--sun); }
+.orn svg { display: block; width: 100%; height: 22px; }
+
+/* savings */
+.calc { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.calc-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 28px; display: grid; gap: 22px; }
+.calc-card label { font-weight: 600; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.calc-card output { font-family: var(--f-mono); color: var(--sky); }
+input[type=range] { width: 100%; accent-color: var(--sky); }
+.bars { display: grid; gap: 14px; }
+.bar { display: grid; gap: 6px; }
+.bar .meta { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+.bar .meta b { font-family: var(--f-mono); }
+.bar .track { height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 7px; transition: width .25s ease; }
+.bar.them .fill { background: var(--muted); }
+.bar.us .fill { background: var(--sun); }
+.save { font: 700 clamp(22px, 3vw, 30px) var(--f-display); color: var(--good); }
+@media (max-width: 860px) { .calc { grid-template-columns: 1fr; } }
+
+/* roles */
+.roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 44px; }
+.role h3 { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.role h3 svg { width: 26px; height: 26px; color: var(--sky); flex: none; }
+.role ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; color: var(--muted); }
+.role li { padding-left: 18px; position: relative; }
+.role li::before { content: ""; position: absolute; left: 0; top: .62em; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--sky); }
+@media (max-width: 860px) { .roles { grid-template-columns: 1fr; gap: 28px; } }
+
+/* builder */
+.alt { background: var(--surface); border-block: 1px solid var(--line); }
+.builder { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; margin-top: 40px; align-items: start; }
+.mods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mod { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: start; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); cursor: pointer; }
+.mod:hover { border-color: var(--sky); }
+.mod input { margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--sky); }
+.mod .n { font-weight: 600; }
+.mod .d { grid-column: 2 / 4; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.mod .p { font-family: var(--f-mono); font-size: 14px; white-space: nowrap; }
+.mod.core { cursor: default; background: var(--surface-2); }
+.mod:has(input:checked) { border-color: var(--sky); box-shadow: inset 0 0 0 1px var(--sky); }
+@media (max-width: 680px) { .mods { grid-template-columns: 1fr; } }
+.sum { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px); background: var(--hero-bg); color: var(--hero-ink); border-radius: var(--r); padding: 26px; display: grid; gap: 14px; }
+.sum .lbl { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--hero-muted); }
+.sum .tot { font: 800 clamp(30px, 4vw, 42px) var(--f-display); }
+.sum .tot small { font: 500 16px var(--f-body); color: var(--hero-muted); }
+.sum .hint { font-size: 15px; color: var(--hero-muted); min-height: 3em; }
+.sum .hint b { color: var(--sun); }
+.sum .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.sum .presets button { font: 500 14px var(--f-body); color: var(--hero-ink); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+.sum .presets button:hover { background: rgba(255,255,255,.16); }
+@media (max-width: 900px) { .builder { grid-template-columns: 1fr; } .sum { position: static; } }
+
+/* plans */
+.plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
+.plan { border: 1px solid var(--line); border-radius: var(--r); padding: 28px; display: grid; gap: 16px; align-content: start; background: var(--surface); }
+.plan.best { border: 2px solid var(--sun); position: relative; }
+.plan.best::before { content: "Чаще выбирают"; position: absolute; top: -13px; left: 24px; background: var(--sun); color: var(--on-sun); font: 700 12px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+.plan .price { font: 800 34px var(--f-display); }
+.plan .price small { font: 500 15px var(--f-body); color: var(--muted); }
+.plan .was { font-size: 14px; color: var(--muted); }
+.plan ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 15px; }
+.plan li { display: flex; gap: 10px; }
+.plan li svg { width: 18px; height: 18px; flex: none; margin-top: 3px; color: var(--good); }
+.once { margin-top: 28px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.once div { border-top: 2px solid var(--line); padding-top: 12px; }
+.once b { display: block; font-family: var(--f-mono); font-size: 18px; }
+.once span { color: var(--muted); font-size: 15px; }
+@media (max-width: 900px) { .plans { grid-template-columns: 1fr; } .once { grid-template-columns: 1fr 1fr; } }
+
+/* steps */
+.path { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 44px; counter-reset: s; }
+.path li { list-style: none; padding: 0 20px 0 0; position: relative; counter-increment: s; }
+.path li::before { content: counter(s); display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--sun); color: var(--on-sun); font: 800 18px var(--f-display); margin-bottom: 16px; position: relative; z-index: 1; }
+.path li::after { content: ""; position: absolute; top: 22px; left: 44px; right: 0; border-top: 2px dashed var(--line); }
+.path li:last-child::after { display: none; }
+.path .when { font-family: var(--f-mono); font-size: 13px; color: var(--sky); }
+.path p { color: var(--muted); font-size: 15px; margin-top: 6px; }
+.path { padding: 0; }
+@media (max-width: 860px) { .path { grid-template-columns: 1fr; gap: 24px; } .path li::after { display: none; } }
+
+.give { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
+.give > div { border: 1px solid var(--line); border-radius: var(--r); padding: 26px; background: var(--surface); }
+.give h3 { margin-bottom: 14px; }
+.give ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: var(--muted); }
+@media (max-width: 760px) { .give { grid-template-columns: 1fr; } }
+
+/* hardware */
+.hw { overflow-x: auto; margin-top: 32px; }
+.hw table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.hw th, .hw td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.hw th { font: 600 13px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.hw td:last-child { font-family: var(--f-mono); white-space: nowrap; }
+.note { color: var(--muted); font-size: 14px; margin-top: 12px; }
+
+/* faq */
+.faq { display: grid; gap: 10px; margin-top: 36px; max-width: 820px; }
+.faq details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0 20px; }
+.faq summary { cursor: pointer; font-weight: 600; padding: 18px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font: 700 20px var(--f-display); color: var(--sky); line-height: 1; }
+.faq details[open] summary::after { content: "−"; }
+.faq details p { padding: 0 0 18px; color: var(--muted); max-width: 66ch; }
+
+/* contact */
+.contact { background: var(--hero-bg); color: var(--hero-ink); }
+.contact .wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+.contact .lead { color: var(--hero-muted); margin-top: 16px; }
+.form { display: grid; gap: 14px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); border-radius: var(--r); padding: 24px; }
+.form label { display: grid; gap: 6px; font-size: 14px; color: var(--hero-muted); }
+.form input, .form select { font: 16px var(--f-body); padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.18); color: var(--hero-ink); }
+.form .ok { color: var(--sun); font-weight: 600; min-height: 1.5em; }
+.contacts { display: grid; gap: 8px; margin-top: 28px; font-family: var(--f-mono); font-size: 15px; }
+.contacts span { color: var(--hero-muted); }
+@media (max-width: 860px) { .contact .wrap { grid-template-columns: 1fr; } }
+footer { background: var(--hero-bg); color: var(--hero-muted); font-size: 14px; border-top: 1px solid rgba(255,255,255,.08); }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-block: 22px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media (prefers-reduced-motion: no-preference) {
+  .steps i.on:last-of-type { animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="shanyrak" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M8 13 Q20 22 32 13 M8 27 Q20 18 32 27 M13 8 Q22 20 13 32 M27 8 Q18 20 27 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="tick" viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cup" viewBox="0 0 24 24"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8zm13 2h1.5a2.5 2.5 0 0 1 0 5H17M8 3v2M12 3v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16zM10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top"><svg aria-hidden="true"><use href="#shanyrak"/></svg>Yurt</a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#how">Как работает</a>
+      <a href="#builder">Модули</a>
+      <a href="#plans">Тарифы</a>
+      <a href="#start">Подключение</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <a class="btn btn-sun" href="#contact">Хочу демо</a>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow" style="color:var(--sun)">Для кофеен и небольших кафе Казахстана</p>
+      <h1 style="margin-top:16px">Своё приложение для заказов. <em>Без комиссии</em> с&nbsp;каждого чека.</h1>
+      <p class="lead">Гость заказывает с телефона и забирает без очереди. Бариста видит заказ сразу, кухня получает печатный тикет. Вы платите фиксированную сумму в месяц, от 19 900 ₸.</p>
+      <div class="cta">
+        <a class="btn btn-sun" href="#contact">Показать демо моей кофейни</a>
+        <a class="btn btn-ghost" href="#builder">Собрать тариф</a>
+      </div>
+      <div class="facts">
+        <span><b>Запуск</b> за 3 дня</span>
+        <span><b>Казахский, русский</b> и английский</span>
+        <span><b>Без iiko</b> и без своей кассы</span>
+      </div>
+    </div>
+    <div class="stage" aria-label="Пример: заказ в приложении и тикет на кухне">
+      <div class="phone">
+        <div class="screen">
+          <div class="scr-head">
+            <small>ЗАКАЗ № 128 · ул. Кунаева, 12</small>
+            <strong>Готовим ваш заказ</strong>
+          </div>
+          <div class="status">
+            <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+            <div class="big num">Будет готов к 09:15</div>
+            <div class="sub">Бариста Айгерим уже взяла заказ</div>
+            <span class="pill">+ 64 бонуса</span>
+          </div>
+          <div class="items">
+            <div class="it"><b>Капучино 0,4</b><span class="p num">1 500 ₸</span><span>овсяное молоко</span></div>
+            <div class="it"><b>Раф лавандовый</b><span class="p num">1 800 ₸</span><span>без сахара</span></div>
+            <div class="it"><b>Круассан с миндалём</b><span class="p num">1 100 ₸</span><span>подогреть</span></div>
+          </div>
+          <div class="total"><span>Итого, Kaspi QR</span><span class="p num">4 400 ₸</span></div>
+        </div>
+      </div>
+      <div class="ticket" aria-hidden="true">
+        <div class="c xl">КУХНЯ · № 128</div>
+        <div class="c">к 09:15 · самовывоз</div>
+        <hr>
+        <div class="row"><span>1× Капучино 0,4</span></div>
+        <div>&nbsp;&nbsp;+ овсяное</div>
+        <div class="row"><span>1× Раф лавандовый</span></div>
+        <div>&nbsp;&nbsp;без сахара</div>
+        <div class="row"><span>1× Круассан</span></div>
+        <div>&nbsp;&nbsp;подогреть</div>
+        <hr>
+        <div class="row"><span>ИТОГО</span><b>4 400 ₸</b></div>
+        <svg class="qr" viewBox="0 0 21 21" shape-rendering="crispEdges" id="qr"></svg>
+        <div class="c" style="font-size:10px">ФИСКАЛЬНЫЙ ЧЕК · ОФД</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="orn" aria-hidden="true">
+  <svg preserveAspectRatio="none" viewBox="0 0 1200 22"><defs><pattern id="muiz" width="44" height="22" patternUnits="userSpaceOnUse"><path d="M2 11h10c4 0 6-3 6-6s-3-4-5-2.5M42 11H32c-4 0-6 3-6 6s3 4 5 2.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></pattern></defs><rect width="1200" height="22" fill="url(#muiz)"/></svg>
+</div>
+
+<section class="band" id="save">
+  <div class="wrap calc">
+    <div>
+      <p class="eyebrow">Сколько вы сэкономите</p>
+      <h2 style="margin-top:12px">Фиксированная цена вместо процента с заказа</h2>
+      <p class="lead" style="margin-top:18px">Платформы с комиссией забирают процент от каждого заказа, а Yurt стоит одинаково, сколько бы вы ни продали. Передвиньте ползунок на ваш оборот через приложение. Сравнение с типичной комиссией 3% с заказа и минимумом 150 000 ₸ в месяц.</p>
+    </div>
+    <div class="calc-card">
+      <label for="turnover">Оборот через приложение в месяц <output id="tOut" class="num">5 000 000 ₸</output></label>
+      <input id="turnover" type="range" min="1000000" max="30000000" step="500000" value="5000000">
+      <div class="bars">
+        <div class="bar them"><div class="meta"><span>С комиссией 3%</span><b id="themVal" class="num">150 000 ₸</b></div><div class="track"><div class="fill" id="themBar"></div></div></div>
+        <div class="bar us"><div class="meta"><span>Yurt «Кофейня»</span><b class="num">39 900 ₸</b></div><div class="track"><div class="fill" id="usBar"></div></div></div>
+      </div>
+      <div><span style="color:var(--muted)">Остаётся у вас за год</span><div class="save num" id="saveVal">1 321 200 ₸</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="how">
+  <div class="wrap">
+    <p class="eyebrow">Как работает</p>
+    <h2 style="margin-top:12px">Одна система для гостя, бариста и владельца</h2>
+    <div class="roles">
+      <div class="role">
+        <h3><svg aria-hidden="true"><use href="#i-cup"/></svg>Гость</h3>
+        <ul>
+          <li>Открывает приложение кофейни или сканирует QR на столе</li>
+          <li>Выбирает напиток, молоко и сиропы, время самовывоза</li>
+          <li>Платит Kaspi QR, картой или наличными на кассе</li>
+          <li>Видит статус заказа и копит бонусы</li>
+        </ul>
+      </div>
+      <div class="role">
+        <h3><svg aria-hidden="true"><use href="#i-bell"/></svg>Бариста и кухня</h3>
+        <ul>
+          <li>Новый заказ появляется на экране за секунду, со звуком</li>
+          <li>Экран кухни: новые, готовятся, готовы</li>
+          <li>Тикет печатается на кухонном принтере, касса открывается сама</li>
+          <li>Фискальный чек уходит в ОФД через Webkassa или ReKassa</li>
+        </ul>
+      </div>
+      <div class="role">
+        <h3><svg aria-hidden="true"><use href="#i-chart"/></svg>Владелец</h3>
+        <ul>
+          <li>Меню загружается из Excel, фото и цены меняются за минуту</li>
+          <li>Продажи, средний чек и остатки по каждой точке</li>
+          <li>Акции, промокоды и пуш «Ваш заказ готов»</li>
+          <li>Цвета, логотип и шрифт вашей кофейни в приложении</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="builder">
+  <div class="wrap">
+    <p class="eyebrow">Модули</p>
+    <h2 style="margin-top:12px">Платите только за то, чем пользуетесь</h2>
+    <p class="lead" style="margin-top:14px">Отметьте нужные модули. Если пакет выйдет дешевле, мы подскажем. Включить или выключить модуль можно в любой месяц, данные при этом не теряются.</p>
+    <div class="builder">
+      <div class="mods" id="mods"></div>
+      <aside class="sum" aria-live="polite">
+        <div class="lbl">Ваш тариф в месяц</div>
+        <div class="tot num"><span id="total">14 900</span> ₸ <small>/ мес</small></div>
+        <div class="hint" id="hint"></div>
+        <div class="presets">
+          <button type="button" data-preset="start">Как «Старт»</button>
+          <button type="button" data-preset="cafe">Как «Кофейня»</button>
+          <button type="button" data-preset="pos">Как «Кофейня + касса»</button>
+        </div>
+        <a class="btn btn-sun" href="#contact" style="justify-content:center">Обсудить этот тариф</a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="plans">
+  <div class="wrap">
+    <p class="eyebrow">Тарифы</p>
+    <h2 style="margin-top:12px">Три готовых пакета</h2>
+    <div class="plans">
+      <div class="plan">
+        <h3>Старт</h3>
+        <div class="price num">19 900 ₸ <small>/ мес</small></div>
+        <div class="was num">по отдельности 24 600 ₸</div>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Приложение и админ-панель, 1 точка</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Живые заказы и время самовывоза</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Пуш «Заказ готов»</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Аналитика продаж</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Оценки заказов и маршрут 2GIS</li>
+        </ul>
+      </div>
+      <div class="plan best">
+        <h3>Кофейня</h3>
+        <div class="price num">39 900 ₸ <small>/ мес</small></div>
+        <div class="was num">по отдельности 60 000 ₸</div>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Всё из «Старт»</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Ваш бренд: цвета, логотип, фото</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Бонусная программа</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Акции и промокоды</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Заказ по QR со стола</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Код подтверждения в WhatsApp</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Аккаунты сотрудников и журнал действий</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <h3>Кофейня + касса</h3>
+        <div class="price num">59 900 ₸ <small>/ мес</small></div>
+        <div class="was num">по отдельности 79 800 ₸</div>
+        <ul>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Всё из «Кофейня»</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Экран кухни и касса</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Склад и остатки</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Принтеры чеков и денежный ящик</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Фискальные чеки через ОФД</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Онлайн-оплата в приложении</li>
+        </ul>
+      </div>
+    </div>
+    <div class="once">
+      <div><b class="num">0 ₸</b><span>подключение в общем приложении Yurt</span></div>
+      <div><b class="num">30 000 ₸</b><span>загрузка меню и обучение персонала</span></div>
+      <div><b class="num">150 000 ₸</b><span>своё приложение в App Store и Google Play</span></div>
+      <div><b>2 месяца</b><span>в подарок при оплате за год</span></div>
+    </div>
+    <p class="note">Каждая следующая точка: 9 900 ₸ в месяц. Фискальный чек оплачивается оператору напрямую (Webkassa от 3 900 ₸ в месяц за кассу). Комиссия банка за онлайн-оплату не входит в тариф.</p>
+  </div>
+</section>
+
+<section class="band" id="start">
+  <div class="wrap">
+    <p class="eyebrow">Подключение</p>
+    <h2 style="margin-top:12px">От первого звонка до первого заказа за 3 дня</h2>
+    <ol class="path">
+      <li><div class="when">День 0</div><h3>Демо</h3><p>Показываем приложение с вашим логотипом и цветами, выбираем модули.</p></li>
+      <li><div class="when">День 1</div><h3>Меню и бренд</h3><p>Вы присылаете меню в Excel и логотип, мы загружаем и проверяем.</p></li>
+      <li><div class="when">День 2</div><h3>Настройка точки</h3><p>Часы работы, принтеры, QR на столы, аккаунты сотрудников.</p></li>
+      <li><div class="when">День 3</div><h3>Запуск</h3><p>Обучаем персонал за час и ставим табличку «Закажи заранее» на кассу.</p></li>
+    </ol>
+    <div class="give">
+      <div>
+        <h3>Что нужно от вас</h3>
+        <ul>
+          <li>Меню в нашем шаблоне Excel: названия, цены, добавки, фото</li>
+          <li>Логотип и цвета бренда</li>
+          <li>Адреса точек, часы работы, ссылка 2GIS</li>
+          <li>Имена и телефоны сотрудников</li>
+          <li>Реквизиты ТОО или ИП для договора</li>
+          <li>Для чеков: аккаунт Webkassa или ReKassa</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Что делаем мы</h3>
+        <ul>
+          <li>Настраиваем кофейню, меню и бренд</li>
+          <li>Печатаем лист QR-кодов на столы</li>
+          <li>Обучаем бариста и администратора</li>
+          <li>Держим серверы, резервные копии и обновления</li>
+          <li>Отвечаем в WhatsApp и Telegram в течение рабочего дня</li>
+          <li>Отдаём все ваши данные, если решите уйти</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="hardware">
+  <div class="wrap">
+    <p class="eyebrow">Оборудование</p>
+    <h2 style="margin-top:12px">Работает на том, что уже стоит у вас</h2>
+    <p class="lead" style="margin-top:14px">Для приёма заказов хватит любого планшета или ноутбука с браузером. Принтер и денежный ящик нужны только с модулем «Своя касса».</p>
+    <div class="hw">
+      <table>
+        <thead><tr><th>Устройство</th><th>Для чего</th><th>Примерная цена</th></tr></thead>
+        <tbody>
+          <tr><td>Планшет Android или iPad, ноутбук</td><td>Живые заказы, экран кухни, касса</td><td class="num">уже есть</td></tr>
+          <tr><td>Принтер чеков 80 мм с LAN (ESC/POS)</td><td>Тикеты на кухню и чеки гостю</td><td class="num">30–45 тыс. ₸</td></tr>
+          <tr><td>Принтер 58 мм с Bluetooth</td><td>Если нет проводной сети у кассы</td><td class="num">15–25 тыс. ₸</td></tr>
+          <tr><td>Денежный ящик (RJ11)</td><td>Открывается сам при оплате наличными</td><td class="num">15–25 тыс. ₸</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Цены ориентировочные, по объявлениям в Казахстане.</p>
+  </div>
+</section>
+
+<section class="band" id="faq">
+  <div class="wrap">
+    <p class="eyebrow">Вопросы</p>
+    <h2 style="margin-top:12px">Частые вопросы владельцев</h2>
+    <div class="faq">
+      <details><summary>Нужен ли iiko, r_keeper или Poster?</summary><p>Нет. Yurt работает сам по себе: меню, заказы, касса и склад внутри. Если у вас уже есть iiko, заказы можно отправлять туда модулем «Синхронизация с iiko».</p></details>
+      <details><summary>Как гость платит?</summary><p>Сейчас на кассе: Kaspi QR, карта или наличные, бариста отмечает оплату в один клик. Онлайн-оплата картой в приложении подключается отдельно; казахстанский платёжный провайдер (Freedom Pay или Kaspi) в работе.</p></details>
+      <details><summary>Будет ли фискальный чек?</summary><p>Да, через облачную кассу Webkassa или ReKassa. Чек с QR-кодом налоговой печатается на принтере и показывается гостю в приложении.</p></details>
+      <details><summary>Нужно ли своё приложение в App Store?</summary><p>Не обязательно. Ваша кофейня появляется в общем приложении Yurt с вашими цветами и логотипом, плюс работает сайт для заказа по QR. Своё приложение в магазинах можно заказать позже.</p></details>
+      <details><summary>На каких языках?</summary><p>Приложение гостя и админ-панель полностью на казахском, русском и английском. Язык выбирается на телефоне гостя.</p></details>
+      <details><summary>Что будет, если мы решим уйти?</summary><p>Вы получаете выгрузку всех данных: меню, заказы, гости, бонусы. Договор можно закончить в любой месяц.</p></details>
+      <details><summary>Что если я не заплачу вовремя?</summary><p>Гости продолжают заказывать, а в админ-панели появляется напоминание. Платные модули отключаются только после льготного периода, данные никогда не удаляются.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="band contact" id="contact">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow" style="color:var(--sun)">Демо</p>
+      <h2 style="margin-top:12px">Покажем Yurt с логотипом вашей кофейни</h2>
+      <p class="lead">Оставьте контакт, и мы соберём демо с вашим меню и цветами за один день. Первые 5 кофеен получают скидку 50% на 6 месяцев.</p>
+      <div class="contacts" id="contacts"></div>
+    </div>
+    <form class="form" id="lead" novalidate>
+      <label for="f-name">Название кофейни<input id="f-name" name="name" required placeholder="Например, Coffee Boom на Абая"></label>
+      <label for="f-phone">Телефон или WhatsApp<input id="f-phone" name="phone" required inputmode="tel" placeholder="+7 7__ ___ __ __"></label>
+      <label for="f-city">Город<select id="f-city" name="city"><option>Алматы</option><option>Астана</option><option>Шымкент</option><option>Караганда</option><option>Другой город</option></select></label>
+      <label for="f-pts">Сколько точек<select id="f-pts" name="points"><option>1</option><option>2–3</option><option>4 и больше</option></select></label>
+      <button class="btn btn-sun" type="submit" style="justify-content:center">Хочу демо</button>
+      <div class="ok" id="ok" role="status"></div>
+    </form>
+  </div>
+</section>
+<footer><div class="wrap"><span>Yurt · платформа заказов для кофеен Казахстана</span><span>Цены указаны в тенге за одну точку в месяц</span></div></footer>
+
+<script>
+/* Fill these in before publishing the site: shown under "Демо" and used by the form. */
+const CONTACT = { whatsapp: "", telegram: "", email: "" };
+
+const fmt = n => n.toLocaleString("ru-RU").replace(/,/g, " ") + " ₸";
+
+/* savings */
+(function () {
+  const r = document.getElementById("turnover"), us = 39900, months = 12;
+  function upd() {
+    const t = +r.value, them = Math.max(t * 0.03, 150000);
+    document.getElementById("tOut").textContent = fmt(t);
+    document.getElementById("themVal").textContent = fmt(Math.round(them));
+    const max = Math.max(them, us);
+    document.getElementById("themBar").style.width = (them / max * 100) + "%";
+    document.getElementById("usBar").style.width = (us / max * 100) + "%";
+    document.getElementById("saveVal").textContent = fmt(Math.round((them - us) * months));
+  }
+  r.addEventListener("input", upd); upd();
+})();
+
+/* module builder */
+const MODS = [
+  { k: "core", n: "Основа", d: "Приложение, админ-панель, живые заказы, меню, 1 точка, время самовывоза", p: 14900, core: true },
+  { k: "own_pos", n: "Своя касса", d: "Экран кухни, касса, склад, принтеры, денежный ящик", p: 14900 },
+  { k: "branding", n: "Ваш бренд", d: "Цвета, логотип, шрифт и фото в приложении", p: 9900 },
+  { k: "loyalty", n: "Бонусы", d: "Начисление и списание баллов", p: 7900 },
+  { k: "table_ordering", n: "Заказ по QR", d: "QR-код на каждый стол", p: 4900 },
+  { k: "online_payments", n: "Онлайн-оплата", d: "Оплата картой в приложении", p: 4900 },
+  { k: "marketing", n: "Акции и промокоды", d: "Баннеры, скидки, коды", p: 4900 },
+  { k: "verification", n: "Код в WhatsApp", d: "Защита от фейковых регистраций", p: 4900 },
+  { k: "push", n: "Пуш-уведомления", d: "«Ваш заказ готов» на экране блокировки", p: 3900 },
+  { k: "analytics", n: "Аналитика", d: "Продажи, средний чек, популярные позиции", p: 3900 },
+  { k: "staff_audit", n: "Сотрудники", d: "Аккаунты персонала и журнал действий", p: 2900 },
+  { k: "engagement", n: "Оценки и 2GIS", d: "Оценка заказа, достижения, маршрут", p: 1900 }
+];
+const PLANS = [
+  { k: "start", n: "Старт", p: 19900, m: ["core", "push", "analytics", "engagement"] },
+  { k: "cafe", n: "Кофейня", p: 39900, m: ["core", "push", "analytics", "engagement", "branding", "loyalty", "marketing", "table_ordering", "verification", "staff_audit"] },
+  { k: "pos", n: "Кофейня + касса", p: 59900, m: ["core", "push", "analytics", "engagement", "branding", "loyalty", "marketing", "table_ordering", "verification", "staff_audit", "own_pos", "online_payments"] }
+];
+const box = document.getElementById("mods");
+box.innerHTML = MODS.map(m => `
+  <label class="mod${m.core ? " core" : ""}" for="m-${m.k}">
+    <input type="checkbox" id="m-${m.k}" value="${m.k}" ${m.core ? "checked disabled" : ""}>
+    <span class="n">${m.n}</span><span class="p num">${m.core ? "всегда · " : "+"}${fmt(m.p)}</span>
+    <span class="d">${m.d}</span>
+  </label>`).join("");
+function picked() { return [...box.querySelectorAll("input:checked")].map(i => i.value); }
+function recalc() {
+  const sel = picked(), sum = MODS.filter(m => sel.includes(m.k)).reduce((a, m) => a + m.p, 0);
+  document.getElementById("total").textContent = sum.toLocaleString("ru-RU").replace(/,/g, " ");
+  const fit = PLANS.find(pl => sel.every(k => pl.m.includes(k)) && pl.p < sum);
+  document.getElementById("hint").innerHTML = fit
+    ? `Пакет <b>«${fit.n}»</b> за ${fmt(fit.p)} включает всё это${fit.m.length > sel.length ? " и даже больше" : ""}. Экономия ${fmt(sum - fit.p)} в месяц.`
+    : "Каждая следующая точка: +9 900 ₸ в месяц.";
+}
+box.addEventListener("change", recalc);
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => {
+  const pl = PLANS.find(p => p.k === b.dataset.preset);
+  box.querySelectorAll("input:not(:disabled)").forEach(i => { i.checked = pl.m.includes(i.value); });
+  recalc();
+}));
+["push", "analytics", "branding", "loyalty", "table_ordering"].forEach(k => { const i = document.getElementById("m-" + k); if (i) i.checked = true; });
+recalc();
+
+/* contacts + form */
+(function () {
+  const c = document.getElementById("contacts"), rows = [];
+  if (CONTACT.whatsapp) rows.push(`<div><span>WhatsApp</span> ${CONTACT.whatsapp}</div>`);
+  if (CONTACT.telegram) rows.push(`<div><span>Telegram</span> ${CONTACT.telegram}</div>`);
+  if (CONTACT.email) rows.push(`<div><span>Почта</span> ${CONTACT.email}</div>`);
+  c.innerHTML = rows.join("");
+  document.getElementById("lead").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = e.target, ok = document.getElementById("ok");
+    if (!f.name.value.trim() || !f.phone.value.trim()) { ok.textContent = "Укажите название кофейни и телефон."; return; }
+    const text = `Здравствуйте! Хочу демо Yurt. Кофейня: ${f.name.value}, ${f.city.value}, точек: ${f.points.value}. Телефон: ${f.phone.value}`;
+    if (CONTACT.whatsapp) {
+      const a = document.createElement("a");
+      a.href = "https://wa.me/" + CONTACT.whatsapp.replace(/\D/g, "") + "?text=" + encodeURIComponent(text);
+      a.target = "_blank"; a.rel = "noopener"; a.click();
+      ok.textContent = "Открываем WhatsApp с готовым сообщением.";
+    } else {
+      ok.textContent = "Заявка пока не отправляется: контакт для связи ещё не указан на сайте.";
+    }
+  });
+})();
+
+/* decorative QR on the ticket */
+(function () {
+  const s = document.getElementById("qr"); let d = "", seed = 7;
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const finder = (x, y) => `M${x} ${y}h7v7h-7zM${x+1} ${y+1}v5h5v-5zM${x+2} ${y+2}h3v3h-3z`;
+  for (let y = 0; y < 21; y++) for (let x = 0; x < 21; x++) {
+    const inF = (x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12);
+    if (!inF && rnd() > .52) d += `M${x} ${y}h1v1h-1z`;
+  }
+  s.innerHTML = `<path fill="#1b1b1b" fill-rule="evenodd" d="${finder(0,0)}${finder(14,0)}${finder(0,14)}"/><path fill="#1b1b1b" d="${d}"/>`;
+})();
+</script>
+</body>
+</html>
