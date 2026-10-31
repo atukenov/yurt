@@ -83,3 +83,22 @@ public record LoyaltyCompareDto(int Customers, int Matching, int Mismatched, int
 public record LoyaltyLedgerDto(string Mode, bool IikoAvailable);
 
 public record SetLoyaltyLedgerDto(string? Mode);
+
+/// <summary>State of one go-live item: done, missing, warn (works but not ready for real money) or off (module off, not needed).</summary>
+public static class GoLiveState
+{
+    public const string Done = "done";
+    public const string Missing = "missing";
+    public const string Warn = "warn";
+    public const string Off = "off";
+}
+
+/// <summary>
+/// One line of the go-live checklist. <see cref="Missing"/> names what is still to do (setting or secret names, never
+/// values); <see cref="Count"/> is how many menu items or branches there are; <see cref="Branches"/> lists branches
+/// that still have no cash register number.
+/// </summary>
+public record GoLiveItemDto(string Key, string State, List<string> Missing, int? Count = null, List<string>? Branches = null);
+
+/// <summary>What the chosen cafe still needs before it goes live, after the settings shared by every cafe.</summary>
+public record GoLiveChecklistDto(string Slug, string Name, List<GoLiveItemDto> Server, List<GoLiveItemDto> Cafe);

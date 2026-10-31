@@ -1,23 +1,22 @@
 # Yurt landing page
 
-One static page for cafe owners (Russian): what Yurt does, a savings calculator, a module price builder,
-the three packages, onboarding steps, hardware and FAQ. No build step, no dependencies besides Google Fonts.
+The public page for cafe owners: what Yurt does, every module with its monthly price, a price calculator, bundles,
+one-time fees, how launch works, what we need from the cafe, FAQ and a request form. Russian by default, English with
+the RU/EN switch.
 
-Prices on the page are the proposal from 2026-10-31 (thread "Check demo readiness and test plan"). Keep them in
-step with Platform → Modules and monthly price: the module list and prices are the `MODS` and `PLANS` arrays in
-the `<script>` at the bottom of `index.html`.
+It is one plain HTML file (`index.html`) with no build step, so it can be opened straight from disk.
 
-## Before publishing
+## Before going live
 
-Fill in `CONTACT` at the top of the script (WhatsApp number, Telegram, email). With a WhatsApp number the form opens
-WhatsApp with a ready message; without one the form says the request is not sent.
+1. Fill `CONTACT` at the top of the `<script>` in `index.html` (WhatsApp number as digits, Telegram username, email).
+   Until then the request form shows the request text to copy instead of opening WhatsApp.
+2. Check the prices in `MODULES`, `BUNDLES`, `ONCE` and `EXTRA_BRANCH`. The module keys are the same as in
+   Platform → Modules and monthly price, so keep the two in step when a price changes.
 
-## Publish
+## Deploy (Vercel, its own project)
 
-Make it its own hosting project with the root folder set to `landing/` (no build command, output = the folder):
+1. Vercel → Add New → Project → import `atukenov/yurt`.
+2. Root Directory: `landing`. Framework preset: Other. Build command: none. Output directory: `.`
+3. Add the domain (for example `yurt.kz`) under Settings → Domains.
 
-- **Vercel:** New Project → this repo → Root Directory `landing` → Framework "Other". Vercel Hobby is for
-  non-commercial use only, so use the Pro plan you need for the apps anyway.
-- **Cloudflare Pages** (free): Create → Connect to Git → this repo → Build output directory `landing`.
-
-Point `yurt.kz` (or `www.`) at it. The customer and admin apps keep their own projects.
+Every push to `main` that changes `landing/` updates the page. The customer and admin apps are not affected.

@@ -8,7 +8,7 @@ describe('admin sidebar', () => {
   it('gives the platform operator only the platform screens', () => {
     const nav = buildAdminNav({ isAdmin: true, isSuperAdmin: true, moduleEnabled: all });
     expect(nav.map((g) => g.id)).toEqual(['platform']);
-    expect(links(nav)).toEqual(['/platform', '/platform/new-cafe', '/platform/app-releases']);
+    expect(links(nav)).toEqual(['/platform', '/platform/new-cafe', '/platform/go-live', '/platform/app-releases']);
     expect(links(nav)).not.toContain('/subscription');
     expect(links(nav)).not.toContain('/orders');
   });

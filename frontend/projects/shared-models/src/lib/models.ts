@@ -917,6 +917,30 @@ export interface UpdateModuleLicenseRequest {
   notes: string | null;
 }
 
+/** done, missing, warn (works but takes no real money yet) or off (its module is off, so not needed). */
+export type GoLiveState = 'done' | 'missing' | 'warn' | 'off';
+
+/** One line of the go-live checklist. Never carries a secret value, only what is still to do. */
+export interface GoLiveItem {
+  key: string;
+  state: GoLiveState;
+  /** Setting or secret names still to do (for example 'Stripe:WebhookSecret', 'logo', 'test_mode'). */
+  missing: string[];
+  /** Menu items or branches there are. */
+  count: number | null;
+  /** Branches that still have no cash register number. */
+  branches: string[] | null;
+}
+
+export interface GoLiveChecklist {
+  slug: string;
+  name: string;
+  /** Settings shared by every cafe. */
+  server: GoLiveItem[];
+  /** The chosen cafe's own setup. */
+  cafe: GoLiveItem[];
+}
+
 export interface IntegrationStatus {
   key: string;
   configured: boolean;

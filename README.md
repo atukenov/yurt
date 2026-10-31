@@ -169,6 +169,7 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 
 ## Going Live
 
+- [docs/go-live.md](docs/go-live.md) — the go-live checklist screen (Platform → Go-live checklist): what each café still needs
 - [docs/live-server-setup.md](docs/live-server-setup.md) — step-by-step server setup (env vars, master key, payments link)
 - [docs/runbook.md](docs/runbook.md) — staging, smoke test, backup, deploy order, rollback
 - [docs/monitoring.md](docs/monitoring.md) — error alerts and uptime check
