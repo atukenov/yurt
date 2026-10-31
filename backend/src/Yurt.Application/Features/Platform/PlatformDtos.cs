@@ -46,7 +46,7 @@ public record BrandDto(
     string? LogoDarkUrl = null,
     string? FontUrl = null)
 {
-    public static readonly BrandDto Default = new("Yurt", "#ffd119", "#ea580c", null, null);
+    public static readonly BrandDto Default = new("Yurt", "#b83a2b", "#4a2f1e", null, null);
 }
 
 /// <summary>Allowed values for <see cref="BrandDto.Radius"/> and <see cref="BrandDto.Font"/>; null means the default.</summary>

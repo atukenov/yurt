@@ -7,8 +7,8 @@ import { ThemeService } from './theme.service';
 const ACCENT_STEPS = ['50', '400', '500'] as const;
 const CACHE_KEY = 'yurt.brand';
 /** The built-in Yurt colours live in shared-ui theme/brand.css; a brand with these values changes nothing. */
-const DEFAULT_PRIMARY = '#ffd119';
-const DEFAULT_ACCENT = '#ea580c';
+const DEFAULT_PRIMARY = '#b83a2b';
+const DEFAULT_ACCENT = '#4a2f1e';
 /** The platform's own look: the Yurt name, colours, logo, font and corners. */
 const NEUTRAL_BRAND: BrandConfig = { name: 'Yurt', primaryColor: DEFAULT_PRIMARY, accentColor: DEFAULT_ACCENT };
 const STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
