@@ -237,6 +237,25 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .ex-col li span { color: var(--muted); }
 @media (max-width: 820px) { .exchange { grid-template-columns: 1fr; } }
 
+/* how it works */
+.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.role { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 26px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.role-ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--saffron-soft); color: var(--saffron-ink); }
+.role-ic svg { width: 24px; height: 24px; }
+.role ul { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; color: var(--muted); font-size: .97rem; }
+.role li::marker { color: var(--saffron-ink); }
+@media (max-width: 860px) { .roles { grid-template-columns: 1fr; } }
+
+/* hardware */
+.hw { overflow-x: auto; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+.hw table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.hw th, .hw td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.hw tr:last-child td { border-bottom: 0; }
+.hw th { font: 600 .78rem/1.2 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.hw td:first-child { font-weight: 600; }
+.hw td:last-child { font: 600 .95rem/1.4 var(--f-mono); white-space: nowrap; }
+.hw-note { color: var(--muted); font-size: .9rem; margin-top: 12px; }
+
 /* faq */
 .faq { display: grid; gap: 10px; max-width: 820px; }
 .faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 4px 20px; }
@@ -271,6 +290,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       Yurt
     </a>
     <nav class="nav" aria-label="Разделы">
+      <a href="#how" data-i18n="nav.how">Как работает</a>
       <a href="#modules" data-i18n="nav.modules">Модули и цены</a>
       <a href="#launch" data-i18n="nav.launch">Как подключиться</a>
       <a href="#faq" data-i18n="nav.faq">Вопросы</a>
@@ -349,6 +369,47 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         </div>
         <div><span data-i18n="vs.save">Экономия в год:</span> <div class="save num" id="saveOut">602 400 ₸</div></div>
         <p class="small-note" data-i18n="vs.note">Без учёта платы за подключение у сервисов с комиссией (часто около 690 000 ₸) и платы банку за эквайринг, которую платят все.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="how.eyebrow">Как работает</span>
+        <h2 id="how-title" data-i18n="how.title">Одна система для гостя, бариста и владельца</h2>
+      </div>
+      <div class="roles">
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6V8zm13 2h1.5a2.5 2.5 0 0 1 0 5H17M8 3v2M12 3v2"/></svg></span>
+          <h3 data-i18n="how.g">Гость</h3>
+          <ul>
+            <li data-i18n="how.g1">Открывает приложение кофейни или сканирует QR на столе</li>
+            <li data-i18n="how.g2">Выбирает напиток, молоко, сиропы и время самовывоза</li>
+            <li data-i18n="how.g3">Видит статус заказа и получает пуш «Заказ готов»</li>
+            <li data-i18n="how.g4">Копит бонусы и платит ими</li>
+          </ul>
+        </div>
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16zM10 20a2 2 0 0 0 4 0"/></svg></span>
+          <h3 data-i18n="how.b">Бариста и кухня</h3>
+          <ul>
+            <li data-i18n="how.b1">Новый заказ появляется на планшете за секунду, со звуком</li>
+            <li data-i18n="how.b2">Экран кухни: новые, готовятся, готовы</li>
+            <li data-i18n="how.b3">Тикет печатается на кухне, денежный ящик открывается сам</li>
+            <li data-i18n="how.b4">Фискальный чек уходит в ОФД через Webkassa или ReKassa</li>
+          </ul>
+        </div>
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></svg></span>
+          <h3 data-i18n="how.o">Владелец</h3>
+          <ul>
+            <li data-i18n="how.o1">Меню загружается из Excel, цены и фото меняются за минуту</li>
+            <li data-i18n="how.o2">Продажи, средний чек и остатки по каждой точке</li>
+            <li data-i18n="how.o3">Акции, промокоды и бонусная программа</li>
+            <li data-i18n="how.o4">Журнал действий персонала и доступ для каждого сотрудника</li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -449,6 +510,28 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     </div>
   </section>
 
+  <section class="section" id="hardware" aria-labelledby="hw-title" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="hw.eyebrow">Оборудование</span>
+        <h2 id="hw-title" data-i18n="hw.title">Работает на том, что уже стоит у вас</h2>
+        <p class="lead" data-i18n="hw.lead">Для приёма заказов хватит любого планшета или ноутбука с браузером. Принтер и денежный ящик нужны только с модулем «Своя касса».</p>
+      </div>
+      <div class="hw">
+        <table>
+          <thead><tr><th data-i18n="hw.h1">Устройство</th><th data-i18n="hw.h2">Для чего</th><th data-i18n="hw.h3">Примерная цена</th></tr></thead>
+          <tbody>
+            <tr><td data-i18n="hw.r1a">Планшет Android или iPad, ноутбук</td><td data-i18n="hw.r1b">Заказы, экран кухни, касса</td><td data-i18n="hw.r1c">уже есть</td></tr>
+            <tr><td data-i18n="hw.r2a">Принтер чеков 80 мм с сетью (ESC/POS)</td><td data-i18n="hw.r2b">Тикеты на кухню и чеки гостю</td><td class="num">30–45 тыс. ₸</td></tr>
+            <tr><td data-i18n="hw.r3a">Принтер 58 или 80 мм с Bluetooth</td><td data-i18n="hw.r3b">Если у кассы нет проводной сети</td><td class="num">15–25 тыс. ₸</td></tr>
+            <tr><td data-i18n="hw.r4a">Денежный ящик (RJ11)</td><td data-i18n="hw.r4b">Открывается сам при оплате наличными</td><td class="num">15–25 тыс. ₸</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hw-note" data-i18n="hw.note">Цены ориентировочные, по объявлениям в Казахстане. Подскажем конкретные модели перед покупкой.</p>
+    </div>
+  </section>
+
   <section class="section" id="faq" aria-labelledby="q-title" style="padding-top:0">
     <div class="wrap">
       <div class="section-head">
@@ -462,6 +545,9 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <details><summary data-i18n="q.4q">Чьё это приложение в App Store?</summary><p data-i18n="q.4a">Ваше: ваше название, логотип и цвета. Публикуем его сами. Если хотите, приложение можно выпустить на вашем собственном аккаунте разработчика.</p></details>
         <details><summary data-i18n="q.5q">Что будет, если я перестану платить?</summary><p data-i18n="q.5a">После короткого льготного периода приложение переходит в ограниченный режим. Данные не удаляются. Если решите уйти, отдадим меню, заказы и гостей файлом.</p></details>
         <details><summary data-i18n="q.6q">Можно сначала попробовать?</summary><p data-i18n="q.6a">Да. Покажем демо-кофейню на вашем телефоне, а первым 10 кофейням дадим первый месяц бесплатно.</p></details>
+        <details><summary data-i18n="q.7q">Как гости платят?</summary><p data-i18n="q.7a">На кассе: Kaspi QR, карта или наличные, бариста отмечает оплату в один клик. Онлайн-оплата прямо в приложении подключается модулем «Онлайн-оплата» через ваш договор с банком или платёжным сервисом.</p></details>
+        <details><summary data-i18n="q.8q">Будет ли фискальный чек?</summary><p data-i18n="q.8a">Да, через облачную кассу Webkassa или ReKassa. Чек с QR-кодом налоговой печатается на принтере и показывается гостю в приложении. Кассу оплачиваете оператору напрямую, от 3 900 ₸ в месяц.</p></details>
+        <details><summary data-i18n="q.9q">На каких языках приложение?</summary><p data-i18n="q.9a">Приложение гостя и панель управления полностью на казахском, русском и английском. Гость выбирает язык на своём телефоне.</p></details>
       </div>
     </div>
   </section>
@@ -576,6 +662,18 @@ const ONCE = [
 /* ===== Text ===== */
 const T = {
   en: {
+    'nav.how': 'How it works',
+    'how.eyebrow': 'How it works', 'how.title': 'One system for the guest, the barista and the owner',
+    'how.g': 'Guest', 'how.g1': 'Opens the coffee shop app or scans the QR on the table', 'how.g2': 'Picks a drink, milk, syrups and a pickup time', 'how.g3': 'Follows the order and gets an "Order ready" push', 'how.g4': 'Earns bonus points and pays with them',
+    'how.b': 'Barista and kitchen', 'how.b1': 'A new order shows on the tablet within a second, with a sound', 'how.b2': 'Kitchen screen: new, in progress, ready', 'how.b3': 'The ticket prints in the kitchen, the cash drawer opens by itself', 'how.b4': 'The tax receipt goes to the fiscal operator through Webkassa or ReKassa',
+    'how.o': 'Owner', 'how.o1': 'The menu loads from Excel, prices and photos change in a minute', 'how.o2': 'Sales, average check and stock for every branch', 'how.o3': 'Promotions, promo codes and a bonus programme', 'how.o4': 'A log of staff actions and a login for every employee',
+    'hw.eyebrow': 'Hardware', 'hw.title': 'Works on what you already have', 'hw.lead': 'Any tablet or laptop with a browser is enough to take orders. A printer and cash drawer are only needed with the Own POS module.',
+    'hw.h1': 'Device', 'hw.h2': 'What for', 'hw.h3': 'Rough price', 'hw.r1a': 'Android tablet, iPad or laptop', 'hw.r1b': 'Orders, kitchen screen, till', 'hw.r1c': 'you have it',
+    'hw.r2a': '80 mm receipt printer with network (ESC/POS)', 'hw.r2b': 'Kitchen tickets and guest receipts', 'hw.r3a': '58 or 80 mm Bluetooth printer', 'hw.r3b': 'When the till has no cable network', 'hw.r4a': 'Cash drawer (RJ11)', 'hw.r4b': 'Opens by itself on cash payments',
+    'hw.note': 'Rough prices from listings in Kazakhstan. We suggest exact models before you buy.',
+    'q.7q': 'How do guests pay?', 'q.7a': 'At the counter: Kaspi QR, card or cash, and the barista marks the order paid in one tap. Paying inside the app is added with the Online payments module, through your own contract with a bank or payment service.',
+    'q.8q': 'Will there be a tax receipt?', 'q.8a': 'Yes, through the Webkassa or ReKassa cloud register. The receipt with the tax QR code prints on the printer and shows in the guest app. You pay the register operator directly, from 3,900 ₸ a month.',
+    'q.9q': 'Which languages does the app speak?', 'q.9a': 'The guest app and the admin panel are fully in Kazakh, Russian and English. Guests pick the language on their phone.',
     'nav.modules': 'Modules and prices', 'nav.launch': 'How to start', 'nav.faq': 'Questions', 'nav.cta': 'Get in touch',
     'hero.eyebrow': 'A platform for coffee shops and cafes in Kazakhstan',
     'hero.title': 'Your own ordering app. <span class="hl">No&nbsp;commission</span> on&nbsp;any order.',

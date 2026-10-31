@@ -186,3 +186,4 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/cafe-data-export.md](docs/cafe-data-export.md) — exporting a café's data
 - [docs/cutover-from-iiko.md](docs/cutover-from-iiko.md) — moving a café off iiko
 - [docs/push-notifications-setup.md](docs/push-notifications-setup.md) — push notifications
+- [landing/README.md](landing/README.md) — the landing page for café owners (prices, modules, demo form) and how to publish it
