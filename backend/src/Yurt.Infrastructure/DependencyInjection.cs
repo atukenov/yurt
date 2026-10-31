@@ -318,7 +318,9 @@ public static class DependencyInjection
             throw new InvalidOperationException("PostgreSQL connection string must be configured via DATABASE_URL, RAILWAY_DATABASE_URL, or DefaultConnection.");
         }
 
-        if (databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+        // Railway and most hosts give a URL: postgres://... or postgresql://user:pass@host:port/db
+        if (databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+            || databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
         {
             var uri = new Uri(databaseUrl);
             var userInfoParts = uri.UserInfo.Split(':', 2);
@@ -327,8 +329,8 @@ public static class DependencyInjection
                 Host = uri.Host,
                 Port = uri.Port > 0 ? uri.Port : 5432,
                 Database = uri.AbsolutePath.TrimStart('/'),
-                Username = userInfoParts.Length > 0 ? userInfoParts[0] : string.Empty,
-                Password = userInfoParts.Length > 1 ? userInfoParts[1] : string.Empty,
+                Username = userInfoParts.Length > 0 ? Uri.UnescapeDataString(userInfoParts[0]) : string.Empty,
+                Password = userInfoParts.Length > 1 ? Uri.UnescapeDataString(userInfoParts[1]) : string.Empty,
                 SslMode = SslMode.Prefer
             };
             return builder.ConnectionString;
