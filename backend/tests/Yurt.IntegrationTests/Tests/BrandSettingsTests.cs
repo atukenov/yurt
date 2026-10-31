@@ -28,7 +28,7 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
 
         // Defaults before anything is saved
         var before = (await anon.GetFromJsonAsync<JsonElement>("/api/v1/app/config")).GetProperty("brand");
-        Assert.Equal("#ffd119", before.GetProperty("primaryColor").GetString());
+        Assert.Equal("#b83a2b", before.GetProperty("primaryColor").GetString());
 
         // Only the platform operator can change it; bad values are rejected
         var denied = await admin.PutAsJsonAsync("/api/v1/platform/brand",
@@ -105,13 +105,13 @@ public class BrandSettingsTests(YurtWebAppFactory factory)
             await super.PutAsJsonAsync($"/api/v1/platform/modules/{ModuleKeys.Branding}", License(false));
             var off = (await anon.GetFromJsonAsync<JsonElement>("/api/v1/app/config")).GetProperty("brand");
             Assert.Equal("Yurt", off.GetProperty("name").GetString());
-            Assert.Equal("#ffd119", off.GetProperty("primaryColor").GetString());
+            Assert.Equal("#b83a2b", off.GetProperty("primaryColor").GetString());
         }
         finally
         {
             await super.PutAsJsonAsync($"/api/v1/platform/modules/{ModuleKeys.Branding}", License(true));
             await super.PutAsJsonAsync("/api/v1/platform/brand",
-                new { name = "Yurt", primaryColor = "#ffd119", accentColor = "#ea580c" });
+                new { name = "Yurt", primaryColor = "#b83a2b", accentColor = "#4a2f1e" });
         }
 
         var back = (await anon.GetFromJsonAsync<JsonElement>("/api/v1/app/config")).GetProperty("brand");

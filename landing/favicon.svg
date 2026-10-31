@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Yurt">
+  <defs>
+    <mask id="yurt-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <circle cx="32" cy="17.2" r="3.8" fill="#000"/>
+      <rect x="8" y="34.6" width="48" height="2.2" fill="#000"/>
+      <path d="M27 55V46.5a5 5 0 0 1 10 0V55Z" fill="#000"/>
+    </mask>
+  </defs>
+  <path d="M9 54V35.5A23 23 0 0 1 55 35.5V54Z" fill="#B83A2B" mask="url(#yurt-cut)"/>
+</svg>

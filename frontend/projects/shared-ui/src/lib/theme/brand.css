@@ -7,43 +7,42 @@
  * start (see the `Brand` settings in docs/MODULARIZATION_TODO.md, Phase 4).
  */
 :root {
-  /* Primary scale (default: Yurt yellow). 500 is the main brand colour. */
-  --brand-50:  #fffde5;
-  --brand-100: #fffab8;
-  --brand-200: #fff388;
-  --brand-300: #ffe94f;
-  --brand-400: #ffdc30;
-  --brand-500: #ffd119;
-  --brand-600: #d9af00;
-  --brand-700: #a68700;
-  --brand-800: #745e00;
-  --brand-900: #423500;
-  --brand-950: #251e00;
+  /* Primary scale (default: Yurt carpet red). 500 is the main brand colour. Built by buildScale() in shared-api brand-palette.ts. */
+  --brand-50:  #f7e9e7;
+  --brand-100: #e9c2bd;
+  --brand-200: #da9991;
+  --brand-300: #c9685d;
+  --brand-400: #bf4e40;
+  --brand-500: #b83a2b;
+  --brand-600: #9c3125;
+  --brand-700: #78261c;
+  --brand-800: #541a14;
+  --brand-900: #300f0b;
+  --brand-950: #1b0806;
 
   /* Same colour as an "r, g, b" triplet, for translucent glows: rgb(var(--brand-500-rgb) / .3) */
-  --brand-500-rgb: 255 209 25;
+  --brand-500-rgb: 184 58 43;
 
   /* Readable text on top of the primary colour. */
-  --brand-on-primary: #1c1917;
+  --brand-on-primary: #ffffff;
 
   /* Text on gradient headers that start with the primary colour: white by default, dark on a pale brand. */
   --brand-hero-text: #ffffff;
 
   /* The primary colour as text on light surfaces (#fafaf9): a shade dark enough to read. */
-  --brand-ink-light: #80680c; /* the Yurt yellow darkened to contrast 4.5, same as BrandService computes for other brands */
+  --brand-ink-light: #b83a2b; /* the Yurt red already reads at contrast 4.5, same as BrandService computes for other brands */
   --brand-ink: var(--brand-ink-light);
 
   /* The primary colour as text/icons on near-black (#1c1917) buttons: lightened for dark brands. */
-  --brand-on-dark: #ffd119;
+  --brand-on-dark: #ca6b60;
 
-  /* Secondary accent used for the end of brand gradients, and the warmer update-sheet tint. */
-  /* Gradient ends and soft tints: the accent colour scale (default: the orange the gradients always used). */
-  --accent-50:  #fff7ed;
-  --accent-400: #fb923c;
-  --accent-500: #f97316;
+  /* Gradient ends and soft tints: the accent colour scale (default: Yurt wood brown). */
+  --accent-50:  #ebe7e6;
+  --accent-400: #5c4435;
+  --accent-500: #4a2f1e;
 
-  --brand-accent: #ea580c;
-  --brand-accent-soft: #ffb300;
+  --brand-accent: #4a2f1e;
+  --brand-accent-soft: #4a2f1e;
 
   /* Neutral scale (Tailwind stone) and surfaces. Dark mode swaps these, so components never hard-code a grey. */
   --ink-50:  #fafaf9;
