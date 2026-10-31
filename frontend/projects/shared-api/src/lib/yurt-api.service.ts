@@ -9,6 +9,7 @@ import {
   AppRelease,
   AppConfig,
   IntegrationStatus,
+  GoLiveChecklist,
   MaintenanceInfo,
   Cafe,
   CafeSecretStatus,
@@ -184,6 +185,10 @@ export class YurtApiService {
       req,
       this.cafeOptions(),
     );
+  }
+  /** What the cafe chosen with `slug` still needs before it goes live (set or missing only, never values). */
+  getGoLiveChecklist(slug: string | null): Observable<GoLiveChecklist> {
+    return this.http.get<GoLiveChecklist>(`${this.api}/platform/go-live`, this.forCafe(slug));
   }
   getIntegrationStatus(): Observable<IntegrationStatus[]> {
     return this.http.get<IntegrationStatus[]>(`${this.api}/platform/integrations`);

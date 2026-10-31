@@ -93,7 +93,8 @@ database: `pg_restore --no-owner -d "<scratch-url>" yurt-....dump`.
 ## Platform operator (SuperAdmin)
 
 The `SuperAdmin` role opens the **Platform** page in the admin panel: module licenses (on/off, expiry, trial/paid, notes),
-maintenance mode, integration status (configured yes/no, never the values) and app releases. SuperAdmins have every
+maintenance mode, integration status (configured yes/no, never the values) and app releases.
+**Platform → Go-live checklist** shows per cafe what is still missing before it goes live (see `go-live.md`). SuperAdmins have every
 admin permission, are hidden from the cafe's staff page, and can only be created out-of-band.
 
 - Create the first one by setting `SEED_SUPERADMIN_USERNAME` and `SEED_SUPERADMIN_PASSWORD` (12+ characters) on the
