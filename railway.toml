@@ -1,6 +1,12 @@
+# Railway build settings for the API server. Docs: https://docs.railway.com/reference/config-as-code
 [build]
-dockerfile = "dockerfile"
-context = "."
+# Build with our own Dockerfile (the file name is lowercase, so Railway does not find it by itself).
+builder = "DOCKERFILE"
+dockerfilePath = "dockerfile"
 
 [deploy]
 startCommand = "dotnet Yurt.WebApi.dll"
+# Only switch to a new version once the server and its database answer.
+healthcheckPath = "/health/ready"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
