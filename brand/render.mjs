@@ -17,19 +17,20 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 
 const FELT = '#F5EFE4';
 const NIGHT = '#1C1917';
+const RED = '#B83A2B';
 const svg = (name) => readFileSync(join(here, name), 'utf8');
 const dataUrl = (text) => 'data:image/svg+xml;base64,' + Buffer.from(text).toString('base64');
 
 /** One picture: an SVG drawn at `scale` of a w×h canvas (centred), on a colour or transparent. */
 const jobs = [
   { out: 'png/yurt-mark-512.png', src: 'yurt-mark.svg', w: 512, h: 512 },
-  { out: 'png/yurt-logo-light-1200.png', src: 'yurt-logo-light.svg', w: 1200, h: 404 },
-  { out: 'png/yurt-logo-dark-1200.png', src: 'yurt-logo-dark.svg', w: 1200, h: 404, bg: NIGHT },
+  { out: 'png/yurt-logo-light-1200.png', src: 'yurt-logo-light.svg', w: 1200, h: 432 },
+  { out: 'png/yurt-logo-dark-1200.png', src: 'yurt-logo-dark.svg', w: 1200, h: 432, bg: NIGHT },
   { out: 'png/yurt-app-icon-1024.png', src: 'yurt-app-icon.svg', w: 1024, h: 1024 },
   { out: 'app-assets/icon-only.png', src: 'yurt-app-icon.svg', w: 1024, h: 1024 },
-  // Android adaptive icon: the mark on a transparent layer (@capacitor/assets insets it into the safe zone), plus a plain felt layer.
-  { out: 'app-assets/icon-foreground.png', src: 'yurt-mark.svg', w: 1024, h: 1024, scale: 0.8 },
-  { out: 'app-assets/icon-background.png', w: 1024, h: 1024, bg: FELT },
+  // Android adaptive icon: the felt mark on a transparent layer (@capacitor/assets insets it into the safe zone), plus a plain red layer.
+  { out: 'app-assets/icon-foreground.png', src: 'yurt-mark-felt.svg', w: 1024, h: 1024, scale: 0.7 },
+  { out: 'app-assets/icon-background.png', w: 1024, h: 1024, bg: RED },
   { out: 'app-assets/splash.png', src: 'yurt-mark.svg', w: 2732, h: 2732, scale: 0.22, bg: FELT },
   { out: 'app-assets/splash-dark.png', src: 'yurt-mark.svg', w: 2732, h: 2732, scale: 0.22, bg: NIGHT },
   { out: 'png/favicon-16.png', src: 'yurt-mark.svg', w: 16, h: 16 },

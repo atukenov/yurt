@@ -93,7 +93,7 @@ p { margin: 0; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
-.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; font: 700 1.25rem/1 var(--f-display); }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; font: 600 1.35rem/1 var(--f-display); }
 .brand svg { width: 40px; height: 40px; }
 .nav { display: flex; gap: 22px; align-items: center; }
 .nav a { text-decoration: none; color: var(--muted); font-weight: 500; font-size: .95rem; }
@@ -292,8 +292,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="Yurt">
-      <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M5 39C8.5 29 18 22 32 21C46 22 55.5 29 59 39Z" fill="#B83A2B"/> <g stroke="#F5EFE4" stroke-opacity=".5" stroke-width="1.3" stroke-linecap="round" fill="none"> <path d="M26.5 25 14.5 37.5M29.5 26 24.5 37.5M34.5 26 39.5 37.5M37.5 25 49.5 37.5"/> </g> <path d="M9.5 41.5H54.5V54a3 3 0 0 1-3 3H12.5a3 3 0 0 1-3-3Z" fill="#B83A2B"/> <path d="M9.5 44H54.5" stroke="#E3A93B" stroke-width="1.6"/> <path d="M26.5 57V49a5.5 5.5 0 0 1 11 0V57Z" fill="#4A2F1E"/> <circle cx="32" cy="17.5" r="7.6" fill="#4A2F1E" stroke="#E3A93B" stroke-width="2.6"/> <g stroke="#E3A93B" stroke-width="1.5" fill="none" stroke-linecap="round"> <path d="M29.6 10.6Q27.8 17.5 29.6 24.4M34.4 10.6Q36.2 17.5 34.4 24.4M25.1 15.1Q32 13.3 38.9 15.1M25.1 19.9Q32 21.7 38.9 19.9"/> </g></svg>
-      Yurt
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs> <mask id="yurt-cut-hdr" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64"> <rect width="64" height="64" fill="#fff"/> <circle cx="32" cy="17.2" r="3.8" fill="#000"/> <rect x="8" y="34.6" width="48" height="2.2" fill="#000"/> <path d="M27 55V46.5a5 5 0 0 1 10 0V55Z" fill="#000"/> </mask> </defs> <path d="M9 54V35.5A23 23 0 0 1 55 35.5V54Z" fill="#B83A2B" mask="url(#yurt-cut-hdr)"/></svg>
+      yurt
     </a>
     <nav class="nav" aria-label="Разделы">
       <a href="#how" data-i18n="nav.how">Как работает</a>

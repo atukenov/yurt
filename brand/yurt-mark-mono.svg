@@ -1,18 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Yurt">
   <defs>
-    <mask id="cut">
+    <mask id="yurt-cut-mono" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
       <rect width="64" height="64" fill="#fff"/>
-      <path d="M26.5 57V49a5.5 5.5 0 0 1 11 0V57Z" fill="#000"/>
-      <circle cx="32" cy="17.5" r="6.3" fill="#000"/>
-      <circle cx="32" cy="17.5" r="9.4" fill="none" stroke="#000" stroke-width="1.6"/>
+      <circle cx="32" cy="17.2" r="3.8" fill="#000"/>
+      <rect x="8" y="34.6" width="48" height="2.2" fill="#000"/>
+      <path d="M27 55V46.5a5 5 0 0 1 10 0V55Z" fill="#000"/>
     </mask>
   </defs>
-  <g fill="currentColor" mask="url(#cut)">
-    <path d="M5 39C8.5 29 18 22 32 21C46 22 55.5 29 59 39Z"/>
-    <path d="M9.5 41.5H54.5V54a3 3 0 0 1-3 3H12.5a3 3 0 0 1-3-3Z"/>
-    <circle cx="32" cy="17.5" r="8.9"/>
-  </g>
-  <g stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round">
-    <path d="M29.6 10.6Q27.8 17.5 29.6 24.4M34.4 10.6Q36.2 17.5 34.4 24.4M25.1 15.1Q32 13.3 38.9 15.1M25.1 19.9Q32 21.7 38.9 19.9"/>
-  </g>
+  <path d="M9 54V35.5A23 23 0 0 1 55 35.5V54Z" fill="currentColor" mask="url(#yurt-cut-mono)"/>
 </svg>
