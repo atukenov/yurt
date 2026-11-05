@@ -243,6 +243,27 @@ public static class DependencyInjection
             throw new InvalidOperationException(
                 $"Jwt:Secret must be at least 32 characters long (currently {jwtSecret.Length}).");
 
+        // Staged secret rotation: new access tokens are always signed with Jwt:Secret, but during a
+        // rollover we also accept tokens signed with Jwt:PreviousSecret so the ~15-minute access tokens
+        // issued just before the switch keep working until they expire. See docs/jwt-rotation.md.
+        // Refresh tokens are opaque database values and are unaffected by a secret change, so clients
+        // keep their sessions and silently pick up the new signing key on their next refresh.
+        var signingKeys = new List<SecurityKey>
+        {
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        };
+        var previousSecret = configuration["Jwt:PreviousSecret"];
+        if (!string.IsNullOrWhiteSpace(previousSecret)
+            && !previousSecret.StartsWith("CHANGE_THIS", StringComparison.OrdinalIgnoreCase))
+        {
+            if (previousSecret.Length < 32)
+                throw new InvalidOperationException(
+                    $"Jwt:PreviousSecret must be at least 32 characters long (currently {previousSecret.Length}). " +
+                    "Clear Jwt__PreviousSecret once the rotation window has passed.");
+            if (previousSecret != jwtSecret)
+                signingKeys.Add(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(previousSecret)));
+        }
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -254,8 +275,8 @@ public static class DependencyInjection
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = configuration["Jwt:Issuer"],
                     ValidAudience = configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtSecret))
+                    // Primary key signs new tokens; any previous key is accepted during rotation only.
+                    IssuerSigningKeys = signingKeys
                 };
 
                 // Allow SignalR to use token from query string
@@ -303,6 +324,26 @@ public static class DependencyInjection
             opts.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             opts.PayloadSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers only the database context and password hasher — no web, auth, SignalR or
+    /// integration services. Used by offline maintenance commands (see <c>AdminCli</c>) that
+    /// need database access without starting the full application or requiring a JWT secret.
+    /// </summary>
+    public static IServiceCollection AddInfrastructureDataAccess(
+        this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(
+                GetPostgreSqlConnectionString(configuration),
+                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+
+        services.AddScoped<IApplicationDbContext>(sp =>
+            sp.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 
         return services;
     }
