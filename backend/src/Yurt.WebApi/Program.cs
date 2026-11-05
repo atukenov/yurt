@@ -14,7 +14,13 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Diagnostics;
 using AspNetCoreRateLimit;
 using Asp.Versioning;
+using Yurt.WebApi.Cli;
 using Yurt.WebApi.Middleware;
+
+// Offline maintenance commands (admin password reset, session revocation): run and exit
+// without starting the web server. See docs/admin-password-reset.md and docs/jwt-rotation.md.
+if (AdminCli.IsCommand(args))
+    return await AdminCli.RunAsync(args);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -285,5 +291,7 @@ app.MapHub<OrdersHub>("/hubs/orders");
 await DbSeeder.SeedAsync(app.Services);
 
 app.Run();
+
+return 0;
 
 public partial class Program { } // for integration tests
