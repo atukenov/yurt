@@ -127,7 +127,7 @@ jobs:
   # ── Frontend ─────────────────────────────────────────────────────────────
   frontend:
     name: Frontend — Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # actions: read lets the screenshot comparison download main's last screenshots.
     permissions:
       contents: read
