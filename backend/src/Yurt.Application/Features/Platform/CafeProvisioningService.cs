@@ -114,4 +114,46 @@ public class CafeProvisioningService
         await _audit.LogPlatformAsync(isActive ? "CafeEnabled" : "CafeDisabled", "Tenant", id.ToString(), null, ct);
         return Result<CafeDto>.Success(new CafeDto(tenant.Id, tenant.Slug, tenant.Name, tenant.Domain, tenant.IsActive));
     }
+
+    /// <summary>The admin accounts of one cafe (not its workers), for the operator's password reset.</summary>
+    public async Task<Result<List<CafeAdminDto>>> ListAdminsAsync(Guid cafeId, CancellationToken ct = default)
+    {
+        if (!await _db.Tenants.AnyAsync(t => t.Id == cafeId, ct))
+            return Result<List<CafeAdminDto>>.Failure("Cafe not found.", 404);
+
+        var admins = await _db.AdminUsers.IgnoreQueryFilters().AsNoTracking()
+            .Where(u => u.TenantId == cafeId && u.Role == AdminRole.Admin)
+            .OrderBy(u => u.Username)
+            .Select(u => new CafeAdminDto(u.Id, u.Username, u.IsActive))
+            .ToListAsync(ct);
+        return Result<List<CafeAdminDto>>.Success(admins);
+    }
+
+    /// <summary>
+    /// Only the platform operator resets a cafe admin's password. The admin must pick their own new password at the next
+    /// sign-in and every session they have open is ended. Audited as a platform action; the password is never logged.
+    /// </summary>
+    public async Task<Result<CafeAdminDto>> ResetAdminPasswordAsync(Guid cafeId, Guid adminId, string newPassword, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < MinPasswordLength)
+            return Result<CafeAdminDto>.Failure($"New password must be at least {MinPasswordLength} characters.", 422);
+
+        var admin = await _db.AdminUsers.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == adminId && u.TenantId == cafeId && u.Role == AdminRole.Admin, ct);
+        if (admin is null) return Result<CafeAdminDto>.Failure("Admin not found.", 404);
+
+        admin.PasswordHash = _hasher.Hash(newPassword);
+        admin.MustChangePassword = true;
+        admin.UpdatedAt = DateTime.UtcNow;
+
+        var now = DateTime.UtcNow;
+        var open = await _db.RefreshTokens.IgnoreQueryFilters()
+            .Where(t => t.UserType == RefreshTokenUserType.Admin && t.UserId == adminId && !t.IsRevoked)
+            .ToListAsync(ct);
+        foreach (var t in open) { t.IsRevoked = true; t.RevokedAt = now; }
+        await _db.SaveChangesAsync(ct);
+
+        await _audit.LogPlatformAsync("AdminPasswordReset", "AdminUser", adminId.ToString(), admin.Username, ct);
+        return Result<CafeAdminDto>.Success(new CafeAdminDto(admin.Id, admin.Username, admin.IsActive));
+    }
 }

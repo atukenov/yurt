@@ -8,26 +8,26 @@ ways to do that.
 > We never try to "decode" or "crack" a stored hash. If someone hands you a hash and
 > asks what the password was, the answer is: set a new password instead.
 
-## Which way do I need?
+## Who can reset whose password
 
-| Situation | Use |
-|---|---|
-| A worker or cafe admin forgot their password, **and a cafe admin can still sign in** | The staff page (reset from the app) |
-| The **only** admin for a cafe is locked out, or the super admin is locked out, so nobody can sign in | The server command |
-| An admin just needs to change their own password | They sign in and use **Change password** |
+| Who resets | Whose password | Where |
+|---|---|---|
+| **Platform operator** (super admin) | A **cafe admin** of any cafe | Platform → Cafes → **Admins** |
+| **Cafe admin** | A **worker** of their own cafe | Staff → worker → **Reset password** |
+| Nobody else | — | A cafe admin cannot reset another admin or themselves; they use **Change password** after signing in |
+
+If the **only** admin of a cafe, or the operator account itself, is locked out and nobody above can help, use the
+server command in section 2.
 
 ## 1. Reset from the app (normal case)
 
-Any admin with the **Admin** or **Super admin** role can reset a worker's password from
-the staff page, as long as that admin can still sign in.
+**Operator resets a cafe admin.** Platform → Cafes → pick the cafe → **Admins** → type the new password (at least 8
+characters) → **Reset password**. The admin must choose their own new password at the next sign-in, and every session
+they have open is ended. The reset is written to the platform audit log (the password itself is never logged).
+Endpoint: `POST /api/v1/platform/cafes/{cafeId}/admins/{adminId}/reset-password`.
 
-- Admin app → **Staff** → pick the person → **Reset password** → type the new one.
-- The worker signs in with the new password right away.
-- This is the `POST /api/v1/admin/workers/{id}/reset-password` endpoint behind the screen.
-
-Limits (on purpose): it only resets **workers**, never a super admin, and only inside
-**that admin's own cafe**. So it cannot help when the locked-out person is the only admin,
-or is the super admin. For that, use the server command below.
+**Cafe admin resets a worker.** Staff page → worker → **Reset password**. Endpoint:
+`POST /api/v1/admin/workers/{id}/reset-password`. The server refuses (403) if the target is an admin.
 
 ## 2. Reset on the server (locked-out admin or super admin)
 

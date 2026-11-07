@@ -110,6 +110,16 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> SetCafeActive(Guid id, [FromBody] SetCafeActiveDto dto, CancellationToken ct)
         => ToResult(await _cafes.SetActiveAsync(id, dto.IsActive, ct));
 
+    /// <summary>Admin accounts of a cafe, so the operator can reset one's password.</summary>
+    [HttpGet("cafes/{id:guid}/admins")]
+    public async Task<IActionResult> GetCafeAdmins(Guid id, CancellationToken ct)
+        => ToResult(await _cafes.ListAdminsAsync(id, ct));
+
+    /// <summary>Only the operator resets a cafe admin's password; the admin must change it at next sign-in.</summary>
+    [HttpPost("cafes/{id:guid}/admins/{adminId:guid}/reset-password")]
+    public async Task<IActionResult> ResetCafeAdminPassword(Guid id, Guid adminId, [FromBody] ResetCafeAdminPasswordDto dto, CancellationToken ct)
+        => ToResult(await _cafes.ResetAdminPasswordAsync(id, adminId, dto.NewPassword, ct));
+
     /// <summary>ZIP with all of a cafe's data (one CSV per table, cafe.json, README) for a cafe that leaves Yurt.</summary>
     [HttpGet("cafes/{id:guid}/export")]
     public async Task<IActionResult> ExportCafe(Guid id, [FromServices] ICafeDataExporter exporter, CancellationToken ct)
