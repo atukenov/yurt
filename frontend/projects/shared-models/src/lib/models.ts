@@ -854,6 +854,12 @@ export interface Cafe {
   isActive: boolean;
 }
 
+export interface CafeAdmin {
+  id: string;
+  username: string;
+  isActive: boolean;
+}
+
 export interface CafeSecretStatus {
   key: string;
   isSet: boolean;

@@ -67,12 +67,14 @@
                   >
                     {{ 'action.edit' | t }}
                   </button>
-                  <button
-                    (click)="openReset(w)"
-                    class="text-xs text-brand-ink hover:text-brand-ink bg-brand-50 hover:bg-brand-100 rounded-lg px-3 py-1.5 transition-colors"
-                  >
-                    {{ 'workers.resetPw' | t }}
-                  </button>
+                  @if (w.role === 'Worker') {
+                    <button
+                      (click)="openReset(w)"
+                      class="text-xs text-brand-ink hover:text-brand-ink bg-brand-50 hover:bg-brand-100 rounded-lg px-3 py-1.5 transition-colors"
+                    >
+                      {{ 'workers.resetPw' | t }}
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -117,12 +119,14 @@
             >
               {{ 'action.edit' | t }}
             </button>
-            <button
-              (click)="openReset(w)"
-              class="flex-1 text-xs text-brand-ink bg-brand-50 hover:bg-brand-100 rounded-lg px-3 py-2 transition-colors"
-            >
-              {{ 'workers.resetPw' | t }}
-            </button>
+            @if (w.role === 'Worker') {
+              <button
+                (click)="openReset(w)"
+                class="flex-1 text-xs text-brand-ink bg-brand-50 hover:bg-brand-100 rounded-lg px-3 py-2 transition-colors"
+              >
+                {{ 'workers.resetPw' | t }}
+              </button>
+            }
           </div>
         </div>
       }

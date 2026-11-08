@@ -67,12 +67,27 @@
               <input type="checkbox" class="w-4 h-4" [checked]="c.isActive" (change)="toggleCafe(c)" />
               {{ 'plat.cafeActive' | t }}
             </label>
+            <button (click)="openAdmins(c)" class="shrink-0 text-xs font-semibold text-slate-600 underline">{{ 'plat.cafeAdmins' | t }}</button>
             <button (click)="openSecrets(c)" class="shrink-0 text-xs font-semibold text-slate-600 underline">{{ 'plat.cafeSecrets' | t }}</button>
             <button (click)="exportCafe(c)" [disabled]="exportingCafeId() === c.id"
               class="shrink-0 text-xs font-semibold text-slate-600 underline disabled:opacity-50">
               {{ (exportingCafeId() === c.id ? 'plat.cafeExporting' : 'plat.cafeExport') | t }}
             </button>
           </li>
+          @if (adminsCafeId() === c.id) {
+            <li class="py-3">
+              <p class="text-xs text-slate-500 mb-2">{{ 'plat.cafeAdminsHint' | t }}</p>
+              @for (a of cafeAdmins(); track a.id) {
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                  <span class="w-56 text-sm font-semibold text-slate-700">{{ a.username }}</span>
+                  <input type="password" autocomplete="new-password" [attr.aria-label]="'plat.cafeAdminPw' | t" [placeholder]="'plat.cafeAdminPw' | t"
+                    [(ngModel)]="adminPasswords[a.id]" class="flex-1 min-w-40 px-3 py-1.5 rounded-xl border border-slate-200 text-sm" />
+                  <button (click)="resetCafeAdmin(a)" [disabled]="(adminPasswords[a.id] ?? '').length < 8"
+                    class="px-3 py-1.5 rounded-xl bg-brand-500 text-on-brand text-xs font-semibold disabled:opacity-50">{{ 'workers.resetPw' | t }}</button>
+                </div>
+              }
+            </li>
+          }
           @if (secretsCafeId() === c.id) {
             <li class="py-3">
               <p class="text-xs text-slate-500 mb-2">{{ 'plat.cafeSecretsHint' | t }}</p>

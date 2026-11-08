@@ -12,7 +12,7 @@ import {
   GoLiveChecklist,
   MaintenanceInfo,
   Cafe,
-  CafeSecretStatus,
+  CafeSecretStatus, CafeAdmin,
   CreateCafeRequest,
   MenuImportResult,
   BrandConfig,
@@ -161,6 +161,14 @@ export class YurtApiService {
   /** ZIP with all of a cafe's data (one CSV per table) for a cafe that leaves Yurt. */
   exportCafe(id: string): Observable<Blob> {
     return this.http.get(`${this.api}/platform/cafes/${id}/export`, { responseType: 'blob' });
+  }
+  /** Admin accounts of a cafe, for the operator's password reset. */
+  getCafeAdmins(id: string): Observable<CafeAdmin[]> {
+    return this.http.get<CafeAdmin[]>(`${this.api}/platform/cafes/${id}/admins`);
+  }
+  /** Only the operator resets a cafe admin's password; the admin must choose a new one at next sign-in. */
+  resetCafeAdminPassword(cafeId: string, adminId: string, newPassword: string): Observable<CafeAdmin> {
+    return this.http.post<CafeAdmin>(`${this.api}/platform/cafes/${cafeId}/admins/${adminId}/reset-password`, { newPassword });
   }
   getCafeSecrets(id: string): Observable<CafeSecretStatus[]> {
     return this.http.get<CafeSecretStatus[]>(`${this.api}/platform/cafes/${id}/secrets`);

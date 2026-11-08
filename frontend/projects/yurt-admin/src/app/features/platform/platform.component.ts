@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { YurtApiService, RADIUS_SCALE, brandFontStack, fontFileUrl, setFontFace, buildScale, parseHex, readableOn, paletteWarning as paletteWarningFor } from 'shared-api';
 import { ToastService, LocalDatePipe, LocalNumberPipe } from 'shared-ui';
-import { CafeAccess, FiscalSettings, ModulePlan, PaymentSettings, PlatformBilling, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
+import { CafeAccess, CafeAdmin, FiscalSettings, ModulePlan, PaymentSettings, PlatformBilling, LoyaltyCompareResult, LoyaltyImportResult, LoyaltyLedgerInfo, BrandConfig, Cafe, CafeSecretStatus, BrandLink, IntegrationStatus, PlatformModule } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { AdminLangService } from '../../core/lang.service';
@@ -352,6 +352,27 @@ export class PlatformComponent implements OnInit {
         this.toast.success(this.lang.t('plat.cafeCreated'));
       },
       error: () => this.creatingCafe.set(false),
+    });
+  }
+
+  adminsCafeId = signal<string | null>(null);
+  cafeAdmins = signal<CafeAdmin[]>([]);
+  adminPasswords: Record<string, string> = {};
+
+  openAdmins(cafe: Cafe): void {
+    if (this.adminsCafeId() === cafe.id) { this.adminsCafeId.set(null); return; }
+    this.adminPasswords = {};
+    this.cafeAdmins.set([]);
+    this.adminsCafeId.set(cafe.id);
+    this.api.getCafeAdmins(cafe.id).subscribe({ next: (a) => this.cafeAdmins.set(a) });
+  }
+
+  resetCafeAdmin(admin: CafeAdmin): void {
+    const cafeId = this.adminsCafeId();
+    const password = this.adminPasswords[admin.id] ?? '';
+    if (!cafeId || password.length < 8) return;
+    this.api.resetCafeAdminPassword(cafeId, admin.id, password).subscribe({
+      next: () => { this.adminPasswords[admin.id] = ''; this.toast.success(this.lang.t('plat.cafeAdminResetToast')); },
     });
   }
 

@@ -88,6 +88,11 @@ public class WorkerService
         var worker = await CafeStaff.FirstOrDefaultAsync(u => u.Id == id, ct);
         if (worker == null) return Result<WorkerDto>.NotFound();
 
+        // A cafe admin resets the passwords of workers only. An admin's password is reset by the platform operator
+        // (Platform screen), so one admin cannot take over another admin's account.
+        if (worker.Role != AdminRole.Worker)
+            return Result<WorkerDto>.Failure("Only the platform operator can reset an admin's password.", 403);
+
         worker.PasswordHash = _hasher.Hash(dto.NewPassword);
         worker.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
