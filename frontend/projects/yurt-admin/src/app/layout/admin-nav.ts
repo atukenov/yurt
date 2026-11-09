@@ -53,6 +53,7 @@ const ICON = {
   tables: ['M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z'],
   printers: ['M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z'],
   stock: ['M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
+  stockMoves: ['M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'],
   menu: ['M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
   locations: [
     'M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z',
@@ -79,6 +80,7 @@ const CAFE_NAV: NavGroupDef[] = [
     label: 'nav.group.pos',
     items: [
       { link: '/orders', label: 'nav.orders', icon: ICON.orders },
+      { link: '/stock-moves', label: 'nav.stockMoves', icon: ICON.stockMoves, module: 'own_pos' },
       { link: '/kitchen', label: 'nav.kitchen', icon: ICON.kitchen, adminOnly: true, module: 'own_pos' },
       { link: '/cashier', label: 'nav.cashier', icon: ICON.cashier, adminOnly: true, module: 'own_pos' },
       { link: '/tables', label: 'nav.tables', icon: ICON.tables, adminOnly: true, module: 'table_ordering' },

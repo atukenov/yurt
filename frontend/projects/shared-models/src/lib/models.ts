@@ -279,6 +279,8 @@ export interface Ingredient {
   isLow: boolean;
   isOut: boolean;
   usedInItems: number;
+  /** What one unit costs the cafe (e.g. 1 g of beans). Null when not known. */
+  costPerUnit?: number | null;
 }
 
 /** How much of an ingredient one portion uses. A null `variantId` means every size. */
@@ -458,6 +460,93 @@ export interface StockChange {
   change?: number | null;
   changedBy: string;
   changedAt: string;
+  /** set, restock, writeoff, stocktake, transfer_out, transfer_in or shortfall. */
+  type?: StockChangeType;
+  /** Write-off reason: spilled, expired, staff, broken or other. */
+  reason?: WriteOffReason | null;
+  note?: string | null;
+  unitCost?: number | null;
+  otherLocationId?: string | null;
+  otherLocationName?: string | null;
+  /** Money value of the change, when the cost was known. */
+  costValue?: number | null;
+}
+
+export type StockChangeType =
+  | 'set'
+  | 'restock'
+  | 'writeoff'
+  | 'stocktake'
+  | 'transfer_out'
+  | 'transfer_in'
+  | 'shortfall';
+
+export type WriteOffReason = 'spilled' | 'expired' | 'staff' | 'broken' | 'other';
+
+export const WRITE_OFF_REASONS: WriteOffReason[] = [
+  'spilled',
+  'expired',
+  'staff',
+  'broken',
+  'other',
+];
+
+/** Result of a restock, write-off or move: what is left at the branch it was made from. */
+export interface StockMoveResult {
+  kind: 'dish' | 'ingredient';
+  itemId: string;
+  name: string;
+  unit?: string | null;
+  left: number;
+  costPerUnit?: number | null;
+}
+
+export interface StocktakeResultLine {
+  kind: 'dish' | 'ingredient';
+  itemId: string;
+  name: string;
+  unit?: string | null;
+  expected: number;
+  counted: number;
+  difference: number;
+  costDifference?: number | null;
+}
+
+export interface StocktakeResult {
+  lines: StocktakeResultLine[];
+  missingCost: number;
+  extraCost: number;
+}
+
+export interface WriteOffSummary {
+  from: string;
+  to: string;
+  byReason: { reason: WriteOffReason; count: number; cost: number }[];
+  totalCost: number;
+}
+
+/** Cost of one portion of a dish (one size) from its recipe, against its price. */
+export interface FoodCost {
+  menuItemId: string;
+  name: string;
+  categoryName: string;
+  variantId?: string | null;
+  variantLabel?: string | null;
+  price: number;
+  cost?: number | null;
+  foodCostPercent?: number | null;
+  margin?: number | null;
+  missingCost: string[];
+}
+
+/** Something a waiting order needs more of than its branch has left. */
+export interface StockShort {
+  kind: 'dish' | 'ingredient';
+  id: string;
+  name: string;
+  unit?: string | null;
+  need: number;
+  left: number;
 }
 
 export interface StockAlerts {

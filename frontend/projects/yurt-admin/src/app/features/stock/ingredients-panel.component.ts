@@ -9,10 +9,14 @@ import { AdminLangService } from '../../core/lang.service';
 interface IngredientRow extends Ingredient {
   qtyInput: number | null;
   lowInput: number | null;
+  costInput: number | null;
   saving: boolean;
 }
 
-/** Ingredients and how much of each a branch has (Phase 6, `own_pos`). */
+/**
+ * Ingredients, how much of each a branch has and what one unit costs (Phase 6, `own_pos`). A delivery adds to the
+ * count and, with its price, keeps the cost up to date as a running average.
+ */
 @Component({
   selector: 'app-ingredients-panel',
   standalone: true,
@@ -30,6 +34,13 @@ export class IngredientsPanelComponent implements OnChanges {
   loading = signal(true);
   newName = '';
   newUnit = 'g';
+
+  /** The "delivery arrived" form. */
+  deliveryId = '';
+  deliveryQty: number | null = null;
+  deliveryCost: number | null = null;
+  deliveryNote = '';
+  deliverySaving = signal(false);
 
   ngOnChanges(): void {
     this.load();
@@ -74,7 +85,30 @@ export class IngredientsPanelComponent implements OnChanges {
 
   save(row: IngredientRow): void {
     row.saving = true;
+    const cost = this.asNumber(row.costInput);
+    if (cost !== (row.costPerUnit ?? null)) {
+      this.api.setIngredientCost(row.id, cost).subscribe({
+        next: (saved) => {
+          row.costPerUnit = saved.costPerUnit ?? null;
+          if (this.isCountDirty(row)) this.saveCount(row);
+          else {
+            row.saving = false;
+            this.toast.success(this.lang.t('common.saved'));
+          }
+        },
+        error: () => {
+          row.saving = false;
+          this.toast.error(this.lang.t('common.saveFailed'));
+        },
+      });
+      return;
+    }
+    this.saveCount(row);
+  }
+
+  private saveCount(row: IngredientRow): void {
     const qty = this.asNumber(row.qtyInput);
+    const cost = row.costPerUnit ?? null;
     this.api
       .setIngredientStock(row.id, this.locationId, {
         quantity: qty,
@@ -82,13 +116,50 @@ export class IngredientsPanelComponent implements OnChanges {
       })
       .subscribe({
         next: (saved) => {
-          this.rows.update((list) => list.map((r) => (r.id === saved.id ? this.toRow(saved) : r)));
+          this.rows.update((list) =>
+            list.map((r) => (r.id === saved.id ? this.toRow({ ...saved, costPerUnit: cost }) : r)),
+          );
           this.toast.success(this.lang.t('common.saved'));
         },
         error: () => {
           row.saving = false;
           this.toast.error(this.lang.t('common.saveFailed'));
         },
+      });
+  }
+
+  get deliveryRow(): IngredientRow | undefined {
+    return this.rows().find((r) => r.id === this.deliveryId);
+  }
+
+  /** A delivery arrived: add it to the count; with a price, the cost per unit becomes the running average. */
+  addDelivery(): void {
+    const quantity = this.asNumber(this.deliveryQty);
+    if (!this.deliveryId || !quantity) return;
+    this.deliverySaving.set(true);
+    this.api
+      .restockIngredient({
+        locationId: this.locationId,
+        ingredientId: this.deliveryId,
+        quantity,
+        totalCost: this.asNumber(this.deliveryCost),
+        note: this.deliveryNote.trim() || null,
+      })
+      .subscribe({
+        next: (res) => {
+          this.deliverySaving.set(false);
+          this.toast.success(
+            this.lang.t('ing.delivered', {
+              name: res.name,
+              left: `${res.left} ${res.unit ?? ''}`.trim(),
+            }),
+          );
+          this.deliveryQty = null;
+          this.deliveryCost = null;
+          this.deliveryNote = '';
+          this.load();
+        },
+        error: () => this.deliverySaving.set(false),
       });
   }
 
@@ -99,6 +170,10 @@ export class IngredientsPanelComponent implements OnChanges {
   }
 
   isDirty(row: IngredientRow): boolean {
+    return this.isCountDirty(row) || this.asNumber(row.costInput) !== (row.costPerUnit ?? null);
+  }
+
+  private isCountDirty(row: IngredientRow): boolean {
     return (
       this.asNumber(row.qtyInput) !== row.quantity || this.asNumber(row.lowInput) !== row.lowStockAt
     );
@@ -111,6 +186,12 @@ export class IngredientsPanelComponent implements OnChanges {
   }
 
   private toRow(i: Ingredient): IngredientRow {
-    return { ...i, qtyInput: i.quantity, lowInput: i.lowStockAt, saving: false };
+    return {
+      ...i,
+      qtyInput: i.quantity,
+      lowInput: i.lowStockAt,
+      costInput: i.costPerUnit ?? null,
+      saving: false,
+    };
   }
 }

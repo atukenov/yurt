@@ -8,6 +8,9 @@ import { IngredientsPanelComponent } from './ingredients-panel.component';
 import { RecipesPanelComponent } from './recipes-panel.component';
 import { StockAlertPhonesComponent } from './stock-alert-phones.component';
 import { StockHistoryPanelComponent } from './stock-history-panel.component';
+import { FoodCostPanelComponent } from './food-cost-panel.component';
+import { StocktakePanelComponent } from './stocktake-panel.component';
+import { RouterLink } from '@angular/router';
 import { AdminLangService } from '../../core/lang.service';
 
 interface StockRow extends StockItem {
@@ -31,6 +34,9 @@ interface StockRow extends StockItem {
     RecipesPanelComponent,
     StockHistoryPanelComponent,
     StockAlertPhonesComponent,
+    FoodCostPanelComponent,
+    StocktakePanelComponent,
+    RouterLink,
   ],
   templateUrl: './stock-management.component.html',
 })
@@ -46,8 +52,17 @@ export class StockManagementComponent implements OnInit {
   loading = signal(true);
   selectedLocationId = '';
   alerts = signal<StockAlerts>({ low: 0, out: 0, items: [] });
-  tab = signal<'products' | 'ingredients' | 'recipes' | 'history'>('products');
-  readonly tabs = ['products', 'ingredients', 'recipes', 'history'] as const;
+  tab = signal<'products' | 'ingredients' | 'recipes' | 'foodCost' | 'stocktake' | 'history'>(
+    'products',
+  );
+  readonly tabs = [
+    'products',
+    'ingredients',
+    'recipes',
+    'foodCost',
+    'stocktake',
+    'history',
+  ] as const;
 
   ngOnInit(): void {
     this.api.getAdminLocations().subscribe((locs) => {
