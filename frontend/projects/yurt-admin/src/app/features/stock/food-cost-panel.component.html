@@ -34,7 +34,7 @@
             <td class="px-4 py-2 text-right text-slate-800">{{ row.cost | currency2 }}</td>
             <td
               class="px-4 py-2 text-right font-semibold"
-              [class]="isHigh(row) ? 'text-red-700' : 'text-green-700'"
+              [class]="isHigh(row) ? 'text-tone-red' : 'text-tone-green'"
             >
               @if (row.foodCostPercent !== null && row.foodCostPercent !== undefined) {
                 {{ row.foodCostPercent | lnumber: '1.0-1' }}%

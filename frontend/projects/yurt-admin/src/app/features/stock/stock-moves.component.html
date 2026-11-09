@@ -108,7 +108,7 @@
 
       @if (tooMuch && selected) {
         <p
-          class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700"
+          class="mt-3 rounded-lg border border-tone-red px-3 py-2 text-sm font-semibold text-tone-red"
           role="alert"
         >
           {{
@@ -123,7 +123,7 @@
         </p>
       }
       @if (wholeOnly) {
-        <p class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p class="mt-3 rounded-lg border border-tone-red px-3 py-2 text-sm text-tone-red" role="alert">
           {{ 'moves.wholeOnly' | t }}
         </p>
       }
@@ -158,7 +158,7 @@
             </td>
             <td class="whitespace-nowrap px-4 py-2 font-semibold">
               @if (row.change !== null && row.change !== undefined) {
-                <span [class]="row.change < 0 ? 'text-red-700' : 'text-green-700'">
+                <span [class]="row.change < 0 ? 'text-tone-red' : 'text-tone-green'">
                   {{ row.change > 0 ? '+' : '' }}{{ row.change | lnumber: '1.0-3'
                   }}{{ row.unit ? ' ' + row.unit : '' }}
                 </span>

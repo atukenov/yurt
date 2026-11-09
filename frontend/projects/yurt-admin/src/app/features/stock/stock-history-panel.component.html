@@ -5,7 +5,7 @@
     <div class="mb-4 rounded-2xl border border-slate-200 bg-surface p-3 text-sm">
       <p class="font-semibold text-slate-700">
         {{ 'hist.writeOffs30' | t }}:
-        <span class="text-red-700">{{ w.totalCost | currency2 }}</span>
+        <span class="text-tone-red">{{ w.totalCost | currency2 }}</span>
       </p>
       <ul class="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-slate-600">
         @for (r of w.byReason; track r.reason) {
@@ -63,7 +63,7 @@
           </td>
           <td class="px-4 py-2 font-semibold">
             @if (isCounted(row.change)) {
-              <span [class]="row.change < 0 ? 'text-red-700' : 'text-green-700'">
+              <span [class]="row.change < 0 ? 'text-tone-red' : 'text-tone-green'">
                 {{ row.change > 0 ? '+' : '' }}{{ row.change | lnumber: '1.0-3' }}
               </span>
               @if (isCounted(row.costValue)) {
