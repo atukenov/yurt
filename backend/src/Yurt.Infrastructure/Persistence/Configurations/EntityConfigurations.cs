@@ -443,6 +443,7 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Name).HasMaxLength(100).IsRequired();
         builder.Property(e => e.Unit).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.CostPerUnit).HasPrecision(18, 4);
         builder.HasIndex(e => new { e.TenantId, e.Name }).IsUnique();
     }
 }
@@ -471,6 +472,11 @@ public class StockChangeConfiguration : IEntityTypeConfiguration<StockChange>
         builder.Property(e => e.ChangedBy).HasMaxLength(100).IsRequired();
         builder.Property(e => e.OldQuantity).HasPrecision(18, 3);
         builder.Property(e => e.NewQuantity).HasPrecision(18, 3);
+        builder.Property(e => e.Type).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Reason).HasMaxLength(20);
+        builder.Property(e => e.Note).HasMaxLength(300);
+        builder.Property(e => e.UnitCost).HasPrecision(18, 4);
+        builder.Property(e => e.OtherLocationName).HasMaxLength(200);
         builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(e => new { e.LocationId, e.CreatedAt });
     }

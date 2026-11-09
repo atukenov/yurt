@@ -177,6 +177,7 @@ public static class DependencyInjection
         services.AddScoped<StockAlertPushService>();
         services.AddScoped<StockService>();
         services.AddScoped<IngredientService>();
+        services.AddScoped<StockMoveService>();
         services.AddScoped<ShiftService>();
         services.AddScoped<SplitPaymentService>();
 

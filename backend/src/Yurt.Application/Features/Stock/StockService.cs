@@ -84,33 +84,49 @@ public class StockService(
             IsSoldOut: row is { Quantity: <= 0 }));
     }
 
-    /// <summary>Hand changes to counts in a branch, newest first: restocks, recounts and stop-counting, with who and when.</summary>
-    public async Task<Result<List<StockChangeDto>>> HistoryAsync(Guid locationId, int take, CancellationToken ct = default)
+    /// <summary>
+    /// Hand changes to counts in a branch, newest first: restocks, write-offs, moves, stocktakes and hand counts, with
+    /// who and when. <paramref name="types"/> (comma-separated, for example "writeoff,transfer_out") narrows the list.
+    /// </summary>
+    public async Task<Result<List<StockChangeDto>>> HistoryAsync(
+        Guid locationId, int take, string? types = null, CancellationToken ct = default)
     {
         if (!await db.Locations.AnyAsync(l => l.Id == locationId, ct))
             return Result<List<StockChangeDto>>.Failure("Location not found.", 404);
 
-        var rows = await db.StockChanges
-            .Where(c => c.LocationId == locationId)
+        var typeList = (types ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        var query = db.StockChanges.Where(c => c.LocationId == locationId);
+        if (typeList.Count > 0) query = query.Where(c => typeList.Contains(c.Type));
+        var rows = await query
             .OrderByDescending(c => c.CreatedAt)
             .Take(Math.Clamp(take, 1, MaxHistory))
-            .Select(c => new StockChangeDto(c.Id, c.Kind, c.ItemId, c.ItemName, c.Unit, c.OldQuantity, c.NewQuantity,
-                c.OldQuantity != null && c.NewQuantity != null ? c.NewQuantity - c.OldQuantity : null, c.ChangedBy, c.CreatedAt))
             .ToListAsync(ct);
-        return Result<List<StockChangeDto>>.Success(rows);
+        return Result<List<StockChangeDto>>.Success(rows.Select(ToDto).ToList());
+    }
+
+    internal static StockChangeDto ToDto(StockChange c)
+    {
+        decimal? change = c.OldQuantity != null && c.NewQuantity != null ? c.NewQuantity - c.OldQuantity : null;
+        // A count set by hand from nothing (restock into an uncounted item) still moved stock by the new amount.
+        if (change is null && c.Type == StockChangeTypes.Restock && c.NewQuantity != null) change = c.NewQuantity;
+        decimal? value = change != null && c.UnitCost != null ? Math.Round(Math.Abs(change.Value) * c.UnitCost.Value, 2) : null;
+        return new StockChangeDto(c.Id, c.Kind, c.ItemId, c.ItemName, c.Unit, c.OldQuantity, c.NewQuantity, change,
+            c.ChangedBy, c.CreatedAt, c.Type, c.Reason, c.Note, c.UnitCost, c.OtherLocationId, c.OtherLocationName, value);
     }
 
     /// <summary>Adds a history row when a hand change moves the count. Saved with the caller's own SaveChanges.</summary>
-    internal static void LogChange(
+    internal static StockChange? LogChange(
         IApplicationDbContext db, ICurrentUserService user, Guid locationId, string kind, Guid itemId, string name,
-        string? unit, decimal? before, decimal? after)
+        string? unit, decimal? before, decimal? after, string type = StockChangeTypes.Set)
     {
-        if (before == after) return; // only the warn-at number changed
-        db.StockChanges.Add(new StockChange
+        if (before == after) return null; // only the warn-at number changed
+        var row = new StockChange
         {
             LocationId = locationId, Kind = kind, ItemId = itemId, ItemName = name, Unit = unit,
-            OldQuantity = before, NewQuantity = after, ChangedBy = user.Username ?? "unknown",
-        });
+            OldQuantity = before, NewQuantity = after, ChangedBy = user.Username ?? "unknown", Type = type,
+        };
+        db.StockChanges.Add(row);
+        return row;
     }
 
     /// <summary>
@@ -254,6 +270,43 @@ public class StockService(
     }
 
     /// <summary>
+    /// What a waiting order needs more of than its branch has left (dishes and ingredients), so staff are warned
+    /// before accepting it. Accepting anyway stops those counts at zero and logs the missing amount. Empty while the
+    /// module is off or when nothing is short.
+    /// </summary>
+    public async Task<Result<List<StockShortDto>>> OrderShortagesAsync(Guid orderId, CancellationToken ct = default)
+    {
+        var order = await db.Orders.Include(o => o.Items).ThenInclude(i => i.Toppings)
+            .FirstOrDefaultAsync(o => o.Id == orderId, ct);
+        if (order is null) return Result<List<StockShortDto>>.Failure("Order not found.", 404);
+        if (!await IsActiveAsync(ct)) return Result<List<StockShortDto>>.Success([]);
+
+        var shorts = new List<StockShortDto>();
+        var dishes = order.Items.GroupBy(i => i.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+        var dishIds = dishes.Keys.ToList();
+        var dishCounts = await db.MenuItemStocks
+            .Where(s => s.LocationId == order.LocationId && dishIds.Contains(s.MenuItemId))
+            .Select(s => new { s.MenuItemId, s.Quantity, s.MenuItem.Name })
+            .ToListAsync(ct);
+        shorts.AddRange(dishCounts.Where(d => dishes[d.MenuItemId] > d.Quantity)
+            .Select(d => new StockShortDto("dish", d.MenuItemId, d.Name, null, dishes[d.MenuItemId], Math.Max(0, d.Quantity))));
+
+        var lines = order.Items
+            .Select(i => new StockLine(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings.Select(t => t.ToppingId).ToList()))
+            .ToList();
+        var needs = NeedsOf(lines, await RecipesForAsync(lines, ct), await ToppingUsesForAsync(lines, ct));
+        var ids = needs.Keys.ToList();
+        var counts = await db.IngredientStocks
+            .Where(s => s.LocationId == order.LocationId && ids.Contains(s.IngredientId))
+            .Select(s => new { s.IngredientId, s.Quantity, s.Ingredient.Name, s.Ingredient.Unit })
+            .ToListAsync(ct);
+        shorts.AddRange(counts.Where(c => needs[c.IngredientId] > c.Quantity)
+            .Select(c => new StockShortDto("ingredient", c.IngredientId, c.Name, c.Unit, needs[c.IngredientId], Math.Max(0m, c.Quantity))));
+
+        return Result<List<StockShortDto>>.Success(shorts.OrderBy(s => s.Name).ToList());
+    }
+
+    /// <summary>
     /// Lowers the counts for an accepted order. Never goes below zero; safe when two orders are accepted together.
     /// Anything this order takes down to its warn-at number, or to zero, is sent as a phone alert.
     /// </summary>
@@ -303,6 +356,16 @@ public class StockService(
         // The customer menu is cached; an item that just sold out must disappear from it.
         if (touched) await menuCache.InvalidateAllMenuAsync();
 
+        // The order needed more than was left: the count stopped at zero. Log what was missing so the owner sees it
+        // in the history instead of stock quietly vanishing (a missed restock, a wrong recipe, or theft).
+        var orderRef = order.Id.ToString()[^6..];
+        foreach (var d in dishesBefore.Where(d => dishes[d.MenuItemId] > d.Quantity))
+            LogShortfall(order.LocationId, "dish", d.MenuItemId, d.Name, null, d.Quantity, dishes[d.MenuItemId], orderRef);
+        foreach (var i in ingredientsBefore.Where(i => needs[i.IngredientId] > i.Quantity))
+            LogShortfall(order.LocationId, "ingredient", i.IngredientId, i.Name, i.Unit, i.Quantity, needs[i.IngredientId], orderRef);
+        if (dishesBefore.Any(d => dishes[d.MenuItemId] > d.Quantity) || ingredientsBefore.Any(i => needs[i.IngredientId] > i.Quantity))
+            await db.SaveChangesAsync(ct);
+
         var crossed = new List<(string Kind, Guid Id, string Name, decimal Left, string? Unit)>();
         foreach (var d in dishesBefore)
         {
@@ -321,6 +384,15 @@ public class StockService(
             .Select(c => new StockAlertDto(c.Kind, c.Id, c.Name, order.LocationId, locationName, c.Left, c.Unit, c.Left <= 0))
             .ToList(), ct);
     }
+
+    private void LogShortfall(Guid locationId, string kind, Guid id, string name, string? unit, decimal had, decimal needed, string orderRef)
+        => db.StockChanges.Add(new StockChange
+        {
+            LocationId = locationId, Kind = kind, ItemId = id, ItemName = name, Unit = unit,
+            OldQuantity = Math.Max(0m, had), NewQuantity = 0m, ChangedBy = user.Username ?? "unknown",
+            Type = StockChangeTypes.Shortfall,
+            Note = $"#{orderRef}: {needed:0.###} needed, {Math.Max(0m, had):0.###} left",
+        });
 
     /// <summary>True when this change took a count from above its warn-at number to at or under it, or to zero. Only
     /// the order that crosses the line alerts; the ones after it stay quiet until someone restocks.</summary>

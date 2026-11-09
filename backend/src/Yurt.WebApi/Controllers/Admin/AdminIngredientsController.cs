@@ -35,6 +35,12 @@ public class AdminIngredientsController(IngredientService ingredients) : ApiCont
     public async Task<IActionResult> SetStock(Guid id, Guid locationId, [FromBody] SetIngredientStockDto dto, CancellationToken ct)
         => ToResult(await ingredients.SetStockAsync(id, locationId, dto, ct));
 
+    /// <summary>What one unit costs, set by hand. Cafe admins only.</summary>
+    [HttpPut("{id:guid}/cost")]
+    [Authorize(Policy = "AdminRoleAdmin")]
+    public async Task<IActionResult> SetCost(Guid id, [FromBody] SetIngredientCostDto dto, CancellationToken ct)
+        => ToResult(await ingredients.SetCostAsync(id, dto, ct));
+
     [HttpGet("recipes/{menuItemId:guid}")]
     public async Task<IActionResult> GetRecipe(Guid menuItemId, CancellationToken ct)
         => ToResult(await ingredients.GetRecipeAsync(menuItemId, ct));

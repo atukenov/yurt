@@ -108,6 +108,23 @@ public class IngredientService(
         return Result<IngredientDto>.Success(ToDto(ingredient, row, await db.RecipeLines.Where(r => r.IngredientId == id).Select(r => r.MenuItemId).Distinct().CountAsync(ct)));
     }
 
+    /// <summary>Sets what one unit costs by hand (null = not known). Restocks with a price keep it up to date after that.</summary>
+    public async Task<Result<IngredientDto>> SetCostAsync(Guid id, SetIngredientCostDto dto, CancellationToken ct = default)
+    {
+        if (dto.CostPerUnit is < 0 or > 100_000_000)
+            return Result<IngredientDto>.Failure("Cost must be zero or more.", 400);
+        var ingredient = await db.Ingredients.FirstOrDefaultAsync(i => i.Id == id, ct);
+        if (ingredient is null) return Result<IngredientDto>.Failure("Ingredient not found.", 404);
+
+        ingredient.CostPerUnit = dto.CostPerUnit is null ? null : Math.Round(dto.CostPerUnit.Value, 4);
+        ingredient.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        await audit.LogAsync("IngredientCostSet", "Ingredient", id.ToString(),
+            $"{ingredient.Name}: {(dto.CostPerUnit?.ToString() ?? "not known")} per {ingredient.Unit}", ct);
+        return Result<IngredientDto>.Success(ToDto(ingredient, null,
+            await db.RecipeLines.Where(r => r.IngredientId == id).Select(r => r.MenuItemId).Distinct().CountAsync(ct)));
+    }
+
     public async Task<Result<List<RecipeLineDto>>> GetRecipeAsync(Guid menuItemId, CancellationToken ct = default)
     {
         if (!await db.MenuItems.AnyAsync(m => m.Id == menuItemId, ct))
@@ -194,5 +211,5 @@ public class IngredientService(
     private static IngredientDto ToDto(Ingredient i, IngredientStock? s, int usedIn) => new(
         i.Id, i.Name, i.Unit, s?.Quantity, s?.LowStockAt,
         IsLow: s is { LowStockAt: not null } && s.Quantity <= s.LowStockAt && s.Quantity > 0,
-        IsOut: s is { Quantity: <= 0 }, usedIn);
+        IsOut: s is { Quantity: <= 0 }, usedIn, i.CostPerUnit);
 }
