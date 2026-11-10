@@ -1,0 +1,5 @@
+# Yurt Watch pilot. Python 3.11 or newer.
+numpy>=1.26
+opencv-python-headless>=4.9
+onnxruntime>=1.17
+tzdata>=2024.1   # time zones on Windows

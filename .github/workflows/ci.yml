@@ -124,6 +124,22 @@ jobs:
           name: yurt-admin-tablet-debug-apk
           path: frontend/admin-native/android/app/build/outputs/apk/debug/*.apk
 
+  # ── Yurt Watch pilot (camera counting, Python) ───────────────────────────
+  watch:
+    name: Watch pilot — Tests
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: watch
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python watch.py download-model --config config.example.toml
+      - run: python -m unittest discover -s tests -t . -v
+
   # ── Frontend ─────────────────────────────────────────────────────────────
   frontend:
     name: Frontend — Build

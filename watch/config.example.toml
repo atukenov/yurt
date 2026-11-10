@@ -1,0 +1,55 @@
+# Yurt Watch pilot settings. Copy to config.toml and fill in.
+cafe = "My cafe"
+timezone = "Asia/Almaty"      # all of Kazakhstan is UTC+5
+open = "08:00"
+close = "22:00"
+language = "ru"               # ru or en
+schedule_file = "staff.csv"   # who works where and when (see staff.example.csv)
+data_dir = "data"             # minute counts, reports, check pictures: stay on this computer
+model = "models/yolox_tiny.onnx"
+sample_seconds = 1.0          # how often each camera is checked
+min_confidence = 0.45         # lower = finds more people, but more mistakes
+check_picture_minutes = 30    # a blurred check picture every N minutes, to verify counting by eye
+keep_pictures_days = 7
+
+[telegram]
+bot_token = ""                # from @BotFather
+chat_id = ""                  # your chat with the bot (see README)
+
+[alerts]
+empty_while_queue_minutes = 3 # station empty this long while guests wait -> alert
+queue_min_guests = 2          # what counts as "guests waiting"
+empty_on_shift_minutes = 10   # station empty this long while someone is scheduled -> alert
+late_grace_minutes = 10       # not at the station this long after the shift starts -> "late"
+
+# Hikvision: channel 102 is the small "sub stream" (enough for counting, light on the network).
+# Use a separate camera user with "view only" rights, not the admin password.
+[[cameras]]
+name = "counter"
+url = "rtsp://watch:PASSWORD@192.168.1.64:554/Streaming/Channels/102"
+
+# Zones: corners in percent of the picture (0-100, from the top-left), read off the snapshot grid.
+# A person counts in a zone where their feet are. Station zones only behind the counter, where guests don't go.
+# Never draw zones on toilets, changing rooms or the staff rest area.
+[[zones]]
+name = "bar"
+label = "Бар"
+kind = "station"
+camera = "counter"
+queue = "queue"
+points = [[5, 35], [45, 35], [45, 70], [5, 70]]
+
+[[zones]]
+name = "till"
+label = "Касса"
+kind = "station"
+camera = "counter"
+queue = "queue"
+points = [[45, 35], [70, 35], [70, 70], [45, 70]]
+
+[[zones]]
+name = "queue"
+label = "Очередь"
+kind = "queue"
+camera = "counter"
+points = [[30, 72], [95, 72], [95, 100], [30, 100]]
