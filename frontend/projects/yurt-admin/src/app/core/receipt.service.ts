@@ -39,7 +39,9 @@ export class ReceiptService {
       .map(
         (x) => `<div class="card"><p class="brand">${esc(this.brand.name())}</p>
           <img src="${x.qrSvg}" alt=""><p class="table">${esc(t('tables.tableN', { table: x.label }))}</p>
-          <p class="hint">${esc(t('tables.scanToOrder'))}</p><p class="small">${esc(branchName)}</p></div>`,
+          <p class="hint">${esc(t('tables.scanToOrder'))}</p>
+          <p class="small">${esc(t('tables.codeOnSticker', { code: x.code.replace(/(.{5})(?=.)/g, '$1 ') }))}</p>
+          <p class="small">${esc(branchName)}</p></div>`,
       )
       .join('');
     this.printHtml(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(t('tables.title'))}</title><style>

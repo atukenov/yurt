@@ -21,6 +21,16 @@ function read(): TableLookup | null {
 }
 
 /**
+ * The table code in what the guest typed: the code from the sticker (spaces and dashes allowed) or the whole QR link
+ * (…/t/CODE). Empty when there is none.
+ */
+export function tableCodeFrom(input: string): string {
+  const text = (input ?? '').trim();
+  const fromLink = /\/t\/([A-Za-z0-9]+)/.exec(text);
+  return (fromLink ? fromLink[1] : text.replace(/[\s-]/g, '')).toUpperCase();
+}
+
+/**
  * The table the guest is sitting at, after scanning its QR code (table_ordering). While it is set, orders go to this
  * table and staff bring them over. It is forgotten after a few hours, when the guest picks another branch, or when
  * they choose to pick up at the counter instead.

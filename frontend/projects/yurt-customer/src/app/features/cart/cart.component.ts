@@ -11,7 +11,7 @@ import { LocationService } from '../../core/location.service';
 import { LangService } from '../../core/lang.service';
 import { StoreStatusService } from '../../core/store-status.service';
 import { OnlinePaymentService } from '../../core/online-payment.service';
-import { TableService } from '../../core/table.service';
+import { TableService, tableCodeFrom } from '../../core/table.service';
 import { pickupSlots } from '../../core/schedule';
 
 @Component({
@@ -42,6 +42,32 @@ export class CartComponent implements OnInit {
   /** The guest wants to pick the order up at the counter instead. */
   leaveTable(): void {
     this.tableSvc.clear();
+  }
+
+  // A guest at a table who orders in the installed app: the phone camera opens the QR link in the browser, not in the
+  // app, so the app never hears about the table. They can type the code printed on the sticker here instead.
+  readonly canEnterTable = computed(() => this.modules.isEnabled('table_ordering') && !this.tableSvc.table());
+  readonly tableEntryOpen = signal(false);
+  readonly tableCodeInput = signal('');
+  readonly tableChecking = signal(false);
+
+  joinTable(): void {
+    const code = tableCodeFrom(this.tableCodeInput());
+    if (!code || this.tableChecking()) return;
+    this.tableChecking.set(true);
+    this.api.lookupTable(code).subscribe({
+      next: (table) => {
+        this.tableChecking.set(false);
+        this.tableSvc.set(table);
+        this.tableEntryOpen.set(false);
+        this.tableCodeInput.set('');
+        this.toast.success(this.langService.t('table.welcome', { table: table.label }));
+      },
+      error: () => {
+        this.tableChecking.set(false);
+        this.toast.warning(this.langService.t('table.notFound'));
+      },
+    });
   }
   readonly PaymentMethod = PaymentMethod;
 
