@@ -78,6 +78,18 @@ mon,Алия,till,16:00,22:00
 `station` is a zone name from `config.toml`. You can edit the file while the program runs; it re-reads it every minute.
 If two people share one station at the same time, the report says so: the camera can't tell them apart.
 
+## Trying it without an IP camera
+
+- **A webcam plugged into the computer** (or the laptop's own camera): `url = "0"` (`"1"` for a second one).
+- **A home camera that streams over the network** (RTSP, like Hikvision, Dahua, TP-Link Tapo, Imou, EZVIZ):
+  use its RTSP address, e.g. `rtsp://user:password@192.168.1.50:554/stream1`. The address is in the camera's
+  manual or app (Tapo: "Camera account" in the app; EZVIZ / Imou: turn on RTSP or "local access" first). Cloud-only
+  cameras without RTSP (for example most Xiaomi) cannot be read.
+- **A video file**: put its path as `url`; it plays in a loop at its real speed.
+
+Point it at a room with people moving, draw a "station" zone around a chair or desk and a "door" line across a
+doorway, and you can see visitors, phone in hand and "not moving" alerts on the Staff watch page.
+
 ## Connected to Yurt
 
 1. An admin of the cafe switches on `staff_watch` (Platform > Modules) and opens **Staff watch** in the admin app.
