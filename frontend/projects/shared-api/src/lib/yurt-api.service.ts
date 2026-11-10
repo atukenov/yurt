@@ -53,6 +53,12 @@ import {
   StockAlertPhone,
   StockAlerts,
   StockChange,
+  StockMoveResult,
+  StocktakeResult,
+  WriteOffSummary,
+  WriteOffReason,
+  FoodCost,
+  StockShort,
   Station,
   DiningTable,
   TableLookup,
@@ -680,11 +686,72 @@ export class YurtApiService {
     });
   }
 
-  /** Hand changes to dish and ingredient counts at a branch, newest first. */
-  getStockHistory(locationId: string, take = 100): Observable<StockChange[]> {
+  /** Hand changes to dish and ingredient counts at a branch, newest first. `types` narrows it, e.g. 'writeoff,transfer_out'. */
+  getStockHistory(locationId: string, take = 100, types?: string): Observable<StockChange[]> {
     return this.http.get<StockChange[]>(`${this.api}/admin/stock/history`, {
-      params: { locationId, take },
+      params: types ? { locationId, take, types } : { locationId, take },
     });
+  }
+
+  /** A delivery arrived; `totalCost` (optional) updates the ingredient's average cost. */
+  restockIngredient(body: {
+    locationId: string;
+    ingredientId: string;
+    quantity: number;
+    totalCost: number | null;
+    note: string | null;
+  }): Observable<StockMoveResult> {
+    return this.http.post<StockMoveResult>(`${this.api}/admin/stock/restock`, body);
+  }
+
+  writeOffStock(body: {
+    locationId: string;
+    kind: 'dish' | 'ingredient';
+    itemId: string;
+    quantity: number;
+    reason: WriteOffReason;
+    note: string | null;
+  }): Observable<StockMoveResult> {
+    return this.http.post<StockMoveResult>(`${this.api}/admin/stock/write-off`, body);
+  }
+
+  transferStock(body: {
+    fromLocationId: string;
+    toLocationId: string;
+    kind: 'dish' | 'ingredient';
+    itemId: string;
+    quantity: number;
+    note: string | null;
+  }): Observable<StockMoveResult> {
+    return this.http.post<StockMoveResult>(`${this.api}/admin/stock/transfer`, body);
+  }
+
+  saveStocktake(body: {
+    locationId: string;
+    note: string | null;
+    lines: { kind: 'dish' | 'ingredient'; itemId: string; counted: number }[];
+  }): Observable<StocktakeResult> {
+    return this.http.post<StocktakeResult>(`${this.api}/admin/stock/stocktake`, body);
+  }
+
+  /** Write-offs totalled by reason; the last 30 days when no dates are given. */
+  getWriteOffSummary(locationId?: string): Observable<WriteOffSummary> {
+    return this.http.get<WriteOffSummary>(`${this.api}/admin/stock/write-offs`, {
+      params: locationId ? { locationId } : {},
+    });
+  }
+
+  getFoodCost(): Observable<FoodCost[]> {
+    return this.http.get<FoodCost[]>(`${this.api}/admin/stock/food-cost`);
+  }
+
+  /** What a waiting order needs more of than its branch has left (empty when all is fine). */
+  getOrderStockCheck(orderId: string): Observable<StockShort[]> {
+    return this.http.get<StockShort[]>(`${this.api}/admin/stock/order-check/${orderId}`);
+  }
+
+  setIngredientCost(id: string, costPerUnit: number | null): Observable<Ingredient> {
+    return this.http.put<Ingredient>(`${this.api}/admin/ingredients/${id}/cost`, { costPerUnit });
   }
 
   /** Phones whose cafe app gets a push when stock runs low. */

@@ -1,0 +1,55 @@
+<p class="mb-3 text-sm text-slate-500">{{ 'cost.hint' | t: { high: high } }}</p>
+
+<div class="overflow-x-auto rounded-2xl border border-slate-200 bg-surface">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+      <tr>
+        <th class="px-4 py-2">{{ 'stock.item' | t }}</th>
+        <th class="px-4 py-2 text-right">{{ 'cost.price' | t }}</th>
+        <th class="px-4 py-2 text-right">{{ 'cost.cost' | t }}</th>
+        <th class="px-4 py-2 text-right">{{ 'cost.percent' | t }}</th>
+        <th class="px-4 py-2 text-right">{{ 'cost.margin' | t }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.menuItemId + (row.variantId ?? '')) {
+        <tr class="border-t border-slate-100">
+          <td class="px-4 py-2">
+            <p class="font-medium text-slate-800">
+              {{ row.name }}{{ row.variantLabel ? ' · ' + row.variantLabel : '' }}
+            </p>
+            <p class="text-xs text-slate-500">{{ row.categoryName }}</p>
+            @if (row.missingCost.length) {
+              <p class="text-xs text-amber-800">
+                {{ 'cost.missing' | t }}: {{ row.missingCost.join(', ') }}
+              </p>
+            }
+          </td>
+          <td class="px-4 py-2 text-right text-slate-600">{{ row.price | currency2 }}</td>
+          @if (row.cost === null || row.cost === undefined) {
+            <td colspan="3" class="px-4 py-2 text-right text-slate-500">
+              {{ 'cost.noRecipe' | t }}
+            </td>
+          } @else {
+            <td class="px-4 py-2 text-right text-slate-800">{{ row.cost | currency2 }}</td>
+            <td
+              class="px-4 py-2 text-right font-semibold"
+              [class]="isHigh(row) ? 'text-tone-red' : 'text-tone-green'"
+            >
+              @if (row.foodCostPercent !== null && row.foodCostPercent !== undefined) {
+                {{ row.foodCostPercent | lnumber: '1.0-1' }}%
+              }
+            </td>
+            <td class="px-4 py-2 text-right text-slate-800">{{ row.margin ?? 0 | currency2 }}</td>
+          }
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" class="px-4 py-8 text-center text-slate-500">
+            {{ loading() ? ('label.loading' | t) : ('cost.empty' | t) }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

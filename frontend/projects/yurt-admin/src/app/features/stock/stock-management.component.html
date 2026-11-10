@@ -1,19 +1,26 @@
-<div class="mx-auto max-w-4xl p-6">
+<div class="mx-auto max-w-5xl p-6">
   <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="text-xl font-bold text-slate-800">{{ 'stock.title' | t }}</h1>
       <p class="text-sm text-slate-500">{{ 'stock.hint' | t }}</p>
     </div>
-    <select
-      [(ngModel)]="selectedLocationId"
-      (ngModelChange)="load()"
-      [attr.aria-label]="'stock.branch' | t"
-      class="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-400"
-    >
-      @for (loc of locations(); track loc.id) {
-        <option [value]="loc.id">{{ loc.name }}</option>
-      }
-    </select>
+    <div class="flex flex-wrap items-center gap-2">
+      <a
+        routerLink="/stock-moves"
+        class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >{{ 'nav.stockMoves' | t }}</a
+      >
+      <select
+        [(ngModel)]="selectedLocationId"
+        (ngModelChange)="load()"
+        [attr.aria-label]="'stock.branch' | t"
+        class="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+      >
+        @for (loc of locations(); track loc.id) {
+          <option [value]="loc.id">{{ loc.name }}</option>
+        }
+      </select>
+    </div>
   </div>
 
   @if (alerts().items.length) {
@@ -37,14 +44,14 @@
 
   <app-stock-alert-phones />
 
-  <div class="mb-4 flex gap-1 border-b border-slate-200" role="tablist">
+  <div class="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200" role="tablist">
     @for (t of tabs; track t) {
       <button
         type="button"
         role="tab"
         [attr.aria-selected]="tab() === t"
         (click)="tab.set(t)"
-        class="-mb-px border-b-2 px-4 py-2 text-sm font-semibold"
+        class="-mb-px whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold"
         [class]="
           tab() === t
             ? 'border-brand-500 text-slate-800'
@@ -61,6 +68,12 @@
   }
   @if (tab() === 'recipes') {
     <app-recipes-panel />
+  }
+  @if (tab() === 'foodCost') {
+    <app-food-cost-panel />
+  }
+  @if (tab() === 'stocktake') {
+    <app-stocktake-panel [locationId]="selectedLocationId" />
   }
   @if (tab() === 'history') {
     <app-stock-history-panel [locationId]="selectedLocationId" />

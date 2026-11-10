@@ -259,8 +259,37 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Accepts an order. With own stock on, first checks whether the order needs more of something than the branch has
+   * left, and asks before taking the count below zero (accepting anyway stops it at zero and logs what was missing).
+   */
   acceptOrder(order: Order): void {
     this.actionLoading.set(true);
+    if (!this.modules.isEnabled('own_pos')) return this.doAccept(order);
+    this.api
+      .getOrderStockCheck(order.id)
+      .pipe(catchError(() => of([])))
+      .subscribe((shorts) => {
+        if (shorts.length) {
+          const lines = shorts
+            .map((s) =>
+              this.lang.t('orders.stockShortLine', {
+                name: s.name,
+                need: `${s.need}${s.unit ? ' ' + s.unit : ''}`,
+                left: `${s.left}${s.unit ? ' ' + s.unit : ''}`,
+              }),
+            )
+            .join('\n');
+          if (!confirm(`${this.lang.t('orders.stockShort')}\n\n${lines}\n\n${this.lang.t('orders.stockShortAsk')}`)) {
+            this.actionLoading.set(false);
+            return;
+          }
+        }
+        this.doAccept(order);
+      });
+  }
+
+  private doAccept(order: Order): void {
     if (this.etaPresetValue === 'pickup' && order.pickupAt) this.etaInput = this.minutesUntilPickup(order);
     this.api.acceptOrder(order.id, { etaMinutes: this.etaInput }).subscribe({
       next: (o) => {

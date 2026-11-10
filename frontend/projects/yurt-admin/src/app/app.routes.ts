@@ -84,6 +84,12 @@ export const routes: Routes = [
             loadComponent: () => import('./features/tables/tables.component').then((m) => m.TablesComponent),
           },
           {
+            // Write-offs and moves between branches: open to staff, not only admins.
+            path: 'stock-moves',
+            canActivate: [moduleGuard('own_pos', '/orders')],
+            loadComponent: () => import('./features/stock/stock-moves.component').then((m) => m.StockMovesComponent),
+          },
+          {
             path: 'stock',
             canActivate: [moduleGuard('own_pos', '/orders')],
             loadComponent: () =>

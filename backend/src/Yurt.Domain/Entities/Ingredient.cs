@@ -11,6 +11,12 @@ public class Ingredient : BaseEntity, ITenantOwned
 
     /// <summary>Free text shown next to numbers, for example "g", "ml" or "pcs".</summary>
     public string Unit { get; set; } = "pcs";
+
+    /// <summary>
+    /// What one unit costs the cafe (for example the price of 1 g of beans), in the cafe's money. Set by hand or by
+    /// restocks with a price, which keep a running average. Null means the cost is not known yet.
+    /// </summary>
+    public decimal? CostPerUnit { get; set; }
 }
 
 /// <summary>How much of an ingredient a branch has. No row means the branch does not count it (unlimited).</summary>

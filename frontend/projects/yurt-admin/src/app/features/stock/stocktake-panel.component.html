@@ -1,0 +1,112 @@
+<p class="mb-3 text-sm text-slate-500">{{ 'take.hint' | t }}</p>
+
+@if (result(); as r) {
+  <div class="mb-4 rounded-2xl border border-slate-200 bg-surface p-4" role="status">
+    <p class="font-semibold text-slate-800">{{ 'take.done' | t }}</p>
+    <p class="mt-1 text-sm">
+      <span class="font-semibold text-tone-red"
+        >{{ 'take.missing' | t }}: {{ r.missingCost | currency2 }}</span
+      >
+      ·
+      <span class="font-semibold text-tone-green"
+        >{{ 'take.extra' | t }}: {{ r.extraCost | currency2 }}</span
+      >
+    </p>
+    <ul class="mt-2 text-sm text-slate-600">
+      @for (l of r.lines; track l.kind + l.itemId) {
+        @if (l.difference !== 0) {
+          <li>
+            {{ l.name }}: {{ l.expected | lnumber: '1.0-3' }} → {{ l.counted | lnumber: '1.0-3'
+            }}{{ l.unit ? ' ' + l.unit : '' }}
+            <span [class]="l.difference < 0 ? 'text-tone-red' : 'text-tone-green'">
+              ({{ l.difference > 0 ? '+' : '' }}{{ l.difference | lnumber: '1.0-3'
+              }}{{
+                l.costDifference !== null && l.costDifference !== undefined
+                  ? ', ' + (l.costDifference | lnumber: '1.0-2') + ' ₸'
+                  : ''
+              }})
+            </span>
+          </li>
+        }
+      }
+    </ul>
+  </div>
+}
+
+<div class="overflow-x-auto rounded-2xl border border-slate-200 bg-surface">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+      <tr>
+        <th class="px-4 py-2">{{ 'stock.item' | t }}</th>
+        <th class="px-4 py-2">{{ 'take.expected' | t }}</th>
+        <th class="px-4 py-2">{{ 'take.counted' | t }}</th>
+        <th class="px-4 py-2">{{ 'hist.change' | t }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.kind + row.id) {
+        <tr class="border-t border-slate-100">
+          <td class="px-4 py-2">
+            <p class="font-medium text-slate-800">{{ row.name }}</p>
+            <p class="text-xs text-slate-500">
+              {{ (row.kind === 'dish' ? 'hist.dish' : 'hist.ingredient') | t }}
+            </p>
+          </td>
+          <td class="px-4 py-2 text-slate-600">
+            {{ row.expected | lnumber: '1.0-3' }}{{ row.unit ? ' ' + row.unit : '' }}
+          </td>
+          <td class="px-4 py-2">
+            <input
+              type="number"
+              min="0"
+              [step]="row.kind === 'dish' ? 1 : 'any'"
+              [(ngModel)]="row.counted"
+              [attr.aria-label]="('take.counted' | t) + ' ' + row.name"
+              class="w-28 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+            />
+          </td>
+          <td class="px-4 py-2 font-semibold">
+            @if (difference(row); as d) {
+              <span [class]="d < 0 ? 'text-tone-red' : 'text-tone-green'">
+                {{ d > 0 ? '+' : '' }}{{ d | lnumber: '1.0-3' }}
+                @if (row.costPerUnit !== null) {
+                  <span class="font-normal">({{ d * row.costPerUnit | lnumber: '1.0-2' }} ₸)</span>
+                }
+              </span>
+            } @else if (difference(row) === 0) {
+              <span class="text-slate-500">0</span>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4" class="px-4 py-8 text-center text-slate-500">
+            {{ loading() ? ('label.loading' | t) : ('moves.nothingCounted' | t) }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (rows().length) {
+  <div class="mt-3 flex flex-wrap items-end gap-2">
+    <label class="text-sm text-slate-600">
+      {{ 'cash.note' | t }}
+      <input
+        type="text"
+        maxlength="300"
+        [(ngModel)]="note"
+        class="mt-1 block w-64 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+      />
+    </label>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving() || countedRows.length === 0"
+      class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-40"
+    >
+      {{ 'take.save' | t: { n: countedRows.length } }}
+    </button>
+  </div>
+}

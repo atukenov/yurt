@@ -30,15 +30,17 @@ describe('admin sidebar', () => {
     const nav = buildAdminNav({ isAdmin: true, isSuperAdmin: false, moduleEnabled: (k) => k === 'own_pos' });
     expect(links(nav)).toContain('/kitchen');
     expect(links(nav)).toContain('/stock');
+    expect(links(nav)).toContain('/stock-moves');
     expect(links(nav)).toContain('/printers');
     expect(links(nav)).not.toContain('/promotions');
     expect(links(nav)).not.toContain('/tables');
   });
 
-  it('gives plain staff the live orders only, and drops empty groups', () => {
+  it('gives plain staff the live orders and stock write-offs/moves only, and drops empty groups', () => {
     const nav = buildAdminNav({ isAdmin: false, isSuperAdmin: false, moduleEnabled: all });
     expect(nav.map((g) => g.id)).toEqual(['pos']);
-    expect(links(nav)).toEqual(['/orders']);
+    expect(links(nav)).toEqual(['/orders', '/stock-moves']);
+    expect(links(buildAdminNav({ isAdmin: false, isSuperAdmin: false, moduleEnabled: none }))).toEqual(['/orders']);
   });
 
   it('lists every page once', () => {

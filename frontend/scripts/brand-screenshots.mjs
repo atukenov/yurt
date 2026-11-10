@@ -137,6 +137,23 @@ const ADMIN_MOCK_API = {
     ],
   },
   '/admin/stock/alert-phones': [{ phone: '+77001234567', hasApp: true }],
+  '/admin/ingredients': [
+    { id: 'i-1', name: 'Milk', unit: 'ml', quantity: 4200, lowStockAt: 2000, isLow: false, isOut: false, usedInItems: 3, costPerUnit: 0.6 },
+    { id: 'i-2', name: 'Coffee beans', unit: 'g', quantity: 850, lowStockAt: 1000, isLow: true, isOut: false, usedInItems: 4, costPerUnit: 9.5 },
+    { id: 'i-3', name: 'Oat milk', unit: 'ml', quantity: null, lowStockAt: null, isLow: false, isOut: false, usedInItems: 1, costPerUnit: null },
+  ],
+  '/admin/stock/history': [
+    { id: 'h-1', kind: 'ingredient', itemId: 'i-1', itemName: 'Milk', unit: 'ml', oldQuantity: 4400, newQuantity: 4200, change: -200, changedBy: 'Dana', changedAt: '2026-10-21T09:10:00Z', type: 'writeoff', reason: 'spilled', unitCost: 0.6, costValue: 120 },
+    { id: 'h-2', kind: 'ingredient', itemId: 'i-2', itemName: 'Coffee beans', unit: 'g', oldQuantity: 1850, newQuantity: 850, change: -1000, changedBy: 'Dana', changedAt: '2026-10-21T08:40:00Z', type: 'transfer_out', otherLocationName: 'Riverside', unitCost: 9.5, costValue: 9500 },
+    { id: 'h-3', kind: 'dish', itemId: 'm-4', itemName: 'Croissant', oldQuantity: 2, newQuantity: 0, change: -2, changedBy: 'Aru', changedAt: '2026-10-21T08:05:00Z', type: 'writeoff', reason: 'expired', note: 'From yesterday' },
+  ],
+  '/admin/stock/write-offs': { from: '2026-09-21T00:00:00Z', to: '2026-10-21T00:00:00Z', totalCost: 8400, byReason: [
+    { reason: 'spilled', count: 6, cost: 5100 }, { reason: 'staff', count: 9, cost: 3300 }, { reason: 'expired', count: 2, cost: 0 },
+  ] },
+  '/admin/stock/food-cost': [
+    { menuItemId: 'm-1', name: 'Cappuccino', categoryName: 'Coffee', price: 1200, cost: 291, foodCostPercent: 24.3, margin: 909, missingCost: [] },
+    { menuItemId: 'm-2', name: 'Flat white', categoryName: 'Coffee', price: 900, cost: 351, foodCostPercent: 39, margin: 549, missingCost: ['Oat milk'] },
+  ],
   '/admin/shifts/current': SHIFT,
   '/admin/shifts': [SHIFT, { ...SHIFT, id: 's-0', openedAt: '2026-10-20T08:00:00Z', closedAt: '2026-10-20T20:00:00Z', closedBy: 'Dana', countedCash: 41000 }],
   '/admin/shifts/s-1/report': {
@@ -224,7 +241,7 @@ const APPS = {
   admin: {
     project: 'yurt-admin', prefix: 'admin-', viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1,
     publicScreens: ['/auth/login'],
-    signedInScreens: ['/orders', '/kitchen', '/cashier', '/menu', '/stock', '/customers', '/tables'],
+    signedInScreens: ['/orders', '/kitchen', '/cashier', '/menu', '/stock', '/stock-moves', '/customers', '/tables'],
     api: ADMIN_MOCK_API, storage: ADMIN_STORAGE,
   },
 };
