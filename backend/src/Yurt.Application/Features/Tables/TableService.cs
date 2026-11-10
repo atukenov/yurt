@@ -106,7 +106,23 @@ public class TableService(
             .Where(t => t.Code == wanted && t.Location.IsActive)
             .Select(t => new TableLookupDto(t.Code, t.Label, t.LocationId, t.Location.Name))
             .FirstOrDefaultAsync(ct);
-        return found is null ? Result<TableLookupDto>.Failure("Table not found.", 404) : Result<TableLookupDto>.Success(found);
+        return found is null ? Result<TableLookupDto>.Failure(await WhyNotFoundAsync(wanted, ct), 404) : Result<TableLookupDto>.Success(found);
+    }
+
+    /// <summary>
+    /// Says why a scanned code found nothing, so the reason shows in the browser's network tab and the server log. It
+    /// names no other cafe: only whether the code belongs to another cafe than the one the app asked as.
+    /// </summary>
+    private async Task<string> WhyNotFoundAsync(string code, CancellationToken ct)
+    {
+        var any = await db.DiningTables.IgnoreQueryFilters().AsNoTracking()
+            .Where(t => t.Code == code)
+            .Select(t => new { t.TenantId, t.Location.IsActive })
+            .FirstOrDefaultAsync(ct);
+        if (any is null) return "Table not found.";
+        if (any.TenantId != tenant.TenantId)
+            return $"Table not found: this code belongs to another cafe than the one this app opens ('{tenant.Slug}'). Check the cafes' web addresses in Platform.";
+        return "Table not found: its branch is switched off.";
     }
 
     private TableDto ToDto(DiningTable t, string? baseUrl)
