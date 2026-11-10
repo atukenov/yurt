@@ -23,9 +23,24 @@
               <span class="text-brand-hero/85">{{ 'menu.selectLocation' | t }}</span>
             }
           </button>
+          @if (table(); as t) {
+            <p class="mt-0.5 text-brand-hero text-xs font-bold" data-test="menu-table">🍽️ {{ 'table.orderTo' | t: { table: t.label } }}</p>
+          }
         </div>
         <!-- Header icons -->
         <div class="flex items-center gap-2 shrink-0">
+          @if (canScanTable()) {
+            <a
+              routerLink="/scan-table"
+              data-test="menu-scan-table"
+              class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-brand-hero hover:bg-white/30 transition-colors active:scale-95"
+              [attr.aria-label]="'table.scanTitle' | t"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M8 9h3v3H8zM13 13h3v3h-3zM13 9h3M8 15h3" />
+              </svg>
+            </a>
+          }
           <a
             routerLink="/favorites"
             class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-brand-hero hover:bg-white/30 transition-colors active:scale-95"
