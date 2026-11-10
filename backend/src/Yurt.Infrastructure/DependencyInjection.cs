@@ -1,3 +1,5 @@
+using Yurt.Application.Features.StaffWatch;
+using Yurt.Infrastructure.StaffWatch;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -194,6 +196,8 @@ public static class DependencyInjection
         services.AddScoped<FiscalSettingsService>();
         services.AddScoped<StationService>();
         services.AddScoped<TableService>();
+        services.AddScoped<StaffWatchService>();
+        services.AddSingleton<IWatchTelegram, WatchTelegram>();
         services.AddScoped<StationReadyService>();
         services.AddSingleton<PrintQueueSignal>();
         services.AddSingleton<IPrinterTransport, TcpPrinterTransport>();

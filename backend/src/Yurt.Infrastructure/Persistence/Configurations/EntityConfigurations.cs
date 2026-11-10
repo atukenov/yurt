@@ -657,3 +657,96 @@ public class LoyaltyEntryConfiguration : IEntityTypeConfiguration<LoyaltyEntry>
         builder.HasIndex(e => new { e.AccountId, e.CreatedAt });
     }
 }
+
+// ── Staff watch (staff_watch) ───────────────────────────────────────────────
+
+public class WatchBoxConfiguration : IEntityTypeConfiguration<WatchBox>
+{
+    public void Configure(EntityTypeBuilder<WatchBox> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.KeyHash).HasMaxLength(64).IsRequired();
+        builder.HasIndex(e => e.KeyHash).IsUnique();
+        builder.Property(e => e.CameraNames).HasMaxLength(500);
+        builder.Property(e => e.Version).HasMaxLength(20);
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.TenantId, e.LocationId }).IsUnique();
+    }
+}
+
+public class WatchCameraConfiguration : IEntityTypeConfiguration<WatchCamera>
+{
+    public void Configure(EntityTypeBuilder<WatchCamera> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).HasMaxLength(40).IsRequired();
+        builder.Property(e => e.ZonesJson).IsRequired();
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.LocationId, e.Name }).IsUnique();
+    }
+}
+
+public class WatchSettingsConfiguration : IEntityTypeConfiguration<WatchSettings>
+{
+    public void Configure(EntityTypeBuilder<WatchSettings> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Open).HasMaxLength(5).IsRequired();
+        builder.Property(e => e.Close).HasMaxLength(5).IsRequired();
+        builder.Property(e => e.SettingsJson).IsRequired();
+        builder.Property(e => e.TelegramChatId).HasMaxLength(40);
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => e.LocationId).IsUnique();
+    }
+}
+
+public class WatchShiftConfiguration : IEntityTypeConfiguration<WatchShift>
+{
+    public void Configure(EntityTypeBuilder<WatchShift> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Day).HasMaxLength(10).IsRequired();
+        builder.Property(e => e.Name).HasMaxLength(60).IsRequired();
+        builder.Property(e => e.Station).HasMaxLength(40).IsRequired();
+        builder.Property(e => e.Start).HasMaxLength(5).IsRequired();
+        builder.Property(e => e.End).HasMaxLength(5).IsRequired();
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.LocationId, e.SortOrder });
+    }
+}
+
+public class WatchMinuteConfiguration : IEntityTypeConfiguration<WatchMinute>
+{
+    public void Configure(EntityTypeBuilder<WatchMinute> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Zone).HasMaxLength(40).IsRequired();
+        builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.LocationId, e.Minute, e.Zone }).IsUnique();
+    }
+}
+
+public class WatchAlertConfiguration : IEntityTypeConfiguration<WatchAlert>
+{
+    public void Configure(EntityTypeBuilder<WatchAlert> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Kind).HasMaxLength(40).IsRequired();
+        builder.Property(e => e.Zone).HasMaxLength(40).IsRequired();
+        builder.Property(e => e.Text).HasMaxLength(1000).IsRequired();
+        builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.LocationId, e.At });
+    }
+}
+
+public class WatchReportConfiguration : IEntityTypeConfiguration<WatchReport>
+{
+    public void Configure(EntityTypeBuilder<WatchReport> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Text).HasMaxLength(8000).IsRequired();
+        builder.Property(e => e.DataJson).IsRequired();
+        builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.LocationId, e.Day }).IsUnique();
+    }
+}

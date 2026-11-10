@@ -167,6 +167,28 @@ const ADMIN_MOCK_API = {
     // A stand-in picture: the real QR code comes from the server.
     qrSvg: `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4"><path d="M0 0h2v2H0zM2 2h2v2H2z"/></svg>').toString('base64')}`,
   })),
+  '/admin/watch/day': {
+    locationId: 'loc-1', day: '2026-10-21', reportText: null, reportData: null, visitors: 64, orders: 41,
+    hours: [8, 9, 10, 11, 12].map((hour, i) => ({ hour, visitors: [9, 17, 12, 10, 16][i], orders: [6, 11, 8, 6, 10][i] })),
+    stations: [
+      { zone: 'till', cameraMinutes: 185, coveredMinutes: 170, phoneMinutes: 12, stillMinutes: 0 },
+      { zone: 'bar', cameraMinutes: 185, coveredMinutes: 181, phoneMinutes: 0, stillMinutes: 4 },
+    ],
+    alerts: [{ at: '2026-10-21T10:42:00', kind: 'phone', zone: 'till', text: 'Till: phone in hand for 5 min' }],
+  },
+  '/admin/watch/cameras': [{
+    id: 'cam-1', locationId: 'loc-1', name: 'bar', snapshotAt: null, snapshotRequestedAt: null, snapshotWidth: 1280, snapshotHeight: 720,
+    zones: [
+      { name: 'till', label: 'Till', kind: 'station', points: [[10, 40], [40, 40], [40, 80], [10, 80]], queue: 'queue1' },
+      { name: 'queue1', label: 'Queue', kind: 'queue', points: [[45, 50], [80, 50], [80, 95], [45, 95]] },
+    ],
+  }],
+  '/admin/watch/boxes': [{ locationId: 'loc-1', hasKey: true, lastSeenAt: '2026-10-21T09:04:00Z', cameraNames: ['bar'], version: '2' }],
+  '/admin/watch/shifts': [{ day: 'daily', name: 'Dana', station: 'till', start: '08:00', end: '17:00' }],
+  '/admin/watch/settings': {
+    locationId: 'loc-1', open: '08:00', close: '22:00', telegramChatId: null, telegramBotSet: false, detect: { phones: true, still: true },
+    alerts: { emptyWhileQueueMinutes: 3, queueMinGuests: 2, emptyOnShiftMinutes: 10, emptyMinutes: 15, lateGraceMinutes: 10, phoneMinutes: 5, stillMinutes: 10 },
+  },
   '/admin/customers': {
     total: 2, page: 1, pageSize: 50, items: [
       { id: 'u-1', phone: '+77001234567', displayName: 'Aru Sadykova', registeredAt: '2026-01-15T10:00:00Z', orderCount: 24, totalSpent: 52800 },
@@ -241,7 +263,7 @@ const APPS = {
   admin: {
     project: 'yurt-admin', prefix: 'admin-', viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1,
     publicScreens: ['/auth/login'],
-    signedInScreens: ['/orders', '/kitchen', '/cashier', '/menu', '/stock', '/stock-moves', '/customers', '/tables'],
+    signedInScreens: ['/orders', '/kitchen', '/cashier', '/menu', '/stock', '/stock-moves', '/customers', '/tables', '/staff-watch'],
     api: ADMIN_MOCK_API, storage: ADMIN_STORAGE,
   },
 };

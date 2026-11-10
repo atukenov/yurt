@@ -1,0 +1,539 @@
+<div class="mx-auto max-w-6xl p-6">
+  <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">{{ 'watch.title' | t }}</h1>
+      <p class="max-w-2xl text-sm text-slate-500">{{ 'watch.hint' | t }}</p>
+    </div>
+    @if (locations().length > 1) {
+      <label class="text-sm text-slate-600">
+        {{ 'stock.branch' | t }}
+        <select
+          [ngModel]="locationId()"
+          (ngModelChange)="pick($event)"
+          class="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        >
+          @for (loc of locations(); track loc.id) {
+            <option [value]="loc.id">{{ loc.name }}</option>
+          }
+        </select>
+      </label>
+    }
+  </div>
+
+  <div class="mb-5 flex flex-wrap gap-2" role="tablist">
+    @for (t of tabs; track t) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="tab() === t"
+        (click)="show(t)"
+        class="rounded-xl px-4 py-2 text-sm font-semibold"
+        [class]="tab() === t ? 'bg-brand-500 text-on-brand' : 'bg-surface text-slate-700 border border-slate-200 hover:bg-slate-50'"
+      >
+        {{ 'watch.tab.' + t | t }}
+      </button>
+    }
+  </div>
+
+  <!-- ── The day ─────────────────────────────────────────────── -->
+  @if (tab() === 'day') {
+    <div class="mb-4 flex flex-wrap items-end gap-3">
+      <label class="text-sm text-slate-600">
+        {{ 'watch.day.date' | t }}
+        <input
+          type="date"
+          [ngModel]="day()"
+          (ngModelChange)="pickDay($event)"
+          class="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        />
+      </label>
+      <button type="button" (click)="loadDay()" class="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+        {{ 'action.refresh' | t }}
+      </button>
+    </div>
+
+    @if (dayData(); as d) {
+      <div class="mb-6 grid gap-3 sm:grid-cols-3">
+        <div class="rounded-2xl border border-slate-200 bg-surface p-4">
+          <p class="text-sm text-slate-500">{{ 'watch.day.visitors' | t }}</p>
+          <p class="text-2xl font-bold text-slate-800">{{ d.visitors }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-surface p-4">
+          <p class="text-sm text-slate-500">{{ 'watch.day.orders' | t }}</p>
+          <p class="text-2xl font-bold text-slate-800">{{ d.orders }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-surface p-4">
+          <p class="text-sm text-slate-500">{{ 'watch.day.noOrder' | t }}</p>
+          <p class="text-2xl font-bold text-slate-800">{{ noOrderShare(d) === null ? '—' : noOrderShare(d) + '%' }}</p>
+          <p class="text-xs text-slate-500">{{ 'watch.day.noOrderHint' | t }}</p>
+        </div>
+      </div>
+
+      @if (d.hours.length) {
+        <section class="mb-6 rounded-2xl border border-slate-200 bg-surface p-5">
+          <h2 class="mb-1 font-semibold text-slate-800">{{ 'watch.day.byHour' | t }}</h2>
+          <p class="mb-3 flex gap-4 text-xs text-slate-500">
+            <span><span class="mr-1 inline-block h-2 w-3 rounded bg-sky-500"></span>{{ 'watch.day.visitors' | t }}</span>
+            <span><span class="mr-1 inline-block h-2 w-3 rounded bg-brand-500"></span>{{ 'watch.day.orders' | t }}</span>
+          </p>
+          <div class="flex h-40 items-end gap-1 overflow-x-auto">
+            @for (h of d.hours; track h.hour) {
+              <div class="flex min-w-8 flex-1 flex-col items-center gap-1">
+                <div class="flex h-32 w-full items-end justify-center gap-0.5">
+                  <div class="w-1/2 rounded-t bg-sky-500" [style.height.%]="(h.visitors / maxHour()) * 100" [title]="h.visitors"></div>
+                  <div class="w-1/2 rounded-t bg-brand-500" [style.height.%]="(h.orders / maxHour()) * 100" [title]="h.orders"></div>
+                </div>
+                <span class="text-xs text-slate-500">{{ h.hour }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      @if (d.stations.length) {
+        <section class="mb-6 rounded-2xl border border-slate-200 bg-surface p-5">
+          <h2 class="mb-3 font-semibold text-slate-800">{{ 'watch.day.stations' | t }}</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-slate-500">
+                <tr>
+                  <th class="py-1 pr-3 font-medium">{{ 'watch.day.station' | t }}</th>
+                  <th class="py-1 pr-3 font-medium">{{ 'watch.day.watched' | t }}</th>
+                  <th class="py-1 pr-3 font-medium">{{ 'watch.day.covered' | t }}</th>
+                  <th class="py-1 pr-3 font-medium">{{ 'watch.day.phone' | t }}</th>
+                  <th class="py-1 pr-3 font-medium">{{ 'watch.day.still' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of d.stations; track s.zone) {
+                  <tr class="border-t border-slate-100">
+                    <td class="py-1.5 pr-3 font-medium text-slate-800">{{ stationLabel(s.zone) }}</td>
+                    <td class="py-1.5 pr-3">{{ 'watch.min' | t: { count: s.cameraMinutes } }}</td>
+                    <td class="py-1.5 pr-3">{{ share(s.coveredMinutes, s.cameraMinutes) }}%</td>
+                    <td class="py-1.5 pr-3">{{ 'watch.min' | t: { count: s.phoneMinutes } }}</td>
+                    <td class="py-1.5 pr-3">{{ 'watch.min' | t: { count: s.stillMinutes } }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+      <section class="mb-6 rounded-2xl border border-slate-200 bg-surface p-5">
+        <h2 class="mb-3 font-semibold text-slate-800">{{ 'watch.day.alerts' | t }}</h2>
+        @if (d.alerts.length) {
+          <ul class="space-y-2 text-sm">
+            @for (a of d.alerts; track $index) {
+              <li class="flex gap-3">
+                <span class="w-12 shrink-0 font-mono text-slate-500">{{ time(a.at) }}</span>
+                <span class="whitespace-pre-line text-slate-800">{{ a.text }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="text-sm text-slate-500">{{ 'watch.day.noAlerts' | t }}</p>
+        }
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-surface p-5">
+        <h2 class="mb-3 font-semibold text-slate-800">{{ 'watch.day.report' | t }}</h2>
+        @if (d.reportText) {
+          <pre class="whitespace-pre-wrap font-sans text-sm text-slate-800">{{ d.reportText }}</pre>
+        } @else {
+          <p class="text-sm text-slate-500">{{ 'watch.day.noReport' | t }}</p>
+        }
+      </section>
+    } @else {
+      <p class="text-sm text-slate-500">{{ 'label.loading' | t }}</p>
+    }
+  }
+
+  <!-- ── Cameras and zones ───────────────────────────────────── -->
+  @if (tab() === 'cameras') {
+    <div class="mb-4 flex flex-wrap items-end gap-2">
+      @for (c of cameras(); track c.id) {
+        <button
+          type="button"
+          (click)="selectCamera(c.id)"
+          class="rounded-xl px-3 py-1.5 text-sm font-semibold"
+          [class]="cameraId() === c.id ? 'bg-brand-500 text-on-brand' : 'border border-slate-200 bg-surface text-slate-700 hover:bg-slate-50'"
+        >
+          {{ c.name }}
+        </button>
+      }
+      <form (ngSubmit)="addCamera()" class="flex items-end gap-2">
+        <label class="text-sm text-slate-600">
+          {{ 'watch.cam.add' | t }}
+          <input
+            name="newCamera"
+            maxlength="40"
+            [(ngModel)]="newCamera"
+            [placeholder]="cameraExample"
+            class="mt-1 block w-32 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+          />
+        </label>
+        <button
+          type="submit"
+          [disabled]="busy() === 'camera' || !newCamera.trim()"
+          class="rounded-xl bg-slate-800 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
+        >
+          {{ 'action.add' | t }}
+        </button>
+      </form>
+    </div>
+    <p class="mb-4 text-xs text-slate-500">{{ 'watch.cam.nameHint' | t }}</p>
+
+    @if (camera(); as c) {
+      <div class="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div>
+          <div class="mb-2 flex flex-wrap items-center gap-2">
+            <button type="button" (click)="newPicture(c)" class="rounded-xl border border-slate-200 bg-surface px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              {{ 'watch.cam.newPicture' | t }}
+            </button>
+            @if (waiting(c)) {
+              <span class="text-xs text-amber-700">{{ 'watch.cam.waiting' | t }}</span>
+            } @else if (c.snapshotAt) {
+              <span class="text-xs text-slate-500">{{ 'watch.cam.pictureFrom' | t }} {{ c.snapshotAt | ldate: 'shortDateTime24' }}</span>
+            }
+            <button type="button" (click)="deleteCamera(c)" class="ml-auto rounded-xl px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50">
+              {{ 'watch.cam.delete' | t }}
+            </button>
+          </div>
+
+          <div class="relative w-full overflow-hidden rounded-xl bg-slate-200" [style.aspect-ratio]="aspect()">
+            @if (picture()) {
+              <img [src]="picture()" alt="" class="absolute inset-0 h-full w-full select-none object-fill" draggable="false" />
+            } @else {
+              <p class="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-slate-600">{{ 'watch.cam.noPicture' | t }}</p>
+            }
+            <svg
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              class="absolute inset-0 h-full w-full"
+              [class.cursor-crosshair]="!!drawKind()"
+              (click)="clickPicture($event)"
+            >
+              @for (z of zones(); track z.name) {
+                @if (z.kind === 'door') {
+                  <line [attr.x1]="z.points[0][0]" [attr.y1]="z.points[0][1]" [attr.x2]="z.points[1][0]" [attr.y2]="z.points[1][1]"
+                        [attr.stroke]="zoneColor(z.kind)" stroke-width="0.8" vector-effect="non-scaling-stroke" style="stroke-width: 3px" />
+                  @if (z.inside) {
+                    <circle [attr.cx]="z.inside[0]" [attr.cy]="z.inside[1]" r="1" [attr.fill]="zoneColor(z.kind)" />
+                  }
+                } @else {
+                  <polygon [attr.points]="polygon(z.points)" [attr.fill]="zoneColor(z.kind)" fill-opacity="0.2"
+                           [attr.stroke]="zoneColor(z.kind)" vector-effect="non-scaling-stroke" style="stroke-width: 2px" />
+                }
+                <text [attr.x]="middle(z.points)[0]" [attr.y]="middle(z.points)[1]" text-anchor="middle" font-size="3"
+                      fill="white" stroke="black" stroke-width="0.4" paint-order="stroke">{{ z.label || z.name }}</text>
+              }
+              @if (drawKind()) {
+                @if (draft().length > 1) {
+                  <polyline [attr.points]="polygon(draft())" fill="none" stroke="#e11d48" vector-effect="non-scaling-stroke"
+                            style="stroke-width: 2px; stroke-dasharray: 4 3" />
+                }
+                @for (p of draft(); track $index) {
+                  <circle [attr.cx]="p[0]" [attr.cy]="p[1]" r="0.9" fill="#e11d48" />
+                }
+                @if (draftInside(); as p) {
+                  <circle [attr.cx]="p[0]" [attr.cy]="p[1]" r="1.2" fill="#2563eb" />
+                }
+              }
+            </svg>
+          </div>
+
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            @if (!drawKind()) {
+              <span class="text-sm text-slate-600">{{ 'watch.cam.draw' | t }}</span>
+              <button type="button" (click)="startDraw('station')" class="rounded-xl bg-green-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-700">{{ 'watch.kind.station' | t }}</button>
+              <button type="button" (click)="startDraw('queue')" class="rounded-xl bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-600">{{ 'watch.kind.queue' | t }}</button>
+              <button type="button" (click)="startDraw('door')" class="rounded-xl bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700">{{ 'watch.kind.door' | t }}</button>
+            } @else {
+              <span class="text-sm text-slate-700">
+                {{ (drawKind() === 'door' ? (draft().length < 2 ? 'watch.cam.doorLine' : 'watch.cam.doorInside') : 'watch.cam.corners') | t }}
+              </span>
+              <button type="button" (click)="undoPoint()" [disabled]="!draft().length" class="rounded-xl border border-slate-200 bg-surface px-3 py-1.5 text-sm text-slate-700 disabled:opacity-50">{{ 'watch.cam.undo' | t }}</button>
+              @if (drawKind() !== 'door') {
+                <button type="button" (click)="finishDraw()" [disabled]="!draftDone()" class="rounded-xl bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50">{{ 'watch.cam.finish' | t }}</button>
+              }
+              <button type="button" (click)="cancelDraw()" class="rounded-xl px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">{{ 'action.cancel' | t }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-surface p-4">
+          <h2 class="mb-1 font-semibold text-slate-800">{{ 'watch.cam.zones' | t }}</h2>
+          <p class="mb-3 text-xs text-slate-500">{{ 'watch.cam.zonesHint' | t }}</p>
+          @for (z of zones(); track z.name; let i = $index) {
+            <div class="mb-3 rounded-xl border border-slate-100 p-3">
+              <div class="mb-2 flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold uppercase" [style.color]="zoneColor(z.kind)">{{ 'watch.kind.' + z.kind | t }} · {{ z.name }}</span>
+                <button type="button" (click)="removeZone(i)" class="text-xs text-red-600 hover:underline">{{ 'action.delete' | t }}</button>
+              </div>
+              <label class="block text-xs text-slate-600">
+                {{ 'watch.cam.label' | t }}
+                <input
+                  [name]="'label' + i"
+                  maxlength="40"
+                  [(ngModel)]="z.label"
+                  (ngModelChange)="touch()"
+                  [placeholder]="'watch.cam.labelPlaceholder' | t"
+                  class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+                />
+              </label>
+              @if (z.kind === 'station') {
+                <label class="mt-2 block text-xs text-slate-600">
+                  {{ 'watch.cam.queue' | t }}
+                  <select
+                    [name]="'queue' + i"
+                    [(ngModel)]="z.queue"
+                    (ngModelChange)="touch()"
+                    class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-brand-400"
+                  >
+                    <option [ngValue]="null">{{ 'watch.cam.noQueue' | t }}</option>
+                    @for (q of queueChoices(); track q.name) {
+                      <option [ngValue]="q.name">{{ q.label || q.name }}</option>
+                    }
+                  </select>
+                </label>
+              }
+            </div>
+          } @empty {
+            <p class="mb-3 text-sm text-slate-500">{{ 'watch.cam.noZones' | t }}</p>
+          }
+          <button
+            type="button"
+            (click)="saveZones()"
+            [disabled]="!dirty() || busy() === 'zones'"
+            class="w-full rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-50"
+          >
+            {{ 'action.save' | t }}
+          </button>
+        </div>
+      </div>
+    } @else {
+      <p class="text-sm text-slate-500">{{ 'watch.cam.none' | t }}</p>
+    }
+  }
+
+  <!-- ── Shift plan ──────────────────────────────────────────── -->
+  @if (tab() === 'shifts') {
+    <section class="rounded-2xl border border-slate-200 bg-surface p-5">
+      <p class="mb-4 max-w-3xl text-sm text-slate-500">{{ 'watch.shifts.hint' | t }}</p>
+      @if (!allStations().length) {
+        <p class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-slate-800">{{ 'watch.shifts.noStations' | t }}</p>
+      }
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="text-slate-500">
+            <tr>
+              <th class="py-1 pr-2 font-medium">{{ 'watch.shifts.day' | t }}</th>
+              <th class="py-1 pr-2 font-medium">{{ 'watch.shifts.name' | t }}</th>
+              <th class="py-1 pr-2 font-medium">{{ 'watch.day.station' | t }}</th>
+              <th class="py-1 pr-2 font-medium">{{ 'watch.shifts.start' | t }}</th>
+              <th class="py-1 pr-2 font-medium">{{ 'watch.shifts.end' | t }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of shifts(); track $index; let i = $index) {
+              <tr class="border-t border-slate-100">
+                <td class="py-1.5 pr-2">
+                  <input [name]="'day' + i" [(ngModel)]="r.day" list="watch-days" maxlength="10"
+                         class="w-28 rounded-lg border border-slate-200 px-2 py-1 outline-none focus:ring-2 focus:ring-brand-400" />
+                </td>
+                <td class="py-1.5 pr-2">
+                  <input [name]="'name' + i" [(ngModel)]="r.name" maxlength="60"
+                         class="w-40 rounded-lg border border-slate-200 px-2 py-1 outline-none focus:ring-2 focus:ring-brand-400" />
+                </td>
+                <td class="py-1.5 pr-2">
+                  <select [name]="'station' + i" [(ngModel)]="r.station"
+                          class="rounded-lg border border-slate-200 px-2 py-1 outline-none focus:ring-2 focus:ring-brand-400">
+                    @for (s of allStations(); track s.name) {
+                      <option [value]="s.name">{{ s.label || s.name }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="py-1.5 pr-2">
+                  <input type="time" [name]="'start' + i" [(ngModel)]="r.start"
+                         class="rounded-lg border border-slate-200 px-2 py-1 outline-none focus:ring-2 focus:ring-brand-400" />
+                </td>
+                <td class="py-1.5 pr-2">
+                  <input type="time" [name]="'end' + i" [(ngModel)]="r.end"
+                         class="rounded-lg border border-slate-200 px-2 py-1 outline-none focus:ring-2 focus:ring-brand-400" />
+                </td>
+                <td class="py-1.5">
+                  <button type="button" (click)="removeShift(i)" class="text-xs text-red-600 hover:underline">{{ 'action.delete' | t }}</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <datalist id="watch-days">
+          @for (d of days; track d) {
+            <option [value]="d"></option>
+          }
+        </datalist>
+      </div>
+      <p class="mt-2 text-xs text-slate-500">{{ 'watch.shifts.dayHint' | t }}</p>
+      <div class="mt-4 flex gap-2">
+        <button type="button" (click)="addShift()" [disabled]="!allStations().length"
+                class="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+          {{ 'watch.shifts.add' | t }}
+        </button>
+        <button type="button" (click)="saveShifts()" [disabled]="busy() === 'shifts'"
+                class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-50">
+          {{ 'action.save' | t }}
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- ── Settings ────────────────────────────────────────────── -->
+  @if (tab() === 'settings') {
+    @if (settings(); as s) {
+      <div class="grid gap-5 lg:grid-cols-2">
+        <section class="rounded-2xl border border-slate-200 bg-surface p-5">
+          <h2 class="mb-3 font-semibold text-slate-800">{{ 'watch.set.hours' | t }}</h2>
+          <div class="mb-4 flex gap-3">
+            <label class="text-sm text-slate-600">
+              {{ 'watch.set.open' | t }}
+              <input type="time" name="open" [(ngModel)]="s.open" class="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+            </label>
+            <label class="text-sm text-slate-600">
+              {{ 'watch.set.close' | t }}
+              <input type="time" name="close" [(ngModel)]="s.close" class="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+            </label>
+          </div>
+
+          <h2 class="mb-1 font-semibold text-slate-800">{{ 'watch.set.alerts' | t }}</h2>
+          <p class="mb-3 text-xs text-slate-500">{{ 'watch.set.alertsHint' | t }}</p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="text-sm text-slate-600">{{ 'watch.set.emptyWhileQueue' | t }}
+              <input type="number" min="1" max="120" name="a1" [(ngModel)]="s.alerts.emptyWhileQueueMinutes" class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5" />
+            </label>
+            <label class="text-sm text-slate-600">{{ 'watch.set.queueMinGuests' | t }}
+              <input type="number" min="1" max="20" name="a2" [(ngModel)]="s.alerts.queueMinGuests" class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5" />
+            </label>
+            <label class="text-sm text-slate-600">{{ 'watch.set.emptyOnShift' | t }}
+              <input type="number" min="1" max="240" name="a3" [(ngModel)]="s.alerts.emptyOnShiftMinutes" class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5" />
+            </label>
+            <label class="text-sm text-slate-600">{{ 'watch.set.empty' | t }}
+              <input type="number" min="1" max="240" name="a4" [(ngModel)]="s.alerts.emptyMinutes" class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5" />
+            </label>
+            <label class="text-sm text-slate-600">{{ 'watch.set.late' | t }}
+              <input type="number" min="1" max="120" name="a5" [(ngModel)]="s.alerts.lateGraceMinutes" class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5" />
+            </label>
+            <label class="text-sm text-slate-600">{{ 'watch.set.phone' | t }}
+              <input type="number" min="1" max="120" name="a6" [(ngModel)]="s.alerts.phoneMinutes" class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5" />
+            </label>
+            <label class="text-sm text-slate-600">{{ 'watch.set.still' | t }}
+              <input type="number" min="1" max="240" name="a7" [(ngModel)]="s.alerts.stillMinutes" class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5" />
+            </label>
+          </div>
+
+          <h2 class="mb-2 mt-5 font-semibold text-slate-800">{{ 'watch.set.detect' | t }}</h2>
+          <label class="mb-2 flex items-start gap-2 text-sm text-slate-700">
+            <input type="checkbox" name="d1" [(ngModel)]="s.detect.phones" class="mt-1" />
+            <span>{{ 'watch.set.detectPhones' | t }}</span>
+          </label>
+          <label class="flex items-start gap-2 text-sm text-slate-700">
+            <input type="checkbox" name="d2" [(ngModel)]="s.detect.still" class="mt-1" />
+            <span>{{ 'watch.set.detectStill' | t }}</span>
+          </label>
+
+          <button type="button" (click)="saveSettings()" [disabled]="busy() === 'settings'"
+                  class="mt-5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-50">
+            {{ 'action.save' | t }}
+          </button>
+        </section>
+
+        <section class="rounded-2xl border border-slate-200 bg-surface p-5">
+          <h2 class="mb-1 font-semibold text-slate-800">{{ 'watch.tg.title' | t }}</h2>
+          <p class="mb-3 text-sm text-slate-500">{{ 'watch.tg.hint' | t }}</p>
+          <p class="mb-2 text-sm text-slate-700">
+            {{ 'watch.tg.bot' | t }}: <strong>{{ (s.telegramBotSet ? 'watch.tg.botSet' : 'watch.tg.botNotSet') | t }}</strong>
+          </p>
+          <div class="mb-4 flex flex-wrap items-end gap-2">
+            <label class="min-w-56 flex-1 text-sm text-slate-600">
+              {{ 'watch.tg.token' | t }}
+              <input name="botToken" type="password" autocomplete="off" [(ngModel)]="botToken" [placeholder]="tokenExample"
+                     class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+            </label>
+            <button type="button" (click)="saveBot()" [disabled]="busy() === 'bot' || (!botToken.trim() && !s.telegramBotSet)"
+                    class="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50">
+              {{ (botToken.trim() || !s.telegramBotSet ? 'action.save' : 'watch.tg.remove') | t }}
+            </button>
+          </div>
+          <p class="mb-2 text-sm text-slate-700">
+            {{ 'watch.tg.chat' | t }}: <strong>{{ s.telegramChatId || ('watch.tg.noChat' | t) }}</strong>
+          </p>
+          <p class="mb-3 text-xs text-slate-500">{{ 'watch.tg.chatHint' | t }}</p>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" (click)="findChat()" [disabled]="!s.telegramBotSet || busy() === 'chat'"
+                    class="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+              {{ 'watch.tg.find' | t }}
+            </button>
+            <button type="button" (click)="testChat()" [disabled]="!s.telegramBotSet || !s.telegramChatId || busy() === 'test'"
+                    class="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+              {{ 'watch.tg.test' | t }}
+            </button>
+          </div>
+        </section>
+      </div>
+    } @else {
+      <p class="text-sm text-slate-500">{{ 'label.loading' | t }}</p>
+    }
+  }
+
+  <!-- ── The camera box ──────────────────────────────────────── -->
+  @if (tab() === 'box') {
+    <section class="max-w-3xl rounded-2xl border border-slate-200 bg-surface p-5">
+      <p class="mb-4 text-sm text-slate-500">{{ 'watch.box.hint' | t }}</p>
+      <p class="mb-2 text-sm text-slate-700">
+        {{ 'label.status' | t }}:
+        @if (!box()?.hasKey) {
+          <strong>{{ 'watch.box.noKey' | t }}</strong>
+        } @else if (boxOnline()) {
+          <strong class="text-green-700">{{ 'watch.box.online' | t }}</strong>
+        } @else if (box()?.lastSeenAt) {
+          <strong class="text-amber-700">{{ 'watch.box.offline' | t }}</strong>
+        } @else {
+          <strong>{{ 'watch.box.neverSeen' | t }}</strong>
+        }
+      </p>
+      @if (box()?.lastSeenAt; as seen) {
+        <p class="mb-2 text-sm text-slate-700">{{ 'watch.box.lastSeen' | t }}: {{ seen | ldate: 'shortDateTime24' }}</p>
+      }
+      @if (box()?.cameraNames?.length) {
+        <p class="mb-2 text-sm text-slate-700">{{ 'watch.box.cameras' | t }}: {{ box()!.cameraNames.join(', ') }}</p>
+      }
+      @if (box()?.version) {
+        <p class="mb-2 text-sm text-slate-700">{{ 'watch.box.version' | t }}: {{ box()!.version }}</p>
+      }
+
+      @if (newKey(); as key) {
+        <div class="my-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+          <p class="mb-2 text-sm font-semibold text-slate-800">{{ 'watch.box.keyOnce' | t }}</p>
+          <code class="block break-all rounded bg-white p-2 text-sm">{{ key }}</code>
+          <button type="button" (click)="copy(boxConfig(key))" class="mt-2 rounded-xl bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white">{{ 'watch.copy' | t }}</button>
+          <p class="mt-3 text-xs text-slate-600">{{ 'watch.box.keyWhere' | t }}</p>
+          <pre class="mt-1 overflow-x-auto rounded bg-white p-2 text-xs">{{ boxConfig(key) }}</pre>
+        </div>
+      }
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button type="button" (click)="makeKey()" [disabled]="busy() === 'key'"
+                class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-50">
+          {{ (box()?.hasKey ? 'watch.box.newKey' : 'watch.box.makeKey') | t }}
+        </button>
+        @if (box()?.hasKey) {
+          <button type="button" (click)="revokeKey()" class="rounded-xl px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
+            {{ 'watch.box.revoke' | t }}
+          </button>
+        }
+      </div>
+    </section>
+  }
+</div>

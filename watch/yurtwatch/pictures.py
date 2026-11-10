@@ -10,7 +10,7 @@ import numpy as np
 
 from .zones import Zone
 
-COLORS = {"station": (60, 180, 75), "queue": (0, 140, 255)}
+COLORS = {"station": (60, 180, 75), "queue": (0, 140, 255), "door": (255, 0, 200)}
 
 
 def blur_heads(frame: np.ndarray, boxes) -> np.ndarray:
@@ -39,18 +39,23 @@ def draw_grid(frame: np.ndarray) -> np.ndarray:
     return out
 
 
-def draw_check(frame: np.ndarray, zones: list[Zone], boxes, counts: dict[str, int]) -> np.ndarray:
+def draw_check(frame: np.ndarray, zones: list[Zone], boxes, counts: dict[str, int], phones=()) -> np.ndarray:
     out = blur_heads(frame, boxes)
     h, w = out.shape[:2]
     for z in zones:
         pts = np.array([(int(x / 100 * w), int(y / 100 * h)) for x, y in z.points], np.int32)
-        cv2.polylines(out, [pts], True, COLORS[z.kind], 2)
+        cv2.polylines(out, [pts], z.kind != "door", COLORS[z.kind], 2)
+        if z.kind == "door" and z.inside:
+            cv2.circle(out, (int(z.inside[0] / 100 * w), int(z.inside[1] / 100 * h)), 6, COLORS["door"], -1)
         cv2.putText(out, f"{z.name}: {counts.get(z.name, 0)}", tuple(pts[0] + [4, 18]),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, COLORS[z.kind], 2)
     for b in boxes:
         x1, y1, x2, y2 = (int(v) for v in b[:4])
         cv2.rectangle(out, (x1, y1), (x2, y2), (255, 255, 0), 1)
         cv2.circle(out, ((x1 + x2) // 2, y2), 4, (0, 0, 255), -1)  # the foot point that is counted
+    for p in phones:
+        x1, y1, x2, y2 = (int(v) for v in p[:4])
+        cv2.rectangle(out, (x1, y1), (x2, y2), (0, 0, 255), 2)
     return out
 
 

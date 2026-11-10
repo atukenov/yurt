@@ -86,6 +86,11 @@ class AlertEngine:
             if hist and hist[-1].covered:
                 self.fired.discard(("empty_while_queue", st.name))
                 self.fired.discard(("empty_on_shift", st.name))
+                self.fired.discard(("empty", st.name))
+            if hist and not hist[-1].on_phone:
+                self.fired.discard(("phone", st.name))
+            if hist and not hist[-1].is_still:
+                self.fired.discard(("still", st.name))
             names = on_duty(slots, st.name, now)
             duty = t(lang, "on_duty", names=", ".join(names)) if names else ""
 
@@ -110,6 +115,29 @@ class AlertEngine:
                 if self._streak_ok(s_last, n) and all(m.has_data and not m.covered for m in s_last):
                     self.fired.add(("empty_on_shift", st.name))
                     out.append(Alert(now, "empty_on_shift", st.name, t(lang, "empty_on_shift", station=st.label, minutes=n, duty=duty)))
+
+            # no shift plan for this station: still say when it stands empty a long time in open hours
+            planned = any(x.station == st.name for x in slots)
+            if not planned and is_open and a.empty_minutes > 0 and ("empty", st.name) not in self.fired:
+                n = a.empty_minutes
+                s_last = self._last(st.name, n)
+                if self._streak_ok(s_last, n) and all(m.has_data and not m.covered for m in s_last):
+                    self.fired.add(("empty", st.name))
+                    out.append(Alert(now, "empty", st.name, t(lang, "empty", station=st.label, minutes=n)))
+
+            if self.cfg.detect.phones and a.phone_minutes > 0 and ("phone", st.name) not in self.fired:
+                n = a.phone_minutes
+                s_last = self._last(st.name, n)
+                if self._streak_ok(s_last, n) and all(m.on_phone for m in s_last):
+                    self.fired.add(("phone", st.name))
+                    out.append(Alert(now, "phone", st.name, t(lang, "phone", station=st.label, minutes=n, duty=duty)))
+
+            if self.cfg.detect.still and a.still_minutes > 0 and ("still", st.name) not in self.fired:
+                n = a.still_minutes
+                s_last = self._last(st.name, n)
+                if self._streak_ok(s_last, n) and all(m.is_still for m in s_last):
+                    self.fired.add(("still", st.name))
+                    out.append(Alert(now, "still", st.name, t(lang, "still", station=st.label, minutes=n, duty=duty)))
 
         # late: the person's station not covered once since their shift began, grace time passed
         for s in slots:
@@ -149,6 +177,8 @@ class StationStats:
     queue_max: int
     first: str
     last: str
+    phone_minutes: int = 0
+    still_minutes: int = 0
 
 
 @dataclass
@@ -163,6 +193,8 @@ class StaffStats:
     early_by: int
     shared: bool
     seen: bool
+    phone_minutes: int = 0
+    still_minutes: int = 0
 
 
 def _index(minutes: list[Minute]) -> dict[str, dict[datetime, Minute]]:
@@ -194,6 +226,7 @@ def daily_stats(cfg: Config, day: date, minutes: list[Minute], slots: list[Shift
         stations.append(StationStats(
             st.name, len(data), round(100 * len(covered) / len(data)) if data else 0, ewq, qmax,
             covered[0].minute.strftime("%H:%M") if covered else "", covered[-1].minute.strftime("%H:%M") if covered else "",
+            sum(1 for m in data if m.on_phone), sum(1 for m in data if m.is_still),
         ))
 
     staff = []
@@ -217,6 +250,7 @@ def daily_stats(cfg: Config, day: date, minutes: list[Minute], slots: list[Shift
             late if late > a.late_grace_minutes else 0,
             early if early > a.late_grace_minutes else 0,
             shared, bool(covered),
+            sum(1 for m in data if m.on_phone), sum(1 for m in data if m.is_still),
         ))
     gap = 0
     for cam in cfg.cameras:
@@ -225,6 +259,17 @@ def daily_stats(cfg: Config, day: date, minutes: list[Minute], slots: list[Shift
             mine = idx.get(zones[0], {})
             gap = max(gap, sum(1 for x in _steps(o_start, o_end) if not (x in mine and mine[x].has_data)))
     return stations, staff, gap
+
+
+def visitors_by_hour(cfg: Config, day: date, minutes: list[Minute]) -> dict[int, int]:
+    """People who walked in through any door line, per hour of the day (local time)."""
+    doors = {z.name for z in cfg.zones if z.kind == "door"}
+    o_start, o_end = open_window(cfg, day)
+    out: dict[int, int] = {}
+    for m in minutes:
+        if m.zone in doors and o_start <= m.minute < o_end and m.entered:
+            out[m.minute.hour] = out.get(m.minute.hour, 0) + m.entered
+    return dict(sorted(out.items()))
 
 
 def _mark(pct: int) -> str:
@@ -244,6 +289,20 @@ def daily_report(cfg: Config, day: date, minutes: list[Minute], slots: list[Shif
         lines.append(_mark(s.covered_pct) + " " + t(lang, "station_line", station=label, covered=s.covered_pct,
                                                     ewq=s.empty_with_queue, qmax=s.queue_max,
                                                     first=s.first or dash, last=s.last or dash))
+        extra = []
+        if cfg.detect.phones and s.phone_minutes:
+            extra.append(t(lang, "phone_part", m=s.phone_minutes))
+        if cfg.detect.still and s.still_minutes:
+            extra.append(t(lang, "still_part", m=s.still_minutes))
+        if extra:
+            lines[-1] += ", " + ", ".join(extra)
+    if any(z.kind == "door" for z in cfg.zones):
+        vh = visitors_by_hour(cfg, day, minutes)
+        if vh:
+            peak = max(vh, key=vh.get)
+            lines.append(t(lang, "visitors", n=sum(vh.values()), hour=f"{peak:02d}:00", peak=vh[peak]))
+        else:
+            lines.append(t(lang, "visitors_none"))
     if staff:
         lines += ["", t(lang, "staff_title")]
         for s in staff:
@@ -262,6 +321,13 @@ def daily_report(cfg: Config, day: date, minutes: list[Minute], slots: list[Shif
                 late=t(lang, "late_part", m=s.late_by) if s.late_by else "",
                 early=t(lang, "early_part", m=s.early_by) if s.early_by else "",
                 shared=t(lang, "shared_part") if s.shared else "", **kw))
+            extra = []
+            if cfg.detect.phones and s.phone_minutes:
+                extra.append(t(lang, "phone_part", m=s.phone_minutes))
+            if cfg.detect.still and s.still_minutes:
+                extra.append(t(lang, "still_part", m=s.still_minutes))
+            if extra:
+                lines[-1] += ", " + ", ".join(extra)
     lines.append("")
     if gap:
         lines.append(t(lang, "camera_gap", m=gap))
@@ -270,13 +336,33 @@ def daily_report(cfg: Config, day: date, minutes: list[Minute], slots: list[Shif
     return "\n".join(lines)
 
 
+def daily_json(cfg: Config, day: date, minutes: list[Minute], slots: list[ShiftSlot], alerts_count: int) -> dict:
+    """The same numbers as the text report, for the Yurt admin."""
+    stations, staff, gap = daily_stats(cfg, day, minutes, slots)
+    return {
+        "day": day.isoformat(),
+        "stations": [{"zone": s.zone, "label": cfg.zone(s.zone).label, "cameraMinutes": s.data_minutes,
+                      "coveredPct": s.covered_pct, "emptyWithQueue": s.empty_with_queue, "queueMax": s.queue_max,
+                      "first": s.first, "last": s.last, "phoneMinutes": s.phone_minutes, "stillMinutes": s.still_minutes}
+                     for s in stations],
+        "staff": [{"name": s.slot.name, "station": s.slot.station, "start": s.slot.start.strftime("%H:%M"),
+                   "end": s.slot.end.strftime("%H:%M"), "cameraMinutes": s.data_minutes, "coveredPct": s.covered_pct,
+                   "awayMinutes": s.empty_minutes, "awayWithQueue": s.empty_with_queue, "longestAway": s.longest_empty,
+                   "lateBy": s.late_by, "leftEarlyBy": s.early_by, "shared": s.shared, "seen": s.seen,
+                   "phoneMinutes": s.phone_minutes, "stillMinutes": s.still_minutes} for s in staff],
+        "visitorsByHour": {f"{h:02d}": n for h, n in visitors_by_hour(cfg, day, minutes).items()},
+        "cameraGapMinutes": gap,
+        "alerts": alerts_count,
+    }
+
+
 def staff_csv_rows(cfg: Config, day: date, minutes: list[Minute], slots: list[ShiftSlot]) -> list[list]:
     _, staff, _ = daily_stats(cfg, day, minutes, slots)
     head = ["date", "name", "station", "start", "end", "camera_minutes", "at_station_pct", "away_min",
-            "away_with_queue_min", "longest_away_min", "late_min", "left_early_min", "shared"]
+            "away_with_queue_min", "longest_away_min", "late_min", "left_early_min", "shared", "phone_min", "still_min"]
     rows = [head]
     for s in staff:
         rows.append([day.isoformat(), s.slot.name, s.slot.station, s.slot.start.strftime("%H:%M"), s.slot.end.strftime("%H:%M"),
                      s.data_minutes, s.covered_pct, s.empty_minutes, s.empty_with_queue, s.longest_empty,
-                     s.late_by, s.early_by, int(s.shared)])
+                     s.late_by, s.early_by, int(s.shared), s.phone_minutes, s.still_minutes])
     return rows

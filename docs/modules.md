@@ -113,6 +113,15 @@ How a gate is built:
 - **Existing data:** tables and the table names on past orders stay and show again when the module is back on. Deleting a table keeps its orders' table name.
 - **Depends on:** nothing.
 
+### `staff_watch` (cafe cameras: visitors, staffed stations, phone, not moving)
+- **Covers:** the Staff watch page in the admin app (`/api/v1/admin/watch/*`) and the camera box API (`/api/v1/watch-agent/*`, signed in with the `X-Watch-Key` header, no user login).
+- **How it works:** a small computer in the cafe runs `watch/watch.py run` with `[yurt] api` and `key` in its `config.toml`. It reads the cafe's own cameras (RTSP), finds people and phones with YOLOX-Tiny on the CPU and sends only per-minute numbers per zone: seconds watched, seconds someone was there, people, phone in hand, not moving, entered and left through a door line. Every 60 s it fetches zones, shift plan and alert settings from Yurt; camera addresses and passwords stay in the box.
+- **Admin page:** Day (visitors vs orders per hour, minutes per station, alerts, the day report), Cameras and zones (still picture with heads blurred, sent only when asked; draw station, queue and door zones), Shift plan, Settings (hours, alert minutes, phone / stillness switches, Telegram), Camera box (make or turn off the key, last heard from).
+- **Alerts:** station empty while guests wait, empty during a shift, late, station empty for long (no shift plan), phone in hand N minutes, nobody moving N minutes. Yurt sends them to Telegram with the cafe's own bot (tenant secret `Watch:TelegramBotToken`, needs `Secrets__MasterKey`) to each branch's chat.
+- **Keeps:** minutes and alerts 90 days, day reports until the branch is deleted, one still picture per camera. Never faces, sound or video.
+- **When off:** both APIs return `403 module_disabled` and the page and link are hidden; the box stops sending until the module is back on.
+- **Depends on:** nothing. Staff must sign the notice in `watch/notice-ru.md` first (KZ AI law: no emotion recognition; personal data storage in KZ is a lawyer question while the server is outside KZ).
+
 ### `own_pos` (self-developed POS, shipped one feature at a time)
 Gated so far: the **Kitchen** screen, **Cashier**, **Stock** and **Printers**. Other `own_pos` features are added here as they ship.
 - **Kitchen screen:** admin route `/kitchen` and menu entry. A tablet page per branch with three columns (New, Preparing, Ready) of the accepted orders, oldest first, with items, toppings, notes and the wait time (red when past the promised minutes). One big button per card moves it on (Start, Ready, Handed over). It uses the same order API and live events as Live Orders, so no backend gate is needed and nothing changes for customers.
