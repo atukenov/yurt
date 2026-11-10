@@ -15,6 +15,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/table/table-link.component').then((m) => m.TableLinkComponent),
   },
   {
+    // The guest scans the table QR with the app's own camera screen (the phone camera would open the browser instead).
+    path: 'scan-table',
+    canActivate: [moduleGuard('table_ordering', '/menu')],
+    loadComponent: () => import('./features/table/table-scan.component').then((m) => m.TableScanComponent),
+  },
+  {
     path: 'auth',
     canActivateChild: [noAuthGuard],
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),

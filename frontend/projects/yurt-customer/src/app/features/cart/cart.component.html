@@ -19,6 +19,14 @@
               class="active:scale-95 transition-transform">{{ 'table.pickupInstead' | t }}</button>
           </span>
         </span>
+      } @else if (canEnterTable()) {
+        <span style="margin-top:8px;display:flex;justify-content:center">
+          <button routerLink="/scan-table" data-test="table-scan"
+            style="font-size:12px;font-weight:700;color:var(--ink-900);background:var(--surface-card);border:none;border-radius:999px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:inherit;min-height:28px"
+            class="active:scale-95 transition-transform">
+            <span aria-hidden="true">📷</span>{{ 'table.atTableScan' | t }}
+          </button>
+        </span>
       }
     } @else {
       <button (click)="goToLocations()"

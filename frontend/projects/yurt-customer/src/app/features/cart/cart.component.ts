@@ -1,5 +1,5 @@
 import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService, AuthStateService, ModuleService } from 'shared-api';
@@ -17,7 +17,7 @@ import { pickupSlots } from '../../core/schedule';
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, FormsModule, Currency2Pipe, LocalDatePipe, TranslatePipe],
+  imports: [CommonModule, FormsModule, RouterLink, Currency2Pipe, LocalDatePipe, TranslatePipe],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.css',
 })
@@ -43,6 +43,10 @@ export class CartComponent implements OnInit {
   leaveTable(): void {
     this.tableSvc.clear();
   }
+
+  // A guest at a table who orders in the installed app: the phone camera opens the QR link in the browser, not in the
+  // app, so the app never hears about the table. They scan it (or type its code) on the app's own scan screen instead.
+  readonly canEnterTable = computed(() => this.modules.isEnabled('table_ordering') && !this.tableSvc.table());
   readonly PaymentMethod = PaymentMethod;
 
   loading = signal(false);

@@ -20,6 +20,7 @@ import { TranslatePipe } from '../../core/translate.pipe';
 import { PullToRefreshDirective } from '../../shared/pull-to-refresh.directive';
 import { PromoViewerService } from '../../core/promo-viewer.service';
 import { CartService } from '../cart/cart.service';
+import { TableService } from '../../core/table.service';
 
 /** Case- and ё/е-insensitive text for matching search input against names. */
 function normalizeForSearch(text: string): string {
@@ -53,6 +54,11 @@ export class MenuListComponent implements OnInit {
   private swr = inject(SwrCache);
   private storeStatus = inject(StoreStatusService);
   private promoViewer = inject(PromoViewerService);
+  private tableSvc = inject(TableService);
+  /** The table the guest scanned (table_ordering); null = not at a table, or the module is off. */
+  readonly table = computed(() => (this.modules.isEnabled('table_ordering') ? this.tableSvc.table() : null));
+  /** Offer the app's own QR scanner: the phone camera would open a table QR in the browser, not in this app. */
+  readonly canScanTable = computed(() => this.modules.isEnabled('table_ordering') && !this.tableSvc.table());
   readonly locationName = this.locationSvc.locationName;
 
   @ViewChild('searchInput') searchInputRef?: ElementRef<HTMLInputElement>;
