@@ -3,6 +3,11 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { SKIP_ERROR_TOAST } from './http-error.interceptor';
 import {
+  WatchBox,
+  WatchCamera,
+  WatchDay,
+  WatchSettings,
+  WatchShift,
   AcceptOrderRequest,
   AddGroupOrderItemRequest,
   AnalyticsResponse,
@@ -107,6 +112,11 @@ export class YurtApiService {
 
   private get api(): string {
     return `${this.baseUrl}/api/v1`;
+  }
+
+  /** The server address without /api/v1 (the page's own address when the API runs on the same host). */
+  get serverUrl(): string {
+    return this.baseUrl || window.location.origin;
   }
 
   // ── App ────────────────────────────────────────────────────────────────────
@@ -790,6 +800,82 @@ export class YurtApiService {
 
   deleteTable(id: string): Observable<boolean> {
     return this.http.delete<boolean>(`${this.api}/admin/tables/${id}`);
+  }
+
+  // ── Staff watch ──
+  getWatchDay(locationId: string, day: string): Observable<WatchDay> {
+    return this.http.get<WatchDay>(`${this.api}/admin/watch/day`, { params: new HttpParams().set('locationId', locationId).set('day', day) });
+  }
+
+  getWatchBoxes(): Observable<WatchBox[]> {
+    return this.http.get<WatchBox[]>(`${this.api}/admin/watch/boxes`);
+  }
+
+  newWatchKey(locationId: string): Observable<{ locationId: string; key: string }> {
+    return this.http.post<{ locationId: string; key: string }>(`${this.api}/admin/watch/boxes/${locationId}`, {});
+  }
+
+  revokeWatchKey(locationId: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/watch/boxes/${locationId}`);
+  }
+
+  getWatchCameras(locationId: string): Observable<WatchCamera[]> {
+    return this.http.get<WatchCamera[]>(`${this.api}/admin/watch/cameras`, { params: new HttpParams().set('locationId', locationId) });
+  }
+
+  createWatchCamera(locationId: string, name: string): Observable<WatchCamera> {
+    return this.http.post<WatchCamera>(`${this.api}/admin/watch/cameras`, { locationId, name, zones: [] });
+  }
+
+  saveWatchCamera(cam: WatchCamera): Observable<WatchCamera> {
+    return this.http.put<WatchCamera>(`${this.api}/admin/watch/cameras/${cam.id}`, {
+      locationId: cam.locationId,
+      name: cam.name,
+      zones: cam.zones,
+    });
+  }
+
+  deleteWatchCamera(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/watch/cameras/${id}`);
+  }
+
+  requestWatchSnapshot(id: string): Observable<WatchCamera> {
+    return this.http.post<WatchCamera>(`${this.api}/admin/watch/cameras/${id}/snapshot-request`, {});
+  }
+
+  getWatchSnapshot(id: string): Observable<Blob> {
+    return this.http.get(`${this.api}/admin/watch/cameras/${id}/snapshot`, {
+      responseType: 'blob',
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
+  }
+
+  getWatchSettings(locationId: string): Observable<WatchSettings> {
+    return this.http.get<WatchSettings>(`${this.api}/admin/watch/settings`, { params: new HttpParams().set('locationId', locationId) });
+  }
+
+  saveWatchSettings(s: WatchSettings): Observable<WatchSettings> {
+    return this.http.put<WatchSettings>(`${this.api}/admin/watch/settings`, s);
+  }
+
+  setWatchTelegramToken(token: string | null): Observable<boolean> {
+    return this.http.put<boolean>(`${this.api}/admin/watch/telegram-token`, { token });
+  }
+
+  findWatchTelegramChat(locationId: string): Observable<WatchSettings> {
+    return this.http.post<WatchSettings>(`${this.api}/admin/watch/telegram/find-chat`, {}, { params: new HttpParams().set('locationId', locationId) });
+  }
+
+  testWatchTelegram(locationId: string): Observable<boolean> {
+    return this.http.post<boolean>(`${this.api}/admin/watch/telegram/test`, {}, { params: new HttpParams().set('locationId', locationId) });
+  }
+
+  getWatchShifts(locationId: string): Observable<WatchShift[]> {
+    return this.http.get<WatchShift[]>(`${this.api}/admin/watch/shifts`, { params: new HttpParams().set('locationId', locationId) });
+  }
+
+  saveWatchShifts(locationId: string, rows: WatchShift[]): Observable<WatchShift[]> {
+    return this.http.put<WatchShift[]>(`${this.api}/admin/watch/shifts`, { locationId, rows });
   }
 
   getStationRouting(): Observable<StationRouting> {

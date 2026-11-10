@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Yurt Watch pilot. See README.md.
+"""Yurt Watch: camera box for the Yurt module "Staff watch" (or standalone). See README.md.
 
-  python watch.py download-model          get the person-detection model (once)
-  python watch.py snapshot                save one picture per camera with a % grid, to draw zones
-  python watch.py check                   show zones + people found right now (heads blurred)
-  python watch.py run                     watch all day: alerts + daily report to Telegram
+  python watch.py download-model          get the detection model (once)
+  python watch.py snapshot                save one picture per camera with a % grid (standalone zone setup)
+  python watch.py check                   show zones + people/phones found right now (heads blurred)
+  python watch.py connect                 check the Yurt connection and show the settings it sends
+  python watch.py run                     watch all day: alerts + daily report
   python watch.py report [--date D] [--send]   build (and send) the report for a day
-  python watch.py test-telegram           send a test message
+  python watch.py test-telegram           send a test message (standalone)
 """
 from __future__ import annotations
 
@@ -21,13 +22,14 @@ from pathlib import Path
 from yurtwatch import config as config_mod
 from yurtwatch import schedule as schedule_mod
 from yurtwatch import telegram
-from yurtwatch.rules import AlertEngine, daily_report, open_window, staff_csv_rows
+from yurtwatch.rules import AlertEngine, daily_json, daily_report, open_window, staff_csv_rows
 from yurtwatch.store import MinuteAggregator, Store
-from yurtwatch.zones import count_in_zones
 
 log = logging.getLogger("watch")
 
 REPORT_DELAY_MINUTES = 15
+CONFIG_EVERY = 60      # seconds between settings fetches from Yurt
+UPLOAD_EVERY = 15      # seconds between sending counts and alerts to Yurt
 
 
 def local_now(cfg) -> datetime:
@@ -35,10 +37,12 @@ def local_now(cfg) -> datetime:
 
 
 def load_slots(cfg, day: date):
+    stations = {z.name for z in cfg.stations}
+    if cfg.schedule_rows is not None:
+        return schedule_mod.shifts_for(cfg.schedule_rows, day, stations)
     if not cfg.schedule_file or not cfg.schedule_file.exists():
         return []
-    rows = schedule_mod.load_rows(cfg.schedule_file)
-    return schedule_mod.shifts_for(rows, day, {z.name for z in cfg.stations})
+    return schedule_mod.shifts_for(schedule_mod.load_rows(cfg.schedule_file), day, stations)
 
 
 def slots_around(cfg, now: datetime):
@@ -46,20 +50,38 @@ def slots_around(cfg, now: datetime):
     return [s for s in load_slots(cfg, now.date() - timedelta(days=1)) if s.end > now] + load_slots(cfg, now.date())
 
 
-def build_report(cfg, store: Store, day: date) -> str:
+def report_window(cfg, day: date):
     o_start, o_end = open_window(cfg, day)
     slots = load_slots(cfg, day)
-    start = min([o_start] + [s.start for s in slots])
-    end = max([o_end] + [s.end for s in slots])
+    return slots, min([o_start] + [s.start for s in slots]), max([o_end] + [s.end for s in slots])
+
+
+def build_report(cfg, store: Store, day: date) -> tuple[str, dict]:
+    slots, start, end = report_window(cfg, day)
     minutes = store.minutes(start, end)
-    alerts = store.alerts_between(start, end)
-    text = daily_report(cfg, day, minutes, slots, len(alerts))
+    n_alerts = len(store.alerts_between(start, end))
+    text = daily_report(cfg, day, minutes, slots, n_alerts)
+    data = daily_json(cfg, day, minutes, slots, n_alerts)
     out = cfg.data_dir / "reports"
     out.mkdir(parents=True, exist_ok=True)
     (out / f"{day.isoformat()}.txt").write_text(text, encoding="utf-8")
     with open(out / f"{day.isoformat()}-staff.csv", "w", newline="", encoding="utf-8-sig") as f:
         csv.writer(f).writerows(staff_csv_rows(cfg, day, minutes, slots))
-    return text
+    return text, data
+
+
+def client_for(cfg):
+    from yurtwatch.yurt import YurtClient
+
+    return YurtClient(cfg.yurt_api, cfg.yurt_key) if cfg.connected else None
+
+
+def sync_config(cfg, client) -> list[str]:
+    remote = client.config([c.name for c in cfg.cameras])
+    problems = config_mod.apply_remote(cfg, remote)
+    for p in problems:
+        log.warning("settings from Yurt: %s", p)
+    return remote.get("snapshotRequests", []) or []
 
 
 def cmd_download_model(cfg, _args):
@@ -94,11 +116,15 @@ def cmd_snapshot(cfg, _args):
 def cmd_check(cfg, _args):
     import cv2
 
+    from yurtwatch.analyze import CameraAnalyzer
     from yurtwatch.camera import grab_one
-    from yurtwatch.detector import PersonDetector
+    from yurtwatch.detector import Detector
     from yurtwatch.pictures import draw_check
 
-    det = PersonDetector(cfg.model, cfg.min_confidence)
+    client = client_for(cfg)
+    if client:
+        sync_config(cfg, client)
+    det = Detector(cfg.model, cfg.min_confidence, cfg.detect.phone_confidence)
     out = cfg.data_dir / "snapshots"
     out.mkdir(parents=True, exist_ok=True)
     for cam in cfg.cameras:
@@ -107,22 +133,44 @@ def cmd_check(cfg, _args):
             print(f"{cam.name}: no picture")
             continue
         zones = [z for z in cfg.zones if z.camera == cam.name]
+        an = CameraAnalyzer(zones, cfg.detect.phones, False)
         t0 = time.perf_counter()
-        boxes = det.detect(f)
+        samples, people, phones = an.analyze(f, 0.0, det)
         ms = (time.perf_counter() - t0) * 1000
-        counts = count_in_zones(boxes, f.shape[1], f.shape[0], zones)
         p = out / f"{cam.name}-check.jpg"
-        cv2.imwrite(str(p), draw_check(f, zones, boxes, counts))
-        print(f"{cam.name}: {len(boxes)} people in picture, by zone {counts}, detection {ms:.0f} ms -> {p}")
+        cv2.imwrite(str(p), draw_check(f, zones, people, {k: v.people for k, v in samples.items()}, phones))
+        found = {k: v.people for k, v in samples.items() if zones and cfg.zone(k).kind != "door"}
+        on_phone = [k for k, v in samples.items() if v.phone]
+        print(f"{cam.name}: {len(people)} people, {len(phones)} phones in picture, by zone {found}"
+              f"{', phone at ' + ', '.join(on_phone) if on_phone else ''}, {ms:.0f} ms -> {p}")
+
+
+def cmd_connect(cfg, _args):
+    client = client_for(cfg)
+    if not client:
+        sys.exit("No [yurt] api and key in config.toml: this box runs standalone.")
+    sync_config(cfg, client)
+    print(f"Connected to {cfg.yurt_api} as cafe '{client.tenant}': {cfg.cafe}, open {cfg.open:%H:%M}-{cfg.close:%H:%M}")
+    for z in cfg.zones:
+        print(f"  zone {z.name} ({z.kind}) on camera {z.camera}")
+    if not cfg.zones:
+        print("  no zones yet: in Yurt admin open Staff watch → Cameras, take a picture and draw them")
+    print(f"  shift plan rows: {len(cfg.schedule_rows or [])}")
 
 
 def cmd_report(cfg, args):
+    client = client_for(cfg)
+    if client:
+        sync_config(cfg, client)
     store = Store(cfg.data_dir / "watch.db")
     day = date.fromisoformat(args.date) if args.date else local_now(cfg).date()
-    text = build_report(cfg, store, day)
+    text, data = build_report(cfg, store, day)
     print(text)
     if args.send:
-        telegram.send(cfg.telegram_token, cfg.telegram_chat, text)
+        if client:
+            client.send_report(day.isoformat(), text, data)
+        else:
+            telegram.send(cfg.telegram_token, cfg.telegram_chat, text)
 
 
 def cmd_test_telegram(cfg, _args):
@@ -133,80 +181,176 @@ def cmd_test_telegram(cfg, _args):
 def cmd_run(cfg, _args):
     import cv2
 
+    from yurtwatch.analyze import CameraAnalyzer
     from yurtwatch.camera import CameraReader
-    from yurtwatch.detector import PersonDetector
-    from yurtwatch.pictures import draw_check, prune
+    from yurtwatch.detector import Detector
+    from yurtwatch.pictures import blur_heads, draw_check, prune
+    from yurtwatch.yurt import YurtError
 
     if not cfg.model.exists():
         sys.exit("model missing: run  python watch.py download-model")
+    client = client_for(cfg)
+    snapshot_requests: list[str] = []
+    if client:
+        while True:
+            try:
+                snapshot_requests = sync_config(cfg, client)
+                break
+            except YurtError as e:
+                log.error("%s; trying again in 30 s", e)
+                time.sleep(30)
     store = Store(cfg.data_dir / "watch.db")
-    det = PersonDetector(cfg.model, cfg.min_confidence)
+    det = Detector(cfg.model, cfg.min_confidence, cfg.detect.phone_confidence)
     readers = {c.name: CameraReader(c.name, c.url) for c in cfg.cameras}
     for r in readers.values():
         r.start()
+
+    def make_analyzers():
+        return {c.name: CameraAnalyzer([z for z in cfg.zones if z.camera == c.name], cfg.detect.phones,
+                                       cfg.detect.still, cfg.detect.still_threshold) for c in cfg.cameras}
+
+    analyzers = make_analyzers()
+    zones_sig = repr([(z.name, z.points, z.inside) for z in cfg.zones])
+    last_look = {c.name: 0.0 for c in cfg.cameras}
+    latest: dict[str, tuple] = {}   # camera -> (time, frame, people, phones, samples)
     agg = MinuteAggregator()
     engine = AlertEngine(cfg)
     sent_file = cfg.data_dir / "reports-sent.txt"
     sent = set(sent_file.read_text().split()) if sent_file.exists() else set()
     last_picture: datetime | None = None
     last_prune: date | None = None
+    last_second = 0.0
+    last_config = last_upload = time.monotonic()
     slots, slots_at = [], None
-    log.info("watching %d camera(s), %d zone(s)", len(readers), len(cfg.zones))
+    tick = 1.0 / max([1.0] + [c.fps for c in cfg.cameras])
+    log.info("watching %d camera(s), %d zone(s)%s", len(readers), len(cfg.zones), ", connected to Yurt" if client else "")
+
+    def save_picture(name: str, cam: str, now: datetime):
+        if cam not in latest:
+            return
+        _, f, people, phones, samples = latest[cam]
+        zones = [z for z in cfg.zones if z.camera == cam]
+        d = cfg.data_dir / "checks" / now.date().isoformat()
+        d.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(d / f"{now:%H%M}-{name}.jpg"), draw_check(f, zones, people, {k: v.people for k, v in samples.items()}, phones))
+
+    def handle_closed(closed, now):
+        nonlocal slots, slots_at
+        if not closed:
+            return
+        store.save(closed)
+        if slots_at is None or now - slots_at >= timedelta(minutes=1):
+            try:
+                slots = slots_around(cfg, now)
+            except Exception as e:  # noqa: BLE001 - a typo in the shift plan must not stop watching
+                log.error("shift plan problem: %s", e)
+            slots_at = now
+        for a in engine.on_minutes(closed, slots):
+            log.info("alert: %s", a.text)
+            store.log_alert(a.at, a.kind, a.zone, a.text)
+            if not client:
+                telegram.send(cfg.telegram_token, cfg.telegram_chat, a.text)
+            cam = cfg.zone(a.zone).camera if a.zone in {z.name for z in cfg.zones} else a.zone
+            save_picture(f"alert-{a.kind}-{a.zone}", cam, now)
 
     while True:
-        tick = time.monotonic()
+        t = time.monotonic()
         now = local_now(cfg)
-        counts: dict[str, int | None] = {}
-        frames = {}
+
+        # look at each camera at its own pace
         for cam in cfg.cameras:
-            zones = [z for z in cfg.zones if z.camera == cam.name]
+            if t - last_look[cam.name] < 1.0 / max(cam.fps, 0.1) - 0.01:
+                continue
+            last_look[cam.name] = t
             f = readers[cam.name].latest()
             if f is None:
-                counts.update({z.name: None for z in zones})
+                latest.pop(cam.name, None)
                 continue
-            boxes = det.detect(f)
-            frames[cam.name] = (f, boxes, zones)
-            counts.update(count_in_zones(boxes, f.shape[1], f.shape[0], zones))
+            samples, people, phones = analyzers[cam.name].analyze(f, t, det)
+            latest[cam.name] = (t, f, people, phones, samples)
+            for zname, s in samples.items():
+                if s.entered or s.left:
+                    handle_closed(agg.add_crossings(now, zname, s.entered, s.left), now)
 
-        closed = agg.add(now, counts)
-        if closed:
-            store.save(closed)
-            if slots_at is None or now - slots_at >= timedelta(minutes=1):
-                try:
-                    slots = slots_around(cfg, now)
-                except Exception as e:  # noqa: BLE001 - a typo in the schedule must not stop watching
-                    log.error("schedule file problem: %s", e)
-                slots_at = now
-            for a in engine.on_minutes(closed, slots):
-                log.info("alert: %s", a.text)
-                store.log_alert(a.at, a.kind, a.zone, a.text)
-                telegram.send(cfg.telegram_token, cfg.telegram_chat, a.text)
-                cam = cfg.zone(a.zone).camera if a.zone in {z.name for z in cfg.zones} else a.zone
-                if cam in frames:
-                    f, boxes, zones = frames[cam]
-                    d = cfg.data_dir / "checks" / now.date().isoformat()
-                    d.mkdir(parents=True, exist_ok=True)
-                    cv2.imwrite(str(d / f"{now:%H%M}-alert-{a.kind}-{a.zone}.jpg"),
-                                draw_check(f, zones, boxes, count_in_zones(boxes, f.shape[1], f.shape[0], zones)))
+        # one presence sample per second per zone
+        if t - last_second >= cfg.sample_seconds:
+            last_second = t
+            samples = {}
+            for cam in cfg.cameras:
+                zones = [z for z in cfg.zones if z.camera == cam.name]
+                got = latest.get(cam.name)
+                fresh = got is not None and t - got[0] <= 5
+                for z in zones:
+                    samples[z.name] = got[4].get(z.name) if fresh else None
+            handle_closed(agg.add(now, samples), now)
 
-        # a picture every N minutes, to check by eye that the counting is right
-        if frames and (last_picture is None or now - last_picture >= timedelta(minutes=cfg.check_picture_minutes)):
+        # a check picture every N minutes, to verify the counting by eye
+        if latest and (last_picture is None or now - last_picture >= timedelta(minutes=cfg.check_picture_minutes)):
             last_picture = now
-            d = cfg.data_dir / "checks" / now.date().isoformat()
-            d.mkdir(parents=True, exist_ok=True)
-            for name, (f, boxes, zones) in frames.items():
-                cv2.imwrite(str(d / f"{now:%H%M}-{name}.jpg"),
-                            draw_check(f, zones, boxes, count_in_zones(boxes, f.shape[1], f.shape[0], zones)))
+            for cam in list(latest):
+                save_picture(cam, cam, now)
+
+        if client and t - last_config >= CONFIG_EVERY:
+            last_config = t
+            try:
+                snapshot_requests = sync_config(cfg, client)
+                sig = repr([(z.name, z.points, z.inside) for z in cfg.zones])
+                if sig != zones_sig:
+                    zones_sig = sig
+                    analyzers = make_analyzers()
+                    log.info("zones changed in Yurt: now %d zone(s)", len(cfg.zones))
+            except YurtError as e:
+                log.warning("%s", e)
+        if client and snapshot_requests:
+            for name in list(snapshot_requests):
+                got = latest.get(name)
+                frame = readers[name].latest() if name in readers else None
+                if frame is None:
+                    continue
+                people = got[2] if got else det.detect(frame)
+                pic = blur_heads(frame, people)
+                if pic.shape[1] > 1280:
+                    pic = cv2.resize(pic, (1280, int(pic.shape[0] * 1280 / pic.shape[1])))
+                ok, jpg = cv2.imencode(".jpg", pic, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                try:
+                    client.send_snapshot(name, jpg.tobytes(), frame.shape[1], frame.shape[0])
+                    snapshot_requests.remove(name)
+                    log.info("sent a picture of camera %s to Yurt", name)
+                except YurtError as e:
+                    log.warning("%s", e)
+                    break
+        if client and t - last_upload >= UPLOAD_EVERY:
+            last_upload = t
+            try:
+                rows = store.unsent_minutes()
+                if rows:
+                    client.send_minutes([m.to_json() for m in rows])
+                    store.mark_minutes_sent(rows)
+                al = store.unsent_alerts()
+                if al:
+                    client.send_alerts([{"at": a[1].replace(" ", "T"), "kind": a[2], "zone": a[3], "text": a[4]} for a in al])
+                    store.mark_alerts_sent([a[0] for a in al])
+            except YurtError as e:
+                log.warning("%s (kept, will send later)", e)
 
         # daily report shortly after closing (and after the last shift)
         for day in (now.date() - timedelta(days=1), now.date()):
             if day.isoformat() in sent:
                 continue
-            _, o_end = open_window(cfg, day)
-            last_end = max([o_end] + [s.end for s in load_slots(cfg, day)]) if cfg.schedule_file else o_end
+            try:
+                _, _, last_end = report_window(cfg, day)
+            except Exception:  # noqa: BLE001
+                last_end = open_window(cfg, day)[1]
             if now >= last_end + timedelta(minutes=REPORT_DELAY_MINUTES) and now - last_end < timedelta(hours=12):
-                text = build_report(cfg, store, day)
-                telegram.send(cfg.telegram_token, cfg.telegram_chat, text)
+                text, data = build_report(cfg, store, day)
+                try:
+                    if client:
+                        client.send_report(day.isoformat(), text, data)
+                    else:
+                        telegram.send(cfg.telegram_token, cfg.telegram_chat, text)
+                except YurtError as e:
+                    log.warning("report not sent yet: %s", e)
+                    continue
                 sent.add(day.isoformat())
                 sent_file.write_text("\n".join(sorted(sent)))
 
@@ -215,15 +359,15 @@ def cmd_run(cfg, _args):
             store.prune(now)
             prune(cfg.data_dir / "checks", now.date(), cfg.keep_pictures_days)
 
-        time.sleep(max(0.0, cfg.sample_seconds - (time.monotonic() - tick)))
+        time.sleep(max(0.0, tick - (time.monotonic() - t)))
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description="Yurt Watch pilot")
-    p.add_argument("command", choices=["download-model", "snapshot", "check", "run", "report", "test-telegram"])
+    p = argparse.ArgumentParser(description="Yurt Watch camera box")
+    p.add_argument("command", choices=["download-model", "snapshot", "check", "connect", "run", "report", "test-telegram"])
     p.add_argument("--config", default="config.toml")
     p.add_argument("--date", help="report day, YYYY-MM-DD (default today)")
-    p.add_argument("--send", action="store_true", help="also send the report to Telegram")
+    p.add_argument("--send", action="store_true", help="also send the report (to Yurt, or Telegram when standalone)")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     cfg = config_mod.load(args.config)
@@ -231,6 +375,7 @@ def main(argv=None):
         "download-model": cmd_download_model,
         "snapshot": cmd_snapshot,
         "check": cmd_check,
+        "connect": cmd_connect,
         "run": cmd_run,
         "report": cmd_report,
         "test-telegram": cmd_test_telegram,

@@ -1,10 +1,19 @@
-# Yurt Watch pilot
+# Yurt Watch
 
 A small program for a computer in the cafe. It looks at the cafe's own cameras, counts people in zones you draw
 (bar, till, queue) and tells the owner in Telegram when a station is empty while guests wait, when someone is late,
 and sends a report after closing, per station and per staff member.
 
-It is a 2-week pilot and runs on its own, without the Yurt server. If it pays off, it becomes a Yurt module later.
+It runs two ways:
+
+- **Connected to Yurt** (module `staff_watch`, recommended): zones, shift plan, alerts and Telegram are set on the
+  Staff watch page of the Yurt admin app; the box sends minute numbers there and Yurt sends the Telegram messages.
+  See "Connected to Yurt" below.
+- **On its own** (the first pilot): everything is set in `config.toml` and `staff.csv`, and the box sends Telegram
+  messages itself.
+
+Besides people in zones it can count **visitors** through a door line, spot a **phone in hand** at a station and
+notice when **nobody moves** at a station for a long time (sitting still or asleep).
 
 **What it does not do:** no face recognition, no audio, no video recording. Names come only from the shift list
 (`staff.csv`), never from the camera. Every second the newest picture is checked and thrown away. Only minute counts,
@@ -68,6 +77,32 @@ mon,Алия,till,16:00,22:00
 `day` is `daily`, a weekday (`mon`…`sun`) or a date. A dated row replaces that person's weekly row on that day.
 `station` is a zone name from `config.toml`. You can edit the file while the program runs; it re-reads it every minute.
 If two people share one station at the same time, the report says so: the camera can't tell them apart.
+
+## Connected to Yurt
+
+1. An admin of the cafe switches on `staff_watch` (Platform > Modules) and opens **Staff watch** in the admin app.
+2. **Camera box** tab: press "Make key". Copy the `[yurt]` lines it shows into `config.toml` on the box. Keep only
+   `[[cameras]]` (name, address, `fps`) and `[detect]` there; zones, shifts and alerts now come from Yurt.
+3. `python watch.py connect` checks the key and shows what Yurt sends. Then start `python watch.py run` (see
+   "6. Run it"). Within a minute the box tells Yurt its cameras and sends a still picture of each (heads blurred).
+4. **Cameras and zones** tab: draw zones on each picture. Station = where a barista or cashier stands, queue = where
+   guests wait, door = a line across the doorway plus a point on the inside (visitors are people who cross it inwards).
+   The box picks up new zones within a minute; "Take a new picture" asks it for a fresh one.
+5. **Shift plan** (optional) and **Settings**: opening hours, alert minutes, phone / stillness switches, the cafe's
+   own Telegram bot and the chat of each branch ("Find chat").
+6. The Day tab shows visitors vs orders per hour, minutes per station and alerts; the day report arrives after
+   closing.
+
+Good to know when connected:
+
+- Phone in hand is found best on the **main stream** (`Channels/101`): the sub stream is small and a phone is a few
+  pixels. A phone at the ear, under the counter or behind the back is often missed. Treat it as a hint.
+- "Not moving" only says nobody at the station moved for N minutes. It cannot tell sleep from a person standing
+  very still while waiting; the check picture tells.
+- A door camera needs about `fps = 5` so people are seen on both sides of the line. Visitors include couriers and
+  staff walking in; compare with orders, not with an exact guest count.
+- The box keeps working when the internet drops and sends the missed minutes later.
+- Only numbers, alert texts, the day report and a still picture on request leave the cafe. Camera passwords never do.
 
 ## 6. Run it
 

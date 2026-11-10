@@ -12,6 +12,19 @@ min_confidence = 0.45         # lower = finds more people, but more mistakes
 check_picture_minutes = 30    # a blurred check picture every N minutes, to verify counting by eye
 keep_pictures_days = 7
 
+# Connected to Yurt (staff_watch module): zones, shift plan, alerts and Telegram are then set in the Yurt admin
+# app (Staff watch page), and [telegram], [alerts], [[zones]] and schedule_file below are not used.
+# Make the key on the Staff watch page > Camera box.
+[yurt]
+api = ""                      # e.g. "https://yurt-production.up.railway.app"
+key = ""
+
+[detect]
+phones = true                 # phone in hand at a station (works best with the main stream, Channels/101)
+still = true                  # nobody moving at a station for a long time (sitting still or asleep)
+still_threshold = 0.01        # share of the person's picture that must change to count as moving
+phone_confidence = 0.3
+
 [telegram]
 bot_token = ""                # from @BotFather
 chat_id = ""                  # your chat with the bot (see README)
@@ -21,12 +34,22 @@ empty_while_queue_minutes = 3 # station empty this long while guests wait -> ale
 queue_min_guests = 2          # what counts as "guests waiting"
 empty_on_shift_minutes = 10   # station empty this long while someone is scheduled -> alert
 late_grace_minutes = 10       # not at the station this long after the shift starts -> "late"
+empty_minutes = 15            # no shift list: station empty this long during open hours -> alert
+phone_minutes = 5             # phone in hand this long -> alert
+still_minutes = 10            # nobody moving this long -> alert
 
 # Hikvision: channel 102 is the small "sub stream" (enough for counting, light on the network).
 # Use a separate camera user with "view only" rights, not the admin password.
 [[cameras]]
 name = "counter"
 url = "rtsp://watch:PASSWORD@192.168.1.64:554/Streaming/Channels/102"
+fps = 1                       # pictures per second; about 5 for a door camera so nobody slips through
+
+# A door camera counts visitors: draw a line across the doorway and mark a point inside the cafe.
+# [[cameras]]
+# name = "door"
+# url = "rtsp://watch:PASSWORD@192.168.1.65:554/Streaming/Channels/102"
+# fps = 5
 
 # Zones: corners in percent of the picture (0-100, from the top-left), read off the snapshot grid.
 # A person counts in a zone where their feet are. Station zones only behind the counter, where guests don't go.
@@ -53,3 +76,11 @@ label = "Очередь"
 kind = "queue"
 camera = "counter"
 points = [[30, 72], [95, 72], [95, 100], [30, 100]]
+
+# [[zones]]
+# name = "entrance"
+# label = "Вход"
+# kind = "door"
+# camera = "door"
+# points = [[20, 60], [80, 60]]   # the line across the doorway
+# inside = [50, 85]               # any point on the cafe side of the line

@@ -1295,3 +1295,93 @@ export interface LoyaltyLedgerInfo {
   mode: 'iiko' | 'native';
   iikoAvailable: boolean;
 }
+
+// ── Staff watch (camera box) ────────────────────────────────────────────────
+
+export type WatchZoneKind = 'station' | 'queue' | 'door';
+
+/** A zone drawn on a camera picture; points are percent of the picture (0..100). */
+export interface WatchZone {
+  name: string;
+  label?: string | null;
+  kind: WatchZoneKind;
+  points: number[][];
+  /** For a station: the queue zone in front of it. */
+  queue?: string | null;
+  /** For a door: a point on the inside of the cafe. */
+  inside?: number[] | null;
+}
+
+export interface WatchCamera {
+  id: string;
+  locationId: string;
+  name: string;
+  zones: WatchZone[];
+  snapshotAt: string | null;
+  snapshotRequestedAt: string | null;
+  snapshotWidth: number;
+  snapshotHeight: number;
+}
+
+export interface WatchAlertSettings {
+  emptyWhileQueueMinutes: number;
+  queueMinGuests: number;
+  emptyOnShiftMinutes: number;
+  emptyMinutes: number;
+  lateGraceMinutes: number;
+  phoneMinutes: number;
+  stillMinutes: number;
+}
+
+export interface WatchSettings {
+  locationId: string;
+  open: string;
+  close: string;
+  alerts: WatchAlertSettings;
+  detect: { phones: boolean; still: boolean };
+  telegramChatId: string | null;
+  telegramBotSet: boolean;
+}
+
+export interface WatchShift {
+  day: string;
+  name: string;
+  station: string;
+  start: string;
+  end: string;
+}
+
+export interface WatchBox {
+  locationId: string;
+  hasKey: boolean;
+  lastSeenAt: string | null;
+  cameraNames: string[];
+  version: string | null;
+}
+
+export interface WatchAlert {
+  at: string;
+  kind: string;
+  zone: string;
+  text: string;
+}
+
+export interface WatchStationLive {
+  zone: string;
+  cameraMinutes: number;
+  coveredMinutes: number;
+  phoneMinutes: number;
+  stillMinutes: number;
+}
+
+export interface WatchDay {
+  locationId: string;
+  day: string;
+  reportText: string | null;
+  reportData: unknown;
+  alerts: WatchAlert[];
+  hours: { hour: number; visitors: number; orders: number }[];
+  visitors: number;
+  orders: number;
+  stations: WatchStationLive[];
+}

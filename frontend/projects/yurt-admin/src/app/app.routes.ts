@@ -79,6 +79,12 @@ export const routes: Routes = [
               import('./features/printers/printers.component').then((m) => m.PrintersComponent),
           },
           {
+            path: 'staff-watch',
+            canActivate: [moduleGuard('staff_watch', '/orders')],
+            loadComponent: () =>
+              import('./features/staff-watch/staff-watch.component').then((m) => m.StaffWatchComponent),
+          },
+          {
             path: 'tables',
             canActivate: [moduleGuard('table_ordering', '/orders')],
             loadComponent: () => import('./features/tables/tables.component').then((m) => m.TablesComponent),

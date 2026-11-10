@@ -37,6 +37,13 @@ public interface IApplicationDbContext
     DbSet<Printer> Printers { get; }
     DbSet<PrintJob> PrintJobs { get; }
     DbSet<PrintAgent> PrintAgents { get; }
+    DbSet<WatchBox> WatchBoxes { get; }
+    DbSet<WatchCamera> WatchCameras { get; }
+    DbSet<WatchSettings> WatchSettings { get; }
+    DbSet<WatchShift> WatchShifts { get; }
+    DbSet<WatchMinute> WatchMinutes { get; }
+    DbSet<WatchAlert> WatchAlerts { get; }
+    DbSet<WatchReport> WatchReports { get; }
     DbSet<Picture> Pictures { get; }
     DbSet<ToppingUse> ToppingUses { get; }
     DbSet<CashMovement> CashMovements { get; }
