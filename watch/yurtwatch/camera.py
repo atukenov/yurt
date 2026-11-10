@@ -23,7 +23,9 @@ class CameraReader(threading.Thread):
         self._frame = None
         self._at = 0.0
         self._stop = threading.Event()
-        self.is_file = not url.lower().startswith(("rtsp://", "rtsps://", "http://", "https://"))
+        # A number (0, 1, ...) is a camera plugged into this computer (USB webcam, laptop camera).
+        self.device = int(url) if url.strip().isdigit() else None
+        self.is_file = self.device is None and not url.lower().startswith(("rtsp://", "rtsps://", "http://", "https://"))
 
     def latest(self, max_age: float = 5.0):
         with self._lock:
@@ -37,7 +39,7 @@ class CameraReader(threading.Thread):
     def run(self) -> None:
         backoff = 2.0
         while not self._stop.is_set():
-            cap = cv2.VideoCapture(self.url, cv2.CAP_FFMPEG)
+            cap = cv2.VideoCapture(self.device) if self.device is not None else cv2.VideoCapture(self.url, cv2.CAP_FFMPEG)
             if not cap.isOpened():
                 log.warning("camera %s: cannot open, retry in %.0fs", self.cam_name, backoff)
                 self._stop.wait(backoff)

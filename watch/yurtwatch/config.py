@@ -119,7 +119,7 @@ def load(path: str | Path) -> Config:
         q = Path(p)
         return q if q.is_absolute() else base / q
 
-    cameras = [Camera(c["name"], c["url"], float(c.get("fps", 1.0))) for c in raw.get("cameras", [])]
+    cameras = [Camera(c["name"], str(c["url"]), float(c.get("fps", 1.0))) for c in raw.get("cameras", [])]
     zones = [zone_from(z) for z in raw.get("zones", [])]
     tg = raw.get("telegram", {})
     yurt = raw.get("yurt", {})
