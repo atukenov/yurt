@@ -117,12 +117,14 @@ public class TableService(
     {
         var any = await db.DiningTables.IgnoreQueryFilters().AsNoTracking()
             .Where(t => t.Code == code)
-            .Select(t => new { t.TenantId, t.Location.IsActive })
+            .Select(t => new { t.TenantId, t.Location.IsActive, Branch = t.Location.Name })
             .FirstOrDefaultAsync(ct);
         if (any is null) return "Table not found.";
         if (any.TenantId != tenant.TenantId)
             return $"Table not found: this code belongs to another cafe than the one this app opens ('{tenant.Slug}'). Check the cafes' web addresses in Platform.";
-        return "Table not found: its branch is switched off.";
+        return any.IsActive
+            ? "Table not found."
+            : $"Table not found: its branch '{any.Branch}' is inactive. Make it active in Locations.";
     }
 
     private TableDto ToDto(DiningTable t, string? baseUrl)
