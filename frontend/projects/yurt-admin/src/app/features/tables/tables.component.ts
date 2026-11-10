@@ -39,12 +39,16 @@ export class TablesComponent implements OnInit {
 
   readonly branchName = computed(() => this.locations().find((l) => l.id === this.locationId())?.name ?? '');
   /** No QR codes while the cafe has no customer app address to point them at. */
+  /** Guests cannot order to tables of a switched-off branch: its QR codes answer "not found". */
+  readonly branchOff = computed(() => this.locations().find((l) => l.id === this.locationId())?.isActive === false);
   readonly noLink = computed(() => this.tables().length > 0 && this.tables().every((t) => !t.link));
 
   ngOnInit(): void {
     this.api.getAdminLocations().subscribe((locs) => {
       this.locations.set(locs);
-      if (locs.length) this.pick(locs[0].id);
+      // Start on a working branch: tables added to a switched-off one would not work for guests.
+      const first = locs.find((l) => l.isActive) ?? locs[0];
+      if (first) this.pick(first.id);
     });
   }
 

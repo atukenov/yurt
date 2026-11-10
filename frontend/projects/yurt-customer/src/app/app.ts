@@ -1,5 +1,6 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
+import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import {
@@ -13,6 +14,7 @@ import {
   SignalrService,
   YurtApiService,
 } from 'shared-api';
+import { ToastContainerComponent } from 'shared-ui';
 import { environment } from '../environments/environment';
 import { SplashComponent } from './features/loading/splash.component';
 import { AppUpdateGateComponent } from './features/app-update/app-update-gate.component';
@@ -24,7 +26,7 @@ import { AppUpdateService } from './core/app-update.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SplashComponent, AppUpdateGateComponent, ClosedNoticeComponent, MaintenanceNoticeComponent],
+  imports: [RouterOutlet, ToastContainerComponent, SplashComponent, AppUpdateGateComponent, ClosedNoticeComponent, MaintenanceNoticeComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -41,6 +43,7 @@ export class App implements OnInit, OnDestroy {
   private appState = inject(AppStateService);
   private appResume = inject(AppResumeService);
   private appUpdate = inject(AppUpdateService);
+  private router = inject(Router);
 
   readonly appReady = this.appState.refreshReady;
 
@@ -52,6 +55,12 @@ export class App implements OnInit, OnDestroy {
     if (Capacitor.isNativePlatform()) {
       StatusBar.setOverlaysWebView({ overlay: true });
       StatusBar.setStyle({ style: Style.Light });
+      // A table QR link (…/t/CODE) that the phone hands to the app opens that table, like it does on the web.
+      // Only fires once the cafe's web address is registered as the app's link domain (see docs/modules.md, table_ordering).
+      CapApp.addListener('appUrlOpen', ({ url }) => {
+        const code = /\/t\/([A-Za-z0-9]+)/.exec(url)?.[1];
+        if (code) this.router.navigateByUrl(`/t/${code}`);
+      });
     }
 
     this.api.configure(environment.apiUrl);
