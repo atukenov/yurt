@@ -230,12 +230,50 @@ class NewSignalsTests(unittest.TestCase):
         self.assertTrue(s1["till"].phone)
         self.assertFalse(s1["till"].still)  # no earlier picture yet
         s2, _, _ = an.analyze(frame.copy(), 1.0, FakeDet([person], []))
-        self.assertTrue(s2["till"].still)
+        self.assertFalse(s2["till"].still)  # not moving for 1 s is normal
         self.assertFalse(s2["till"].phone)
+        for sec in range(2, 12):
+            s2, _, _ = an.analyze(frame.copy(), float(sec), FakeDet([person], []))
+        self.assertTrue(s2["till"].still)   # 11 s without moving
         moved = frame.copy()
         moved[40:160, 25:55] = 255
-        s3, _, _ = an.analyze(moved, 2.0, FakeDet([person], []))
+        s3, _, _ = an.analyze(moved, 12.0, FakeDet([person], []))
         self.assertFalse(s3["till"].still)
+
+    def test_one_still_person_among_busy_ones(self):
+        import numpy as np
+
+        from yurtwatch.analyze import CameraAnalyzer
+
+        class FakeDet:
+            def __init__(self, people):
+                self.people = people
+
+            def detect_all(self, frame):
+                return self.people, []
+
+            def phones_near(self, frame, person):
+                return []
+
+        bar = Zone("bar", "station", "c", [(0, 0), (100, 0), (100, 100), (0, 100)])
+        an = CameraAnalyzer([bar], detect_phones=False)
+        sleeper, worker = (10, 20, 60, 190, 0.9), (120, 20, 170, 190, 0.9)
+        base = np.full((200, 200, 3), 120, np.uint8)
+        for sec in range(0, 13):
+            frame = base.copy()
+            if sec % 2:
+                frame[30:180, 125:165] = 255   # the worker moves every look, the sleeper never does
+            s, _, _ = an.analyze(frame, float(sec), FakeDet([sleeper, worker]))
+        self.assertEqual(s["bar"].people, 2)
+        self.assertTrue(s["bar"].still)
+
+        an2 = CameraAnalyzer([bar], detect_phones=False)
+        for sec in range(0, 13):
+            frame = base.copy()
+            frame[30:180, 15:55] = 255 if sec % 2 else 60   # both keep moving
+            frame[30:180, 125:165] = 60 if sec % 2 else 255
+            s, _, _ = an2.analyze(frame, float(sec), FakeDet([sleeper, worker]))
+        self.assertFalse(s["bar"].still)
 
     def test_aggregator_keeps_phone_still_crossings(self):
         from yurtwatch.analyze import ZoneSample

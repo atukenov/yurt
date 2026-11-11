@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS alerts (
 # columns added after the first pilot version; added in place on old databases
 EXTRA_COLUMNS = {
     "phone": "INTEGER NOT NULL DEFAULT 0",    # seconds someone in the zone held a phone
-    "still": "INTEGER NOT NULL DEFAULT 0",    # seconds people were in the zone and nobody moved
+    "still": "INTEGER NOT NULL DEFAULT 0",    # seconds someone in the zone had not moved for a while
     "entered": "INTEGER NOT NULL DEFAULT 0",  # door: visitors in
     "left_n": "INTEGER NOT NULL DEFAULT 0",   # door: people out
     "sent": "INTEGER NOT NULL DEFAULT 0",     # 1 = delivered to Yurt
@@ -62,7 +62,7 @@ class Minute:
 
     @property
     def is_still(self) -> bool:
-        """Nobody moved for most of the minute (sleeping, or just standing very still)."""
+        """Someone at the station did not move for most of the minute (sleeping, or just standing very still)."""
         return self.covered and self.still * 10 >= self.occupied * 8
 
     @property

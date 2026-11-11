@@ -1,4 +1,4 @@
-"""Turns one camera picture into per-zone facts: how many people, is someone holding a phone, is everyone still,
+"""Turns one camera picture into per-zone facts: how many people, is someone holding a phone, is someone not moving,
 how many people walked in through the door. Pure logic on boxes; the detector is passed in."""
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from .zones import Zone, foot_point, in_zone, line_side, segments_cross
 class ZoneSample:
     people: int = 0
     phone: bool = False   # someone in the zone holds a phone
-    still: bool = False   # people are in the zone and none of them moved since the last look
+    still: bool = False   # at least one person in the zone has not moved for STILL_AFTER seconds
     entered: int = 0      # door: people who crossed the line inwards
     left: int = 0         # door: people who crossed it outwards
 
@@ -71,6 +71,48 @@ class DoorCounter:
         return entered, left
 
 
+STILL_AFTER = 10.0  # seconds one person must stay unmoved before the zone counts as "someone not moving"
+
+
+def _iou(a, b) -> float:
+    x1, y1, x2, y2 = max(a[0], b[0]), max(a[1], b[1]), min(a[2], b[2]), min(a[3], b[3])
+    inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+    union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+    return inter / union if union > 0 else 0.0
+
+
+@dataclass
+class StillPerson:
+    box: tuple
+    since: float | None  # when this person last moved (None: moved in the last look)
+
+
+class StillWatch:
+    """Follows each person at a station between looks (by box overlap) and remembers how long each one has not
+    moved, so one barista asleep in the corner is noticed even while a colleague works next to them."""
+
+    def __init__(self):
+        self.people: list[StillPerson] = []
+
+    def update(self, boxes: list, moved: list[bool], prev_t: float, t: float, use_prev: bool) -> bool:
+        left = list(self.people)
+        now: list[StillPerson] = []
+        for box, m in zip(boxes, moved):
+            best = max(left, key=lambda o: _iou(o.box, box), default=None)
+            if best is not None and _iou(best.box, box) >= 0.3:
+                left.remove(best)
+                since = best.since
+            else:
+                since = None
+            if not use_prev or m:
+                since = None
+            elif since is None:
+                since = prev_t
+            now.append(StillPerson(tuple(box[:4]), since))
+        self.people = now
+        return any(p.since is not None and t - p.since >= STILL_AFTER for p in now)
+
+
 def _holds_phone(person, phones) -> bool:
     x1, y1, x2, y2 = person[:4]
     pad = (x2 - x1) * 0.15
@@ -117,6 +159,7 @@ class CameraAnalyzer:
         self._tracker = None
         self._lines: dict = {}
         self._areas: dict = {}
+        self._still: dict[str, StillWatch] = {}
 
     def _setup(self, w: int, h: int) -> None:
         """Pixel shapes for supervision, made again when the picture size changes."""
@@ -153,8 +196,12 @@ class CameraAnalyzer:
                         if not _holds_phone(p, found):
                             found += detector.phones_near(frame, p)
                     s.phone = any(_holds_phone(p, found) for p in mine)
-                if use_prev:
-                    s.still = all(moved_fraction(self.prev_gray, gray, p, w, h) < self.still_threshold for p in mine)
+                if gray is not None:
+                    moved = [not use_prev or moved_fraction(self.prev_gray, gray, p, w, h) >= self.still_threshold
+                             for p in mine]
+                    s.still = self._still.setdefault(z.name, StillWatch()).update(mine, moved, self.prev_t, t, use_prev)
+            elif z.name in self._still:
+                self._still[z.name].people = []
             out[z.name] = s
         if gray is not None:
             self.prev_gray, self.prev_t = gray, t

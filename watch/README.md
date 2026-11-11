@@ -13,7 +13,8 @@ It runs two ways:
   messages itself.
 
 Besides people in zones it can count **visitors** through a door line, spot a **phone in hand** at a station and
-notice when **nobody moves** at a station for a long time (sitting still or asleep).
+notice when **someone does not move** at a station for a long time (sitting still or asleep), even while a colleague
+works next to them.
 
 **What it does not do:** no face recognition, no audio, no video recording. Names come only from the shift list
 (`staff.csv`), never from the camera. Every second the newest picture is checked and thrown away. Only minute counts,
@@ -134,8 +135,9 @@ Good to know when connected:
 
 - Phone in hand is found best on the **main stream** (`Channels/101`): the sub stream is small and a phone is a few
   pixels. A phone at the ear, under the counter or behind the back is often missed. Treat it as a hint.
-- "Not moving" only says nobody at the station moved for N minutes. It cannot tell sleep from a person standing
-  very still while waiting; the check picture tells.
+- "Not moving" follows each person at the station on their own: it alerts when one of them has not moved for N
+  minutes, even if others there keep working. It cannot tell sleep from a person standing very still while
+  waiting; the check picture tells.
 - A door camera needs about `fps = 5` so people are seen on both sides of the line. Visitors include couriers and
   staff walking in; compare with orders, not with an exact guest count.
 - The box keeps working when the internet drops and sends the missed minutes and alerts later.

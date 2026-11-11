@@ -38,7 +38,7 @@ TEXTS = {
         "late": "⏰ {name} not at {station} by {at}, shift from {start}",
         "empty": "⚠️ {station}: empty for {minutes} min",
         "phone": "📱 {station}: phone in hand for {minutes} min in a row.{duty}",
-        "still": "😴 {station}: nobody moved for {minutes} min (asleep?).{duty}",
+        "still": "😴 {station}: someone has not moved for {minutes} min (asleep?).{duty}",
         "phone_part": "on the phone {m} min",
         "still_part": "not moving {m} min",
         "visitors": "🚶 Visitors: {n}, busiest at {hour} ({peak})",
