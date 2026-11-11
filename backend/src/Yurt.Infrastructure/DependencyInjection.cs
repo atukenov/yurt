@@ -180,6 +180,7 @@ public static class DependencyInjection
         services.AddScoped<StockService>();
         services.AddScoped<IngredientService>();
         services.AddScoped<StockMoveService>();
+        services.AddScoped<PurchasingService>();
         services.AddScoped<ShiftService>();
         services.AddScoped<SplitPaymentService>();
 

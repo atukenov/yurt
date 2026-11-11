@@ -1,6 +1,7 @@
 # Stock pack: costs, write-offs, moves and stocktakes
 
-Part of the `own_pos` module. Builds on the Stock page (dishes, ingredients, recipes).
+Part of the `own_pos` module. Builds on the Stock page (dishes, ingredients, recipes). Suppliers, delivery invoices
+and the "what to order" list are in [purchasing.md](purchasing.md).
 
 ## What each person can do
 

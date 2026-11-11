@@ -455,6 +455,7 @@ public class IngredientStockConfiguration : IEntityTypeConfiguration<IngredientS
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Quantity).HasPrecision(18, 3);
         builder.Property(e => e.LowStockAt).HasPrecision(18, 3);
+        builder.Property(e => e.OrderUpTo).HasPrecision(18, 3);
         builder.HasOne(e => e.Ingredient).WithMany().HasForeignKey(e => e.IngredientId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(e => new { e.IngredientId, e.LocationId }).IsUnique();
@@ -477,6 +478,7 @@ public class StockChangeConfiguration : IEntityTypeConfiguration<StockChange>
         builder.Property(e => e.Note).HasMaxLength(300);
         builder.Property(e => e.UnitCost).HasPrecision(18, 4);
         builder.Property(e => e.OtherLocationName).HasMaxLength(200);
+        builder.HasIndex(e => e.PurchaseId);
         builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(e => new { e.LocationId, e.CreatedAt });
     }
@@ -748,5 +750,69 @@ public class WatchReportConfiguration : IEntityTypeConfiguration<WatchReport>
         builder.Property(e => e.DataJson).IsRequired();
         builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(e => new { e.LocationId, e.Day }).IsUnique();
+    }
+}
+
+public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
+{
+    public void Configure(EntityTypeBuilder<Supplier> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.ContactName).HasMaxLength(100);
+        builder.Property(e => e.Phone).HasMaxLength(30);
+        builder.Property(e => e.Bin).HasMaxLength(20);
+        builder.Property(e => e.PaymentTerms).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Note).HasMaxLength(500);
+        builder.HasIndex(e => new { e.TenantId, e.Name }).IsUnique();
+    }
+}
+
+public class SupplierProductConfiguration : IEntityTypeConfiguration<SupplierProduct>
+{
+    public void Configure(EntityTypeBuilder<SupplierProduct> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.PackSize).HasPrecision(18, 3);
+        builder.Property(e => e.PackName).HasMaxLength(100);
+        builder.Property(e => e.PackPrice).HasPrecision(18, 2);
+        builder.HasOne(e => e.Supplier).WithMany(s => s.Products).HasForeignKey(e => e.SupplierId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Ingredient).WithMany().HasForeignKey(e => e.IngredientId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.SupplierId, e.IngredientId }).IsUnique();
+    }
+}
+
+public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
+{
+    public void Configure(EntityTypeBuilder<Purchase> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Status).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Number).HasMaxLength(50);
+        builder.Property(e => e.Note).HasMaxLength(300);
+        builder.Property(e => e.PhotoUrl).HasMaxLength(500);
+        builder.Property(e => e.Total).HasPrecision(18, 2);
+        builder.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.PostedBy).HasMaxLength(100);
+        builder.Property(e => e.CancelledBy).HasMaxLength(100);
+        // Suppliers with invoices are switched off, never deleted.
+        builder.HasOne(e => e.Supplier).WithMany().HasForeignKey(e => e.SupplierId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => new { e.LocationId, e.Date });
+        builder.HasIndex(e => new { e.SupplierId, e.Status });
+    }
+}
+
+public class PurchaseLineConfiguration : IEntityTypeConfiguration<PurchaseLine>
+{
+    public void Configure(EntityTypeBuilder<PurchaseLine> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.IngredientName).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.Unit).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Quantity).HasPrecision(18, 3);
+        builder.Property(e => e.Total).HasPrecision(18, 2);
+        builder.Property(e => e.CostBefore).HasPrecision(18, 4);
+        builder.HasOne(e => e.Purchase).WithMany(p => p.Lines).HasForeignKey(e => e.PurchaseId).OnDelete(DeleteBehavior.Cascade);
     }
 }

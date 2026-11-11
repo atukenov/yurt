@@ -470,6 +470,8 @@ export interface StockChange {
   otherLocationName?: string | null;
   /** Money value of the change, when the cost was known. */
   costValue?: number | null;
+  /** The purchase invoice a delivery (or its cancelling) belongs to. */
+  purchaseId?: string | null;
 }
 
 export type StockChangeType =
@@ -479,7 +481,8 @@ export type StockChangeType =
   | 'stocktake'
   | 'transfer_out'
   | 'transfer_in'
-  | 'shortfall';
+  | 'shortfall'
+  | 'restock_cancel';
 
 export type WriteOffReason = 'spilled' | 'expired' | 'staff' | 'broken' | 'other';
 
@@ -1384,4 +1387,130 @@ export interface WatchDay {
   visitors: number;
   orders: number;
   stations: WatchStationLive[];
+}
+
+// ── Purchasing (own_pos): suppliers, orders, delivery invoices, what to order ──
+
+export type SupplierPaymentTerms = 'cash' | 'transfer' | 'later';
+export const SUPPLIER_PAYMENT_TERMS: SupplierPaymentTerms[] = ['cash', 'transfer', 'later'];
+
+/** An ingredient a supplier sells: `packSize` is in the ingredient's unit (e.g. 12000 ml for a box of 12 L). */
+export interface SupplierProduct {
+  ingredientId: string;
+  ingredientName?: string;
+  unit?: string;
+  packSize: number;
+  packName?: string | null;
+  packPrice?: number | null;
+}
+
+/** `owed`/`overdue` (unpaid posted invoices) are only sent to cafe admins. */
+export interface Supplier {
+  id: string;
+  name: string;
+  contactName?: string | null;
+  phone?: string | null;
+  bin?: string | null;
+  paymentTerms: SupplierPaymentTerms;
+  payInDays?: number | null;
+  note?: string | null;
+  isActive: boolean;
+  products: SupplierProduct[];
+  owed?: number | null;
+  overdue?: number | null;
+  invoices: number;
+}
+
+export interface SaveSupplier {
+  name: string;
+  contactName: string | null;
+  phone: string | null;
+  bin: string | null;
+  paymentTerms: SupplierPaymentTerms;
+  payInDays: number | null;
+  note: string | null;
+  isActive: boolean | null;
+  products: { ingredientId: string; packSize: number; packName: string | null; packPrice: number | null }[];
+}
+
+export type PurchaseStatus = 'ordered' | 'draft' | 'posted' | 'cancelled';
+
+export interface PurchaseLine {
+  id?: string;
+  ingredientId: string;
+  ingredientName: string;
+  unit: string;
+  quantity: number;
+  total?: number | null;
+  unitPrice?: number | null;
+}
+
+/** An order to a supplier (`ordered`) or a delivery invoice (`draft` until posted). */
+export interface Purchase {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  supplierPhone?: string | null;
+  locationId: string;
+  locationName: string;
+  status: PurchaseStatus;
+  number?: string | null;
+  date: string;
+  note?: string | null;
+  photoUrl?: string | null;
+  total: number;
+  isPaid: boolean;
+  paidAt?: string | null;
+  dueDate?: string | null;
+  isOverdue: boolean;
+  createdBy: string;
+  createdAt: string;
+  postedBy?: string | null;
+  postedAt?: string | null;
+  cancelledBy?: string | null;
+  cancelledAt?: string | null;
+  lineCount: number;
+  lines: PurchaseLine[];
+}
+
+export interface SavePurchase {
+  supplierId: string;
+  locationId: string;
+  status: 'ordered' | 'draft';
+  number: string | null;
+  /** yyyy-mm-dd */
+  date: string | null;
+  note: string | null;
+  photoUrl: string | null;
+  lines: { ingredientId: string; quantity: number; total: number | null }[];
+}
+
+export interface PostPurchaseResult {
+  purchase: Purchase;
+  stock: StockMoveResult[];
+}
+
+/** An ingredient at or under its warn-at number, with a suggested amount in whole packs when the pack is known. */
+export interface ToOrderLine {
+  ingredientId: string;
+  name: string;
+  unit: string;
+  left: number;
+  lowStockAt: number;
+  orderUpTo?: number | null;
+  alreadyOrdered: number;
+  suggested: number;
+  packs?: number | null;
+  packSize?: number | null;
+  packName?: string | null;
+  estimatedCost?: number | null;
+}
+
+/** Lines grouped by the supplier to order from; no `supplierId` means nobody sells it yet. */
+export interface ToOrderGroup {
+  supplierId?: string | null;
+  supplierName?: string | null;
+  supplierPhone?: string | null;
+  lines: ToOrderLine[];
+  estimatedTotal?: number | null;
 }

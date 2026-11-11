@@ -42,6 +42,9 @@ public class StockChange : BaseEntity, ITenantOwned
     /// <summary>For moves between branches: the other branch (kept by name too, in case it is deleted).</summary>
     public Guid? OtherLocationId { get; set; }
     public string? OtherLocationName { get; set; }
+
+    /// <summary>The purchase invoice this delivery (or its cancelling) belongs to.</summary>
+    public Guid? PurchaseId { get; set; }
 }
 
 public static class StockChangeTypes
@@ -54,6 +57,8 @@ public static class StockChangeTypes
     public const string TransferIn = "transfer_in";
     /// <summary>An accepted order needed more than the branch had left; the count stopped at zero.</summary>
     public const string Shortfall = "shortfall";
+    /// <summary>A posted purchase invoice was cancelled: its amounts were taken back off the shelf.</summary>
+    public const string RestockCancel = "restock_cancel";
 }
 
 public static class WriteOffReasons
