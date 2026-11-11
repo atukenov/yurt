@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService } from 'shared-api';
+import { AuthStateService, YurtApiService } from 'shared-api';
 import { Location, StockAlerts, StockItem } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -55,14 +55,10 @@ export class StockManagementComponent implements OnInit {
   tab = signal<'products' | 'ingredients' | 'recipes' | 'foodCost' | 'stocktake' | 'history'>(
     'products',
   );
-  readonly tabs = [
-    'products',
-    'ingredients',
-    'recipes',
-    'foodCost',
-    'stocktake',
-    'history',
-  ] as const;
+  /** Food cost shows money (cost and margin per dish), so only the CEO gets that tab. */
+  readonly tabs = (
+    ['products', 'ingredients', 'recipes', 'foodCost', 'stocktake', 'history'] as const
+  ).filter((t) => t !== 'foodCost' || inject(AuthStateService).isCeo);
 
   ngOnInit(): void {
     this.api.getAdminLocations().subscribe((locs) => {

@@ -1,6 +1,6 @@
 import { Currency2Pipe, LocalDatePipe, LocalNumberPipe } from 'shared-ui';
 import { Component, inject, Input, OnChanges, signal } from '@angular/core';
-import { YurtApiService } from 'shared-api';
+import { AuthStateService, YurtApiService } from 'shared-api';
 import { StockChange, WriteOffSummary } from 'shared-models';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -18,8 +18,12 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
 export class StockHistoryPanelComponent implements OnChanges {
   private api = inject(YurtApiService);
   private lang = inject(AdminLangService);
+  private auth = inject(AuthStateService);
 
   @Input() locationId = '';
+
+  /** Money values (write-off totals, cost of each change) are for the CEO only. */
+  readonly isCeo = this.auth.isCeo;
 
   rows = signal<StockChange[]>([]);
   writeOffs = signal<WriteOffSummary | null>(null);
@@ -36,10 +40,12 @@ export class StockHistoryPanelComponent implements OnChanges {
       return;
     }
     this.loading.set(true);
-    this.api.getWriteOffSummary(this.locationId).subscribe({
-      next: (w) => this.writeOffs.set(w),
-      error: () => this.writeOffs.set(null),
-    });
+    if (this.isCeo) {
+      this.api.getWriteOffSummary(this.locationId).subscribe({
+        next: (w) => this.writeOffs.set(w),
+        error: () => this.writeOffs.set(null),
+      });
+    }
     this.api.getStockHistory(this.locationId).subscribe({
       next: (list) => {
         this.rows.set(list);

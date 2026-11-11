@@ -995,6 +995,84 @@ export interface PayrollSheet {
   totalToPay: number;
 }
 
+/** One dish and size over a month (profit report, CEO only). Money is after the order's discount. */
+export interface ItemProfit {
+  menuItemId: string;
+  name: string;
+  variantId?: string | null;
+  size?: string | null;
+  sold: number;
+  revenue: number;
+  /** Null = the dish has no recipe, so its cost is unknown. */
+  cost?: number | null;
+  profit?: number | null;
+  foodCostPercent?: number | null;
+  profitPerItem?: number | null;
+  /** Portions sold before the cost was saved on each sale, priced at today's costs. */
+  estimatedCount: number;
+  /** An ingredient or topping has no cost per unit yet (counted as 0). */
+  missingPrice: boolean;
+}
+
+export interface ItemProfitReport {
+  month: string;
+  locationId?: string | null;
+  items: ItemProfit[];
+}
+
+export type CafeExpenseCategory = 'rent' | 'utilities' | 'marketing' | 'repairs' | 'taxes' | 'other';
+
+export interface CafeExpense {
+  id: string;
+  month: string;
+  locationId?: string | null;
+  locationName?: string | null;
+  category: CafeExpenseCategory;
+  name: string;
+  amount: number;
+}
+
+export interface SaveCafeExpense {
+  month: string;
+  locationId: string | null;
+  category: CafeExpenseCategory;
+  name: string;
+  amount: number;
+}
+
+export interface ProfitTotals {
+  netSales: number;
+  ingredientCost: number;
+  grossProfit: number;
+  otherCosts: number;
+  profit: number;
+}
+
+/** The month's profit (CEO only). */
+export interface ProfitMonth {
+  month: string;
+  locationId: string | null;
+  orders: number;
+  sales: number;
+  discounts: number;
+  refunds: number;
+  netSales: number;
+  ingredientCost: number;
+  estimatedLines: number;
+  linesWithoutRecipe: number;
+  grossProfit: number;
+  writeOffs: number;
+  writeOffsByReason: { reason: string; cost: number }[];
+  stocktakeLoss: number;
+  /** Null when payroll is off or the report is for one branch. */
+  payroll?: number | null;
+  payrollClosed: boolean;
+  expenses: CafeExpense[];
+  expensesTotal: number;
+  profit: number;
+  previous: ProfitTotals;
+}
+
 export interface CafeSecretStatus {
   key: string;
   isSet: boolean;

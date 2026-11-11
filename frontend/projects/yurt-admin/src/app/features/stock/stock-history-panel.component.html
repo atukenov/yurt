@@ -66,7 +66,7 @@
               <span [class]="row.change < 0 ? 'text-tone-red' : 'text-tone-green'">
                 {{ row.change > 0 ? '+' : '' }}{{ row.change | lnumber: '1.0-3' }}
               </span>
-              @if (isCounted(row.costValue)) {
+              @if (isCeo && isCounted(row.costValue)) {
                 <span class="block text-xs font-normal text-slate-500">{{
                   row.costValue | currency2
                 }}</span>

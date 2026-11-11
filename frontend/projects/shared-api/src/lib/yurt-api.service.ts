@@ -18,6 +18,7 @@ import {
   MaintenanceInfo,
   Cafe,
   CafeSecretStatus, CafeAdmin, PayrollStaff, PayAdjustment, PayrollSheet,
+  ItemProfitReport, ProfitMonth, CafeExpense, SaveCafeExpense,
   CreateCafeRequest,
   MenuImportResult,
   BrandConfig,
@@ -1155,6 +1156,47 @@ export class YurtApiService {
 
   reopenPayrollMonth(month: string): Observable<PayrollSheet> {
     return this.http.post<PayrollSheet>(`${this.api}/admin/payroll/months/${month}/reopen`, {});
+  }
+
+  // ── Profit (CEO only) ──────────────────────────────────────────────────────
+  private profitParams(month: string, locationId?: string | null, lang?: string): Record<string, string> {
+    return { month, ...(locationId ? { locationId } : {}), ...(lang ? { lang } : {}) };
+  }
+
+  getProfitItems(month: string, locationId?: string | null): Observable<ItemProfitReport> {
+    return this.http.get<ItemProfitReport>(`${this.api}/admin/profit/items`, { params: this.profitParams(month, locationId) });
+  }
+
+  getProfitMonth(month: string, locationId?: string | null): Observable<ProfitMonth> {
+    return this.http.get<ProfitMonth>(`${this.api}/admin/profit/month`, { params: this.profitParams(month, locationId) });
+  }
+
+  /** The report as an Excel file, with words in `lang`. */
+  exportProfit(kind: 'items' | 'month', month: string, locationId: string | null, lang: string): Observable<Blob> {
+    return this.http.get(`${this.api}/admin/profit/${kind}/export`, {
+      params: this.profitParams(month, locationId, lang),
+      responseType: 'blob',
+    });
+  }
+
+  getCafeExpenses(month: string): Observable<CafeExpense[]> {
+    return this.http.get<CafeExpense[]>(`${this.api}/admin/profit/expenses`, { params: { month } });
+  }
+
+  addCafeExpense(data: SaveCafeExpense): Observable<CafeExpense> {
+    return this.http.post<CafeExpense>(`${this.api}/admin/profit/expenses`, data);
+  }
+
+  updateCafeExpense(id: string, data: SaveCafeExpense): Observable<CafeExpense> {
+    return this.http.put<CafeExpense>(`${this.api}/admin/profit/expenses/${id}`, data);
+  }
+
+  deleteCafeExpense(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/profit/expenses/${id}`);
+  }
+
+  copyPreviousCafeExpenses(month: string): Observable<CafeExpense[]> {
+    return this.http.post<CafeExpense[]>(`${this.api}/admin/profit/expenses/copy-previous`, { month });
   }
 
   // ── Workers ────────────────────────────────────────────────────────────────

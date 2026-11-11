@@ -57,6 +57,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<PayAdjustment> PayAdjustments => Set<PayAdjustment>();
     public DbSet<PayrollMonth> PayrollMonths => Set<PayrollMonth>();
     public DbSet<PayrollLine> PayrollLines => Set<PayrollLine>();
+    public DbSet<CafeExpense> CafeExpenses => Set<CafeExpense>();
     public DbSet<WatchMinute> WatchMinutes => Set<WatchMinute>();
     public DbSet<WatchAlert> WatchAlerts => Set<WatchAlert>();
     public DbSet<WatchReport> WatchReports => Set<WatchReport>();

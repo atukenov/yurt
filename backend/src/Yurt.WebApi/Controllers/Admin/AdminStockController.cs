@@ -54,16 +54,16 @@ public class AdminStockController(StockService stock, StockMoveService moves) : 
     public async Task<IActionResult> Stocktake([FromBody] StocktakeDto dto, CancellationToken ct)
         => ToResult(await moves.StocktakeAsync(dto, ct));
 
-    /// <summary>Write-offs totalled by reason (default: the last 30 days). Money figures, so cafe admins only.</summary>
+    /// <summary>Write-offs totalled by reason (default: the last 30 days). Money figures, so the CEO only.</summary>
     [HttpGet("write-offs")]
-    [Authorize(Policy = "AdminRoleAdmin")]
+    [Authorize(Policy = "CeoOnly")]
     public async Task<IActionResult> WriteOffs(
         [FromQuery] Guid? locationId, [FromQuery] DateTime? from, [FromQuery] DateTime? to, CancellationToken ct)
         => Ok(await moves.WriteOffSummaryAsync(locationId, from, to, ct));
 
-    /// <summary>Cost of one portion of each dish against its price. Cafe admins only.</summary>
+    /// <summary>Cost of one portion of each dish against its price. Money figures, so the CEO only.</summary>
     [HttpGet("food-cost")]
-    [Authorize(Policy = "AdminRoleAdmin")]
+    [Authorize(Policy = "CeoOnly")]
     public async Task<IActionResult> FoodCost(CancellationToken ct)
         => Ok(await moves.FoodCostAsync(ct));
 

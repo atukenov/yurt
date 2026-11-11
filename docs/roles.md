@@ -6,7 +6,7 @@ Every staff account has one role. Four roles exist:
 |---|---|---|
 | **Worker** | Barista, cashier | Live orders, their own cashier shift, write-offs and moves, typing in deliveries. No settings, no money numbers. |
 | **Admin** | Cafe administrator, runs the cafe day to day | Everything a Worker does, plus stock and ingredients (counts, restocking, stocktake), suppliers and purchase orders / invoices, shifts and cash counts, menu, tables, printers, branches, customers, promotions and codes, customer complaints, staff accounts of Workers. **Does not see** sales analytics, the dashboard, billing, the audit log or payroll. |
-| **CEO** | The cafe's owner (and an accountant, if the owner wants to share the login) | Everything an Admin does, plus the money side: **Analytics** and dashboard, **Subscription** (what the cafe pays Yurt), **Audit log**, and **Payroll**. Only the CEO adds or switches off **Admin** accounts and resets their passwords. |
+| **CEO** | The cafe's owner (and an accountant, if the owner wants to share the login) | Everything an Admin does, plus the money side: **Analytics** and dashboard, **Profit** (monthly profit and profit by dish), **Food cost** and write-off money on the Stock page, **Subscription** (what the cafe pays Yurt), **Audit log**, and **Payroll**. Only the CEO adds or switches off **Admin** accounts and resets their passwords. |
 | **SuperAdmin** | You, the platform operator | Only the Platform screens. Never listed on a cafe's staff page. |
 
 A separate Accountant role (money reports and payroll, but no menu or orders) is not built yet; a CEO login covers it.
@@ -25,5 +25,5 @@ A separate Accountant role (money reports and payroll, but no menu or orders) is
 
 ## Technical notes
 - The role is stored as text in `AdminUsers.Role` (`Worker`, `Admin`, `SuperAdmin`, `Ceo`); adding `Ceo` needed no database change.
-- Policies: `AdminOnly` (any staff login), `AdminRoleAdmin` (Admin, CEO, SuperAdmin), `CeoOnly` (CEO, SuperAdmin: analytics, dashboard, audit log, billing checkout), `CeoPayroll` (CEO only, not even the operator).
+- Policies: `AdminOnly` (any staff login), `AdminRoleAdmin` (Admin, CEO, SuperAdmin), `CeoOnly` (CEO, SuperAdmin: analytics, dashboard, audit log, billing checkout, food cost, write-off totals, profit by dish, monthly costs), `CeoPayroll` (CEO only, not even the operator: payroll and the month's profit, which includes wages).
 - Admin app: sidebar entries carry `ceoOnly`, routes use `ceoGuard`; both are conveniences, the server enforces everything.

@@ -66,7 +66,7 @@ brand. The platform operator adds new cafés, switches paid modules on or off pe
 | Stock | Ingredients, recipes, restocking history; suppliers, delivery invoices and a "what to order" list ([docs/purchasing.md](docs/purchasing.md)). |
 | Branches and tables | Working hours, temporary closing, tables with printable QR codes. |
 | Marketing | Promotions and discount codes. |
-| Analytics | Dashboard KPIs, revenue and top items, peak hours, CSV export. |
+| Analytics | Dashboard KPIs, revenue and top items, peak hours, CSV export. Profit page: monthly profit after ingredients, write-offs, wages and other costs, and profit per dish (Excel download). |
 | Customers and staff | Customer list and history, staff accounts, audit log. |
 | Subscription | The café's own Yurt plan and invoices; unpaid cafés go into limited mode. |
 | Platform (superadmin) | Cafés, new-café wizard, modules per café, brand, per-café secrets, app releases, data export for a leaving café. |
@@ -185,6 +185,7 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/print-agent.md](docs/print-agent.md), [docs/bluetooth-printers.md](docs/bluetooth-printers.md), [docs/tablet-app.md](docs/tablet-app.md) — printers and hardware
 - [docs/modules.md](docs/modules.md) — what each paid module covers
 - [docs/stock-pack.md](docs/stock-pack.md), [docs/purchasing.md](docs/purchasing.md) — stock costs, write-offs, suppliers and deliveries
+- [docs/profit.md](docs/profit.md) — monthly profit and profit by dish (CEO only)
 - [docs/cafe-data-export.md](docs/cafe-data-export.md) — exporting a café's data
 - [docs/cutover-from-iiko.md](docs/cutover-from-iiko.md) — moving a café off iiko
 - [docs/push-notifications-setup.md](docs/push-notifications-setup.md) — push notifications
