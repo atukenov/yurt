@@ -190,6 +190,7 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/modules.md](docs/modules.md) — what each paid module covers
 - [docs/stock-pack.md](docs/stock-pack.md), [docs/purchasing.md](docs/purchasing.md) — stock costs, write-offs, suppliers and deliveries
 - [docs/profit.md](docs/profit.md) — monthly profit and profit by dish (CEO only)
+- [docs/accounting-export.md](docs/accounting-export.md) — Excel and 1C files for the cafe's accountant (CEO only)
 - [docs/cafe-data-export.md](docs/cafe-data-export.md) — exporting a café's data
 - [docs/cutover-from-iiko.md](docs/cutover-from-iiko.md) — moving a café off iiko
 - [docs/push-notifications-setup.md](docs/push-notifications-setup.md) — push notifications

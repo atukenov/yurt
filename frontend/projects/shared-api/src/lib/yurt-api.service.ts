@@ -1194,6 +1194,17 @@ export class YurtApiService {
     });
   }
 
+  /**
+   * Files for the accountant for the days `from`..`to` (yyyy-MM-dd, both included, cafe time): an Excel workbook with
+   * words in `lang`, or a 1C exchange file (CommerceML XML).
+   */
+  exportAccounting(kind: 'excel' | '1c', from: string, to: string, locationId: string | null, lang: string): Observable<Blob> {
+    return this.http.get(`${this.api}/admin/accounting/${kind}`, {
+      params: { from, to, ...(locationId ? { locationId } : {}), ...(kind === 'excel' ? { lang } : {}) },
+      responseType: 'blob',
+    });
+  }
+
   getCafeExpenses(month: string): Observable<CafeExpense[]> {
     return this.http.get<CafeExpense[]>(`${this.api}/admin/profit/expenses`, { params: { month } });
   }

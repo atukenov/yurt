@@ -135,6 +135,11 @@ export const routes: Routes = [
             loadComponent: () => import('./features/profit/profit.component').then((m) => m.ProfitComponent),
           },
           {
+            path: 'accounting',
+            canActivate: [ceoGuard, moduleGuard('analytics', '/orders')],
+            loadComponent: () => import('./features/accounting/accounting.component').then((m) => m.AccountingComponent),
+          },
+          {
             path: 'promotions',
             canActivate: [moduleGuard('marketing', '/orders')],
             loadComponent: () =>
