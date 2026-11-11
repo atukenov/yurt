@@ -62,6 +62,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Ingredient> Ingredients => Set<Ingredient>();
     public DbSet<IngredientStock> IngredientStocks => Set<IngredientStock>();
     public DbSet<StockChange> StockChanges => Set<StockChange>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<SupplierProduct> SupplierProducts => Set<SupplierProduct>();
+    public DbSet<Purchase> Purchases => Set<Purchase>();
+    public DbSet<PurchaseLine> PurchaseLines => Set<PurchaseLine>();
     public DbSet<RecipeLine> RecipeLines => Set<RecipeLine>();
     public DbSet<MenuItemVariant> MenuItemVariants => Set<MenuItemVariant>();
     public DbSet<UserReport> UserReports => Set<UserReport>();

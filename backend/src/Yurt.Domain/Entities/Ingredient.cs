@@ -32,6 +32,11 @@ public class IngredientStock : BaseEntity, ITenantOwned
     /// <summary>The admin list flags the ingredient as running low at or below this number.</summary>
     public decimal? LowStockAt { get; set; }
 
+    /// <summary>
+    /// The "What to order" list suggests ordering up to this number. Null means twice <see cref="LowStockAt"/>.
+    /// </summary>
+    public decimal? OrderUpTo { get; set; }
+
     public Ingredient Ingredient { get; set; } = null!;
     public Location Location { get; set; } = null!;
 }

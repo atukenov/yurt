@@ -1,0 +1,305 @@
+@let f = form();
+@let v = viewing();
+
+@if (!f && !v) {
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-slate-500">{{ 'buy.inv.hint' | t }}</p>
+    <button
+      type="button"
+      (click)="newDelivery()"
+      [disabled]="suppliers().length === 0"
+      class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-40"
+    >
+      {{ 'buy.inv.new' | t }}
+    </button>
+  </div>
+  @if (suppliers().length === 0 && !loading()) {
+    <p class="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      {{ (isAdmin() ? 'buy.inv.noSuppliersAdmin' : 'buy.inv.noSuppliers') | t }}
+    </p>
+  }
+
+  <div class="mb-3 flex flex-wrap items-center gap-3 text-sm">
+    <select
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="loadList()"
+      [attr.aria-label]="'label.status' | t"
+      class="rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+    >
+      <option value="">{{ 'buy.inv.all' | t }}</option>
+      @for (s of statuses; track s) {
+        <option [value]="s">{{ 'buy.status.' + s | t }}</option>
+      }
+    </select>
+    @if (isAdmin()) {
+      <label class="flex items-center gap-2 text-slate-600">
+        <input type="checkbox" [(ngModel)]="unpaidOnly" (ngModelChange)="loadList()" />
+        {{ 'buy.inv.unpaidOnly' | t }}
+      </label>
+      @if (owed() > 0) {
+        <span class="ml-auto font-semibold text-slate-700">{{ 'buy.inv.owedHere' | t }}: {{ owed() | currency2 }}</span>
+      }
+    }
+  </div>
+
+  <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-surface">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <tr>
+          <th class="px-4 py-2">{{ 'buy.inv.date' | t }}</th>
+          <th class="px-4 py-2">{{ 'buy.supplier' | t }}</th>
+          <th class="px-4 py-2">{{ 'buy.inv.number' | t }}</th>
+          <th class="px-4 py-2">{{ 'label.status' | t }}</th>
+          <th class="px-4 py-2 text-right">{{ 'buy.inv.total' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of list(); track p.id) {
+          <tr class="cursor-pointer border-t border-slate-100 hover:bg-slate-50" (click)="open(p.id)">
+            <td class="px-4 py-2 whitespace-nowrap">{{ p.date | ldate: 'shortDate' }}</td>
+            <td class="px-4 py-2">
+              <button type="button" class="text-left font-medium text-slate-800 hover:underline" (click)="open(p.id); $event.stopPropagation()">
+                {{ p.supplierName }}
+              </button>
+              <span class="block text-xs text-slate-500">{{ 'buy.inv.lines' | t: { count: p.lineCount } }}</span>
+            </td>
+            <td class="px-4 py-2 text-slate-600">{{ p.number || '—' }}</td>
+            <td class="px-4 py-2">
+              <span class="rounded-full px-2 py-0.5 text-xs font-semibold" [class]="statusClass(p.status)">{{ 'buy.status.' + p.status | t }}</span>
+              @if (p.status === 'posted') {
+                @if (p.isPaid) {
+                  <span class="ml-1 text-xs text-tone-green">{{ 'buy.paid' | t }}</span>
+                } @else if (p.isOverdue) {
+                  <span class="ml-1 text-xs font-semibold text-tone-red">{{ 'buy.overdue' | t }}</span>
+                } @else {
+                  <span class="ml-1 text-xs text-amber-800">{{ 'buy.notPaid' | t }}</span>
+                }
+              }
+            </td>
+            <td class="px-4 py-2 text-right whitespace-nowrap">{{ p.total | currency2 }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="px-4 py-8 text-center text-slate-500">
+              {{ loading() ? ('label.loading' | t) : ('buy.inv.empty' | t) }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- An order or invoice being typed in -->
+@if (f) {
+  <div class="rounded-2xl border border-slate-200 bg-surface p-4">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <h2 class="text-lg font-semibold text-slate-800">
+        {{ (f.id ? (f.status === 'ordered' ? 'buy.inv.order' : 'buy.inv.draft') : 'buy.inv.new') | t }}
+      </h2>
+      <button type="button" (click)="close()" class="text-sm text-slate-500 hover:text-slate-700">← {{ 'buy.back' | t }}</button>
+    </div>
+    @if (f.status === 'ordered') {
+      <p class="mb-3 rounded-xl bg-sky-50 p-3 text-sm text-sky-900">{{ 'buy.inv.orderHint' | t }}</p>
+    }
+
+    <div class="grid gap-3 sm:grid-cols-3">
+      <label class="text-sm text-slate-600">
+        {{ 'buy.supplier' | t }}
+        <select [(ngModel)]="f.supplierId" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400">
+          @for (s of activeSuppliers(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'buy.inv.number' | t }}
+        <input [(ngModel)]="f.number" maxlength="50" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'buy.inv.date' | t }}
+        <input type="date" [(ngModel)]="f.date" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+    </div>
+
+    <div class="mt-4 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-left text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="py-2 pr-2">{{ 'stock.item' | t }}</th>
+            <th class="py-2 pr-2">{{ 'moves.amount' | t }}</th>
+            <th class="py-2 pr-2">{{ 'buy.inv.lineTotal' | t }}</th>
+            <th class="py-2 pr-2">{{ 'buy.inv.unitPrice' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of f.lines; track $index) {
+            <tr class="border-t border-slate-100">
+              <td class="py-2 pr-2">
+                <select
+                  [(ngModel)]="line.ingredientId"
+                  (ngModelChange)="picked(f, line)"
+                  [attr.aria-label]="'stock.item' | t"
+                  class="w-full min-w-40 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+                >
+                  <option value="">{{ 'moves.pickItem' | t }}</option>
+                  @for (i of ingredients(); track i.id) {
+                    @if (!taken(f, line).has(i.id)) {
+                      <option [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
+                    }
+                  }
+                </select>
+              </td>
+              <td class="py-2 pr-2 whitespace-nowrap">
+                <input type="number" min="0" step="any" [(ngModel)]="line.quantity" [attr.aria-label]="'moves.amount' | t"
+                  class="w-28 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+                {{ unitOf(line.ingredientId) }}
+              </td>
+              <td class="py-2 pr-2">
+                <input type="number" min="0" step="any" [(ngModel)]="line.total" [attr.aria-label]="'buy.inv.lineTotal' | t"
+                  class="w-28 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+              </td>
+              <td class="py-2 pr-2 whitespace-nowrap text-slate-500">
+                @if (unitPrice(line); as price) {
+                  {{ price | lnumber: '1.0-4' }} / {{ unitOf(line.ingredientId) }}
+                }
+              </td>
+              <td class="py-2 text-right">
+                <button type="button" (click)="removeLine(f, $index)" class="text-sm text-tone-red hover:text-red-700" [attr.aria-label]="'action.delete' | t">✕</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="mt-2 flex items-center justify-between">
+        <button type="button" (click)="addLine(f)" class="rounded-lg px-2 py-1 text-sm font-semibold text-brand-700 hover:bg-slate-50">+ {{ 'buy.inv.addLine' | t }}</button>
+        <span class="font-semibold text-slate-800">{{ 'buy.inv.total' | t }}: {{ total(f) | currency2 }}</span>
+      </div>
+    </div>
+
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      <label class="text-sm text-slate-600">
+        {{ 'cash.note' | t }}
+        <input [(ngModel)]="f.note" maxlength="300" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      <div class="text-sm text-slate-600">
+        {{ 'buy.inv.photo' | t }}
+        @if (f.photoUrl) {
+          <a [href]="f.photoUrl" target="_blank" rel="noopener" class="ml-2 text-brand-700 underline">{{ 'buy.inv.openPhoto' | t }}</a>
+          <button type="button" (click)="f.photoUrl = ''" class="ml-2 text-xs text-slate-500 hover:text-slate-700">{{ 'action.delete' | t }}</button>
+        }
+        <app-picture-upload [label]="'buy.inv.photo' | t" [maxSide]="2000" (uploaded)="f.photoUrl = $event" />
+      </div>
+    </div>
+
+    <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+      <button type="button" (click)="post(f)" [disabled]="!canSave(f)"
+        class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-40">
+        {{ 'buy.inv.post' | t }}
+      </button>
+      <button type="button" (click)="save(f, f.status)" [disabled]="!canSave(f)"
+        class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+        {{ (f.status === 'ordered' ? 'buy.inv.saveOrder' : 'buy.inv.saveDraft') | t }}
+      </button>
+      @if (f.status === 'ordered') {
+        <button type="button" (click)="sendOrder(f)" class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          {{ 'buy.sendWhatsapp' | t }}
+        </button>
+      } @else if (!f.id) {
+        <button type="button" (click)="save(f, 'ordered')" [disabled]="!canSave(f)"
+          class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+          {{ 'buy.inv.saveAsOrder' | t }}
+        </button>
+      }
+      <button type="button" (click)="remove(f)" class="ml-auto text-sm text-tone-red hover:text-red-700">
+        {{ (f.id ? 'action.delete' : 'action.cancel') | t }}
+      </button>
+    </div>
+    <p class="mt-2 text-xs text-slate-500">{{ 'buy.inv.postHint' | t }}</p>
+  </div>
+}
+
+<!-- A posted or cancelled invoice -->
+@if (v) {
+  <div class="rounded-2xl border border-slate-200 bg-surface p-4">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <h2 class="text-lg font-semibold text-slate-800">
+          {{ v.supplierName }}{{ v.number ? ' · №' + v.number : '' }}
+        </h2>
+        <p class="text-sm text-slate-500">
+          {{ v.date | ldate: 'shortDate' }} · {{ v.locationName }} ·
+          <span class="rounded-full px-2 py-0.5 text-xs font-semibold" [class]="statusClass(v.status)">{{ 'buy.status.' + v.status | t }}</span>
+        </p>
+      </div>
+      <button type="button" (click)="close()" class="text-sm text-slate-500 hover:text-slate-700">← {{ 'buy.back' | t }}</button>
+    </div>
+
+    <table class="w-full text-sm">
+      <tbody>
+        @for (l of v.lines; track l.id) {
+          <tr class="border-t border-slate-100">
+            <td class="py-2 pr-2 font-medium text-slate-800">{{ l.ingredientName }}</td>
+            <td class="py-2 pr-2 whitespace-nowrap">{{ l.quantity | lnumber: '1.0-3' }} {{ l.unit }}</td>
+            <td class="py-2 pr-2 whitespace-nowrap text-slate-500">
+              @if (l.unitPrice !== null && l.unitPrice !== undefined) {
+                {{ l.unitPrice | lnumber: '1.0-4' }} / {{ l.unit }}
+              }
+            </td>
+            <td class="py-2 text-right whitespace-nowrap">{{ l.total !== null && l.total !== undefined ? (l.total | currency2) : '—' }}</td>
+          </tr>
+        }
+        <tr class="border-t border-slate-200 font-semibold">
+          <td colspan="3" class="py-2">{{ 'buy.inv.total' | t }}</td>
+          <td class="py-2 text-right">{{ v.total | currency2 }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <dl class="mt-3 grid gap-1 text-sm text-slate-600 sm:grid-cols-2">
+      @if (v.postedAt) {
+        <div>{{ 'buy.inv.postedBy' | t: { name: v.postedBy ?? '' } }} · {{ v.postedAt | ldate: 'shortDateTime24' }}</div>
+      }
+      @if (v.cancelledAt) {
+        <div class="text-tone-red">{{ 'buy.inv.cancelledBy' | t: { name: v.cancelledBy ?? '' } }} · {{ v.cancelledAt | ldate: 'shortDateTime24' }}</div>
+      }
+      @if (v.status === 'posted') {
+        <div>
+          @if (v.isPaid) {
+            <span class="text-tone-green">{{ 'buy.paid' | t }}</span>
+            @if (v.paidAt) {
+              · {{ v.paidAt | ldate: 'shortDate' }}
+            }
+          } @else {
+            <span [class]="v.isOverdue ? 'font-semibold text-tone-red' : 'text-amber-800'">
+              {{ (v.isOverdue ? 'buy.overdue' : 'buy.notPaid') | t }}
+            </span>
+            @if (v.dueDate) {
+              · {{ 'buy.inv.dueBy' | t: { date: (v.dueDate | ldate: 'shortDate') ?? '' } }}
+            }
+          }
+        </div>
+      }
+      @if (v.note) {
+        <div class="sm:col-span-2">{{ v.note }}</div>
+      }
+      @if (v.photoUrl) {
+        <div><a [href]="v.photoUrl" target="_blank" rel="noopener" class="text-brand-700 underline">{{ 'buy.inv.openPhoto' | t }}</a></div>
+      }
+    </dl>
+
+    @if (isAdmin() && v.status === 'posted') {
+      <div class="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+        <button type="button" (click)="setPaid(v, !v.isPaid)"
+          class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          {{ (v.isPaid ? 'buy.inv.markUnpaid' : 'buy.inv.markPaid') | t }}
+        </button>
+        <button type="button" (click)="cancelInvoice(v)" [disabled]="busy()"
+          class="ml-auto rounded-xl px-4 py-2 text-sm font-semibold text-tone-red hover:bg-red-50 disabled:opacity-40">
+          {{ 'buy.inv.cancel' | t }}
+        </button>
+      </div>
+    }
+  </div>
+}

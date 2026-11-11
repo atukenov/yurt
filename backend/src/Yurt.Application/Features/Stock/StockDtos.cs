@@ -38,7 +38,7 @@ public record StockChangeDto(
     Guid Id, string Kind, Guid ItemId, string ItemName, string? Unit,
     decimal? OldQuantity, decimal? NewQuantity, decimal? Change, string ChangedBy, DateTime ChangedAt,
     string Type = "set", string? Reason = null, string? Note = null, decimal? UnitCost = null,
-    Guid? OtherLocationId = null, string? OtherLocationName = null, decimal? CostValue = null);
+    Guid? OtherLocationId = null, string? OtherLocationName = null, decimal? CostValue = null, Guid? PurchaseId = null);
 
 /// <summary>A phone that gets low-stock pushes. <c>HasApp</c> is true when a cafe-app account with this number has a
 /// device registered for pushes, so the alert can actually arrive.</summary>

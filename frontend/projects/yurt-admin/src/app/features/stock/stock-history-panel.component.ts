@@ -59,6 +59,7 @@ export class StockHistoryPanelComponent implements OnChanges {
       case 'transfer_in':
         return this.lang.t('moves.receivedFrom', { branch: row.otherLocationName ?? '' });
       case 'restock':
+      case 'restock_cancel':
       case 'stocktake':
       case 'shortfall':
         return this.lang.t(`hist.type.${row.type}`);

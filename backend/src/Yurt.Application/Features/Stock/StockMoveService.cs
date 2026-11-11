@@ -29,23 +29,7 @@ public class StockMoveService(
         if (!await db.Locations.AnyAsync(l => l.Id == dto.LocationId, ct)) return Fail("Location not found.", 404);
 
         var item = new Item("ingredient", ingredient.Id, ingredient.Name, ingredient.Unit, ingredient.CostPerUnit);
-        var before = await CountAsync(dto.LocationId, item, ct);
-        await AddAsync(dto.LocationId, item, dto.Quantity, ct);
-
-        decimal? deliveryUnitCost = null;
-        if (dto.TotalCost is { } total)
-        {
-            deliveryUnitCost = Math.Round(total / dto.Quantity, 4);
-            // Running average: what is already on the shelf at its old cost plus this delivery at its price.
-            var onShelf = Math.Max(0m, before ?? 0m);
-            ingredient.CostPerUnit = ingredient.CostPerUnit is { } old && onShelf > 0
-                ? Math.Round((old * onShelf + total) / (onShelf + dto.Quantity), 4)
-                : deliveryUnitCost;
-            ingredient.UpdatedAt = DateTime.UtcNow;
-        }
-
-        Log(dto.LocationId, item, before, (before ?? 0m) + dto.Quantity, StockChangeTypes.Restock, dto.Note,
-            unitCost: deliveryUnitCost);
+        await ReceiveAsync(ingredient, dto.LocationId, dto.Quantity, dto.TotalCost, dto.Note, null, ct);
         await db.SaveChangesAsync(ct);
         await menuCache.InvalidateAllMenuAsync();
         await audit.LogAsync("StockRestocked", "Ingredient", ingredient.Id.ToString(),
@@ -243,6 +227,68 @@ public class StockMoveService(
             }
         }
         return result;
+    }
+
+    // ── used by purchase invoices ──
+
+    /// <summary>
+    /// Puts one delivered ingredient on the shelf, updates its average cost when the price is known and logs a
+    /// "restock" row (linked to the invoice, if any). The caller saves.
+    /// </summary>
+    internal async Task<StockChange> ReceiveAsync(
+        Ingredient ingredient, Guid locationId, decimal quantity, decimal? totalCost, string? note, Guid? purchaseId,
+        CancellationToken ct)
+    {
+        var item = new Item("ingredient", ingredient.Id, ingredient.Name, ingredient.Unit, ingredient.CostPerUnit);
+        var before = await CountAsync(locationId, item, ct);
+        await AddAsync(locationId, item, quantity, ct);
+
+        decimal? deliveryUnitCost = null;
+        if (totalCost is { } total)
+        {
+            deliveryUnitCost = Math.Round(total / quantity, 4);
+            // Running average: what is already on the shelf at its old cost plus this delivery at its price.
+            var onShelf = Math.Max(0m, before ?? 0m);
+            ingredient.CostPerUnit = ingredient.CostPerUnit is { } old && onShelf > 0
+                ? Math.Round((old * onShelf + total) / (onShelf + quantity), 4)
+                : deliveryUnitCost;
+            ingredient.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var row = Log(locationId, item, before, (before ?? 0m) + quantity, StockChangeTypes.Restock, note, deliveryUnitCost);
+        row.PurchaseId = purchaseId;
+        return row;
+    }
+
+    /// <summary>What a branch has of an ingredient, or null when it does not count it.</summary>
+    internal Task<decimal?> IngredientLeftAsync(Guid locationId, Ingredient ingredient, CancellationToken ct)
+        => CountAsync(locationId, new Item("ingredient", ingredient.Id, ingredient.Name, ingredient.Unit, null), ct);
+
+    /// <summary>
+    /// Takes a cancelled invoice line back off the shelf (never below zero) and undoes its effect on the average cost
+    /// as well as it can: the cost goes back to what it would be without this delivery, or to the cost before the
+    /// delivery when nothing else is left. Returns an error when the shelf has less than the line. The caller saves.
+    /// </summary>
+    internal async Task<string?> TakeBackAsync(
+        Ingredient ingredient, Guid locationId, decimal quantity, decimal? lineTotal, decimal? costBefore, string? note,
+        Guid purchaseId, CancellationToken ct)
+    {
+        var item = new Item("ingredient", ingredient.Id, ingredient.Name, ingredient.Unit, ingredient.CostPerUnit);
+        var (error, left) = await TakeAsync(locationId, item, quantity, ct);
+        if (error is not null) return error;
+
+        if (lineTotal is { } total && ingredient.CostPerUnit is { } cost)
+        {
+            var leftNow = left ?? 0m;
+            decimal? undone = leftNow > 0 ? Math.Round((cost * (leftNow + quantity) - total) / leftNow, 4) : null;
+            ingredient.CostPerUnit = undone is >= 0 ? undone : costBefore;
+            ingredient.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var row = Log(locationId, item, left + quantity, left, StockChangeTypes.RestockCancel, note,
+            lineTotal is { } t ? Math.Round(t / quantity, 4) : null);
+        row.PurchaseId = purchaseId;
+        return null;
     }
 
     // ── helpers ──

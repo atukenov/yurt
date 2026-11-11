@@ -59,6 +59,12 @@ import {
   StockAlerts,
   StockChange,
   StockMoveResult,
+  Supplier,
+  SaveSupplier,
+  Purchase,
+  SavePurchase,
+  PostPurchaseResult,
+  ToOrderGroup,
   StocktakeResult,
   WriteOffSummary,
   WriteOffReason,
@@ -771,6 +777,74 @@ export class YurtApiService {
 
   setStockAlertPhones(phones: string[]): Observable<StockAlertPhone[]> {
     return this.http.put<StockAlertPhone[]>(`${this.api}/admin/stock/alert-phones`, { phones });
+  }
+
+  // ── Purchasing: suppliers, orders, delivery invoices (own_pos) ────────────
+
+  getSuppliers(): Observable<Supplier[]> {
+    return this.http.get<Supplier[]>(`${this.api}/admin/purchasing/suppliers`);
+  }
+
+  createSupplier(body: SaveSupplier): Observable<Supplier> {
+    return this.http.post<Supplier>(`${this.api}/admin/purchasing/suppliers`, body);
+  }
+
+  updateSupplier(id: string, body: SaveSupplier): Observable<Supplier> {
+    return this.http.put<Supplier>(`${this.api}/admin/purchasing/suppliers/${id}`, body);
+  }
+
+  /** True when deleted; false when it has invoices and was only switched off. */
+  deleteSupplier(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/purchasing/suppliers/${id}`);
+  }
+
+  getPurchases(filter: {
+    locationId?: string;
+    supplierId?: string;
+    status?: string;
+    unpaid?: boolean;
+    take?: number;
+  }): Observable<Purchase[]> {
+    const params: Record<string, string> = {};
+    for (const [k, v] of Object.entries(filter)) if (v !== undefined && v !== '') params[k] = String(v);
+    return this.http.get<Purchase[]>(`${this.api}/admin/purchasing/purchases`, { params });
+  }
+
+  getPurchase(id: string): Observable<Purchase> {
+    return this.http.get<Purchase>(`${this.api}/admin/purchasing/purchases/${id}`);
+  }
+
+  createPurchase(body: SavePurchase): Observable<Purchase> {
+    return this.http.post<Purchase>(`${this.api}/admin/purchasing/purchases`, body);
+  }
+
+  updatePurchase(id: string, body: SavePurchase): Observable<Purchase> {
+    return this.http.put<Purchase>(`${this.api}/admin/purchasing/purchases/${id}`, body);
+  }
+
+  deletePurchase(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/purchasing/purchases/${id}`);
+  }
+
+  /** The goods arrived: put every line on the shelf. */
+  postPurchase(id: string): Observable<PostPurchaseResult> {
+    return this.http.post<PostPurchaseResult>(`${this.api}/admin/purchasing/purchases/${id}/post`, {});
+  }
+
+  cancelPurchase(id: string): Observable<Purchase> {
+    return this.http.post<Purchase>(`${this.api}/admin/purchasing/purchases/${id}/cancel`, {});
+  }
+
+  setPurchasePaid(id: string, paid: boolean): Observable<Purchase> {
+    return this.http.put<Purchase>(`${this.api}/admin/purchasing/purchases/${id}/paid`, { paid });
+  }
+
+  getToOrder(locationId: string): Observable<ToOrderGroup[]> {
+    return this.http.get<ToOrderGroup[]>(`${this.api}/admin/purchasing/to-order`, { params: { locationId } });
+  }
+
+  setOrderUpTo(ingredientId: string, locationId: string, orderUpTo: number | null): Observable<boolean> {
+    return this.http.put<boolean>(`${this.api}/admin/purchasing/order-up-to/${ingredientId}/${locationId}`, { orderUpTo });
   }
 
   // ── Tables with QR codes (table_ordering) ─────────────────────────────────

@@ -96,6 +96,13 @@ export const routes: Routes = [
             loadComponent: () => import('./features/stock/stock-moves.component').then((m) => m.StockMovesComponent),
           },
           {
+            // Suppliers, orders and delivery invoices: staff type in deliveries, admins run suppliers and payments.
+            path: 'purchasing',
+            canActivate: [moduleGuard('own_pos', '/orders')],
+            loadComponent: () =>
+              import('./features/purchasing/purchasing.component').then((m) => m.PurchasingComponent),
+          },
+          {
             path: 'stock',
             canActivate: [moduleGuard('own_pos', '/orders')],
             loadComponent: () =>

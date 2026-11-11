@@ -1,0 +1,174 @@
+@let f = form();
+
+@if (!f) {
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-slate-500">{{ 'buy.sup.hint' | t }}</p>
+    <button type="button" (click)="add()" class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600">
+      {{ 'buy.sup.add' | t }}
+    </button>
+  </div>
+
+  @if (owed() > 0) {
+    <p class="mb-4 rounded-xl border border-slate-200 bg-surface p-3 text-sm text-slate-700">
+      {{ 'buy.sup.owedTotal' | t }}: <span class="font-semibold">{{ owed() | currency2 }}</span>
+      @if (overdue() > 0) {
+        · <span class="font-semibold text-tone-red">{{ 'buy.overdue' | t }}: {{ overdue() | currency2 }}</span>
+      }
+    </p>
+  }
+
+  <div class="grid gap-3 sm:grid-cols-2">
+    @for (s of suppliers(); track s.id) {
+      <button
+        type="button"
+        (click)="edit(s)"
+        class="rounded-2xl border border-slate-200 bg-surface p-4 text-left hover:border-brand-400"
+        [class.opacity-60]="!s.isActive"
+      >
+        <div class="flex items-start justify-between gap-2">
+          <h3 class="font-semibold text-slate-800">{{ s.name }}</h3>
+          @if (!s.isActive) {
+            <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ 'buy.sup.off' | t }}</span>
+          }
+        </div>
+        <p class="text-sm text-slate-500">
+          {{ s.contactName }}{{ s.contactName && s.phone ? ' · ' : '' }}{{ s.phone }}
+        </p>
+        <p class="mt-1 text-xs text-slate-500">
+          {{ 'buy.terms.' + s.paymentTerms | t: { days: s.payInDays ?? 0 } }} ·
+          {{ 'buy.sup.products' | t: { count: s.products.length } }} ·
+          {{ 'buy.sup.invoices' | t: { count: s.invoices } }}
+        </p>
+        @if ((s.owed ?? 0) > 0) {
+          <p class="mt-1 text-sm">
+            {{ 'buy.sup.owed' | t }}: <span class="font-semibold">{{ s.owed! | currency2 }}</span>
+            @if ((s.overdue ?? 0) > 0) {
+              · <span class="font-semibold text-tone-red">{{ 'buy.overdue' | t }} {{ s.overdue! | currency2 }}</span>
+            }
+          </p>
+        }
+      </button>
+    } @empty {
+      <p class="rounded-2xl border border-slate-200 bg-surface p-8 text-center text-slate-500 sm:col-span-2">
+        {{ loading() ? ('label.loading' | t) : ('buy.sup.empty' | t) }}
+      </p>
+    }
+  </div>
+}
+
+@if (f) {
+  <div class="rounded-2xl border border-slate-200 bg-surface p-4">
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-slate-800">{{ f.id ? f.name : ('buy.sup.add' | t) }}</h2>
+      <button type="button" (click)="close()" class="text-sm text-slate-500 hover:text-slate-700">← {{ 'buy.back' | t }}</button>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <label class="text-sm text-slate-600">
+        {{ 'label.name' | t }} *
+        <input [(ngModel)]="f.name" maxlength="200" required class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'buy.sup.contact' | t }}
+        <input [(ngModel)]="f.contactName" maxlength="100" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'buy.sup.phone' | t }}
+        <input [(ngModel)]="f.phone" type="tel" maxlength="30" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'buy.sup.bin' | t }}
+        <input [(ngModel)]="f.bin" maxlength="20" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      <label class="text-sm text-slate-600">
+        {{ 'buy.sup.terms' | t }}
+        <select [(ngModel)]="f.paymentTerms" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400">
+          @for (t of terms; track t) {
+            <option [value]="t">{{ 'buy.termsPick.' + t | t }}</option>
+          }
+        </select>
+      </label>
+      @if (f.paymentTerms === 'later') {
+        <label class="text-sm text-slate-600">
+          {{ 'buy.sup.payInDays' | t }}
+          <input type="number" min="0" max="365" [(ngModel)]="f.payInDays" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+        </label>
+      }
+      <label class="text-sm text-slate-600 sm:col-span-2">
+        {{ 'cash.note' | t }}
+        <input [(ngModel)]="f.note" maxlength="500" class="mt-1 block w-full rounded-lg border border-slate-200 px-2 py-2 outline-none focus:ring-2 focus:ring-brand-400" />
+      </label>
+      @if (f.id) {
+        <label class="flex items-center gap-2 text-sm text-slate-600">
+          <input type="checkbox" [(ngModel)]="f.isActive" /> {{ 'buy.sup.active' | t }}
+        </label>
+      }
+    </div>
+
+    <h3 class="mt-5 font-semibold text-slate-800">{{ 'buy.sup.sells' | t }}</h3>
+    <p class="mb-2 text-xs text-slate-500">{{ 'buy.sup.sellsHint' | t }}</p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-left text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="py-2 pr-2">{{ 'stock.item' | t }}</th>
+            <th class="py-2 pr-2">{{ 'buy.sup.packName' | t }}</th>
+            <th class="py-2 pr-2">{{ 'buy.sup.packSize' | t }}</th>
+            <th class="py-2 pr-2">{{ 'buy.sup.packPrice' | t }}</th>
+            <th class="py-2 pr-2">{{ 'buy.inv.unitPrice' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of f.products; track $index) {
+            <tr class="border-t border-slate-100">
+              <td class="py-2 pr-2">
+                <select [(ngModel)]="p.ingredientId" [attr.aria-label]="'stock.item' | t"
+                  class="w-full min-w-36 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400">
+                  <option value="">{{ 'moves.pickItem' | t }}</option>
+                  @for (i of ingredients(); track i.id) {
+                    @if (!taken(f, p).has(i.id)) {
+                      <option [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
+                    }
+                  }
+                </select>
+              </td>
+              <td class="py-2 pr-2">
+                <input [(ngModel)]="p.packName" maxlength="100" [placeholder]="'buy.sup.packNameExample' | t" [attr.aria-label]="'buy.sup.packName' | t"
+                  class="w-36 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+              </td>
+              <td class="py-2 pr-2 whitespace-nowrap">
+                <input type="number" min="0" step="any" [(ngModel)]="p.packSize" [attr.aria-label]="'buy.sup.packSize' | t"
+                  class="w-24 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+                {{ unitOf(p.ingredientId) }}
+              </td>
+              <td class="py-2 pr-2">
+                <input type="number" min="0" step="any" [(ngModel)]="p.packPrice" [attr.aria-label]="'buy.sup.packPrice' | t"
+                  class="w-24 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400" />
+              </td>
+              <td class="py-2 pr-2 whitespace-nowrap text-slate-500">
+                @if (perUnit(p); as price) {
+                  {{ price | lnumber: '1.0-4' }} / {{ unitOf(p.ingredientId) }}
+                }
+              </td>
+              <td class="py-2 text-right">
+                <button type="button" (click)="removeProduct(f, $index)" class="text-sm text-tone-red hover:text-red-700" [attr.aria-label]="'action.delete' | t">✕</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <button type="button" (click)="addProduct(f)" class="mt-2 rounded-lg px-2 py-1 text-sm font-semibold text-brand-700 hover:bg-slate-50">+ {{ 'buy.sup.addProduct' | t }}</button>
+    </div>
+
+    <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+      <button type="button" (click)="save(f)" [disabled]="busy() || !f.name.trim()"
+        class="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-on-brand hover:bg-brand-600 disabled:opacity-40">
+        {{ 'action.save' | t }}
+      </button>
+      @if (f.id) {
+        <button type="button" (click)="remove(f)" class="ml-auto text-sm text-tone-red hover:text-red-700">{{ 'action.delete' | t }}</button>
+      }
+    </div>
+  </div>
+}

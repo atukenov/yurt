@@ -111,7 +111,7 @@ public class StockService(
         if (change is null && c.Type == StockChangeTypes.Restock && c.NewQuantity != null) change = c.NewQuantity;
         decimal? value = change != null && c.UnitCost != null ? Math.Round(Math.Abs(change.Value) * c.UnitCost.Value, 2) : null;
         return new StockChangeDto(c.Id, c.Kind, c.ItemId, c.ItemName, c.Unit, c.OldQuantity, c.NewQuantity, change,
-            c.ChangedBy, c.CreatedAt, c.Type, c.Reason, c.Note, c.UnitCost, c.OtherLocationId, c.OtherLocationName, value);
+            c.ChangedBy, c.CreatedAt, c.Type, c.Reason, c.Note, c.UnitCost, c.OtherLocationId, c.OtherLocationName, value, c.PurchaseId);
     }
 
     /// <summary>Adds a history row when a hand change moves the count. Saved with the caller's own SaveChanges.</summary>

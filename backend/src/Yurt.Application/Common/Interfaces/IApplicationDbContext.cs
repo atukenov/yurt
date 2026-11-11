@@ -50,6 +50,10 @@ public interface IApplicationDbContext
     DbSet<Ingredient> Ingredients { get; }
     DbSet<IngredientStock> IngredientStocks { get; }
     DbSet<StockChange> StockChanges { get; }
+    DbSet<Supplier> Suppliers { get; }
+    DbSet<SupplierProduct> SupplierProducts { get; }
+    DbSet<Purchase> Purchases { get; }
+    DbSet<PurchaseLine> PurchaseLines { get; }
     DbSet<RecipeLine> RecipeLines { get; }
     DbSet<MenuItemVariant> MenuItemVariants { get; }
     DbSet<UserReport> UserReports { get; }
