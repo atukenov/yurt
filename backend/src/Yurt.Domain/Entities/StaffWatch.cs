@@ -3,7 +3,7 @@ using Yurt.Domain.Common;
 namespace Yurt.Domain.Entities;
 
 // Staff watch (module staff_watch): a camera box in the branch counts people in zones drawn on its cameras (bar, till,
-// queue, a door line), notices a phone in hand or nobody moving, and sends minute counts, alerts and a daily report.
+// queue, a door line), notices a phone in hand or someone not moving, and sends minute counts, alerts and a daily report.
 // Video and camera passwords stay in the cafe; only numbers, alert texts and (on request) a still picture with heads
 // blurred come here.
 
@@ -100,7 +100,7 @@ public class WatchMinute : ITenantOwned
     public int PeopleMax { get; set; }
     /// <summary>Seconds someone in the zone held a phone.</summary>
     public int Phone { get; set; }
-    /// <summary>Seconds people were in the zone and nobody moved.</summary>
+    /// <summary>Seconds someone in the zone had not moved for a while.</summary>
     public int Still { get; set; }
     /// <summary>Door line: people who walked in / out.</summary>
     public int Entered { get; set; }
