@@ -7,7 +7,13 @@ public class Order : BaseEntity, ITenantOwned
 {
     public Guid TenantId { get; set; }
 
-    public Guid CustomerUserId { get; set; }
+    // The guest's account. Null for a counter sale to a walk-in guest who has no account (Yurt POS).
+    public Guid? CustomerUserId { get; set; }
+
+    // Where the order came from: the guest's app (default) or a cashier at the counter.
+    public OrderSource Source { get; set; } = OrderSource.App;
+    // The staff member who rang up a counter sale. Null for app orders.
+    public Guid? SoldByAdminId { get; set; }
     public Guid LocationId { get; set; }
 
     // The table the guest ordered to by scanning its QR code (table_ordering). Null = pick up at the counter. The label is
@@ -66,7 +72,7 @@ public class Order : BaseEntity, ITenantOwned
     public IikoOrderSyncStatus IikoOrderSyncStatus { get; set; } = IikoOrderSyncStatus.NotPushed;
     public IikoOrderSyncPendingAction IikoOrderSyncPendingAction { get; set; } = IikoOrderSyncPendingAction.None;
 
-    public CustomerUser CustomerUser { get; set; } = null!;
+    public CustomerUser? CustomerUser { get; set; }
     public Location Location { get; set; } = null!;
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 

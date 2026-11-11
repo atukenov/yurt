@@ -216,6 +216,7 @@ public static class DependencyInjection
         services.AddScoped<MenuService>();
         services.AddScoped<Yurt.Application.Features.Menu.Import.MenuImportService>();
         services.AddScoped<OrderService>();
+        services.AddScoped<CounterSaleService>();
         services.AddScoped<PaymentService>();
         services.AddScoped<PromotionService>();
         services.AddScoped<DiscountCodeService>();

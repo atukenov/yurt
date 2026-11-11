@@ -44,13 +44,14 @@ public class AnalyticsService
             .ToList();
         var avgPrepTime = prepTimes.Count > 0 ? prepTimes.Average() : 0;
 
-        var customerIds = allOrders.Select(o => o.CustomerUserId).Distinct().ToList();
+        // Counter sales to walk-in guests have no account, so they count as no customer.
+        var customerIds = allOrders.Where(o => o.CustomerUserId != null).Select(o => o.CustomerUserId!.Value).Distinct().ToList();
         var uniqueCustomers = customerIds.Count;
 
         // A customer is "returning" if they have any order from before this period started.
         var returningCustomerCount = customerIds.Count > 0
             ? await _db.Orders
-                .Where(o => customerIds.Contains(o.CustomerUserId) && o.CreatedAt < fromDate)
+                .Where(o => o.CustomerUserId != null && customerIds.Contains(o.CustomerUserId.Value) && o.CreatedAt < fromDate)
                 .Select(o => o.CustomerUserId)
                 .Distinct()
                 .CountAsync(ct)
