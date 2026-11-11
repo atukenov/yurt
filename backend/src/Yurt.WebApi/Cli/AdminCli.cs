@@ -17,6 +17,7 @@ namespace Yurt.WebApi.Cli;
 ///
 /// Usage (from the backend host, e.g. a Railway one-off command or a local shell):
 ///   dotnet Yurt.WebApi.dll reset-admin-password &lt;username&gt;   # new password on stdin or $YURT_NEW_PASSWORD
+///   dotnet Yurt.WebApi.dll set-admin-role &lt;username&gt; &lt;Ceo|Admin&gt;   # hand a cafe's money screens to its owner
 ///   dotnet Yurt.WebApi.dll list-admins                        # usernames and roles only, never hashes
 ///   dotnet Yurt.WebApi.dll revoke-all-sessions                # force every user to sign in again
 ///
@@ -25,7 +26,7 @@ namespace Yurt.WebApi.Cli;
 public static class AdminCli
 {
     public static readonly string[] Commands =
-        ["reset-admin-password", "list-admins", "revoke-all-sessions"];
+        ["reset-admin-password", "list-admins", "revoke-all-sessions", "set-admin-role"];
 
     public static bool IsCommand(string[] args)
         => args.Length > 0 && Commands.Contains(args[0]);
@@ -48,6 +49,7 @@ public static class AdminCli
             return args[0] switch
             {
                 "reset-admin-password" => await ResetAdminPasswordAsync(db, hasher, args),
+                "set-admin-role" => await SetAdminRoleAsync(db, args),
                 "list-admins" => await ListAdminsAsync(db),
                 "revoke-all-sessions" => await RevokeAllSessionsAsync(db),
                 _ => Usage()
@@ -101,6 +103,31 @@ public static class AdminCli
             "They must set a new password on their next sign-in. " +
             "Existing access tokens keep working until they expire (~15 min); " +
             "run 'revoke-all-sessions' if you need to sign this account out everywhere right now.");
+        return 0;
+    }
+
+    private static async Task<int> SetAdminRoleAsync(ApplicationDbContext db, string[] args)
+    {
+        if (args.Length < 3 ||
+            !Enum.TryParse<Yurt.Domain.Enums.AdminRole>(args[2], true, out var role) ||
+            role is not (Yurt.Domain.Enums.AdminRole.Ceo or Yurt.Domain.Enums.AdminRole.Admin))
+        {
+            Console.Error.WriteLine("Usage: set-admin-role <username> <Ceo|Admin>");
+            return 2;
+        }
+
+        var username = args[1].Trim();
+        var admin = await db.AdminUsers.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Username == username);
+        if (admin is null || admin.Role is not (Yurt.Domain.Enums.AdminRole.Ceo or Yurt.Domain.Enums.AdminRole.Admin))
+        {
+            Console.Error.WriteLine($"No Admin or CEO account '{username}'. Run 'list-admins' to see them.");
+            return 3;
+        }
+
+        admin.Role = role;
+        admin.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+        Console.WriteLine($"'{admin.Username}' is now {role}. They get the new access at their next sign-in.");
         return 0;
     }
 

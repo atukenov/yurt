@@ -17,7 +17,8 @@ public class AnalyticsModuleGateTests(YurtWebAppFactory factory)
     private async Task<(HttpClient admin, HttpClient super)> ClientsAsync()
     {
         var admin = factory.CreateClient();
-        var adminToken = await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin);
+        var adminToken = await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin,
+            username: "testceo", password: "TestCeo@123", role: AdminRole.Ceo);
         admin.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
         var super = factory.CreateClient();

@@ -64,13 +64,13 @@ public class AdminSubscriptionController : ApiControllerBase
 
     /// <summary>Opens Stripe's page to start paying monthly by card. Owners only, not staff.</summary>
     [HttpPost("billing/checkout")]
-    [Authorize(Policy = "AdminRoleAdmin")]
+    [Authorize(Policy = "CeoOnly")]
     public async Task<IActionResult> StartCheckout([FromServices] BillingService billing, [FromBody] BillingRedirectRequest dto, CancellationToken ct)
         => ToResult(await billing.StartCheckoutAsync(dto.ReturnUrl, ct));
 
     /// <summary>Opens Stripe's billing page: change the card, see invoices, cancel. Owners only, not staff.</summary>
     [HttpPost("billing/portal")]
-    [Authorize(Policy = "AdminRoleAdmin")]
+    [Authorize(Policy = "CeoOnly")]
     public async Task<IActionResult> OpenPortal([FromServices] BillingService billing, [FromBody] BillingRedirectRequest dto, CancellationToken ct)
         => ToResult(await billing.OpenPortalAsync(dto.ReturnUrl, ct));
 }

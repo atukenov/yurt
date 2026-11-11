@@ -950,6 +950,49 @@ export interface CafeAdmin {
   id: string;
   username: string;
   isActive: boolean;
+  /** "Ceo" or "Admin". */
+  role: string;
+}
+
+// ── Payroll (CEO only) ────────────────────────────────────────────────────────
+export interface PayrollStaff {
+  id: string;
+  username: string;
+  role: string;
+  isActive: boolean;
+  monthlySalary: number;
+}
+
+export interface PayAdjustment {
+  id: string;
+  isDeduction: boolean;
+  amount: number;
+  reason: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface PayrollLine {
+  adminUserId: string;
+  username: string;
+  role: string;
+  salary: number;
+  bonuses: number;
+  deductions: number;
+  total: number;
+  adjustments: PayAdjustment[];
+}
+
+export interface PayrollSheet {
+  month: string;
+  closed: boolean;
+  closedAt: string | null;
+  closedBy: string | null;
+  lines: PayrollLine[];
+  totalSalary: number;
+  totalBonuses: number;
+  totalDeductions: number;
+  totalToPay: number;
 }
 
 export interface CafeSecretStatus {

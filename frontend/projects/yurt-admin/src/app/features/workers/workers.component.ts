@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService } from 'shared-api';
+import { AuthStateService, YurtApiService } from 'shared-api';
 import { ToastService, LocalDatePipe } from 'shared-ui';
 import { WorkerAccount } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -17,6 +17,15 @@ export class WorkersComponent implements OnInit {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
   private lang = inject(AdminLangService);
+  private auth = inject(AuthStateService);
+
+  /** Only the CEO adds Admins and manages their accounts. */
+  readonly isCeo = this.auth.isCeo;
+
+  /** Workers can be managed by any admin, Admin accounts by the CEO; the CEO's own account only by the platform operator. */
+  canManage(w: WorkerAccount): boolean {
+    return w.role === 'Worker' || (this.isCeo && w.role === 'Admin');
+  }
 
   workers = signal<WorkerAccount[]>([]);
   loading = signal(true);
@@ -24,6 +33,7 @@ export class WorkersComponent implements OnInit {
   showCreate = signal(false);
   createUsername = '';
   createPassword = '';
+  createRole: 'Worker' | 'Admin' = 'Worker';
   createLoading = signal(false);
 
   editWorker = signal<WorkerAccount | null>(null);
@@ -50,13 +60,14 @@ export class WorkersComponent implements OnInit {
   openCreate(): void {
     this.createUsername = '';
     this.createPassword = '';
+    this.createRole = 'Worker';
     this.showCreate.set(true);
   }
 
   submitCreate(): void {
     if (!this.createUsername || !this.createPassword) return;
     this.createLoading.set(true);
-    this.api.createWorker({ username: this.createUsername, password: this.createPassword }).subscribe({
+    this.api.createWorker({ username: this.createUsername, password: this.createPassword, role: this.isCeo ? this.createRole : 'Worker' }).subscribe({
       next: (w) => {
         this.workers.update((list) => [...list, w]);
         this.showCreate.set(false);

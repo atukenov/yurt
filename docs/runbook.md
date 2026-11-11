@@ -97,6 +97,7 @@ maintenance mode, integration status (configured yes/no, never the values) and a
 **Platform → Go-live checklist** shows per cafe what is still missing before it goes live (see `go-live.md`). SuperAdmins have every
 admin permission, are hidden from the cafe's staff page, and can only be created out-of-band.
 
+- Cafe roles (Worker, Admin, CEO) are described in `docs/roles.md`. The default Yurt cafe gets its CEO from `SEED_CEO_USERNAME` / `SEED_CEO_PASSWORD` (8+ characters, only while the cafe has no CEO; remove them afterwards), or promote an existing Admin with `dotnet Yurt.WebApi.dll set-admin-role <username> Ceo`.
 - Create the first one by setting `SEED_SUPERADMIN_USERNAME` and `SEED_SUPERADMIN_PASSWORD` (12+ characters) on the
   backend and restarting. It is only created while no SuperAdmin exists; the password must be changed at first login.
   Remove the variables afterwards.

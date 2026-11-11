@@ -61,7 +61,10 @@ public static class BrandChoices
 public record BrandLink(string Label, string Url);
 
 /// <summary>A cafe as listed in the operator's /platform screen.</summary>
-public record CafeAdminDto(Guid Id, string Username, bool IsActive);
+public record CafeAdminDto(Guid Id, string Username, bool IsActive, string Role);
+
+/// <summary>"Ceo" or "Admin".</summary>
+public record SetCafeAdminRoleDto(string Role);
 public record ResetCafeAdminPasswordDto(string NewPassword);
 public record CafeDto(Guid Id, string Slug, string Name, string? Domain, bool IsActive);
 

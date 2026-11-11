@@ -6,6 +6,8 @@ public record CreateWorkerDto
 {
     public string Username { get; init; } = "";
     public string Password { get; init; } = "";
+    /// <summary>"Worker" (default) or "Admin". Only the CEO can add an Admin.</summary>
+    public string? Role { get; init; }
 }
 
 public record UpdateWorkerDto

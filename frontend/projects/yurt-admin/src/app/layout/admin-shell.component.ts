@@ -77,6 +77,7 @@ export class AdminShellComponent implements OnDestroy {
   navGroups(): NavGroup[] {
     return buildAdminNav({
       isAdmin: this.auth.isAdmin,
+      isCeo: this.auth.isCeo,
       isSuperAdmin: this.auth.isSuperAdmin,
       moduleEnabled: (key) => this.modules.isEnabled(key),
     });

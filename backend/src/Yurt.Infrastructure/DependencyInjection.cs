@@ -1,3 +1,4 @@
+using Yurt.Application.Features.Payroll;
 using Yurt.Application.Features.StaffWatch;
 using Yurt.Infrastructure.StaffWatch;
 using System.Text;
@@ -198,6 +199,7 @@ public static class DependencyInjection
         services.AddScoped<StationService>();
         services.AddScoped<TableService>();
         services.AddScoped<StaffWatchService>();
+        services.AddScoped<PayrollService>();
         services.AddSingleton<IWatchTelegram, WatchTelegram>();
         services.AddScoped<StationReadyService>();
         services.AddSingleton<PrintQueueSignal>();
@@ -311,7 +313,19 @@ public static class DependencyInjection
             options.AddPolicy("AdminRoleAdmin", policy =>
             {
                 policy.RequireClaim("user_type", "admin");
-                policy.RequireRole("Admin", "SuperAdmin");
+                policy.RequireRole("Admin", "Ceo", "SuperAdmin");
+            });
+            // Money screens: sales reports, analytics, billing, audit log.
+            options.AddPolicy("CeoOnly", policy =>
+            {
+                policy.RequireClaim("user_type", "admin");
+                policy.RequireRole("Ceo", "SuperAdmin");
+            });
+            // Payroll: salaries are the cafe's own business, the platform operator does not see them either.
+            options.AddPolicy("CeoPayroll", policy =>
+            {
+                policy.RequireClaim("user_type", "admin");
+                policy.RequireRole("Ceo");
             });
             options.AddPolicy("SuperAdminOnly", policy =>
             {

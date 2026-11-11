@@ -19,12 +19,13 @@ public static class ModuleKeys
     public const string Branding = "branding";
     public const string TableOrdering = "table_ordering";
     public const string StaffWatch = "staff_watch";
+    public const string Payroll = "payroll";
 
     /// <summary>Every known module, in display order.</summary>
     public static readonly IReadOnlyList<string> All =
     [
         Core, MultiLocation, Marketing, Loyalty, IikoSync, OwnPos, Push, Analytics,
-        GroupOrders, Engagement, StaffAudit, OnlinePayments, Verification, Branding, TableOrdering, StaffWatch
+        GroupOrders, Engagement, StaffAudit, OnlinePayments, Verification, Branding, TableOrdering, StaffWatch, Payroll
     ];
 
     public static bool IsKnown(string key) => All.Contains(key);

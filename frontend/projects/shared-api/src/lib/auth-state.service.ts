@@ -33,9 +33,14 @@ export class AuthStateService {
   get isLoggedIn(): boolean {
     return !!this.currentUser;
   }
-  /** Cafe admin or platform operator (SuperAdmin has every admin permission). */
+  /** Cafe admin, the cafe's CEO or the platform operator (each has every permission of the one before). */
   get isAdmin(): boolean {
-    return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'SuperAdmin';
+    const role = this.currentUser?.role;
+    return role === 'Admin' || role === 'Ceo' || role === 'SuperAdmin';
+  }
+  /** The cafe's owner: money screens (sales, billing, audit log) and payroll. Admins and workers do not see them. */
+  get isCeo(): boolean {
+    return this.currentUser?.role === 'Ceo';
   }
   get cafe(): string | null {
     return this.currentUser?.cafe ?? null;

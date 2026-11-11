@@ -816,3 +816,52 @@ public class PurchaseLineConfiguration : IEntityTypeConfiguration<PurchaseLine>
         builder.HasOne(e => e.Purchase).WithMany(p => p.Lines).HasForeignKey(e => e.PurchaseId).OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+public class StaffSalaryConfiguration : IEntityTypeConfiguration<StaffSalary>
+{
+    public void Configure(EntityTypeBuilder<StaffSalary> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.MonthlySalary).HasPrecision(12, 2);
+        builder.HasIndex(e => e.AdminUserId).IsUnique();
+    }
+}
+
+public class PayAdjustmentConfiguration : IEntityTypeConfiguration<PayAdjustment>
+{
+    public void Configure(EntityTypeBuilder<PayAdjustment> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Month).HasMaxLength(7).IsRequired();
+        builder.Property(e => e.Amount).HasPrecision(12, 2);
+        builder.Property(e => e.Reason).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+        builder.HasIndex(e => new { e.Month, e.AdminUserId });
+    }
+}
+
+public class PayrollMonthConfiguration : IEntityTypeConfiguration<PayrollMonth>
+{
+    public void Configure(EntityTypeBuilder<PayrollMonth> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Month).HasMaxLength(7).IsRequired();
+        builder.Property(e => e.ClosedBy).HasMaxLength(100).IsRequired();
+        builder.HasIndex(e => new { e.TenantId, e.Month }).IsUnique();
+    }
+}
+
+public class PayrollLineConfiguration : IEntityTypeConfiguration<PayrollLine>
+{
+    public void Configure(EntityTypeBuilder<PayrollLine> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Username).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.Role).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Salary).HasPrecision(12, 2);
+        builder.Property(e => e.Bonuses).HasPrecision(12, 2);
+        builder.Property(e => e.Deductions).HasPrecision(12, 2);
+        builder.Property(e => e.Total).HasPrecision(12, 2);
+        builder.HasOne(e => e.PayrollMonth).WithMany(m => m.Lines).HasForeignKey(e => e.PayrollMonthId).OnDelete(DeleteBehavior.Cascade);
+    }
+}

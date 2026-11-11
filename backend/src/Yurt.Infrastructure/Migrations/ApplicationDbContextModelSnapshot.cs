@@ -1678,6 +1678,57 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("OrderStationReadies");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.PayAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsDeduction")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Month")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("Month", "AdminUserId");
+
+                    b.ToTable("PayAdjustments");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1793,6 +1844,104 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("PaymentWebhookLogs");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.PayrollLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Bonuses")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Deductions")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<Guid>("PayrollMonthId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<decimal>("Salary")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PayrollMonthId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("PayrollLines");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.PayrollMonth", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ClosedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Month")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Month")
+                        .IsUnique();
+
+                    b.ToTable("PayrollMonths");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.PhoneVerification", b =>
@@ -2488,6 +2637,40 @@ namespace Yurt.Infrastructure.Migrations
                         .HasFilter("\"ClosedAt\" IS NULL");
 
                     b.ToTable("Shifts");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.StaffSalary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("MonthlySalary")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminUserId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("StaffSalaries");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.Station", b =>
@@ -3789,6 +3972,15 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.PayAdjustment", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.Payment", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Order", "Order")
@@ -3807,6 +3999,32 @@ namespace Yurt.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.PaymentWebhookLog", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.PayrollLine", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.PayrollMonth", "PayrollMonth")
+                        .WithMany("Lines")
+                        .HasForeignKey("PayrollMonthId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PayrollMonth");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.PayrollMonth", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
                         .WithMany()
@@ -4005,6 +4223,15 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.StaffSalary", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.Station", b =>
@@ -4295,6 +4522,11 @@ namespace Yurt.Infrastructure.Migrations
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItem", b =>
                 {
                     b.Navigation("Toppings");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.PayrollMonth", b =>
+                {
+                    b.Navigation("Lines");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.Purchase", b =>

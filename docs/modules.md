@@ -123,6 +123,14 @@ How a gate is built:
 - **When off:** both APIs return `403 module_disabled` and the page and link are hidden; the box stops sending until the module is back on.
 - **Depends on:** nothing. Staff must sign the notice in `watch/notice-ru.md` first (KZ AI law: no emotion recognition; personal data storage in KZ is a lawyer question while the server is outside KZ).
 
+### `payroll` (monthly salaries, bonuses, deductions)
+- **Covers:** `/api/v1/admin/payroll/*` and the admin **Payroll** page. **CEO only** (policy `CeoPayroll`): Admins, Workers and even the platform operator get `403`. See `docs/roles.md`.
+- **How it works:** the CEO sets a **fixed monthly salary** per account (`StaffSalaries`; no hours, no clock in/out). For a month (`yyyy-MM`) the CEO adds **bonuses** and **deductions** with a reason (`PayAdjustments`: advance, shortage, busy weekend). The **pay sheet** of a month lists everyone with a salary or an adjustment: salary + bonuses − deductions = to pay. Switched-off accounts are left out of the live sheet.
+- **Closing:** after paying, **Close month** stores the sheet (`PayrollMonths` + `PayrollLines`, amounts and names as they were). A closed month cannot get new adjustments and later salary changes do not touch it; **Reopen month** removes the stored sheet to fix a mistake. Set, add, remove, close and reopen are written to the audit log.
+- **Not included:** taxes and pension (ОПВ, ИПН), bank payouts, schedules, hours, pay by percent of sales.
+- **When off:** the API returns `403 module_disabled` and the page and link are hidden; the data is kept.
+- **Depends on:** nothing.
+
 ### `own_pos` (self-developed POS, shipped one feature at a time)
 Gated so far: the **Kitchen** screen, **Cashier**, **Stock** and **Printers**. Other `own_pos` features are added here as they ship.
 - **Kitchen screen:** admin route `/kitchen` and menu entry. A tablet page per branch with three columns (New, Preparing, Ready) of the accepted orders, oldest first, with items, toppings, notes and the wait time (red when past the promised minutes). One big button per card moves it on (Start, Ready, Handed over). It uses the same order API and live events as Live Orders, so no backend gate is needed and nothing changes for customers.

@@ -76,6 +76,7 @@ customers. Staging costs about 5 USD a month on Railway's Hobby plan plus databa
    - `Jwt__Secret`: a new random value (`openssl rand -base64 48`)
    - `Secrets__MasterKey`: a **new** key from `openssl rand -base64 32` (save it as "Yurt master key – staging")
    - `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD`: a staging admin login
+   - `SEED_CEO_USERNAME` / `SEED_CEO_PASSWORD`: a staging owner (CEO) login; without one nobody sees analytics, billing or payroll (see `docs/roles.md`)
    - `Otp__Required` = `false` (no real WhatsApp codes on staging)
    - `Webkassa__BaseUrl` = `https://devkkm.webkassa.kz` (tax receipts go to Webkassa's test server)
    - remove `Stripe__AllowLiveKeys` if it is there; staging uses Stripe test keys only

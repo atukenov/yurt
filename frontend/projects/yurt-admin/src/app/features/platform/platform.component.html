@@ -80,6 +80,11 @@
               @for (a of cafeAdmins(); track a.id) {
                 <div class="flex flex-wrap items-center gap-2 mb-2">
                   <span class="w-56 text-sm font-semibold text-slate-700">{{ a.username }}</span>
+                  <select [ngModel]="a.role" (ngModelChange)="setCafeAdminRole(a, $event)" [attr.aria-label]="'workers.role' | t"
+                    class="px-2 py-1.5 rounded-xl border border-slate-200 text-xs">
+                    <option value="Ceo">{{ 'role.Ceo' | t }}</option>
+                    <option value="Admin">{{ 'role.Admin' | t }}</option>
+                  </select>
                   <input type="password" autocomplete="new-password" [attr.aria-label]="'plat.cafeAdminPw' | t" [placeholder]="'plat.cafeAdminPw' | t"
                     [(ngModel)]="adminPasswords[a.id]" class="flex-1 min-w-40 px-3 py-1.5 rounded-xl border border-slate-200 text-sm" />
                   <button (click)="resetCafeAdmin(a)" [disabled]="(adminPasswords[a.id] ?? '').length < 8"

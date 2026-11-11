@@ -48,7 +48,7 @@ public class AuditLogScopeTests(YurtWebAppFactory factory)
             db.Tenants.Add(tenant);
             db.AdminUsers.Add(new AdminUser
             {
-                TenantId = tenant.Id, Username = $"log-b-{id}", Role = AdminRole.Admin, IsActive = true,
+                TenantId = tenant.Id, Username = $"log-b-{id}", Role = AdminRole.Ceo, IsActive = true,
                 PasswordHash = scope.ServiceProvider.GetRequiredService<IPasswordHasher>().Hash(Password),
             });
             await db.SaveChangesAsync();
@@ -74,7 +74,7 @@ public class AuditLogScopeTests(YurtWebAppFactory factory)
     {
         var id = Guid.NewGuid().ToString("N")[..8];
         var adminA = Client(factory, await ApiHelpers.CreateAdminTokenAsync(factory.Services, factory.CreateClient(),
-            username: $"log-a-{id}", password: Password));
+            username: $"log-a-{id}", password: Password, role: AdminRole.Ceo));
         var operatorToken = await ApiHelpers.CreateAdminTokenAsync(factory.Services, factory.CreateClient(),
             username: "platform-owner", password: "PlatformOwner@123", role: AdminRole.SuperAdmin);
         var b = await SecondCafeAsync(id);

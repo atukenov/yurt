@@ -367,6 +367,20 @@ export class PlatformComponent implements OnInit {
     this.api.getCafeAdmins(cafe.id).subscribe({ next: (a) => this.cafeAdmins.set(a) });
   }
 
+  /** Hands the cafe's money screens and payroll to its owner (CEO), or takes them back (Admin). */
+  setCafeAdminRole(admin: CafeAdmin, role: 'Ceo' | 'Admin'): void {
+    const cafeId = this.adminsCafeId();
+    if (!cafeId || admin.role === role) return;
+    this.api.setCafeAdminRole(cafeId, admin.id, role).subscribe({
+      next: (saved) => {
+        this.cafeAdmins.update((l) => l.map((x) => (x.id === saved.id ? saved : x)));
+        this.toast.success(this.lang.t('plat.cafeAdminRoleToast'));
+      },
+      // The server refuses to leave a cafe without an active CEO; put the list back as it was.
+      error: () => this.cafeAdmins.update((l) => [...l]),
+    });
+  }
+
   resetCafeAdmin(admin: CafeAdmin): void {
     const cafeId = this.adminsCafeId();
     const password = this.adminPasswords[admin.id] ?? '';

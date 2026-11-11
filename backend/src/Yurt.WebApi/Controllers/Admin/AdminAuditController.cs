@@ -12,7 +12,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/audit-log")]
 [ApiController]
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Policy = "CeoOnly")]
 [RequireModule(ModuleKeys.StaffAudit)]
 public class AdminAuditController(IApplicationDbContext db) : ControllerBase
 {

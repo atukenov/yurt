@@ -40,7 +40,7 @@ public class WorkerServiceTests
         var existing = new AdminUser { Username = "taken", Role = AdminRole.Worker };
         var (svc, _) = Build([existing]);
 
-        var result = await svc.CreateWorkerAsync(new CreateWorkerDto { Username = "taken", Password = "pw" });
+        var result = await svc.CreateWorkerAsync(new CreateWorkerDto { Username = "taken", Password = "pw" }, AdminRole.Admin);
 
         Assert.False(result.Succeeded);
         Assert.Equal(409, result.StatusCode);
@@ -51,7 +51,7 @@ public class WorkerServiceTests
     {
         var (svc, db) = Build();
 
-        var result = await svc.CreateWorkerAsync(new CreateWorkerDto { Username = "newhire", Password = "plainpw" });
+        var result = await svc.CreateWorkerAsync(new CreateWorkerDto { Username = "newhire", Password = "plainpw" }, AdminRole.Admin);
 
         Assert.True(result.Succeeded);
         Assert.Equal(201, result.StatusCode);
@@ -65,7 +65,7 @@ public class WorkerServiceTests
     {
         var (svc, _) = Build();
 
-        var result = await svc.UpdateWorkerAsync(Guid.NewGuid(), new UpdateWorkerDto { Username = "x", IsActive = true });
+        var result = await svc.UpdateWorkerAsync(Guid.NewGuid(), new UpdateWorkerDto { Username = "x", IsActive = true }, AdminRole.Admin);
 
         Assert.False(result.Succeeded);
         Assert.Equal(404, result.StatusCode);
@@ -78,7 +78,7 @@ public class WorkerServiceTests
         var other = new AdminUser { Username = "worker2", Role = AdminRole.Worker };
         var (svc, _) = Build([worker, other]);
 
-        var result = await svc.UpdateWorkerAsync(worker.Id, new UpdateWorkerDto { Username = "worker2", IsActive = true });
+        var result = await svc.UpdateWorkerAsync(worker.Id, new UpdateWorkerDto { Username = "worker2", IsActive = true }, AdminRole.Admin);
 
         Assert.False(result.Succeeded);
         Assert.Equal(409, result.StatusCode);
@@ -90,7 +90,7 @@ public class WorkerServiceTests
         var worker = new AdminUser { Username = "old", IsActive = true, Role = AdminRole.Worker };
         var (svc, db) = Build([worker]);
 
-        var result = await svc.UpdateWorkerAsync(worker.Id, new UpdateWorkerDto { Username = "new", IsActive = false });
+        var result = await svc.UpdateWorkerAsync(worker.Id, new UpdateWorkerDto { Username = "new", IsActive = false }, AdminRole.Admin);
 
         Assert.True(result.Succeeded);
         Assert.Equal("new", worker.Username);
@@ -102,7 +102,7 @@ public class WorkerServiceTests
     public async Task SetActiveAsync_UnknownId_ReturnsNotFound()
     {
         var (svc, _) = Build();
-        var result = await svc.SetActiveAsync(Guid.NewGuid(), false);
+        var result = await svc.SetActiveAsync(Guid.NewGuid(), false, AdminRole.Admin);
         Assert.False(result.Succeeded);
         Assert.Equal(404, result.StatusCode);
     }
@@ -113,7 +113,7 @@ public class WorkerServiceTests
         var worker = new AdminUser { Username = "w", IsActive = true, Role = AdminRole.Worker };
         var (svc, _) = Build([worker]);
 
-        var result = await svc.SetActiveAsync(worker.Id, false);
+        var result = await svc.SetActiveAsync(worker.Id, false, AdminRole.Admin);
 
         Assert.True(result.Succeeded);
         Assert.False(worker.IsActive);
@@ -125,7 +125,7 @@ public class WorkerServiceTests
         var worker = new AdminUser { Username = "w", PasswordHash = "old-hash", Role = AdminRole.Worker };
         var (svc, _) = Build([worker]);
 
-        var result = await svc.ResetPasswordAsync(worker.Id, new ResetWorkerPasswordDto { NewPassword = "newpw" });
+        var result = await svc.ResetPasswordAsync(worker.Id, new ResetWorkerPasswordDto { NewPassword = "newpw" }, AdminRole.Admin);
 
         Assert.True(result.Succeeded);
         Assert.Equal("hashed:newpw", worker.PasswordHash);

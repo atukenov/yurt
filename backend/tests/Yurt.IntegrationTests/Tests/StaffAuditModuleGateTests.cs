@@ -19,7 +19,8 @@ public class StaffAuditModuleGateTests(YurtWebAppFactory factory)
     {
         var admin = factory.CreateClient();
         admin.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-            await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin));
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin,
+                username: "testceo", password: "TestCeo@123", role: AdminRole.Ceo));
         var super = factory.CreateClient();
         super.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
             await ApiHelpers.CreateAdminTokenAsync(factory.Services, super,

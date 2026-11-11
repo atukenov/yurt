@@ -1,0 +1,28 @@
+namespace Yurt.Application.Features.Payroll;
+
+/// <summary>One account of the cafe with what it is paid every month (0 = not on the payroll).</summary>
+public record PayrollStaffDto(Guid Id, string Username, string Role, bool IsActive, decimal MonthlySalary);
+
+public record SetSalaryDto(decimal MonthlySalary);
+
+public record PayAdjustmentDto(Guid Id, bool IsDeduction, decimal Amount, string Reason, string CreatedBy, DateTime CreatedAt);
+
+public record PayrollLineDto(
+    Guid AdminUserId, string Username, string Role,
+    decimal Salary, decimal Bonuses, decimal Deductions, decimal Total,
+    List<PayAdjustmentDto> Adjustments);
+
+public record PayrollSheetDto(
+    string Month, bool Closed, DateTime? ClosedAt, string? ClosedBy,
+    List<PayrollLineDto> Lines, decimal TotalSalary, decimal TotalBonuses, decimal TotalDeductions, decimal TotalToPay);
+
+public record AddAdjustmentDto
+{
+    public Guid AdminUserId { get; init; }
+    /// <summary>"yyyy-MM".</summary>
+    public string Month { get; init; } = "";
+    /// <summary>"bonus" or "deduction".</summary>
+    public string Kind { get; init; } = "bonus";
+    public decimal Amount { get; init; }
+    public string Reason { get; init; } = "";
+}

@@ -60,7 +60,12 @@ public enum AdminRole
     Admin = 0,
     Worker = 1,
     /// <summary>Platform operator. Has every Admin permission plus the /platform tools. Never listed in or editable from the cafe's staff page.</summary>
-    SuperAdmin = 2
+    SuperAdmin = 2,
+    /// <summary>
+    /// The cafe's owner / chief: everything an Admin can do plus the money side (sales reports, billing, audit log,
+    /// payroll). Admins run the cafe day to day (orders, stock, purchasing, shifts) but see no money numbers.
+    /// </summary>
+    Ceo = 3
 }
 
 public enum DiscountType

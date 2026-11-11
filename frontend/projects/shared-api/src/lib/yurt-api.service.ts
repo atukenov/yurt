@@ -17,7 +17,7 @@ import {
   GoLiveChecklist,
   MaintenanceInfo,
   Cafe,
-  CafeSecretStatus, CafeAdmin,
+  CafeSecretStatus, CafeAdmin, PayrollStaff, PayAdjustment, PayrollSheet,
   CreateCafeRequest,
   MenuImportResult,
   BrandConfig,
@@ -189,6 +189,10 @@ export class YurtApiService {
     return this.http.get<CafeAdmin[]>(`${this.api}/platform/cafes/${id}/admins`);
   }
   /** Only the operator resets a cafe admin's password; the admin must choose a new one at next sign-in. */
+  setCafeAdminRole(cafeId: string, adminId: string, role: 'Ceo' | 'Admin'): Observable<CafeAdmin> {
+    return this.http.put<CafeAdmin>(`${this.api}/platform/cafes/${cafeId}/admins/${adminId}/role`, { role });
+  }
+
   resetCafeAdminPassword(cafeId: string, adminId: string, newPassword: string): Observable<CafeAdmin> {
     return this.http.post<CafeAdmin>(`${this.api}/platform/cafes/${cafeId}/admins/${adminId}/reset-password`, { newPassword });
   }
@@ -1122,12 +1126,43 @@ export class YurtApiService {
     });
   }
 
+  // ── Payroll (CEO only) ─────────────────────────────────────────────────────
+  getPayrollStaff(): Observable<PayrollStaff[]> {
+    return this.http.get<PayrollStaff[]>(`${this.api}/admin/payroll/staff`);
+  }
+
+  setSalary(userId: string, monthlySalary: number): Observable<PayrollStaff> {
+    return this.http.put<PayrollStaff>(`${this.api}/admin/payroll/staff/${userId}/salary`, { monthlySalary });
+  }
+
+  getPayrollMonth(month: string): Observable<PayrollSheet> {
+    return this.http.get<PayrollSheet>(`${this.api}/admin/payroll/months/${month}`);
+  }
+
+  addPayAdjustment(data: {
+    adminUserId: string; month: string; kind: 'bonus' | 'deduction'; amount: number; reason: string;
+  }): Observable<PayAdjustment> {
+    return this.http.post<PayAdjustment>(`${this.api}/admin/payroll/adjustments`, data);
+  }
+
+  deletePayAdjustment(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/payroll/adjustments/${id}`);
+  }
+
+  closePayrollMonth(month: string): Observable<PayrollSheet> {
+    return this.http.post<PayrollSheet>(`${this.api}/admin/payroll/months/${month}/close`, {});
+  }
+
+  reopenPayrollMonth(month: string): Observable<PayrollSheet> {
+    return this.http.post<PayrollSheet>(`${this.api}/admin/payroll/months/${month}/reopen`, {});
+  }
+
   // ── Workers ────────────────────────────────────────────────────────────────
   getWorkers(): Observable<WorkerAccount[]> {
     return this.http.get<WorkerAccount[]>(`${this.api}/admin/workers`);
   }
 
-  createWorker(data: { username: string; password: string }): Observable<WorkerAccount> {
+  createWorker(data: { username: string; password: string; role?: "Worker" | "Admin" }): Observable<WorkerAccount> {
     return this.http.post<WorkerAccount>(`${this.api}/admin/workers`, data);
   }
 
