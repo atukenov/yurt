@@ -27,6 +27,13 @@ public static class DbSeeder
         await SeedCeoAsync(db, logger);
         await SeedSuperAdminAsync(db, logger);
         await SeedModuleLicensesAsync(db, logger);
+
+        // Made-up orders, customers, stock... for trying the app locally. Never set on a real cafe's server.
+        if (DemoDataSeeder.IsEnabled())
+        {
+            var cafe = await db.Tenants.SingleAsync(t => t.Id == Tenant.DefaultId);
+            await DemoDataSeeder.SeedAsync(db, cafe, logger);
+        }
     }
 
     private static async Task SeedLocationsAsync(ApplicationDbContext db, ILogger logger)

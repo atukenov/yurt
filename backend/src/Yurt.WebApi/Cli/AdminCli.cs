@@ -20,13 +20,14 @@ namespace Yurt.WebApi.Cli;
 ///   dotnet Yurt.WebApi.dll set-admin-role &lt;username&gt; &lt;Ceo|Admin&gt;   # hand a cafe's money screens to its owner
 ///   dotnet Yurt.WebApi.dll list-admins                        # usernames and roles only, never hashes
 ///   dotnet Yurt.WebApi.dll revoke-all-sessions                # force every user to sign in again
+///   dotnet Yurt.WebApi.dll seed-demo [cafe-slug]              # fill a cafe with made-up demo data (see DemoDataSeeder)
 ///
 /// See docs/admin-password-reset.md and docs/jwt-rotation.md.
 /// </summary>
 public static class AdminCli
 {
     public static readonly string[] Commands =
-        ["reset-admin-password", "list-admins", "revoke-all-sessions", "set-admin-role"];
+        ["reset-admin-password", "list-admins", "revoke-all-sessions", "set-admin-role", "seed-demo"];
 
     public static bool IsCommand(string[] args)
         => args.Length > 0 && Commands.Contains(args[0]);
@@ -52,6 +53,7 @@ public static class AdminCli
                 "set-admin-role" => await SetAdminRoleAsync(db, args),
                 "list-admins" => await ListAdminsAsync(db),
                 "revoke-all-sessions" => await RevokeAllSessionsAsync(db),
+                "seed-demo" => await SeedDemoAsync(scope.ServiceProvider, db, args),
                 _ => Usage()
             };
         }
@@ -128,6 +130,29 @@ public static class AdminCli
         admin.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
         Console.WriteLine($"'{admin.Username}' is now {role}. They get the new access at their next sign-in.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Fills one cafe (default: the first Yurt cafe) with made-up demo data. Only adds rows; running it again adds nothing.
+    /// Meant for a local or demo database: the orders, customers and staff it creates are not real.
+    /// </summary>
+    private static async Task<int> SeedDemoAsync(IServiceProvider services, ApplicationDbContext db, string[] args)
+    {
+        var slug = args.Length > 1 && !string.IsNullOrWhiteSpace(args[1]) ? args[1].Trim() : Yurt.Domain.Entities.Tenant.DefaultSlug;
+        var cafe = await db.Tenants.FirstOrDefaultAsync(t => t.Slug == slug);
+        if (cafe is null)
+        {
+            Console.Error.WriteLine($"No cafe with slug '{slug}'. Usage: seed-demo [cafe-slug]");
+            return 3;
+        }
+
+        services.GetRequiredService<ITenantContext>().Set(cafe.Id, cafe.Slug);
+        var logger = services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ApplicationDbContext>>();
+        await DemoDataSeeder.SeedAsync(db, cafe, logger);
+        Console.WriteLine(
+            $"Demo data added to '{cafe.Name}' ({cafe.Slug}). Staff password: {DemoDataSeeder.StaffPassword}; " +
+            $"customer phones {DemoDataSeeder.PhonePrefix}0001..0030, PIN {DemoDataSeeder.CustomerPin}.");
         return 0;
     }
 

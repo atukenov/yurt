@@ -18,6 +18,10 @@ PostgreSQL and Angular, with Capacitor for the iOS and Android apps.
 | Admin panel | http://localhost:4300 — café admin `admin` / `admin12345`, platform operator `superadmin` / `superadmin12345` (both must change the password at first login) |
 | API + Swagger | http://localhost:8080, http://localhost:8080/swagger |
 
+The local cafe comes filled with made-up demo data (about 2,000 orders, stock, suppliers, staff, payroll...). Demo
+staff sign in as `demo.manager` / `demo12345`, customers as `+77015550001` with PIN `1234`. See
+[docs/demo-data.md](docs/demo-data.md).
+
 Needs Docker (with compose) and Node 20+. The .NET SDK is not needed, the API builds in Docker.
 `./scripts/dev.sh stop` stops everything, `./scripts/dev.sh reset` also deletes the local database,
 `./scripts/dev.sh phone` lets a phone on the same Wi-Fi open the customer app. More in [docs/runbook.md](docs/runbook.md);

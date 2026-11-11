@@ -50,6 +50,9 @@ services:
       AllowedOrigins__2: ${YURT_PHONE_ORIGIN:-http://localhost:4200}
       # Local: no real WhatsApp/SMS provider, so skip phone verification.
       Otp__Required: "false"
+      # Fill the local cafe with made-up demo data (orders, customers, stock, staff, payroll...). Only adds what is
+      # missing, so restarts add nothing. Set to "false" for an empty cafe. Never set this on a real server.
+      SEED_DEMO_DATA: ${YURT_DEMO_DATA:-true}
     ports:
       - "8080:8080"
     healthcheck:

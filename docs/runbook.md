@@ -17,6 +17,9 @@ Short, practical procedures for running the platform. Production currently runs 
 | Admin panel | http://localhost:4300 (`admin` / `admin12345`, you must change it at first login) |
 | API + Swagger | http://localhost:8080, http://localhost:8080/swagger |
 
+The local cafe is filled with demo data (staff `demo.manager` / `demo12345`, customers `+77015550001` / PIN `1234`),
+see [demo-data.md](demo-data.md). `YURT_DEMO_DATA=false ./scripts/dev.sh` on an empty database gives an empty cafe.
+
 Needs Docker with compose and Node 20+. The .NET SDK is not needed. Phone verification is off locally
 (`Otp__Required=false`), so registration returns the account straight away.
 
