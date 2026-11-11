@@ -3164,6 +3164,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<Guid>("LocationId")
                         .HasColumnType("uuid");
 
+                    b.Property<byte[]>("Picture")
+                        .HasColumnType("bytea");
+
                     b.Property<bool>("SentToTelegram")
                         .HasColumnType("boolean");
 
@@ -3190,6 +3193,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.HasIndex("LocationId", "At");
+
+                    b.HasIndex("LocationId", "At", "Kind", "Zone")
+                        .IsUnique();
 
                     b.ToTable("WatchAlerts");
                 });
@@ -3297,6 +3303,43 @@ namespace Yurt.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("WatchCameras");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.WatchLive", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StateJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("WatchLive", (string)null);
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.WatchMinute", b =>
@@ -4467,6 +4510,21 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.WatchLive", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.WatchMinute", b =>

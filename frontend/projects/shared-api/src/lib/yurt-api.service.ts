@@ -6,6 +6,7 @@ import {
   WatchBox,
   WatchCamera,
   WatchDay,
+  WatchLive,
   WatchSettings,
   WatchShift,
   AcceptOrderRequest,
@@ -884,6 +885,20 @@ export class YurtApiService {
   // ── Staff watch ──
   getWatchDay(locationId: string, day: string): Observable<WatchDay> {
     return this.http.get<WatchDay>(`${this.api}/admin/watch/day`, { params: new HttpParams().set('locationId', locationId).set('day', day) });
+  }
+
+  getWatchLive(locationId: string): Observable<WatchLive> {
+    return this.http.get<WatchLive>(`${this.api}/admin/watch/live`, {
+      params: new HttpParams().set('locationId', locationId),
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
+  }
+
+  getWatchAlertPicture(id: string): Observable<Blob> {
+    return this.http.get(`${this.api}/admin/watch/alerts/${id}/picture`, {
+      responseType: 'blob',
+      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+    });
   }
 
   getWatchBoxes(): Observable<WatchBox[]> {

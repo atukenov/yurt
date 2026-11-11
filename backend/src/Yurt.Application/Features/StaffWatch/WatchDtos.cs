@@ -11,9 +11,12 @@ public record WatchCameraDto(
 
 public record SaveWatchCameraDto(Guid LocationId, string Name, List<WatchZoneDto>? Zones);
 
+/// <summary>Alert settings. <c>QueueWaitSeconds</c> (guests waiting with nobody at the station) replaces
+/// <c>EmptyWhileQueueMinutes</c>, which is kept, rounded up, for boxes from before the seconds-based alerts.</summary>
 public record WatchAlertSettings(
     int EmptyWhileQueueMinutes = 3, int QueueMinGuests = 2, int EmptyOnShiftMinutes = 10, int EmptyMinutes = 15,
-    int LateGraceMinutes = 10, int PhoneMinutes = 5, int StillMinutes = 10);
+    int LateGraceMinutes = 10, int PhoneMinutes = 5, int StillMinutes = 10,
+    int QueueWaitSeconds = 90, int AwayGraceSeconds = 20);
 
 public record WatchDetectSettings(bool Phones = true, bool Still = true);
 
@@ -30,13 +33,18 @@ public record WatchShiftDto(string Day, string Name, string Station, string Star
 
 public record SaveWatchShiftsDto(Guid LocationId, List<WatchShiftDto>? Rows);
 
-public record WatchBoxDto(Guid LocationId, bool HasKey, DateTime? LastSeenAt, List<string> CameraNames, string? Version);
+/// <summary><c>Online</c>: the box checked in within the last 3 minutes (it does so every minute).</summary>
+public record WatchBoxDto(Guid LocationId, bool HasKey, DateTime? LastSeenAt, List<string> CameraNames, string? Version, bool Online = false);
 
 /// <summary>A new box key. It is shown once; only its hash is kept.</summary>
 public record WatchBoxKeyDto(Guid LocationId, string Key);
 
 /// <summary>An alert, with its time in the cafe's local time.</summary>
-public record WatchAlertDto(DateTime At, string Kind, string Zone, string Text);
+public record WatchAlertDto(DateTime At, string Kind, string Zone, string Text, Guid? Id = null, bool HasPicture = false);
+
+/// <summary>The branch right now. <c>State</c> is what the box last sent (null when it never did); <c>At</c> is the
+/// cafe's local time of that; <c>Online</c> as in <see cref="WatchBoxDto"/>.</summary>
+public record WatchLiveDto(Guid LocationId, bool HasBox, bool Online, DateTime? LastSeenAt, DateTime? At, JsonElement? State);
 
 public record WatchHourDto(int Hour, int Visitors, int Orders);
 
@@ -56,7 +64,8 @@ public record AgentMinuteDto(
 
 public record AgentMinutesDto(List<AgentMinuteDto>? Minutes);
 
-public record AgentAlertDto(string At, string Kind, string Zone, string Text);
+/// <summary><c>JpegBase64</c>: an optional small picture (up to 300 KB), heads blurred by the box.</summary>
+public record AgentAlertDto(string At, string Kind, string Zone, string Text, string? JpegBase64 = null);
 
 public record AgentAlertsDto(List<AgentAlertDto>? Alerts);
 

@@ -202,6 +202,7 @@ public static class DependencyInjection
         services.AddScoped<PayrollService>();
         services.AddScoped<Yurt.Application.Features.Profit.ProfitService>();
         services.AddSingleton<IWatchTelegram, WatchTelegram>();
+        services.AddScoped<IWatchLiveNotifier, Yurt.Infrastructure.Hubs.WatchLiveNotifier>();
         services.AddScoped<StationReadyService>();
         services.AddSingleton<PrintQueueSignal>();
         services.AddSingleton<IPrinterTransport, TcpPrinterTransport>();

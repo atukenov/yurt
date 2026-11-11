@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 import cv2
 import numpy as np
 
+from . import tracking
 from .zones import Zone, foot_point, in_zone, line_side, segments_cross
 
 
@@ -102,27 +103,48 @@ class CameraAnalyzer:
     detect_phones: bool = True
     detect_still: bool = True
     still_threshold: float = 0.01
+    fps: float = 1.0
+    min_confidence: float = 0.45
+    use_tracking: bool = True   # ByteTrack + supervision when installed, else the simple DoorCounter
     prev_gray: np.ndarray | None = None
     prev_t: float = 0.0
     doors: dict[str, DoorCounter] = field(default_factory=dict)
 
     def __post_init__(self):
         self.doors = {z.name: DoorCounter(z) for z in self.zones if z.kind == "door"}
+        self.tracking = self.use_tracking and tracking.AVAILABLE
+        self._size: tuple[int, int] | None = None
+        self._tracker = None
+        self._lines: dict = {}
+        self._areas: dict = {}
+
+    def _setup(self, w: int, h: int) -> None:
+        """Pixel shapes for supervision, made again when the picture size changes."""
+        self._size = (w, h)
+        self._areas = {z.name: tracking.AreaZone(z, w, h) for z in self.zones if z.kind != "door"}
+        self._lines = {z.name: tracking.LineDoor(z, w, h) for z in self.zones if z.kind == "door"}
+        self._tracker = tracking.PeopleTracker(self.fps, self.min_confidence) if self._lines else None
 
     def analyze(self, frame: np.ndarray, t: float, detector) -> tuple[dict[str, ZoneSample], list, list]:
         h, w = frame.shape[:2]
         people, phones = detector.detect_all(frame)
+        if self.tracking and self._size != (w, h):
+            self._setup(w, h)
+        tracked = self._tracker.update(people, t) if self.tracking and self._tracker else None
         gray = _gray(frame) if self.detect_still else None
         use_prev = gray is not None and self.prev_gray is not None and self.prev_gray.shape == gray.shape and t - self.prev_t <= 3
         out: dict[str, ZoneSample] = {}
         for z in self.zones:
             s = ZoneSample()
             if z.kind == "door":
-                feet = [foot_point(p, w, h) for p in people]
-                s.entered, s.left = self.doors[z.name].update(feet, t)
+                if tracked is not None:
+                    s.entered, s.left = self._lines[z.name].update(tracked)
+                else:
+                    feet = [foot_point(p, w, h) for p in people]
+                    s.entered, s.left = self.doors[z.name].update(feet, t)
                 out[z.name] = s
                 continue
-            mine = [p for p in people if in_zone(p, w, h, z)]
+            mine = self._areas[z.name].inside(people) if self.tracking else [p for p in people if in_zone(p, w, h, z)]
             s.people = len(mine)
             if z.kind == "station" and mine:
                 if self.detect_phones:

@@ -36,6 +36,28 @@ public sealed class WatchTelegram(ILogger<WatchTelegram> logger, HttpMessageHand
         }
     }
 
+    public async Task<bool> SendPhotoAsync(string botToken, string chatId, string caption, byte[] jpeg, CancellationToken ct = default)
+    {
+        try
+        {
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(chatId), "chat_id");
+            form.Add(new StringContent(caption.Length <= 1000 ? caption : caption[..1000] + "…"), "caption");
+            var photo = new ByteArrayContent(jpeg);
+            photo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+            form.Add(photo, "photo", "alert.jpg");
+            using var res = await _http.PostAsync($"{Api}/bot{botToken}/sendPhoto", form, ct);
+            if (res.IsSuccessStatusCode) return true;
+            logger.LogWarning("Staff watch: Telegram refused a picture ({Status}); sending the text alone", (int)res.StatusCode);
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
+        {
+            logger.LogWarning("Staff watch: Telegram not reachable: {Message}", e.Message);
+            return false;
+        }
+        return await SendAsync(botToken, chatId, caption, ct);
+    }
+
     public async Task<string?> LatestChatAsync(string botToken, CancellationToken ct = default)
     {
         try

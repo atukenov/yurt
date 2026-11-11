@@ -33,6 +33,8 @@ class Alerts:
     late_grace_minutes: int = 10
     phone_minutes: int = 5           # phone in hand this long without a break
     still_minutes: int = 10          # nobody at the station moved this long (sleeping?)
+    queue_wait_seconds: int = 90     # guests waiting and nobody at the station this long -> "unattended queue"
+    away_grace_seconds: int = 20     # a station counts as away only after nobody is seen this long
 
 
 @dataclass
@@ -72,6 +74,9 @@ class Config:
     schedule_rows: list[dict] | None = None   # from Yurt; replaces schedule_file
     yurt_api: str = ""
     yurt_key: str = ""
+    engine: str = "auto"           # rfdetr, yolox, or auto (RF-DETR when its file is there)
+    device: str = "auto"           # cpu, intel (OpenVINO), nvidia (CUDA), or auto
+    rfdetr_model: Path | None = None
 
     @property
     def stations(self) -> list[Zone]:
@@ -146,6 +151,9 @@ def load(path: str | Path) -> Config:
         detect=_dc(Detect, raw.get("detect")),
         yurt_api=str(yurt.get("api", "")).rstrip("/"),
         yurt_key=str(yurt.get("key", "")),
+        engine=str(raw.get("engine", "auto")),
+        device=str(raw.get("device", "auto")),
+        rfdetr_model=rel(raw.get("rfdetr_model", "models/rfdetr_nano.onnx")),
     )
     if not cfg.connected:
         cfg.check()

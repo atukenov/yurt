@@ -305,6 +305,230 @@ class NewSignalsTests(unittest.TestCase):
         self.assertEqual(c.open.hour, 9)
 
 
+class FakeDet:
+    name = "fake"
+
+    def __init__(self, people=(), phones=()):
+        self.people, self.phones = list(people), list(phones)
+
+    def detect_all(self, frame):
+        return self.people, self.phones
+
+    def phones_near(self, frame, person):
+        return []
+
+
+class EngineTests(unittest.TestCase):
+    """Detector choice and hardware setting, without needing the model files."""
+
+    def test_providers(self):
+        from yurtwatch.detector import pick_providers
+
+        cpu = ["CPUExecutionProvider"]
+        self.assertEqual(pick_providers("auto", cpu), ["CPUExecutionProvider"])
+        self.assertEqual(pick_providers("nvidia", cpu), ["CPUExecutionProvider"])  # not installed -> CPU
+        got = pick_providers("auto", ["CUDAExecutionProvider", "CPUExecutionProvider"])
+        self.assertEqual(got, ["CUDAExecutionProvider", "CPUExecutionProvider"])
+        got = pick_providers("intel", ["OpenVINOExecutionProvider", "CPUExecutionProvider"])
+        self.assertEqual(got[0][0], "OpenVINOExecutionProvider")
+        self.assertEqual(got[-1], "CPUExecutionProvider")
+        with self.assertRaises(ValueError):
+            pick_providers("gpu", cpu)
+
+    def test_rfdetr_decode(self):
+        import numpy as np
+
+        from yurtwatch.detector import RF_PERSON, RF_PHONE, rfdetr_decode
+
+        boxes = np.array([[0.5, 0.5, 0.2, 0.4], [0.1, 0.1, 0.05, 0.05], [0.505, 0.5, 0.2, 0.4]], np.float32)
+        logits = np.full((3, 91), -9.0, np.float32)
+        logits[0, RF_PERSON] = 3.0      # sure person
+        logits[2, RF_PERSON] = 1.0      # the same person again, less sure: removed as a duplicate
+        logits[1, RF_PHONE] = 0.0       # 50%: a phone above 0.3
+        people = rfdetr_decode(boxes, logits, 200, 100, RF_PERSON, 0.45)
+        self.assertEqual(len(people), 1)
+        x1, y1, x2, y2, sc = people[0]
+        self.assertAlmostEqual(x1, 80, delta=0.5)
+        self.assertAlmostEqual(y2, 70, delta=0.5)
+        self.assertGreater(sc, 0.9)
+        self.assertEqual(len(rfdetr_decode(boxes, logits, 200, 100, RF_PHONE, 0.3)), 1)
+        self.assertEqual(rfdetr_decode(boxes, logits[:, :10], 200, 100, RF_PHONE, 0.3), [])
+
+    def test_make_detector_falls_back(self):
+        from yurtwatch.detector import make_detector
+
+        missing = HERE / "models" / "nope.onnx"
+        with self.assertRaises(FileNotFoundError):
+            make_detector("rfdetr", HERE / "models" / "yolox_tiny.onnx", missing, 0.45, 0.3)
+        with self.assertRaises(ValueError):
+            make_detector("yolo26", missing, missing, 0.45, 0.3)
+        yolox = HERE / "models" / "yolox_tiny.onnx"
+        if yolox.exists():
+            self.assertEqual(make_detector("auto", yolox, missing, 0.45, 0.3, "cpu").name, "yolox")
+
+    def test_config_engine(self):
+        c = cfg()
+        self.assertEqual((c.engine, c.device), ("auto", "auto"))
+        self.assertTrue(str(c.rfdetr_model).endswith("rfdetr_nano.onnx"))
+
+
+class TrackingTests(unittest.TestCase):
+    def setUp(self):
+        from yurtwatch import tracking
+
+        if not tracking.AVAILABLE:
+            self.skipTest("supervision/trackers not installed")
+
+    def _walk(self, inside, start_y, end_y, frames=12):
+        import numpy as np
+
+        from yurtwatch.analyze import CameraAnalyzer
+
+        door = Zone("door", "door", "c", [(10, 50), (90, 50)], inside=inside)
+        an = CameraAnalyzer([door], detect_phones=False, detect_still=False, fps=5)
+        self.assertTrue(an.tracking)
+        frame = np.zeros((200, 200, 3), np.uint8)
+        ins = outs = 0
+        for i in range(frames):
+            y = start_y + (end_y - start_y) * i / (frames - 1)
+            s, _, _ = an.analyze(frame, i * 0.2, FakeDet([(90, y - 60, 110, y, 0.9)]))
+            ins, outs = ins + s["door"].entered, outs + s["door"].left
+        return ins, outs
+
+    def test_door_direction_follows_inside_point(self):
+        # walking down the picture (y 40% -> 80%)
+        self.assertEqual(self._walk((50, 90), 80, 160), (1, 0))   # inside is below the line: that is coming in
+        self.assertEqual(self._walk((50, 10), 80, 160), (0, 1))   # inside is above: that is leaving
+        self.assertEqual(self._walk((50, 90), 160, 80), (0, 1))
+
+    def test_line_reversed_points(self):
+        import numpy as np
+
+        from yurtwatch.analyze import CameraAnalyzer
+
+        door = Zone("door", "door", "c", [(90, 50), (10, 50)], inside=(50, 90))
+        an = CameraAnalyzer([door], detect_phones=False, detect_still=False, fps=5)
+        frame = np.zeros((200, 200, 3), np.uint8)
+        total = 0
+        for i in range(12):
+            y = 80 + 80 * i / 11
+            total += an.analyze(frame, i * 0.2, FakeDet([(90, y - 60, 110, y, 0.9)]))[0]["door"].entered
+        self.assertEqual(total, 1)
+
+    def test_area_zone_counts_by_feet(self):
+        import numpy as np
+
+        from yurtwatch.analyze import CameraAnalyzer
+
+        till = Zone("till", "station", "c", [(0, 50), (50, 50), (50, 100), (0, 100)])
+        an = CameraAnalyzer([till], detect_phones=False, detect_still=False)
+        frame = np.zeros((100, 100, 3), np.uint8)
+        s, _, _ = an.analyze(frame, 0.0, FakeDet([(10, 10, 30, 80, 0.9), (60, 10, 90, 80, 0.9)]))
+        self.assertEqual(s["till"].people, 1)
+
+
+def sample(people=0, phone=False, still=False):
+    from yurtwatch.analyze import ZoneSample
+
+    return ZoneSample(people=people, phone=phone, still=still)
+
+
+class LiveTests(unittest.TestCase):
+    """Seconds-based: guests waiting with nobody at the station."""
+
+    def setUp(self):
+        from yurtwatch.live import LiveEngine
+
+        self.c = cfg()
+        self.c.alerts.queue_wait_seconds = 60
+        self.c.alerts.away_grace_seconds = 20
+        self.c.alerts.queue_min_guests = 1
+        self.live = LiveEngine(self.c)
+        self.t0 = datetime(2026, 11, 12, 10, 0, 0)
+
+    def run_for(self, start, seconds, bar, queue, slots=()):
+        alerts = []
+        for i in range(seconds):
+            now = start + timedelta(seconds=i)
+            alerts += self.live.update(now, {"bar": sample(bar), "till": sample(1), "queue": sample(queue)}, list(slots))
+        return alerts
+
+    def test_unattended_queue_fires_once_after_wait(self):
+        a = self.run_for(self.t0, 30, bar=1, queue=2)
+        self.assertEqual(a, [])
+        # barista leaves after second 29: counts as away after the 20 s grace, and the wait is counted from
+        # when they were last seen, so the alert comes 60 s after that (second 89), not 60 s after the grace
+        a = self.run_for(self.t0 + timedelta(seconds=30), 50, bar=0, queue=2)
+        self.assertEqual(a, [])
+        a = self.run_for(self.t0 + timedelta(seconds=80), 55, bar=0, queue=2)
+        self.assertEqual([x.kind for x in a], ["unattended_queue"])
+        self.assertEqual(a[0].zone, "bar")
+        self.assertIn("2", a[0].text)
+        st = self.live.state(self.t0)
+        bar = [s for s in st["stations"] if s["zone"] == "bar"][0]
+        self.assertFalse(bar["present"])
+        self.assertIsNotNone(bar["unattendedSince"])
+        # barista back: resets, a new absence can fire again
+        self.assertEqual(self.run_for(self.t0 + timedelta(seconds=135), 5, bar=1, queue=2), [])
+        self.assertIsNone([s for s in self.live.state(self.t0)["stations"] if s["zone"] == "bar"][0]["unattendedSince"])
+        a = self.run_for(self.t0 + timedelta(seconds=140), 90, bar=0, queue=2)
+        self.assertEqual(len(a), 1)
+
+    def test_short_hide_is_not_away(self):
+        # barista hidden for 15 s at a time behind the machine: never away, never an alert
+        a = []
+        for k in range(10):
+            a += self.run_for(self.t0 + timedelta(seconds=30 * k), 15, bar=1, queue=3)
+            a += self.run_for(self.t0 + timedelta(seconds=30 * k + 15), 15, bar=0, queue=3)
+        self.assertEqual(a, [])
+
+    def test_no_guests_no_alert_and_camera_gap(self):
+        self.assertEqual(self.run_for(self.t0, 300, bar=0, queue=0), [])
+        # camera without pictures: nothing is known, nothing fires
+        a = []
+        for i in range(300):
+            a += self.live.update(self.t0 + timedelta(seconds=i), {"bar": None, "till": None, "queue": None}, [])
+        self.assertEqual(a, [])
+
+    def test_visitors_reset_each_day(self):
+        self.live.set_visitors(self.t0.date(), 5, 3)
+        self.live.add_crossings(self.t0, 1, 0)
+        self.assertEqual(self.live.state(self.t0)["visitorsIn"], 6)
+        self.live.add_crossings(self.t0 + timedelta(days=1), 1, 1)
+        self.assertEqual(self.live.state(self.t0)["visitorsIn"], 1)
+
+    def test_minute_rule_off(self):
+        engine = AlertEngine(self.c, queue_rule=False)
+        start = datetime.combine(DAY, datetime.min.time()).replace(hour=10)
+        closed = mins("bar", start, [(0, 0)] * 10) + mins("till", start, [(60, 1)] * 10) + mins("queue", start, [(60, 3)] * 10)
+        out = []
+        for i in range(10):
+            out += engine.on_minutes([m for m in closed if m.minute == start + timedelta(minutes=i)], [])
+        self.assertNotIn("empty_while_queue", [a.kind for a in out])
+
+
+class AlertPictureTests(unittest.TestCase):
+    def test_picture_kept_until_sent(self):
+        import numpy as np
+
+        from yurtwatch.pictures import alert_jpeg
+
+        frame = (np.random.default_rng(1).random((1080, 1920, 3)) * 255).astype(np.uint8)
+        jpg = alert_jpeg(frame, [(100, 100, 300, 900, 0.9)])
+        self.assertTrue(jpg.startswith(b"\xff\xd8"))
+        self.assertLess(len(jpg), 200_000)
+        with tempfile.TemporaryDirectory() as d:
+            st = Store(Path(d) / "w.db")
+            st.log_alert(datetime(2026, 11, 12, 10, 0), "unattended_queue", "bar", "x", jpg)
+            rows = st.unsent_alerts()
+            self.assertEqual(rows[0][5], jpg)
+            st.mark_alerts_sent([rows[0][0]])
+            self.assertIsNone(st.db.execute("SELECT picture FROM alerts").fetchone()[0])
+            st.save([Minute(datetime(2026, 11, 12, 10, 1), "door", 60, 0, 0, 0, entered=4, left=2),
+                     Minute(datetime(2026, 11, 13, 10, 1), "door", 60, 0, 0, 0, entered=9, left=9)])
+            self.assertEqual(st.visitors(date(2026, 11, 12)), (4, 2))
+
+
 class DetectorTests(unittest.TestCase):
     @unittest.skipUnless((HERE / "models" / "yolox_tiny.onnx").exists(), "model not downloaded")
     def test_finds_a_person(self):

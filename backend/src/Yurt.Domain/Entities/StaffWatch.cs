@@ -117,6 +117,24 @@ public class WatchAlert : BaseEntity, ITenantOwned
     public string Zone { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
     public bool SentToTelegram { get; set; }
+
+    /// <summary>A small picture (JPEG, heads blurred by the box) for alerts where seeing the scene helps: guests
+    /// waiting with nobody at the station. Kept as long as the alert.</summary>
+    public byte[]? Picture { get; set; }
+}
+
+/// <summary>What the box sees right now in one branch (stations staffed or away, guests waiting, visitors today).
+/// One row per branch, replaced on each update; the box sends it only when something changes.</summary>
+public class WatchLive : BaseEntity, ITenantOwned
+{
+    public Guid TenantId { get; set; }
+    public Guid LocationId { get; set; }
+
+    /// <summary>{ stations: [...], queues: [...], visitorsIn, visitorsOut } as the box sent it.</summary>
+    public string StateJson { get; set; } = "{}";
+
+    /// <summary>When the box saw this, UTC.</summary>
+    public DateTime At { get; set; }
 }
 
 /// <summary>The daily report the box builds after closing: the text and the numbers behind it (JSON).</summary>

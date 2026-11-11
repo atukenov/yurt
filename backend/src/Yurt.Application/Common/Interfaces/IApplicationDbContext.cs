@@ -43,6 +43,7 @@ public interface IApplicationDbContext
     DbSet<WatchShift> WatchShifts { get; }
     DbSet<WatchMinute> WatchMinutes { get; }
     DbSet<WatchAlert> WatchAlerts { get; }
+    DbSet<WatchLive> WatchLive { get; }
     DbSet<WatchReport> WatchReports { get; }
     DbSet<Picture> Pictures { get; }
     DbSet<StaffSalary> StaffSalaries { get; }

@@ -19,12 +19,16 @@ namespace Yurt.Application.Features.StaffWatch;
 /// </summary>
 public partial class StaffWatchService(
     IApplicationDbContext db, ITenantContext tenant, ITenantSecrets secrets, IWatchTelegram telegram,
-    IAuditLogService audit, ILogger<StaffWatchService> logger)
+    IAuditLogService audit, ILogger<StaffWatchService> logger, IWatchLiveNotifier liveNotifier)
 {
     public const string TelegramTokenKey = "Watch:TelegramBotToken";
     public const int KeepDays = 90;
     private const int MaxCameras = 16, MaxZonesPerCamera = 12, MaxShiftRows = 200, MaxBatch = 2000;
     private const int MaxSnapshotBytes = 2 * 1024 * 1024;
+    private const int MaxAlertPictureBytes = 300 * 1024, MaxLiveJson = 32 * 1024;
+
+    /// <summary>The box checks in every minute; after 3 missed minutes it counts as offline.</summary>
+    public static readonly TimeSpan OnlineWindow = TimeSpan.FromMinutes(3);
 
     public static readonly TimeZoneInfo CafeTime = TimeZoneInfo.FindSystemTimeZoneById("Asia/Almaty");
     private static readonly string[] Kinds = ["station", "queue", "door"];
@@ -38,7 +42,7 @@ public partial class StaffWatchService(
 
     public async Task<List<WatchBoxDto>> BoxesAsync(CancellationToken ct = default)
         => (await db.WatchBoxes.AsNoTracking().ToListAsync(ct))
-            .Select(b => new WatchBoxDto(b.LocationId, true, b.LastSeenAt, SplitNames(b.CameraNames), b.Version)).ToList();
+            .Select(b => new WatchBoxDto(b.LocationId, true, b.LastSeenAt, SplitNames(b.CameraNames), b.Version, IsOnline(b.LastSeenAt))).ToList();
 
     /// <summary>A new key for a branch's box; an older key stops working. It starts with the cafe's short name and a dot.</summary>
     public async Task<Result<WatchBoxKeyDto>> CreateKeyAsync(Guid locationId, CancellationToken ct = default)
@@ -150,6 +154,10 @@ public partial class StaffWatchService(
         int[] minutes = [alerts.EmptyWhileQueueMinutes, alerts.EmptyOnShiftMinutes, alerts.EmptyMinutes, alerts.LateGraceMinutes, alerts.PhoneMinutes, alerts.StillMinutes];
         if (minutes.Any(m => m < 0 || m > 240) || alerts.QueueMinGuests < 1 || alerts.QueueMinGuests > 30)
             return Result<WatchSettingsDto>.Failure("Alert minutes must be 0-240 (0 = off), guests waiting 1-30.");
+        if (alerts.QueueWaitSeconds is < 0 or > 1800 || alerts.AwayGraceSeconds is < 5 or > 300)
+            return Result<WatchSettingsDto>.Failure("Guests waiting alert must be 0-1800 seconds (0 = off), away after 5-300 seconds.");
+        // boxes from before the seconds-based alert still read the minutes
+        alerts = alerts with { EmptyWhileQueueMinutes = alerts.QueueWaitSeconds == 0 ? 0 : (alerts.QueueWaitSeconds + 59) / 60 };
         var chat = dto.TelegramChatId?.Trim();
         if (!string.IsNullOrEmpty(chat) && !long.TryParse(chat, out _) && !chat.StartsWith('@'))
             return Result<WatchSettingsDto>.Failure("Telegram chat id is a number like 123456789 or -1001234567890.");
@@ -263,7 +271,7 @@ public partial class StaffWatchService(
 
         var report = await db.WatchReports.AsNoTracking().FirstOrDefaultAsync(r => r.LocationId == locationId && r.Day == d, ct);
         var alerts = await db.WatchAlerts.AsNoTracking().Where(a => a.LocationId == locationId && a.At >= fromUtc && a.At < toUtc)
-            .OrderBy(a => a.At).Select(a => new { a.At, a.Kind, a.Zone, a.Text }).ToListAsync(ct);
+            .OrderBy(a => a.At).Select(a => new { a.Id, a.At, a.Kind, a.Zone, a.Text, HasPicture = a.Picture != null }).ToListAsync(ct);
         var minutes = await db.WatchMinutes.AsNoTracking().Where(m => m.LocationId == locationId && m.Minute >= fromUtc && m.Minute < toUtc)
             .Select(m => new { m.Minute, m.Zone, m.Seconds, m.Occupied, m.Phone, m.Still, m.Entered }).ToListAsync(ct);
         var orders = await db.Orders.AsNoTracking().Where(o => o.LocationId == locationId && o.CreatedAt >= fromUtc && o.CreatedAt < toUtc && o.Status != OrderStatus.Declined)
@@ -295,7 +303,7 @@ public partial class StaffWatchService(
         }
         return Result<WatchDayDto>.Success(new WatchDayDto(
             locationId, d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), report?.Text, data,
-            alerts.Select(a => new WatchAlertDto(ToLocal(a.At), a.Kind, a.Zone, a.Text)).ToList(),
+            alerts.Select(a => new WatchAlertDto(ToLocal(a.At), a.Kind, a.Zone, a.Text, a.Id, a.HasPicture)).ToList(),
             hours, visitorsByHour.Values.Sum(), orders.Count, live));
     }
 
@@ -341,6 +349,8 @@ public partial class StaffWatchService(
                 ["late_grace_minutes"] = alerts.LateGraceMinutes,
                 ["phone_minutes"] = alerts.PhoneMinutes,
                 ["still_minutes"] = alerts.StillMinutes,
+                ["queue_wait_seconds"] = alerts.QueueWaitSeconds,
+                ["away_grace_seconds"] = alerts.AwayGraceSeconds,
             },
             ["detect"] = new Dictionary<string, bool> { ["phones"] = detect.Phones, ["still"] = detect.Still },
             ["cameras"] = known.OrderBy(c => c.Name).Select(c => new { name = c.Name, zones = ParseZones(c.ZonesJson) }).ToList(),
@@ -385,14 +395,18 @@ public partial class StaffWatchService(
         return Result<int>.Success(parsed.Count);
     }
 
-    /// <summary>Stores the box's alerts and forwards each one to the branch's Telegram chat.</summary>
+    /// <summary>
+    /// Stores the box's alerts and forwards each one to the branch's Telegram chat. An alert the server already has
+    /// (same time, kind and zone: the box sent it again after a lost answer) is skipped, so Telegram gets it once.
+    /// </summary>
     public async Task<Result<int>> AgentAlertsAsync(string? key, AgentAlertsDto dto, CancellationToken ct = default)
     {
         var box = await FindBoxAsync(key, ct);
         if (box is null) return Result<int>.Unauthorized("Unknown camera box key.");
         var (token, chat) = await TelegramForAsync(box.LocationId, ct);
         var location = await db.Locations.AsNoTracking().Where(l => l.Id == box.LocationId).Select(l => l.Name).FirstAsync(ct);
-        var n = 0;
+        var incoming = new List<WatchAlert>();
+        var pictures = new Dictionary<WatchAlert, byte[]>();
         foreach (var a in (dto.Alerts ?? []).Take(100))
         {
             if (!TryLocal(a.At, out var local) || string.IsNullOrWhiteSpace(a.Text)) continue;
@@ -400,13 +414,108 @@ public partial class StaffWatchService(
             {
                 LocationId = box.LocationId, At = ToUtc(local), Kind = Cut(a.Kind, 40), Zone = Cut(a.Zone, 40), Text = Cut(a.Text, 1000),
             };
+            if (DecodeJpeg(a.JpegBase64, MaxAlertPictureBytes) is { } jpeg) pictures[alert] = alert.Picture = jpeg;
+            incoming.Add(alert);
+        }
+        if (incoming.Count == 0) return Result<int>.Success(0);
+
+        var from = incoming.Min(a => a.At);
+        var to = incoming.Max(a => a.At);
+        var have = (await db.WatchAlerts.AsNoTracking().Where(a => a.LocationId == box.LocationId && a.At >= from && a.At <= to)
+                .Select(a => new { a.At, a.Kind, a.Zone }).ToListAsync(ct))
+            .Select(a => (a.At, a.Kind, a.Zone)).ToHashSet();
+        var n = 0;
+        foreach (var alert in incoming)
+        {
+            if (!have.Add((alert.At, alert.Kind, alert.Zone))) continue;
             if (token is not null && chat is not null)
-                alert.SentToTelegram = await telegram.SendAsync(token, chat, $"📍 {location}\n{alert.Text}", ct);
+            {
+                var text = $"📍 {location}\n{alert.Text}";
+                alert.SentToTelegram = pictures.TryGetValue(alert, out var jpeg)
+                    ? await telegram.SendPhotoAsync(token, chat, text, jpeg, ct)
+                    : await telegram.SendAsync(token, chat, text, ct);
+            }
             db.WatchAlerts.Add(alert);
             n++;
         }
         await db.SaveChangesAsync(ct);
         return Result<int>.Success(n);
+    }
+
+    /// <summary>The picture attached to an alert (JPEG, heads blurred by the box), or null.</summary>
+    public async Task<byte[]?> AlertPictureAsync(Guid id, CancellationToken ct = default)
+        => await db.WatchAlerts.AsNoTracking().Where(a => a.Id == id).Select(a => a.Picture).FirstOrDefaultAsync(ct);
+
+    /// <summary>
+    /// What the box sees right now. The box sends this only when something changed and at most every few seconds,
+    /// so this is one small row per branch, replaced each time, and a push to managers who have the page open.
+    /// </summary>
+    public async Task<Result<bool>> AgentLiveAsync(string? key, JsonElement state, CancellationToken ct = default)
+    {
+        var box = await FindBoxAsync(key, ct);
+        if (box is null) return Result<bool>.Unauthorized("Unknown camera box key.");
+        if (state.ValueKind != JsonValueKind.Object) return Result<bool>.Failure("Live state must be a JSON object.");
+        var raw = state.GetRawText();
+        if (raw.Length > MaxLiveJson) return Result<bool>.Failure("Live state is too large.");
+        var at = DateTime.UtcNow;
+        if (state.TryGetProperty("at", out var atEl) && atEl.ValueKind == JsonValueKind.String
+            && DateTime.TryParseExact(atEl.GetString(), "yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var local))
+        {
+            var utc = ToUtc(local);
+            if (Math.Abs((utc - at).TotalHours) < 12) at = utc;  // a box clock far off is ignored
+        }
+
+        var row = await db.WatchLive.FirstOrDefaultAsync(l => l.LocationId == box.LocationId, ct);
+        if (row is null) db.WatchLive.Add(row = new WatchLive { LocationId = box.LocationId });
+        row.StateJson = raw;
+        row.At = at;
+        row.UpdatedAt = DateTime.UtcNow;
+        box.LastSeenAt = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await liveNotifier.SendAsync(tenant.TenantId, box.LocationId, ToLiveDto(box, row), ct);
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning("Staff watch: live update not pushed: {Message}", e.Message);
+        }
+        return Result<bool>.Success(true);
+    }
+
+    /// <summary>The branch right now, for the admin page (it then follows "WatchLive" pushes).</summary>
+    public async Task<WatchLiveDto> LiveAsync(Guid locationId, CancellationToken ct = default)
+    {
+        var box = await db.WatchBoxes.AsNoTracking().FirstOrDefaultAsync(b => b.LocationId == locationId, ct);
+        var row = await db.WatchLive.AsNoTracking().FirstOrDefaultAsync(l => l.LocationId == locationId, ct);
+        if (box is null) return new WatchLiveDto(locationId, false, false, null, null, null);
+        return ToLiveDto(box, row);
+    }
+
+    private static WatchLiveDto ToLiveDto(WatchBox box, WatchLive? row)
+    {
+        JsonElement? state = null;
+        if (row is not null)
+        {
+            try { state = JsonDocument.Parse(row.StateJson).RootElement.Clone(); }
+            catch (JsonException) { state = null; }
+        }
+        return new WatchLiveDto(box.LocationId, true, IsOnline(box.LastSeenAt), box.LastSeenAt,
+            row is null ? null : ToLocal(row.At), state);
+    }
+
+    private static bool IsOnline(DateTime? lastSeen) => lastSeen is { } t && DateTime.UtcNow - t <= OnlineWindow;
+
+    private static byte[]? DecodeJpeg(string? base64, int max)
+    {
+        if (string.IsNullOrEmpty(base64) || base64.Length > max * 4 / 3 + 8) return null;
+        try
+        {
+            var bytes = Convert.FromBase64String(base64);
+            return bytes.Length >= 100 && bytes[0] == 0xFF && bytes[1] == 0xD8 ? bytes : null;
+        }
+        catch (FormatException) { return null; }
     }
 
     /// <summary>Stores the daily report (a later one for the same day replaces it), sends it to Telegram and drops data older than 90 days.</summary>

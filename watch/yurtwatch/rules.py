@@ -34,6 +34,7 @@ class AlertEngine:
     cfg: Config
     history: dict[str, deque] = field(default_factory=lambda: defaultdict(lambda: deque(maxlen=24 * 60)))
     fired: set = field(default_factory=set)  # (kind, key) that already fired and wait to reset
+    queue_rule: bool = True  # minute-based "empty while guests wait"; off when the live engine (seconds) runs
 
     def _last(self, zone: str, n: int) -> list[Minute]:
         h = self.history[zone]
@@ -94,7 +95,7 @@ class AlertEngine:
             names = on_duty(slots, st.name, now)
             duty = t(lang, "on_duty", names=", ".join(names)) if names else ""
 
-            if st.queue and is_open and ("empty_while_queue", st.name) not in self.fired:
+            if self.queue_rule and st.queue and is_open and ("empty_while_queue", st.name) not in self.fired:
                 n = a.empty_while_queue_minutes
                 s_last, q_last = self._last(st.name, n), self._last(st.queue, n)
                 if (

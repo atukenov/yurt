@@ -60,6 +60,9 @@ class YurtClient:
     def send_alerts(self, alerts: list[dict]) -> None:
         self._req("POST", "/alerts", {"alerts": alerts})
 
+    def send_live(self, state: dict) -> None:
+        self._req("POST", "/live", state)
+
     def send_report(self, day: str, text: str, data: dict) -> None:
         self._req("POST", "/reports", {"day": day, "text": text, "data": data})
 

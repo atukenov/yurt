@@ -1,7 +1,8 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService } from 'shared-api';
-import { Location, WatchBox, WatchCamera, WatchDay, WatchSettings, WatchShift, WatchZone, WatchZoneKind } from 'shared-models';
+import { Subscription } from 'rxjs';
+import { SignalrService, YurtApiService } from 'shared-api';
+import { Location, WatchBox, WatchCamera, WatchDay, WatchLive, WatchSettings, WatchShift, WatchZone, WatchZoneKind } from 'shared-models';
 import { LocalDatePipe, ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
@@ -25,6 +26,32 @@ export function percentPoint(clientX: number, clientY: number, rect: { left: num
   return [clamp(((clientX - rect.left) / rect.width) * 100), clamp(((clientY - rect.top) / rect.height) * 100)];
 }
 
+/** The box checks in every minute; after 3 missed minutes it counts as offline (as on the server). */
+export const BOX_ONLINE_MS = 3 * 60_000;
+
+/** Seconds from a cafe-local time like "2026-11-12T10:05:20" to `now` (which is also cafe-local). */
+export function secondsSince(localIso: string | null | undefined, nowLocalMs: number): number {
+  if (!localIso) return 0;
+  const [d, t] = localIso.split('T');
+  const [y, mo, da] = d.split('-').map(Number);
+  const [h, mi, s] = (t ?? '0:0:0').split(':').map(Number);
+  return Math.max(0, Math.floor((nowLocalMs - Date.UTC(y, mo - 1, da, h, mi, s || 0)) / 1000));
+}
+
+/** 75 -> "1:15", 3725 -> "1:02:05". */
+export function clock(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mm = h ? String(m).padStart(2, '0') : String(m);
+  return `${h ? h + ':' : ''}${mm}:${String(s).padStart(2, '0')}`;
+}
+
+/** Now in Almaty as if it were UTC, to compare with the box's local times. */
+export function cafeNowMs(now = new Date()): number {
+  return now.getTime() + 5 * 3600_000; // Kazakhstan is UTC+5 all year
+}
+
 const DAYS = ['daily', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 /**
@@ -42,6 +69,7 @@ export class StaffWatchComponent implements OnInit, OnDestroy {
   private api = inject(YurtApiService);
   private toast = inject(ToastService);
   private lang = inject(AdminLangService);
+  private signalr = inject(SignalrService);
 
   readonly days = DAYS;
   readonly cameraExample = 'bar';
@@ -64,8 +92,24 @@ export class StaffWatchComponent implements OnInit, OnDestroy {
   readonly box = computed(() => this.boxes().find((b) => b.locationId === this.locationId()) ?? null);
   readonly boxOnline = computed(() => {
     const seen = this.box()?.lastSeenAt;
-    return !!seen && Date.now() - new Date(seen).getTime() < 5 * 60_000;
+    return !!seen && Date.now() - new Date(seen).getTime() < BOX_ONLINE_MS;
   });
+
+  // right now (live panel on the Day tab for today)
+  live = signal<WatchLive | null>(null);
+  nowMs = signal(cafeNowMs());
+  alertPictures = signal<Record<string, string>>({});
+  readonly isToday = computed(() => this.day() === cafeToday());
+  readonly liveOnline = computed(() => {
+    const l = this.live();
+    if (!l?.online || !l.lastSeenAt) return false;
+    this.nowMs();
+    return Date.now() - new Date(l.lastSeenAt).getTime() < BOX_ONLINE_MS;
+  });
+  private liveSub?: Subscription;
+  private watchedLocation: string | null = null;
+  private liveTimer?: ReturnType<typeof setInterval>;
+  private livePoll?: ReturnType<typeof setInterval>;
 
   // cameras and zones
   cameras = signal<WatchCamera[]>([]);
@@ -121,11 +165,70 @@ export class StaffWatchComponent implements OnInit, OnDestroy {
     this.refreshTimer = setInterval(() => {
       if (this.tab() === 'cameras' && this.cameras().some((c) => this.waiting(c))) this.loadCameras(false);
     }, 15_000);
+    // live: the box pushes changes through SignalR; a slow poll covers a dropped connection
+    this.liveSub = this.signalr.watchLive$.subscribe((l) => {
+      if (l.locationId === this.locationId()) this.live.set(l);
+    });
+    this.signalr
+      .startConnection()
+      .then(() => {
+        // a branch picked before the connection was up: join its group now
+        if (this.watchedLocation) return this.signalr.subscribeToWatch(this.watchedLocation);
+        this.watchLive();
+        return undefined;
+      })
+      .catch(() => undefined);
+    this.liveTimer = setInterval(() => this.nowMs.set(cafeNowMs()), 1000);
+    this.livePoll = setInterval(() => {
+      if (this.tab() === 'day' && this.isToday()) this.loadLive();
+    }, 60_000);
   }
 
   ngOnDestroy(): void {
     clearInterval(this.refreshTimer);
+    clearInterval(this.liveTimer);
+    clearInterval(this.livePoll);
+    this.liveSub?.unsubscribe();
+    if (this.watchedLocation) this.signalr.unsubscribeFromWatch(this.watchedLocation).catch(() => undefined);
     Object.values(this.pictures()).forEach((u) => URL.revokeObjectURL(u));
+    Object.values(this.alertPictures()).forEach((u) => URL.revokeObjectURL(u));
+  }
+
+  // ── right now ─────────────────────────────────────────────────────────
+
+  private watchLive(): void {
+    const id = this.locationId();
+    if (!id || id === this.watchedLocation) return;
+    if (this.watchedLocation) this.signalr.unsubscribeFromWatch(this.watchedLocation).catch(() => undefined);
+    this.watchedLocation = id;
+    this.signalr.subscribeToWatch(id).catch(() => undefined);
+  }
+
+  loadLive(): void {
+    const id = this.locationId();
+    if (!id) return;
+    this.api.getWatchLive(id).subscribe({
+      next: (l) => this.live.set(l),
+      error: () => this.live.set(null),
+    });
+  }
+
+  since(localIso: string | null | undefined): string {
+    return clock(secondsSince(localIso, this.nowMs()));
+  }
+
+  toggleAlertPicture(id: string): void {
+    const shown = this.alertPictures();
+    if (shown[id]) {
+      URL.revokeObjectURL(shown[id]);
+      const { [id]: _, ...rest } = shown;
+      this.alertPictures.set(rest);
+      return;
+    }
+    this.api.getWatchAlertPicture(id).subscribe({
+      next: (blob) => this.alertPictures.update((p) => ({ ...p, [id]: URL.createObjectURL(blob) })),
+      error: () => this.toast.error(this.lang.t('watch.day.noPicture')),
+    });
   }
 
   pick(id: string): void {
@@ -133,7 +236,10 @@ export class StaffWatchComponent implements OnInit, OnDestroy {
     this.newKey.set(null);
     this.cameraId.set(null);
     this.cancelDraw();
+    this.live.set(null);
     this.loadAll();
+    this.loadLive();
+    this.watchLive();
   }
 
   show(tab: WatchTab): void {

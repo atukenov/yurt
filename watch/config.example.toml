@@ -7,6 +7,9 @@ language = "ru"               # ru or en
 schedule_file = "staff.csv"   # who works where and when (see staff.example.csv)
 data_dir = "data"             # minute counts, reports, check pictures: stay on this computer
 model = "models/yolox_tiny.onnx"
+rfdetr_model = "models/rfdetr_nano.onnx"   # made once with: python watch.py download-model --engine rfdetr
+engine = "auto"               # rfdetr, yolox, or auto (RF-DETR when its file is there, otherwise YOLOX)
+device = "auto"               # cpu, intel (OpenVINO), nvidia (CUDA), or auto (the best one installed)
 sample_seconds = 1.0          # how often each camera is checked
 min_confidence = 0.45         # lower = finds more people, but more mistakes
 check_picture_minutes = 30    # a blurred check picture every N minutes, to verify counting by eye
@@ -30,7 +33,8 @@ bot_token = ""                # from @BotFather
 chat_id = ""                  # your chat with the bot (see README)
 
 [alerts]
-empty_while_queue_minutes = 3 # station empty this long while guests wait -> alert
+queue_wait_seconds = 90       # guests waiting and nobody at the station this long -> alert at once, with a picture
+away_grace_seconds = 20       # a station counts as empty only after nobody is seen this long (hidden by the machine)
 queue_min_guests = 2          # what counts as "guests waiting"
 empty_on_shift_minutes = 10   # station empty this long while someone is scheduled -> alert
 late_grace_minutes = 10       # not at the station this long after the shift starts -> "late"

@@ -60,6 +60,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<CafeExpense> CafeExpenses => Set<CafeExpense>();
     public DbSet<WatchMinute> WatchMinutes => Set<WatchMinute>();
     public DbSet<WatchAlert> WatchAlerts => Set<WatchAlert>();
+    public DbSet<WatchLive> WatchLive => Set<WatchLive>();
     public DbSet<WatchReport> WatchReports => Set<WatchReport>();
     public DbSet<Picture> Pictures => Set<Picture>();
     public DbSet<ToppingUse> ToppingUses => Set<ToppingUse>();

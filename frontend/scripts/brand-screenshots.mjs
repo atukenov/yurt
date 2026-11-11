@@ -107,6 +107,11 @@ const ADMIN_ORDER = (id, status, extra = {}) => ({
   ...MOCK_API['/orders/o-1'], id, status, customerPhone: '+77001234567', createdAt: '2026-10-21T09:00:00Z', ...extra,
 });
 const SHIFT = { id: 's-1', locationId: 'loc-1', locationName: 'Main Street', openedAt: '2026-10-21T08:00:00Z', openedBy: 'Dana', openingCash: 20000 };
+/** The cafe's local time (Almaty, UTC+5) `seconds` ago, as the camera box writes it: yyyy-MM-ddTHH:mm:ss. */
+function almatyAgo(seconds) {
+  return new Date(Date.now() + 5 * 3600_000 - seconds * 1000).toISOString().substring(0, 19);
+}
+
 const ADMIN_MOCK_API = {
   '/admin/locations': [LOCATION, { ...LOCATION, id: 'loc-2', name: 'Riverside', address: '5 River Road' }],
   '/admin/orders': {
@@ -174,7 +179,10 @@ const ADMIN_MOCK_API = {
       { zone: 'till', cameraMinutes: 185, coveredMinutes: 170, phoneMinutes: 12, stillMinutes: 0 },
       { zone: 'bar', cameraMinutes: 185, coveredMinutes: 181, phoneMinutes: 0, stillMinutes: 4 },
     ],
-    alerts: [{ at: '2026-10-21T10:42:00', kind: 'phone', zone: 'till', text: 'Till: phone in hand for 5 min' }],
+    alerts: [
+      { at: '2026-10-21T10:42:00', kind: 'phone', zone: 'till', text: 'Till: phone in hand for 5 min', id: 'al-1', hasPicture: false },
+      { at: '2026-10-21T11:15:00', kind: 'unattended_queue', zone: 'till', text: 'Till: guests waiting with nobody at the station for 95 s (3 in the queue).', id: 'al-2', hasPicture: true },
+    ],
   },
   '/admin/watch/cameras': [{
     id: 'cam-1', locationId: 'loc-1', name: 'bar', snapshotAt: null, snapshotRequestedAt: null, snapshotWidth: 1280, snapshotHeight: 720,
@@ -183,11 +191,23 @@ const ADMIN_MOCK_API = {
       { name: 'queue1', label: 'Queue', kind: 'queue', points: [[45, 50], [80, 50], [80, 95], [45, 95]] },
     ],
   }],
-  '/admin/watch/boxes': [{ locationId: 'loc-1', hasKey: true, lastSeenAt: '2026-10-21T09:04:00Z', cameraNames: ['bar'], version: '2' }],
+  '/admin/watch/boxes': [{ locationId: 'loc-1', hasKey: true, lastSeenAt: '2026-10-21T09:04:00Z', cameraNames: ['bar'], version: '2', online: false }],
+  // the live panel: times are the cafe's (UTC+5) local time, a few seconds before the screenshot
+  '/admin/watch/live': {
+    locationId: 'loc-1', hasBox: true, online: true, lastSeenAt: new Date().toISOString(), at: almatyAgo(5),
+    state: {
+      visitorsIn: 37, visitorsOut: 31,
+      stations: [
+        { zone: 'till', label: 'Till', known: true, present: false, awaySince: almatyAgo(95), phone: false, still: false, unattendedSince: almatyAgo(80) },
+        { zone: 'bar', label: 'Bar', known: true, present: true, awaySince: null, phone: true, still: false, unattendedSince: null },
+      ],
+      queues: [{ zone: 'queue1', label: 'Queue', known: true, people: 3, waitingSince: almatyAgo(120) }],
+    },
+  },
   '/admin/watch/shifts': [{ day: 'daily', name: 'Dana', station: 'till', start: '08:00', end: '17:00' }],
   '/admin/watch/settings': {
     locationId: 'loc-1', open: '08:00', close: '22:00', telegramChatId: null, telegramBotSet: false, detect: { phones: true, still: true },
-    alerts: { emptyWhileQueueMinutes: 3, queueMinGuests: 2, emptyOnShiftMinutes: 10, emptyMinutes: 15, lateGraceMinutes: 10, phoneMinutes: 5, stillMinutes: 10 },
+    alerts: { emptyWhileQueueMinutes: 2, queueMinGuests: 2, emptyOnShiftMinutes: 10, emptyMinutes: 15, lateGraceMinutes: 10, phoneMinutes: 5, stillMinutes: 10, queueWaitSeconds: 90, awayGraceSeconds: 20 },
   },
   '/admin/customers': {
     total: 2, page: 1, pageSize: 50, items: [

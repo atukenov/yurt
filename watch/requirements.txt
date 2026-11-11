@@ -1,5 +1,7 @@
-# Yurt Watch pilot. Python 3.11 or newer.
-numpy>=1.26
-opencv-python-headless>=4.9
-onnxruntime>=1.17
-tzdata>=2024.1   # time zones on Windows
+# Yurt Watch camera box. Python 3.11 or newer.
+numpy>=2.0.2
+opencv-python>=4.9           # full OpenCV (the tracking library needs it); remove opencv-python-headless if you had it
+onnxruntime>=1.17            # CPU. Intel: also  pip install onnxruntime-openvino   NVIDIA: use onnxruntime-gpu instead
+supervision==0.31.6          # door line and zone areas (MIT)
+trackers==2.7.0              # ByteTrack: follows each person between pictures (Apache-2.0)
+tzdata>=2024.1               # time zones on Windows

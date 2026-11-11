@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
-import { GroupCart, Order } from 'shared-models';
+import { GroupCart, Order, WatchLive } from 'shared-models';
 import { AuthStateService } from './auth-state.service';
 import { TENANT_SLUG } from './tenant.interceptor';
 import { Subject } from 'rxjs';
@@ -16,6 +16,9 @@ export class SignalrService {
   readonly paymentUpdated$ = new Subject<Order>();
   readonly groupCartUpdated$ = new Subject<GroupCart>();
   readonly etaReminder$ = new Subject<{ orderId: string; minutesLeft: number }>();
+  /** Staff watch: what the camera box sees right now (after subscribeToWatch). */
+  readonly watchLive$ = new Subject<WatchLive>();
+  private watchLocation: string | null = null;
   readonly connected = signal(false);
 
   private auth = inject(AuthStateService);
@@ -45,9 +48,14 @@ export class SignalrService {
     this.hubConnection.on('PaymentUpdated', (order: Order) => this.paymentUpdated$.next(order));
     this.hubConnection.on('GroupCartUpdated', (dto: GroupCart) => this.groupCartUpdated$.next(dto));
     this.hubConnection.on('EtaReminder', (data: { orderId: string; minutesLeft: number }) => this.etaReminder$.next(data));
+    this.hubConnection.on('WatchLive', (live: WatchLive) => this.watchLive$.next(live));
 
     this.hubConnection.onclose(() => this.connected.set(false));
-    this.hubConnection.onreconnected(() => this.connected.set(true));
+    this.hubConnection.onreconnected(() => {
+      this.connected.set(true);
+      // groups are per connection: join the staff watch one again after a reconnect
+      if (this.watchLocation) this.hubConnection?.invoke('SubscribeToWatch', this.watchLocation).catch(() => undefined);
+    });
 
     await this.hubConnection.start();
     this.connected.set(true);
@@ -62,6 +70,20 @@ export class SignalrService {
   async unsubscribeFromLocation(locationId: string): Promise<void> {
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
       await this.hubConnection.invoke('UnsubscribeFromLocation', locationId);
+    }
+  }
+
+  async subscribeToWatch(locationId: string): Promise<void> {
+    this.watchLocation = locationId;
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      await this.hubConnection.invoke('SubscribeToWatch', locationId);
+    }
+  }
+
+  async unsubscribeFromWatch(locationId: string): Promise<void> {
+    if (this.watchLocation === locationId) this.watchLocation = null;
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+      await this.hubConnection.invoke('UnsubscribeFromWatch', locationId);
     }
   }
 

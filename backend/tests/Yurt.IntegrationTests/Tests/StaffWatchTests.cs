@@ -28,6 +28,14 @@ public class StaffWatchTests(YurtWebAppFactory factory)
             return Task.FromResult(true);
         }
 
+        public List<(string Chat, string Caption, int Bytes)> Photos { get; } = [];
+
+        public Task<bool> SendPhotoAsync(string botToken, string chatId, string caption, byte[] jpeg, CancellationToken ct = default)
+        {
+            lock (Photos) Photos.Add((chatId, caption, jpeg.Length));
+            return Task.FromResult(true);
+        }
+
         public Task<string?> LatestChatAsync(string botToken, CancellationToken ct = default) => Task.FromResult<string?>("424242");
     }
 
@@ -126,10 +134,14 @@ public class StaffWatchTests(YurtWebAppFactory factory)
         var settings = await admin.PutAsJsonAsync("/api/v1/admin/watch/settings", new
         {
             locationId = loc, open = "09:00", close = "21:00",
-            alerts = new { emptyWhileQueueMinutes = 3, queueMinGuests = 2, emptyOnShiftMinutes = 10, emptyMinutes = 15, lateGraceMinutes = 10, phoneMinutes = 4, stillMinutes = 12 },
+            alerts = new { emptyWhileQueueMinutes = 3, queueMinGuests = 2, emptyOnShiftMinutes = 10, emptyMinutes = 15, lateGraceMinutes = 10, phoneMinutes = 4, stillMinutes = 12, queueWaitSeconds = 75, awayGraceSeconds = 15 },
             detect = new { phones = true, still = false }, telegramChatId = (string?)null,
         });
         Assert.Equal(HttpStatusCode.OK, settings.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/v1/admin/watch/settings", new
+        {
+            locationId = loc, open = "09:00", close = "21:00", alerts = new { queueWaitSeconds = 5000 }, detect = (object?)null, telegramChatId = (string?)null,
+        })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await admin.PutAsJsonAsync("/api/v1/admin/watch/telegram-token",
             new { token = "123456789:AAEexampleexampleexampleexample-_12345" })).StatusCode);
         var chat = await admin.PostAsync($"/api/v1/admin/watch/telegram/find-chat?locationId={loc}", null);
@@ -139,6 +151,9 @@ public class StaffWatchTests(YurtWebAppFactory factory)
         var second = await (await box.SendAsync(Box(HttpMethod.Get, "config?cameras=counter,door", key))).Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("09:00", second.GetProperty("open").GetString());
         Assert.Equal(4, second.GetProperty("alerts").GetProperty("phone_minutes").GetInt32());
+        Assert.Equal(75, second.GetProperty("alerts").GetProperty("queue_wait_seconds").GetInt32());
+        Assert.Equal(15, second.GetProperty("alerts").GetProperty("away_grace_seconds").GetInt32());
+        Assert.Equal(2, second.GetProperty("alerts").GetProperty("empty_while_queue_minutes").GetInt32()); // older boxes: 75 s rounded up
         Assert.False(second.GetProperty("detect").GetProperty("still").GetBoolean());
         Assert.Equal(1, second.GetProperty("snapshotRequests").GetArrayLength()); // door camera still waits for its picture
         var counter = second.GetProperty("cameras").EnumerateArray().Single(c => c.GetProperty("name").GetString() == "counter");
@@ -158,9 +173,40 @@ public class StaffWatchTests(YurtWebAppFactory factory)
             Assert.Equal(4, await db.WatchMinutes.IgnoreQueryFilters().CountAsync(m => m.LocationId == loc));
         }
 
-        var alert = await box.SendAsync(Box(HttpMethod.Post, "alerts", key, new { alerts = new[] { new { at = $"{today}T10:05", kind = "phone", zone = "till", text = "📱 Касса: телефон в руках уже 4 мин" } } }));
+        var phoneAlert = new { alerts = new[] { new { at = $"{today}T10:05", kind = "phone", zone = "till", text = "📱 Касса: телефон в руках уже 4 мин" } } };
+        var alert = await box.SendAsync(Box(HttpMethod.Post, "alerts", key, phoneAlert));
         Assert.Equal(HttpStatusCode.OK, alert.StatusCode);
         Assert.Contains(fake.Sent, m => m.Chat == "424242" && m.Text.Contains("телефон"));
+        // sent again (the box did not get the answer): stored and forwarded once
+        Assert.Equal(0, (await (await box.SendAsync(Box(HttpMethod.Post, "alerts", key, phoneAlert))).Content.ReadFromJsonAsync<JsonElement>()).GetInt32());
+        Assert.Single(fake.Sent, m => m.Text.Contains("телефон"));
+
+        // guests waiting with nobody at the till: the alert comes with a picture, in Telegram and in the admin
+        var photo = new byte[5000];
+        photo[0] = 0xFF; photo[1] = 0xD8;
+        var waiting = await box.SendAsync(Box(HttpMethod.Post, "alerts", key, new
+        {
+            alerts = new[] { new { at = $"{today}T10:07", kind = "unattended_queue", zone = "till", text = "🚨 Касса: гости ждут 95 с", jpegBase64 = Convert.ToBase64String(photo) } },
+        }));
+        Assert.Equal(HttpStatusCode.OK, waiting.StatusCode);
+        Assert.Contains(fake.Photos, p => p.Chat == "424242" && p.Caption.Contains("гости ждут") && p.Bytes == 5000);
+
+        // live state: stored, shown with the box online
+        var state = new
+        {
+            at = $"{today}T10:07:30",
+            stations = new[] { new { zone = "till", label = "Касса", known = true, present = false, awaySince = $"{today}T10:05:10", phone = false, still = false, unattendedSince = $"{today}T10:05:20" } },
+            queues = new[] { new { zone = "queue", label = "queue", known = true, people = 3, waitingSince = $"{today}T10:05:00" } },
+            visitorsIn = 3, visitorsOut = 1,
+        };
+        Assert.Equal(HttpStatusCode.OK, (await box.SendAsync(Box(HttpMethod.Post, "live", key, state))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await box.SendAsync(Box(HttpMethod.Post, "live", key, new[] { 1, 2 }))).StatusCode);
+        var live = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/admin/watch/live?locationId={loc}");
+        Assert.True(live.GetProperty("online").GetBoolean());
+        Assert.Equal(3, live.GetProperty("state").GetProperty("visitorsIn").GetInt32());
+        Assert.False(live.GetProperty("state").GetProperty("stations")[0].GetProperty("present").GetBoolean());
+        var boxes = await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/watch/boxes");
+        Assert.True(boxes.EnumerateArray().Single(b => b.GetProperty("locationId").GetGuid() == loc).GetProperty("online").GetBoolean());
 
         var report = await box.SendAsync(Box(HttpMethod.Post, "reports", key, new { day = today, text = "📊 report", data = new { visitorsByHour = new { } } }));
         Assert.Equal(HttpStatusCode.OK, report.StatusCode);
@@ -169,7 +215,11 @@ public class StaffWatchTests(YurtWebAppFactory factory)
         var day = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/admin/watch/day?locationId={loc}&day={today}");
         Assert.Equal("📊 report", day.GetProperty("reportText").GetString());
         Assert.Equal(3, day.GetProperty("visitors").GetInt32());
-        Assert.Single(day.GetProperty("alerts").EnumerateArray());
+        Assert.Equal(2, day.GetProperty("alerts").GetArrayLength());
+        var withPicture = day.GetProperty("alerts").EnumerateArray().Single(a => a.GetProperty("hasPicture").GetBoolean());
+        var alertPic = await admin.GetAsync($"/api/v1/admin/watch/alerts/{withPicture.GetProperty("id").GetGuid()}/picture");
+        Assert.Equal(HttpStatusCode.OK, alertPic.StatusCode);
+        Assert.Equal(5000, (await alertPic.Content.ReadAsByteArrayAsync()).Length);
         var till = day.GetProperty("stations").EnumerateArray().Single();
         Assert.Equal(2, till.GetProperty("cameraMinutes").GetInt32());
         Assert.Equal(1, till.GetProperty("coveredMinutes").GetInt32());

@@ -1274,7 +1274,7 @@ public static class DemoDataSeeder
         {
             (d.Today.AddDays(-1), 9.2, "late", "bar", "Aigerim is 12 min late for the bar shift (08:00)."),
             (d.Today.AddDays(-1), 13.6, "phone", "bar", "Bar: on the phone for 6 min while on duty (Aigerim)."),
-            (d.Today.AddDays(-1), 17.4, "empty_while_queue", "bar", "Bar is empty for 3 min while 3 guests wait."),
+            (d.Today.AddDays(-1), 17.4, "unattended_queue", "bar", "🚨 Bar: guests waiting with nobody at the station for 95 s (3 in the queue)."),
             (d.Today.AddDays(-1), 19.1, "still", "kitchen", "Kitchen: nobody moved for 11 min (Madina)."),
             (d.Today, 8.5, "camera_down", "entrance", "Camera \"entrance\" sends no picture for 5 min."),
             (d.Today, 8.6, "camera_back", "entrance", "Camera \"entrance\" is back."),
@@ -1283,6 +1283,21 @@ public static class DemoDataSeeder
             var at = d.At(day, hour);
             if (at <= d.Now) db.WatchAlerts.Add(new WatchAlert { LocationId = branch.Id, At = at, Kind = kind, Zone = zone, Text = text, SentToTelegram = true });
         }
+        if (!await db.WatchLive.AnyAsync(l => l.LocationId == branch.Id, ct))
+        db.WatchLive.Add(new WatchLive
+        {
+            LocationId = branch.Id, At = d.Now.AddSeconds(-20),
+            StateJson = JsonSerializer.Serialize(new
+            {
+                stations = new object[]
+                {
+                    new { zone = "bar", label = "Bar", known = true, present = true, awaySince = (string?)null, phone = false, still = false, unattendedSince = (string?)null },
+                    new { zone = "kitchen", label = "Kitchen", known = true, present = true, awaySince = (string?)null, phone = false, still = false, unattendedSince = (string?)null },
+                },
+                queues = new object[] { new { zone = "queue", label = "Queue", known = true, people = 2, waitingSince = (string?)null } },
+                visitorsIn = 37, visitorsOut = 31,
+            }, Json),
+        });
         if (!await db.WatchReports.AnyAsync(r => r.LocationId == branch.Id && r.Day == yesterday, ct))
         db.WatchReports.Add(new WatchReport
         {
