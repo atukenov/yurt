@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Yurt для кофеен</title>
-<meta name="description" content="Своё приложение для заказов, касса, склад, поставщики, прибыль и зарплата для кофейни. Без комиссии с заказов, от 19 900 ₸ в месяц.">
+<meta name="description" content="Своё приложение для заказов, касса, склад, поставщики, прибыль и зарплата для кофейни. Без комиссии с заказов, от 16 900 ₸ в месяц.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#f5efe4">
@@ -327,7 +327,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         </div>
         <div class="facts">
           <span data-i18n="hero.f1">0% с заказов</span>
-          <span data-i18n="hero.f2">от 19 900 ₸ в месяц</span>
+          <span data-i18n="hero.f2">от 16 900 ₸ в месяц</span>
           <span data-i18n="hero.f3">русский, қазақша, English</span>
           <span data-i18n="hero.f4">данные остаются вашими</span>
         </div>
@@ -374,11 +374,11 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
             <div class="bar-track"><div class="bar-fill" id="themBar"></div></div>
           </div>
           <div class="bar">
-            <div class="bar-top"><span data-i18n="vs.us">Yurt, комплект «Кофейня»</span><b class="num" id="usOut">39 900 ₸</b></div>
+            <div class="bar-top"><span data-i18n="vs.us">Yurt, комплект «Кофейня»</span><b class="num" id="usOut">48 900 ₸</b></div>
             <div class="bar-track"><div class="bar-fill yurt" id="usBar"></div></div>
           </div>
         </div>
-        <div><span data-i18n="vs.save">Экономия в год:</span> <div class="save num" id="saveOut">602 400 ₸</div></div>
+        <div><span data-i18n="vs.save">Экономия в год:</span> <div class="save num" id="saveOut">493 200 ₸</div></div>
         <p class="small-note" data-i18n="vs.note">Без учёта платы за подключение у сервисов с комиссией (часто около 690 000 ₸) и платы банку за эквайринг, которую платят все.</p>
       </div>
     </div>
@@ -639,7 +639,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 <footer>
   <div class="wrap">
     <span>© 2026 Yurt</span>
-    <span data-i18n="f.note">Цены в тенге за месяц без НДС. Действуют с 1 ноября 2026 года, обновлены 11 ноября.</span>
+    <span data-i18n="f.note">Цены в тенге за месяц без НДС. Действуют с 11 ноября 2026 года.</span>
   </div>
 </footer>
 
@@ -652,33 +652,33 @@ const CONTACT = {
 };
 
 /* ===== Prices (KZT a month, one branch). Keys match Platform → Modules and monthly price. ===== */
-const EXTRA_BRANCH = 7900;
+const EXTRA_BRANCH = 9900;
 const MODULES = [
-  { key: 'core', group: 'sell', price: 14900, locked: true,
+  { key: 'core', group: 'sell', price: 12900, locked: true,
     ru: ['Основа', 'Веб-приложение для заказов, панель управления, меню, заказы в реальном времени, время самовывоза, одна точка'],
     en: ['Base', 'Web ordering app, admin panel, menu, live orders, pickup time, one branch'] },
   { key: 'online_payments', group: 'sell', price: 4900,
     ru: ['Онлайн-оплата', 'Карта, Apple Pay, Google Pay. Деньги сразу на ваш счёт'],
     en: ['Online payments', 'Card, Apple Pay, Google Pay. Money goes straight to you'] },
-  { key: 'table_ordering', group: 'sell', price: 4900,
+  { key: 'table_ordering', group: 'sell', price: 2900,
     ru: ['Заказ со стола по QR', 'Наклейка на столе, гость заказывает без очереди'],
     en: ['Order by table QR', 'A sticker on the table, guests order without queuing'] },
   { key: 'group_orders', group: 'sell', price: 1900,
     ru: ['Общий заказ', 'Одна корзина на компанию или офис'],
     en: ['Group order', 'One shared cart for a team or office'] },
-  { key: 'own_pos', group: 'pos', price: 12900,
+  { key: 'own_pos', group: 'pos', price: 16900,
     ru: ['Своя касса', 'Кухонный экран, касса, принтеры, фискальные чеки. Склад: себестоимость, списания, инвентаризация, поставщики и накладные'],
     en: ['Own POS', 'Kitchen screen, till, printers, tax receipts. Stock: food cost, write-offs, stocktakes, suppliers and delivery invoices'] },
   { key: 'iiko_sync', group: 'pos', price: 9900, tag: { ru: 'если уже есть iiko', en: 'if you already use iiko' },
     ru: ['Связь с iiko', 'Заказы из приложения сразу попадают в iiko'],
     en: ['iiko link', 'App orders go straight into your iiko'] },
-  { key: 'branding', group: 'guests', price: 9900,
+  { key: 'branding', group: 'guests', price: 25900,
     ru: ['Свой бренд', 'Ваше название, логотип, цвета и шрифт. Своё приложение в App Store и Google Play'],
     en: ['Your brand', 'Your name, logo, colours and font. Your own app in the App Store and Google Play'] },
-  { key: 'loyalty', group: 'guests', price: 7900,
+  { key: 'loyalty', group: 'guests', price: 10900,
     ru: ['Бонусы', 'Гости копят баллы и платят ими'],
     en: ['Bonus points', 'Guests earn points and pay with them'] },
-  { key: 'marketing', group: 'guests', price: 4900,
+  { key: 'marketing', group: 'guests', price: 10900,
     ru: ['Акции и промокоды', 'Баннеры с акциями и коды на скидку'],
     en: ['Promotions', 'Promo banners and discount codes'] },
   { key: 'verification', group: 'guests', price: 4900,
@@ -693,7 +693,7 @@ const MODULES = [
   { key: 'analytics', group: 'manage', price: 3900,
     ru: ['Отчёты и прибыль', 'Продажи, средний чек, прибыль за месяц и по каждому блюду, расходы, Excel'],
     en: ['Reports and profit', 'Sales, average check, monthly profit and profit per dish, expenses, Excel'] },
-  { key: 'staff_audit', group: 'manage', price: 2900,
+  { key: 'staff_audit', group: 'manage', price: 1900,
     ru: ['Персонал и журнал', 'Аккаунты и роли сотрудников, кто что менял'],
     en: ['Staff and log', 'Staff accounts and roles, who changed what'] },
   { key: 'payroll', group: 'manage', price: 3900, tag: { ru: 'новое', en: 'new' },
@@ -710,22 +710,22 @@ const GROUPS = {
   manage: { ru: 'Управление', en: 'Running the cafe' }
 };
 const BUNDLES = [
-  { id: 'start', price: 19900, keys: ['core', 'table_ordering', 'push', 'analytics'],
+  { id: 'start', price: 16900, keys: ['core', 'table_ordering', 'push', 'analytics'],
     ru: { name: 'Старт', who: 'Одна точка, гости заказывают с телефона' },
     en: { name: 'Start', who: 'One coffee point, guests order from their phone' } },
-  { id: 'coffee', price: 39900, main: true,
+  { id: 'coffee', price: 48900, main: true,
     keys: ['core', 'table_ordering', 'push', 'analytics', 'branding', 'online_payments', 'marketing', 'loyalty', 'verification', 'staff_audit'],
     ru: { name: 'Кофейня', who: 'Своё приложение, оплата, бонусы и акции', tag: 'Чаще всего выбирают' },
     en: { name: 'Coffee shop', who: 'Your own app, payments, points and promotions', tag: 'Most popular' } },
-  { id: 'full', price: 59900,
+  { id: 'full', price: 75900,
     keys: MODULES.filter(m => m.key !== 'iiko_sync' && m.key !== 'staff_watch').map(m => m.key),
     ru: { name: 'Всё включено', who: 'Плюс своя касса, склад, поставщики, прибыль и зарплата' },
     en: { name: 'Everything', who: 'Plus your own till, stock, suppliers, profit and payroll' } }
 ];
 const ONCE = [
-  { price: 49000, ru: ['Запуск', 'Меню до 150 позиций, бренд, час обучения онлайн. Бесплатно при оплате за год'], en: ['Launch', 'Menu up to 150 items, brand setup, one hour online training. Free with yearly payment'] },
+  { price: 29900, ru: ['Запуск', 'Меню до 150 позиций, бренд, час обучения онлайн. Бесплатно при оплате за год'], en: ['Launch', 'Menu up to 150 items, brand setup, one hour online training. Free with yearly payment'] },
   { price: 150000, ru: ['Своё приложение в App Store и Google Play', 'Сборка, скриншоты, страница в магазине, первая проверка'], en: ['Your app in the App Store and Google Play', 'Build, screenshots, store listing, first review'] },
-  { price: 25000, ru: ['Выезд и настройка оборудования', 'Принтер, планшет, денежный ящик на одной точке, Астана или Алматы'], en: ['On-site hardware setup', 'Printer, tablet and cash drawer at one branch, Astana or Almaty'] }
+  { price: 19900, ru: ['Выезд и настройка оборудования', 'Принтер, планшет, денежный ящик на одной точке, Астана или Алматы'], en: ['On-site hardware setup', 'Printer, tablet and cash drawer at one branch, Astana or Almaty'] }
 ];
 
 /* ===== Text ===== */
@@ -760,7 +760,7 @@ const T = {
     'hero.title': 'Your own ordering app. <span class="hl">No&nbsp;commission</span> on&nbsp;any order.',
     'hero.lead': 'Guests order in an app with your logo, the barista sees the order on a tablet, and the ticket prints itself. You pay one fixed monthly price, not a share of your sales.',
     'hero.cta1': 'Work out the price', 'hero.cta2': 'See the demo',
-    'hero.f1': '0% on orders', 'hero.f2': 'from 19,900 ₸ a month', 'hero.f3': 'Russian, Kazakh, English', 'hero.f4': 'your data stays yours',
+    'hero.f1': '0% on orders', 'hero.f2': 'from 16,900 ₸ a month', 'hero.f3': 'Russian, Kazakh, English', 'hero.f4': 'your data stays yours',
     'mock.branch': 'Dostyk 5 · opens at 8:00', 'mock.tab1': 'Coffee', 'mock.tab2': 'Tea', 'mock.tab3': 'Pastry',
     'mock.i1': 'Cappuccino', 'mock.i2': 'Americano', 'mock.i3': 'Matcha latte', 'mock.cart': 'Cart · 2',
     'mock.new': 'New order #128', 'mock.newsub': 'Pickup at 08:15 · paid', 'mock.t.kitchen': 'KITCHEN', 'mock.t.i1': '2× Cappuccino', 'mock.t.note': '  oat milk', 'mock.t.pickup': 'Pickup',
@@ -797,7 +797,7 @@ const T = {
     'q.6q': 'Can I try it first?', 'q.6a': 'Yes. We show you a demo coffee shop on your phone, and the first 10 coffee shops get the first month free.',
     'c.title': 'A 15 minute demo', 'c.lead': 'Leave a contact and we open the demo coffee shop right on your phone: menu, ordering, barista screen, stock and reports with a month of data.',
     'c.name': 'Your name', 'c.cafe': 'Coffee shop and city', 'c.phone': 'Phone or WhatsApp', 'c.send': 'Send request',
-    'f.note': 'Prices in tenge a month, without VAT. Valid from 1 November 2026, updated 11 November.'
+    'f.note': 'Prices in tenge a month, without VAT. Valid from 11 November 2026.'
   },
   ru: {}
 };
