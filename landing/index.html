@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Yurt для кофеен</title>
-<meta name="description" content="Своё приложение для заказов, касса, кухня и принтеры для кофейни. Без комиссии с заказов, от 19 900 ₸ в месяц.">
+<meta name="description" content="Своё приложение для заказов, касса, склад, поставщики, прибыль и зарплата для кофейни. Без комиссии с заказов, от 19 900 ₸ в месяц.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#f5efe4">
@@ -251,6 +251,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .role ul { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; color: var(--muted); font-size: .97rem; }
 .role li::marker { color: var(--red-ink); }
 @media (max-width: 860px) { .roles { grid-template-columns: 1fr; } }
+.role p { margin: 0; color: var(--muted); font-size: .97rem; }
+.role .in-mod { justify-self: start; font-size: .8rem; font-weight: 600; color: var(--teal); background: var(--teal-soft); border-radius: 999px; padding: 3px 10px; }
+.role .new { color: var(--red-ink); background: var(--red-soft); }
+@media (min-width: 861px) and (max-width: 1100px) { .roles.six { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* hardware */
 .hw { overflow-x: auto; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
@@ -297,6 +301,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     </a>
     <nav class="nav" aria-label="Разделы">
       <a href="#how" data-i18n="nav.how">Как работает</a>
+      <a href="#owner" data-i18n="nav.owner">Для владельца</a>
       <a href="#modules" data-i18n="nav.modules">Модули и цены</a>
       <a href="#launch" data-i18n="nav.launch">Как подключиться</a>
       <a href="#faq" data-i18n="nav.faq">Вопросы</a>
@@ -411,10 +416,58 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
           <h3 data-i18n="how.o">Владелец</h3>
           <ul>
             <li data-i18n="how.o1">Меню загружается из Excel, цены и фото меняются за минуту</li>
-            <li data-i18n="how.o2">Продажи, средний чек и остатки по каждой точке</li>
+            <li data-i18n="how.o2">Прибыль за месяц и по каждому блюду, остатки по каждой точке</li>
             <li data-i18n="how.o3">Акции, промокоды и бонусная программа</li>
-            <li data-i18n="how.o4">Журнал действий персонала и доступ для каждого сотрудника</li>
+            <li data-i18n="how.o4">Роли для персонала: администратор не видит денег, владелец видит всё</li>
           </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="owner" aria-labelledby="own-title" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="own.eyebrow">Для владельца</span>
+        <h2 id="own-title" data-i18n="own.title">Деньги, склад и люди под контролем</h2>
+        <p class="lead" data-i18n="own.lead">Не только приём заказов. Yurt считает себестоимость, ведёт поставщиков, показывает прибыль и зарплаты, а камеры подсказывают, когда гость ждёт у пустой кассы.</p>
+      </div>
+      <div class="roles six">
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4V7zm0 0l9 4 9-4M12 11v10"/></svg></span>
+          <h3 data-i18n="own.1t">Склад и себестоимость</h3>
+          <p data-i18n="own.1p">Себестоимость каждого блюда по техкарте, списания с причиной («пролили», «просрочено», «напиток персоналу»), инвентаризация и перемещения между точками.</p>
+          <span class="in-mod" data-i18n="own.1m">Модуль «Своя касса»</span>
+        </div>
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11L21 7H6.2M9 20h.01M18 20h.01"/></svg></span>
+          <h3 data-i18n="own.2t">Поставщики и накладные</h3>
+          <p data-i18n="own.2p">Список «что заказать» по остаткам, заказ поставщику, приход по накладной в один клик. Видно, кому и сколько вы должны.</p>
+          <span class="in-mod" data-i18n="own.2m">Модуль «Своя касса»</span>
+        </div>
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V4M4 20h16M7 15l4-4 3 3 6-6"/></svg></span>
+          <h3 data-i18n="own.3t">Прибыль, а не только выручка</h3>
+          <p data-i18n="own.3p">Прибыль за месяц с учётом аренды, коммуналки и зарплат. Какие блюда зарабатывают, а какие нет. Выгрузка в Excel.</p>
+          <span class="in-mod" data-i18n="own.3m">Модуль «Отчёты»</span>
+        </div>
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v10H3V7zm9 2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM6 10v4M18 10v4"/></svg></span>
+          <h3 data-i18n="own.4t">Роли и зарплата</h3>
+          <p data-i18n="own.4p">Бариста, администратор и владелец видят разное: деньги видит только владелец. Оклад, премии и удержания, закрытие месяца.</p>
+          <span class="in-mod new" data-i18n="own.4m">Новое · «Зарплата»</span>
+        </div>
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4-2h5l2 2h5a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8zm9 2.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg></span>
+          <h3 data-i18n="own.5t">Камеры следят за стойкой</h3>
+          <p data-i18n="own.5p">Мини-компьютер в кафе смотрит ваши IP-камеры: пустая касса при очереди, телефон в руках, сколько гостей зашло. Сообщение в Telegram за секунды. Без распознавания лиц, видео не уходит из кафе.</p>
+          <span class="in-mod new" data-i18n="own.5m">Новое · «Yurt Watch»</span>
+        </div>
+        <div class="role">
+          <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h2v2h-2zm4 0h2v2h-2zm-4 4h2v2h-2zm4 0h2v2h-2z"/></svg></span>
+          <h3 data-i18n="own.6t">Заказ со стола и ко времени</h3>
+          <p data-i18n="own.6p">Гость сканирует QR на столе камерой или прямо в приложении, а с собой выбирает время самовывоза. Время печатается на тикете кухни.</p>
+          <span class="in-mod" data-i18n="own.6m">Модуль «Заказ со стола по QR»</span>
         </div>
       </div>
     </div>
@@ -505,7 +558,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
           <h3 data-i18n="x.weT">От нас</h3>
           <ul>
             <li data-i18n-html="x.w1"><b>Приложение для гостей</b> <span>в вебе, а с модулем «Бренд» ещё и в App Store и Google Play</span></li>
-            <li data-i18n-html="x.w2"><b>Панель управления</b> <span>меню, заказы, кухня, касса, склад, отчёты, персонал</span></li>
+            <li data-i18n-html="x.w2"><b>Панель управления</b> <span>меню, заказы, кухня, касса, склад, поставщики, прибыль, зарплата</span></li>
             <li data-i18n-html="x.w3"><b>Сервер, база данных и резервные копии</b> <span>уже входят в цену</span></li>
             <li data-i18n-html="x.w4"><b>Обновления</b> <span>новые функции приходят без доплаты за версию</span></li>
             <li data-i18n-html="x.w5"><b>Настройка и обучение</b> <span>меню, бренд, принтер, час обучения персонала</span></li>
@@ -521,7 +574,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="section-head">
         <span class="eyebrow" data-i18n="hw.eyebrow">Оборудование</span>
         <h2 id="hw-title" data-i18n="hw.title">Работает на том, что уже стоит у вас</h2>
-        <p class="lead" data-i18n="hw.lead">Для приёма заказов хватит любого планшета или ноутбука с браузером. Принтер и денежный ящик нужны только с модулем «Своя касса».</p>
+        <p class="lead" data-i18n="hw.lead">Для приёма заказов хватит любого планшета или ноутбука с браузером. Принтер и денежный ящик нужны только с модулем «Своя касса», мини-ПК только с Yurt Watch.</p>
       </div>
       <div class="hw">
         <table>
@@ -531,6 +584,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
             <tr><td data-i18n="hw.r2a">Принтер чеков 80 мм с сетью (ESC/POS)</td><td data-i18n="hw.r2b">Тикеты на кухню и чеки гостю</td><td class="num">30–45 тыс. ₸</td></tr>
             <tr><td data-i18n="hw.r3a">Принтер 58 или 80 мм с Bluetooth</td><td data-i18n="hw.r3b">Если у кассы нет проводной сети</td><td class="num">15–25 тыс. ₸</td></tr>
             <tr><td data-i18n="hw.r4a">Денежный ящик (RJ11)</td><td data-i18n="hw.r4b">Открывается сам при оплате наличными</td><td class="num">15–25 тыс. ₸</td></tr>
+            <tr><td data-i18n="hw.r5a">IP-камеры (Hikvision и другие с RTSP)</td><td data-i18n="hw.r5b">Для Yurt Watch: стойка, касса, вход</td><td data-i18n="hw.r5c">обычно уже есть</td></tr>
+            <tr><td data-i18n="hw.r6a">Мини-ПК (Intel N100, 8–16 ГБ)</td><td data-i18n="hw.r6b">Для Yurt Watch: смотрит камеры прямо в кафе</td><td class="num">70–110 тыс. ₸</td></tr>
           </tbody>
         </table>
       </div>
@@ -553,6 +608,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <details><summary data-i18n="q.6q">Можно сначала попробовать?</summary><p data-i18n="q.6a">Да. Покажем демо-кофейню на вашем телефоне, а первым 10 кофейням дадим первый месяц бесплатно.</p></details>
         <details><summary data-i18n="q.7q">Как гости платят?</summary><p data-i18n="q.7a">На кассе: Kaspi QR, карта или наличные, бариста отмечает оплату в один клик. Онлайн-оплата прямо в приложении подключается модулем «Онлайн-оплата» через ваш договор с банком или платёжным сервисом.</p></details>
         <details><summary data-i18n="q.8q">Будет ли фискальный чек?</summary><p data-i18n="q.8a">Да, через облачную кассу Webkassa или ReKassa. Чек с QR-кодом налоговой печатается на принтере и показывается гостю в приложении. Кассу оплачиваете оператору напрямую, от 3 900 ₸ в месяц.</p></details>
+        <details><summary data-i18n="q.10q">Камеры узнают лица сотрудников?</summary><p data-i18n="q.10a">Нет. Yurt Watch только считает людей в зонах, которые вы нарисовали: стойка, касса, вход. Видео не записывается и не уходит из кафе, на сервер идут только цифры. Имена берутся из графика смен. Сотрудников нужно предупредить, образец уведомления дадим.</p></details>
+        <details><summary data-i18n="q.11q">Администратор увидит выручку и зарплаты?</summary><p data-i18n="q.11a">Нет. Администратор ведёт смены, склад, поставщиков и меню. Отчёты, прибыль, себестоимость, зарплаты и журнал действий видит только владелец.</p></details>
         <details><summary data-i18n="q.9q">На каких языках приложение?</summary><p data-i18n="q.9a">Приложение гостя и панель управления полностью на казахском, русском и английском. Гость выбирает язык на своём телефоне.</p></details>
       </div>
     </div>
@@ -563,7 +620,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div class="contact">
         <div style="display:grid;gap:16px;min-width:0">
           <h2 id="c-title" data-i18n="c.title">Покажем демо за 15 минут</h2>
-          <p class="lead" data-i18n="c.lead">Оставьте контакт, и мы откроем демо-кофейню прямо на вашем телефоне: меню, заказ, экран бариста и печать чека.</p>
+          <p class="lead" data-i18n="c.lead">Оставьте контакт, и мы откроем демо-кофейню прямо на вашем телефоне: меню, заказ, экран бариста, склад и отчёты с данными за месяц.</p>
           <div class="contact-links" id="contactLinks"></div>
         </div>
         <form id="leadForm" novalidate>
@@ -582,7 +639,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 <footer>
   <div class="wrap">
     <span>© 2026 Yurt</span>
-    <span data-i18n="f.note">Цены в тенге за месяц без НДС. Действуют с 1 ноября 2026 года.</span>
+    <span data-i18n="f.note">Цены в тенге за месяц без НДС. Действуют с 1 ноября 2026 года, обновлены 11 ноября.</span>
   </div>
 </footer>
 
@@ -610,8 +667,8 @@ const MODULES = [
     ru: ['Общий заказ', 'Одна корзина на компанию или офис'],
     en: ['Group order', 'One shared cart for a team or office'] },
   { key: 'own_pos', group: 'pos', price: 12900,
-    ru: ['Своя касса', 'Кухонный экран, касса, склад, принтеры, денежный ящик, фискальные чеки'],
-    en: ['Own POS', 'Kitchen screen, till, stock, printers, cash drawer, tax receipts'] },
+    ru: ['Своя касса', 'Кухонный экран, касса, принтеры, фискальные чеки. Склад: себестоимость, списания, инвентаризация, поставщики и накладные'],
+    en: ['Own POS', 'Kitchen screen, till, printers, tax receipts. Stock: food cost, write-offs, stocktakes, suppliers and delivery invoices'] },
   { key: 'iiko_sync', group: 'pos', price: 9900, tag: { ru: 'если уже есть iiko', en: 'if you already use iiko' },
     ru: ['Связь с iiko', 'Заказы из приложения сразу попадают в iiko'],
     en: ['iiko link', 'App orders go straight into your iiko'] },
@@ -634,11 +691,17 @@ const MODULES = [
     ru: ['Оценки и достижения', 'Оценка заказа, достижения гостя, маршрут в 2GIS'],
     en: ['Ratings and badges', 'Order ratings, guest achievements, 2GIS route'] },
   { key: 'analytics', group: 'manage', price: 3900,
-    ru: ['Отчёты', 'Продажи, средний чек, популярные позиции'],
-    en: ['Reports', 'Sales, average check, best sellers'] },
+    ru: ['Отчёты и прибыль', 'Продажи, средний чек, прибыль за месяц и по каждому блюду, расходы, Excel'],
+    en: ['Reports and profit', 'Sales, average check, monthly profit and profit per dish, expenses, Excel'] },
   { key: 'staff_audit', group: 'manage', price: 2900,
-    ru: ['Персонал и журнал', 'Аккаунты сотрудников и кто что менял'],
-    en: ['Staff and log', 'Staff accounts and who changed what'] }
+    ru: ['Персонал и журнал', 'Аккаунты и роли сотрудников, кто что менял'],
+    en: ['Staff and log', 'Staff accounts and roles, who changed what'] },
+  { key: 'payroll', group: 'manage', price: 3900, tag: { ru: 'новое', en: 'new' },
+    ru: ['Зарплата', 'Оклад, премии и удержания, закрытие месяца. Видит только владелец'],
+    en: ['Payroll', 'Monthly salary, bonuses and deductions, month close. Owner only'] },
+  { key: 'staff_watch', group: 'manage', price: 9900, perBranch: true, tag: { ru: 'новое · за каждую точку, мини-ПК отдельно', en: 'new · per branch, mini PC extra' },
+    ru: ['Yurt Watch: камеры', 'Пустая касса при очереди, телефон в руках, счёт гостей. Telegram за секунды, без распознавания лиц'],
+    en: ['Yurt Watch cameras', 'Empty till with a queue, phone in hand, visitor count. Telegram alerts in seconds, no face recognition'] }
 ];
 const GROUPS = {
   sell: { ru: 'Продажи', en: 'Selling' },
@@ -655,9 +718,9 @@ const BUNDLES = [
     ru: { name: 'Кофейня', who: 'Своё приложение, оплата, бонусы и акции', tag: 'Чаще всего выбирают' },
     en: { name: 'Coffee shop', who: 'Your own app, payments, points and promotions', tag: 'Most popular' } },
   { id: 'full', price: 59900,
-    keys: MODULES.filter(m => m.key !== 'iiko_sync').map(m => m.key),
-    ru: { name: 'Всё включено', who: 'Плюс своя касса, кухня, склад и принтеры' },
-    en: { name: 'Everything', who: 'Plus your own till, kitchen, stock and printers' } }
+    keys: MODULES.filter(m => m.key !== 'iiko_sync' && m.key !== 'staff_watch').map(m => m.key),
+    ru: { name: 'Всё включено', who: 'Плюс своя касса, склад, поставщики, прибыль и зарплата' },
+    en: { name: 'Everything', who: 'Plus your own till, stock, suppliers, profit and payroll' } }
 ];
 const ONCE = [
   { price: 49000, ru: ['Запуск', 'Меню до 150 позиций, бренд, час обучения онлайн. Бесплатно при оплате за год'], en: ['Launch', 'Menu up to 150 items, brand setup, one hour online training. Free with yearly payment'] },
@@ -672,15 +735,27 @@ const T = {
     'how.eyebrow': 'How it works', 'how.title': 'One system for the guest, the barista and the owner',
     'how.g': 'Guest', 'how.g1': 'Opens the coffee shop app or scans the QR on the table', 'how.g2': 'Picks a drink, milk, syrups and a pickup time', 'how.g3': 'Follows the order and gets an "Order ready" push', 'how.g4': 'Earns bonus points and pays with them',
     'how.b': 'Barista and kitchen', 'how.b1': 'A new order shows on the tablet within a second, with a sound', 'how.b2': 'Kitchen screen: new, in progress, ready', 'how.b3': 'The ticket prints in the kitchen, the cash drawer opens by itself', 'how.b4': 'The tax receipt goes to the fiscal operator through Webkassa or ReKassa',
-    'how.o': 'Owner', 'how.o1': 'The menu loads from Excel, prices and photos change in a minute', 'how.o2': 'Sales, average check and stock for every branch', 'how.o3': 'Promotions, promo codes and a bonus programme', 'how.o4': 'A log of staff actions and a login for every employee',
-    'hw.eyebrow': 'Hardware', 'hw.title': 'Works on what you already have', 'hw.lead': 'Any tablet or laptop with a browser is enough to take orders. A printer and cash drawer are only needed with the Own POS module.',
+    'how.o': 'Owner', 'how.o1': 'The menu loads from Excel, prices and photos change in a minute', 'how.o2': 'Profit for the month and per dish, stock for every branch', 'how.o3': 'Promotions, promo codes and a bonus programme', 'how.o4': 'Staff roles: the administrator sees no money, the owner sees everything',
+    'own.eyebrow': 'For owners', 'own.title': 'Money, stock and people under control',
+    'own.lead': 'More than taking orders. Yurt works out food cost, keeps your suppliers, shows profit and payroll, and the cameras tell you when a guest waits at an empty till.',
+    'own.1t': 'Stock and food cost', 'own.1p': 'Food cost of every dish from its recipe, write-offs with a reason ("spilled", "expired", "staff drink"), stocktakes and moves between branches.', 'own.1m': 'Module "Own POS"',
+    'own.2t': 'Suppliers and invoices', 'own.2p': 'A "what to order" list from stock levels, purchase orders, and a delivery booked from the invoice in one click. See who you owe and how much.', 'own.2m': 'Module "Own POS"',
+    'own.3t': 'Profit, not just sales', 'own.3p': 'Monthly profit after rent, utilities and wages. Which dishes make money and which do not. Excel export.', 'own.3m': 'Module "Reports"',
+    'own.4t': 'Roles and payroll', 'own.4p': 'Barista, administrator and owner each see their own screens: only the owner sees money. Salary, bonuses and deductions, month close.', 'own.4m': 'New · "Payroll"',
+    'own.5t': 'Cameras watch the counter', 'own.5p': 'A mini PC in the cafe reads your IP cameras: empty till with a queue, phone in hand, how many guests came in. A Telegram message within seconds. No face recognition, video never leaves the cafe.', 'own.5m': 'New · "Yurt Watch"',
+    'own.6t': 'Table and pickup ordering', 'own.6p': 'Guests scan the table QR with the camera or inside the app, or pick a pickup time for takeaway. The time prints on the kitchen ticket.', 'own.6m': 'Module "Table QR ordering"',
+    'hw.r5a': 'IP cameras (Hikvision or any with RTSP)', 'hw.r5b': 'For Yurt Watch: counter, till, door', 'hw.r5c': 'usually already there',
+    'hw.r6a': 'Mini PC (Intel N100, 8–16 GB)', 'hw.r6b': 'For Yurt Watch: reads the cameras inside the cafe',
+    'q.10q': 'Do the cameras recognise staff faces?', 'q.10a': 'No. Yurt Watch only counts people in the zones you draw: counter, till, door. Video is not recorded and never leaves the cafe; only numbers go to the server. Names come from the shift plan. Staff must be told; we give you a notice template.',
+    'q.11q': 'Will the administrator see sales and wages?', 'q.11a': 'No. The administrator runs shifts, stock, suppliers and the menu. Reports, profit, food cost, payroll and the action log are for the owner only.',
+    'hw.eyebrow': 'Hardware', 'hw.title': 'Works on what you already have', 'hw.lead': 'Any tablet or laptop with a browser is enough to take orders. A printer and cash drawer are only needed with the Own POS module, a mini PC only with Yurt Watch.',
     'hw.h1': 'Device', 'hw.h2': 'What for', 'hw.h3': 'Rough price', 'hw.r1a': 'Android tablet, iPad or laptop', 'hw.r1b': 'Orders, kitchen screen, till', 'hw.r1c': 'you have it',
     'hw.r2a': '80 mm receipt printer with network (ESC/POS)', 'hw.r2b': 'Kitchen tickets and guest receipts', 'hw.r3a': '58 or 80 mm Bluetooth printer', 'hw.r3b': 'When the till has no cable network', 'hw.r4a': 'Cash drawer (RJ11)', 'hw.r4b': 'Opens by itself on cash payments',
     'hw.note': 'Rough prices from listings in Kazakhstan. We suggest exact models before you buy.',
     'q.7q': 'How do guests pay?', 'q.7a': 'At the counter: Kaspi QR, card or cash, and the barista marks the order paid in one tap. Paying inside the app is added with the Online payments module, through your own contract with a bank or payment service.',
     'q.8q': 'Will there be a tax receipt?', 'q.8a': 'Yes, through the Webkassa or ReKassa cloud register. The receipt with the tax QR code prints on the printer and shows in the guest app. You pay the register operator directly, from 3,900 ₸ a month.',
     'q.9q': 'Which languages does the app speak?', 'q.9a': 'The guest app and the admin panel are fully in Kazakh, Russian and English. Guests pick the language on their phone.',
-    'nav.modules': 'Modules and prices', 'nav.launch': 'How to start', 'nav.faq': 'Questions', 'nav.cta': 'Get in touch',
+    'nav.owner': 'For owners', 'nav.modules': 'Modules and prices', 'nav.launch': 'How to start', 'nav.faq': 'Questions', 'nav.cta': 'Get in touch',
     'hero.eyebrow': 'A platform for coffee shops and cafes in Kazakhstan',
     'hero.title': 'Your own ordering app. <span class="hl">No&nbsp;commission</span> on&nbsp;any order.',
     'hero.lead': 'Guests order in an app with your logo, the barista sees the order on a tablet, and the ticket prints itself. You pay one fixed monthly price, not a share of your sales.',
@@ -709,7 +784,7 @@ const T = {
     'x.y5': '<b>Your own card payment contract</b> <span>for online payments: money goes straight to you, never through us</span>',
     'x.y6': '<b>A Webkassa or ReKassa account</b> <span>for tax receipts</span>', 'x.y7': '<b>A tablet and an 80 mm receipt printer</b> <span>we tell you which to buy</span>',
     'x.w1': '<b>Guest app</b> <span>on the web, and with the Brand module in the App Store and Google Play</span>',
-    'x.w2': '<b>Admin panel</b> <span>menu, orders, kitchen, till, stock, reports, staff</span>',
+    'x.w2': '<b>Admin panel</b> <span>menu, orders, kitchen, till, stock, suppliers, profit, payroll</span>',
     'x.w3': '<b>Server, database and backups</b> <span>already in the price</span>', 'x.w4': '<b>Updates</b> <span>new features arrive at no extra cost</span>',
     'x.w5': '<b>Setup and training</b> <span>menu, brand, printer, one hour of staff training</span>',
     'x.w6': '<b>Support on WhatsApp and Telegram</b> <span>in Russian, Kazakh and English, on working days</span>',
@@ -720,9 +795,9 @@ const T = {
     'q.4q': 'Whose app is it in the App Store?', 'q.4a': 'Yours: your name, logo and colours. We publish it for you, or under your own developer account if you prefer.',
     'q.5q': 'What happens if I stop paying?', 'q.5a': 'After a short grace period the app switches to a limited mode. Nothing is deleted. If you leave, we give you your menu, orders and guests as a file.',
     'q.6q': 'Can I try it first?', 'q.6a': 'Yes. We show you a demo coffee shop on your phone, and the first 10 coffee shops get the first month free.',
-    'c.title': 'A 15 minute demo', 'c.lead': 'Leave a contact and we open the demo coffee shop right on your phone: menu, ordering, barista screen and a printed ticket.',
+    'c.title': 'A 15 minute demo', 'c.lead': 'Leave a contact and we open the demo coffee shop right on your phone: menu, ordering, barista screen, stock and reports with a month of data.',
     'c.name': 'Your name', 'c.cafe': 'Coffee shop and city', 'c.phone': 'Phone or WhatsApp', 'c.send': 'Send request',
-    'f.note': 'Prices in tenge a month, without VAT. Valid from 1 November 2026.'
+    'f.note': 'Prices in tenge a month, without VAT. Valid from 1 November 2026, updated 11 November.'
   },
   ru: {}
 };
@@ -754,7 +829,8 @@ function quote() {
     const p = b.price + sum(rest);
     if (p < best.price) best = { price: p, bundle: b };
   }
-  const extra = Math.max(0, branches - 1) * EXTRA_BRANCH;
+  const perBranch = MODULES.filter(m => m.perBranch && selected.has(m.key)).reduce((s, m) => s + m.price, 0);
+  const extra = Math.max(0, branches - 1) * (EXTRA_BRANCH + perBranch);
   const monthly = best.price + extra;
   const effective = pay === 'year' ? monthly * 10 / 12 : monthly;
   return { chosen, full: sum(chosen), best, extra, monthly, effective };
@@ -792,7 +868,9 @@ function renderReceipt() {
   const r = R[lang];
   const lines = q.chosen.map(k => { const m = MODULES.find(x => x.key === k); return `<div class="r-line"><span>${name(m)}</span><span>${fmt(m.price)}</span></div>`; }).join('');
   const disc = q.best.bundle ? `<div class="r-line discount"><span>${r.disc}: ${q.best.bundle[lang].name}</span><span>−${fmt(q.full - q.best.price)}</span></div>` : '';
-  const br = q.extra ? `<div class="r-line"><span>${r.branch} × ${branches - 1}</span><span>${fmt(q.extra)}</span></div>` : '';
+  const watch = MODULES.filter(m => m.perBranch && selected.has(m.key));
+  const br = q.extra ? `<div class="r-line"><span>${r.branch} × ${branches - 1}</span><span>${fmt((branches - 1) * EXTRA_BRANCH)}</span></div>` +
+    watch.map(m => `<div class="r-line"><span>${name(m)} × ${branches - 1}</span><span>${fmt((branches - 1) * m.price)}</span></div>`).join('') : '';
   const yr = pay === 'year' ? `<div class="r-line discount"><span>${r.yearDisc}</span><span>−${fmt(q.monthly - q.effective)}</span></div>` : '';
   const now = new Date();
   document.getElementById('receipt').innerHTML = `
