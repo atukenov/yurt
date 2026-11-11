@@ -125,6 +125,37 @@ class LiveEngine:
                                  t(lang, "unattended_queue", station=st.label, seconds=int(waited), guests=q.people, duty=duty)))
         return out
 
+    def lines(self, now: datetime, camera: str) -> list[tuple[str, tuple[int, int, int]]]:
+        """Status text for the live window of one camera (colours are BGR)."""
+        green, amber, red, white = (80, 220, 80), (0, 190, 255), (60, 60, 255), (255, 255, 255)
+
+        def clock(since: datetime | None) -> str:
+            s = int((now - since).total_seconds()) if since else 0
+            return f"{s // 60}:{s % 60:02d}"
+
+        out: list[tuple[str, tuple[int, int, int]]] = []
+        for z in self.cfg.zones:
+            if z.camera != camera:
+                continue
+            if z.kind == "station":
+                s = self.stations.get(z.name)
+                if not s or not s.known:
+                    out.append((f"{z.label}: no picture", white))
+                elif s.unattended_since:
+                    out.append((f"{z.label}: GUESTS WAIT, NOBODY HERE {clock(s.unattended_since)}", red))
+                elif s.present:
+                    extra = (" phone" if s.phone else "") + (" still" if s.still else "")
+                    out.append((f"{z.label}: active{extra}", green))
+                else:
+                    out.append((f"{z.label}: away {clock(s.away_since)}", amber))
+            elif z.kind == "queue":
+                q = self.queues.get(z.name)
+                waiting = f", waiting {clock(q.waiting_since)}" if q and q.waiting_since else ""
+                out.append((f"{z.label}: {q.people if q else 0} in queue{waiting}", white))
+            elif z.kind == "door":
+                out.append((f"{z.label}: in {self.visitors_in} / out {self.visitors_out} today", white))
+        return out
+
     def state(self, now: datetime) -> dict:
         """What the Yurt live panel shows. Only facts that change rarely, so it can be sent only on change."""
 

@@ -154,6 +154,11 @@ Good to know when connected:
 python watch.py run
 ```
 
+To watch what it sees, run `python watch.py run --show`: one window per camera with the zones, a box and foot
+point on each person and the state of each station (active / away with a timer / guests waiting with nobody there),
+queue and door. Heads are blurred and nothing extra is saved or sent. `q` or Esc closes the windows; watching goes
+on. Each window costs a little CPU, so leave it off in normal use.
+
 Keep it running all day. Windows: put a `watch.bat` with `cd C:\path\to\watch` and `python watch.py run` into the
 Startup folder (`Win+R`, `shell:startup`). Linux: a systemd service with `Restart=always`, like the print agent.
 
