@@ -17,7 +17,7 @@ How a gate is built:
 ## Gated
 
 ### `analytics` (admin only, no customer impact)
-- **Covers:** `GET /api/v1/admin/analytics`, `GET /api/v1/admin/dashboard`, `/api/v1/admin/profit/*`; the admin **Analytics** and **Profit** pages and menu entries (see [profit.md](profit.md)).
+- **Covers:** `GET /api/v1/admin/analytics`, `GET /api/v1/admin/dashboard`, `/api/v1/admin/profit/*`, `/api/v1/admin/accounting/*`; the admin **Analytics**, **Profit** and **For the accountant** pages and menu entries (see [profit.md](profit.md), [accounting-export.md](accounting-export.md)).
 - **When off:** the page redirects to Orders, the menu entry is hidden, both endpoints return `403 module_disabled`.
 - **Does not cover:** the customer-report moderation page (`/admin/reports`, `ReportsController`), which belongs to `core`.
 - **Depends on:** nothing.
