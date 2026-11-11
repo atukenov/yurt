@@ -3,3 +3,4 @@ staff.csv
 data/
 models/
 __pycache__/
+.venv/
