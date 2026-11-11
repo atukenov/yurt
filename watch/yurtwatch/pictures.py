@@ -68,6 +68,21 @@ def draw_check(frame: np.ndarray, zones: list[Zone], boxes, counts: dict[str, in
     return out
 
 
+def draw_live(frame: np.ndarray, zones: list[Zone], people, phones, counts: dict[str, int],
+              lines: list[tuple[str, tuple[int, int, int]]], max_width: int = 960) -> np.ndarray:
+    """The live window (`run --show`): zones, people and their foot points, plus a status panel. Heads blurred."""
+    out = draw_check(frame, zones, people, counts, phones)
+    if out.shape[1] > max_width:
+        out = cv2.resize(out, (max_width, int(out.shape[0] * max_width / out.shape[1])), interpolation=cv2.INTER_AREA)
+    if lines:
+        h = 26 * len(lines) + 12
+        panel = out[0:h, 0:min(out.shape[1], 460)]
+        panel[:] = (panel * 0.35).astype(np.uint8)  # darken behind the text so it reads on any picture
+        for i, (text, color) in enumerate(lines):
+            cv2.putText(out, text, (10, 26 + 26 * i), cv2.FONT_HERSHEY_SIMPLEX, 0.65, color, 2, cv2.LINE_AA)
+    return out
+
+
 def prune(folder: Path, today: date, keep_days: int) -> None:
     if not folder.exists():
         return

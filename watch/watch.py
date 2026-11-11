@@ -6,7 +6,7 @@
   python watch.py snapshot                save one picture per camera with a % grid (standalone zone setup)
   python watch.py check                   show zones + people/phones found right now (heads blurred)
   python watch.py connect                 check the Yurt connection and show the settings it sends
-  python watch.py run                     watch all day: alerts + daily report
+  python watch.py run [--show]            watch all day: alerts + daily report (--show: live window per camera)
   python watch.py report [--date D] [--send]   build (and send) the report for a day
   python watch.py test-telegram           send a test message (standalone)
 """
@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import csv
 import logging
+import os
 import sys
 import time
 from datetime import date, datetime, timedelta
@@ -261,7 +262,7 @@ def cmd_test_telegram(cfg, _args):
     print("sent" if ok else "not sent (check bot_token and chat_id; see the log above)")
 
 
-def cmd_run(cfg, _args):
+def cmd_run(cfg, args):
     import cv2
 
     import base64
@@ -269,7 +270,7 @@ def cmd_run(cfg, _args):
     from yurtwatch.analyze import CameraAnalyzer
     from yurtwatch.camera import CameraReader
     from yurtwatch.live import LiveEngine
-    from yurtwatch.pictures import alert_jpeg, blur_heads, draw_check, prune
+    from yurtwatch.pictures import alert_jpeg, blur_heads, draw_check, draw_live, prune
     from yurtwatch.yurt import YurtError
 
     client = client_for(cfg)
@@ -305,6 +306,12 @@ def cmd_run(cfg, _args):
     live = LiveEngine(cfg)
     live.set_visitors(local_now(cfg).date(), *store.visitors(local_now(cfg).date()))
     live_sent: dict | None = None
+    show = bool(getattr(args, "show", False))
+    if show and sys.platform.startswith("linux") and not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
+        log.warning("--show needs a screen; this computer has none, so no live windows")
+        show = False
+    if show:
+        log.info("live windows open (q or Esc closes them); heads are blurred, nothing is saved or sent")
     last_live = 0.0
     alerts_waiting = False
     sent_file = cfg.data_dir / "reports-sent.txt"
@@ -368,10 +375,19 @@ def cmd_run(cfg, _args):
                 continue
             samples, people, phones = analyzers[cam.name].analyze(f, t, det)
             latest[cam.name] = (t, f, people, phones, samples)
+            if show:
+                zones = [z for z in cfg.zones if z.camera == cam.name]
+                cv2.imshow(f"Yurt Watch: {cam.name}", draw_live(f, zones, people, phones,
+                                                                {k: v.people for k, v in samples.items()}, live.lines(now, cam.name)))
             for zname, s in samples.items():
                 if s.entered or s.left:
                     live.add_crossings(now, s.entered, s.left)
                     handle_closed(agg.add_crossings(now, zname, s.entered, s.left), now)
+
+        if show and cv2.waitKey(1) & 0xFF in (ord("q"), 27):  # q or Esc closes the windows, watching goes on
+            cv2.destroyAllWindows()
+            show = False
+            log.info("live windows closed; still watching")
 
         # one presence sample per second per zone
         if t - last_second >= cfg.sample_seconds:
@@ -491,6 +507,7 @@ def main(argv=None):
     p.add_argument("command", choices=["download-model", "snapshot", "check", "compare", "connect", "run", "report", "test-telegram"])
     p.add_argument("--engine", choices=["yolox", "rfdetr"], help="download-model: which model (default yolox)")
     p.add_argument("--video", help="compare: a video file instead of the cameras")
+    p.add_argument("--show", action="store_true", help="run: a live window per camera with zones, people and station state")
     p.add_argument("--config", default="config.toml")
     p.add_argument("--date", help="report day, YYYY-MM-DD (default today)")
     p.add_argument("--send", action="store_true", help="also send the report (to Yurt, or Telegram when standalone)")

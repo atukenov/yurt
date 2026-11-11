@@ -490,6 +490,22 @@ class LiveTests(unittest.TestCase):
             a += self.live.update(self.t0 + timedelta(seconds=i), {"bar": None, "till": None, "queue": None}, [])
         self.assertEqual(a, [])
 
+    def test_live_window_lines_and_picture(self):
+        import numpy as np
+
+        from yurtwatch.pictures import draw_live
+
+        self.run_for(self.t0, 30, bar=1, queue=2)
+        self.run_for(self.t0 + timedelta(seconds=30), 100, bar=0, queue=2)
+        now = self.t0 + timedelta(seconds=129)
+        lines = dict((t.split(":")[0], t) for t, _ in self.live.lines(now, "counter"))
+        self.assertIn("GUESTS WAIT", lines["Бар"])
+        self.assertIn("active", lines["Касса"])
+        self.assertIn("2 in queue", lines["Очередь"])
+        frame = np.zeros((1080, 1920, 3), np.uint8)
+        pic = draw_live(frame, self.c.zones, [(100, 100, 300, 900, 0.9)], [], {"bar": 0}, self.live.lines(now, "counter"))
+        self.assertEqual(pic.shape[1], 960)
+
     def test_visitors_reset_each_day(self):
         self.live.set_visitors(self.t0.date(), 5, 3)
         self.live.add_crossings(self.t0, 1, 0)
