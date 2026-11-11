@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YurtApiService, AuthStateService, ModuleService } from 'shared-api';
-import { CartItem, LoyaltyBalance, PaymentMethod } from 'shared-models';
+import { CartItem, LoyaltyBalance, MyDiscountCode, PaymentMethod } from 'shared-models';
 import { CartService } from './cart.service';
 import { ToastService, Currency2Pipe, LocalDatePipe } from 'shared-ui';
 import { TranslatePipe } from '../../core/translate.pipe';
@@ -121,6 +121,8 @@ export class CartComponent implements OnInit {
       error: () => {},
     });
     this.online.load();
+    if (this.modules.isEnabled('marketing'))
+      this.api.getMyDiscountCodes().subscribe({ next: (c) => this.myCodes.set(c), error: () => {} });
     const tick = setInterval(() => this.now.set(new Date()), 60_000);
     this.destroyRef.onDestroy(() => clearInterval(tick));
   }
@@ -137,6 +139,8 @@ export class CartComponent implements OnInit {
   expandedItemKeys = signal<Set<string>>(new Set());
 
   promoCodeInput = signal('');
+  /** The guest's own personal codes (from the cafe's messages), offered under the code field. */
+  myCodes = signal<MyDiscountCode[]>([]);
   promoLoading = signal(false);
   promoError = signal<string | null>(null);
   showConfirm = signal(false);
@@ -217,6 +221,11 @@ export class CartComponent implements OnInit {
         this.promoError.set(this.langService.t('cart.promoNetworkError'));
       },
     });
+  }
+
+  useMyCode(code: string): void {
+    this.promoCodeInput.set(code);
+    this.applyPromoCode();
   }
 
   removePromoCode(): void {

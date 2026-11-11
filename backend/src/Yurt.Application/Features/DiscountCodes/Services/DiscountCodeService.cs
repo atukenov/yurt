@@ -18,8 +18,10 @@ public class DiscountCodeService
         _audit = audit;
     }
 
+    /// <summary>The cafe's shared codes. Personal codes made by guest messages are listed on the Guest messages page.</summary>
     public async Task<List<DiscountCodeDto>> GetAllAsync(CancellationToken ct = default)
         => await _db.DiscountCodes
+            .Where(d => d.CustomerUserId == null)
             .OrderByDescending(d => d.CreatedAt)
             .Select(d => MapToDto(d))
             .ToListAsync(ct);
@@ -104,7 +106,8 @@ public class DiscountCodeService
         var code = await _db.DiscountCodes
             .FirstOrDefaultAsync(d => d.Code == normalizedCode && d.IsActive, ct);
 
-        if (code == null)
+        // A personal code (from a guest message) works only for its own guest; to anyone else it does not exist.
+        if (code == null || (code.CustomerUserId is { } owner && owner != customerId))
             return new(false, "Discount code not found.", 0, "");
 
         var now = DateTime.UtcNow;
@@ -132,6 +135,25 @@ public class DiscountCodeService
             : $"{code.DiscountValue:N0} ₸ off";
 
         return new(true, "Code applied successfully.", discountAmount, description);
+    }
+
+    /// <summary>The guest's own personal codes that can still be used (newest first), for the cart.</summary>
+    public async Task<List<MyDiscountCodeDto>> GetMineAsync(Guid customerId, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var codes = await _db.DiscountCodes
+            .Where(d => d.CustomerUserId == customerId && d.IsActive
+                && (d.ExpiresAt == null || d.ExpiresAt > now)
+                && (d.MaxUses == null || d.UsedCount < d.MaxUses))
+            .OrderByDescending(d => d.CreatedAt)
+            .ToListAsync(ct);
+        var used = await _db.Orders
+            .Where(o => o.CustomerUserId == customerId && o.DiscountCodeId != null)
+            .Select(o => o.DiscountCodeId!.Value)
+            .ToListAsync(ct);
+        return codes.Where(c => !used.Contains(c.Id))
+            .Select(c => new MyDiscountCodeDto(c.Code, c.Title, c.DiscountType.ToString(), c.DiscountValue, c.MinOrderAmount, c.ExpiresAt))
+            .ToList();
     }
 
     public static decimal CalculateDiscount(DiscountCode code, decimal subtotal)

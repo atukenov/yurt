@@ -75,6 +75,8 @@ export interface CustomerProfile {
   lastName: string;
   createdAt: string;
   dateOfBirth?: string | null;
+  /** The guest switched off offers (guest messages) in the profile. */
+  marketingOptOut?: boolean;
 }
 
 // ── Location ──────────────────────────────────────────────────────────────────
@@ -1211,6 +1213,84 @@ export interface DiscountCode {
   expiresAt?: string;
   isActive: boolean;
   createdAt: string;
+}
+
+/** A personal promo code of the signed-in guest (from a guest message), offered in the cart. */
+export interface MyDiscountCode {
+  code: string;
+  title: string;
+  discountType: 'Percentage' | 'FixedAmount';
+  discountValue: number;
+  minOrderAmount?: number | null;
+  expiresAt?: string | null;
+}
+
+// ── Guest messages (marketing) ────────────────────────────────────────────────
+
+export type CampaignKind = 'OneOff' | 'ComeBack' | 'Birthday' | 'FirstOrderThanks';
+
+export type GuestSegmentKey =
+  | 'all' | 'new' | 'regulars' | 'sleeping_30' | 'sleeping_60' | 'sleeping_90'
+  | 'birthday_week' | 'big_spenders' | 'never_ordered';
+
+export interface GuestSegment {
+  key: GuestSegmentKey;
+  guests: number;
+  /** Guests a push reaches: the app is on their phone and offers are on. */
+  reachable: number;
+}
+
+export interface MarketingOverview {
+  /** Pushes can go out (Firebase set up and the push module on). */
+  pushReady: boolean;
+  segments: GuestSegment[];
+}
+
+export interface SegmentGuest {
+  id: string;
+  name: string;
+  mobileNumber: string;
+  orders: number;
+  lastOrderAt?: string | null;
+  totalSpent: number;
+  reachable: boolean;
+}
+
+export interface CampaignResults {
+  sent: number;
+  codesUsed: number;
+  revenue: number;
+}
+
+export interface Campaign {
+  id: string;
+  kind: CampaignKind;
+  name: string;
+  isActive: boolean;
+  segment?: GuestSegmentKey | null;
+  days: number;
+  title: string;
+  titleRu?: string | null;
+  titleKk?: string | null;
+  body: string;
+  bodyRu?: string | null;
+  bodyKk?: string | null;
+  discountType?: 'Percentage' | 'FixedAmount' | null;
+  discountValue?: number | null;
+  minOrderAmount?: number | null;
+  codeValidDays: number;
+  sentAt?: string | null;
+  createdAt: string;
+  results: CampaignResults;
+}
+
+export type SaveCampaign = Omit<Campaign, 'id' | 'sentAt' | 'createdAt' | 'results'>;
+
+export interface SendCampaignResult {
+  sent: number;
+  skippedRecent: number;
+  noApp: number;
+  optedOut: number;
 }
 
 export interface ValidateDiscountCodeResponse {

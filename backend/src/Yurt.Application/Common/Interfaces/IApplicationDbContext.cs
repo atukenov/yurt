@@ -26,6 +26,8 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<DiscountCode> DiscountCodes { get; }
+    DbSet<MarketingCampaign> MarketingCampaigns { get; }
+    DbSet<MarketingMessage> MarketingMessages { get; }
     DbSet<MenuItemLocation> MenuItemLocations { get; }
     DbSet<MenuItemStock> MenuItemStocks { get; }
     DbSet<Shift> Shifts { get; }

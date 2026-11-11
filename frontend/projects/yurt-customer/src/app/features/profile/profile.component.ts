@@ -107,6 +107,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.api.getLoyaltyBalance().subscribe({ next: (l) => this.loyalty.set(l), error: () => {} });
   }
 
+  // Offers: the cafe's guest messages (promo pushes). Order updates are not affected.
+  offersSaving = signal(false);
+
+  toggleOffers(): void {
+    const p = this.profile();
+    if (!p) return;
+    this.offersSaving.set(true);
+    this.api.updateProfile({
+      firstName: p.firstName, lastName: p.lastName, dateOfBirth: p.dateOfBirth ?? null,
+      marketingOptOut: !p.marketingOptOut,
+    }).subscribe({
+      next: (updated) => {
+        this.profile.set(updated);
+        this.offersSaving.set(false);
+        this.toast.success(this.langService.t(updated.marketingOptOut ? 'profile.offersOff' : 'profile.offersOn'));
+      },
+      error: () => this.offersSaving.set(false),
+    });
+  }
+
   async toggleNotifications(): Promise<void> {
     const current = this.notificationsEnabled();
     if (!current) {

@@ -42,3 +42,12 @@ public record ValidateDiscountCodeResponseDto(
     string Message,
     decimal DiscountAmount,
     string Description);
+
+/// <summary>A personal code of the signed-in guest (from a guest message), shown in the cart.</summary>
+public record MyDiscountCodeDto(
+    string Code,
+    string Title,
+    string DiscountType,
+    decimal DiscountValue,
+    decimal? MinOrderAmount,
+    DateTime? ExpiresAt);

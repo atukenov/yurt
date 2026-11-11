@@ -415,10 +415,11 @@ public class AuthService
         user.FirstName = dto.FirstName.Trim();
         user.LastName = dto.LastName.Trim();
         user.DateOfBirth = dto.DateOfBirth;
+        if (dto.MarketingOptOut is { } optOut) user.MarketingOptOut = optOut;
         await _db.SaveChangesAsync(ct);
 
         return Result<CustomerProfileDto>.Success(
-            new CustomerProfileDto(user.Id, user.MobileNumber, user.FirstName, user.LastName, user.CreatedAt, user.DateOfBirth));
+            new CustomerProfileDto(user.Id, user.MobileNumber, user.FirstName, user.LastName, user.CreatedAt, user.DateOfBirth, user.MarketingOptOut));
     }
 
     /// <summary>
@@ -567,7 +568,7 @@ public class AuthService
         await _db.SaveChangesAsync(ct);
 
         return Result<CustomerProfileDto>.Success(
-            new CustomerProfileDto(user.Id, user.MobileNumber, user.FirstName, user.LastName, user.CreatedAt, user.DateOfBirth));
+            new CustomerProfileDto(user.Id, user.MobileNumber, user.FirstName, user.LastName, user.CreatedAt, user.DateOfBirth, user.MarketingOptOut));
     }
 
     // Returns a fresh token pair: the caller's current access token still carries the

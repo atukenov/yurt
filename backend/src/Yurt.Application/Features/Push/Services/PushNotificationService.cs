@@ -38,6 +38,51 @@ public class PushNotificationService
         CancellationToken ct = default)
         => SendToCustomersAsync([customerUserId], title, body, data, ct);
 
+    /// <summary>True when remote pushes can go out at all: Firebase is set up and the push module is on.</summary>
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
+        => _options.Enabled && await _modules.IsEnabledAsync(ModuleKeys.Push, ct);
+
+    /// <summary>
+    /// Sends one guest a message on each of their phones in that phone's app language (guest messages, marketing).
+    /// <paramref name="textFor"/> gets the phone's language (ru, kk, en or null) and returns the title and text.
+    /// Returns false when the guest has no phone registered, so nothing was sent. Dead tokens are pruned.
+    /// The caller checks <see cref="IsAvailableAsync"/> first.
+    /// </summary>
+    public async Task<bool> SendInLanguageAsync(
+        Guid customerUserId,
+        Func<string?, (string Title, string Body)> textFor,
+        IReadOnlyDictionary<string, string>? data = null,
+        CancellationToken ct = default)
+    {
+        var tokens = await _db.CustomerDeviceTokens
+            .Where(t => t.CustomerUserId == customerUserId)
+            .Select(t => new { t.Token, t.Language })
+            .ToListAsync(ct);
+        if (tokens.Count == 0) return false;
+
+        var dead = new List<string>();
+        foreach (var group in tokens.GroupBy(t => t.Language))
+        {
+            var (title, body) = textFor(group.Key);
+            try
+            {
+                var result = await _sender.SendAsync(group.Select(t => t.Token).ToList(), title, body, data, ct);
+                dead.AddRange(result.DeadTokens);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Failed to send a guest message push.");
+            }
+        }
+        if (dead.Count > 0)
+        {
+            var deadRows = await _db.CustomerDeviceTokens.Where(t => dead.Contains(t.Token)).ToListAsync(ct);
+            _db.CustomerDeviceTokens.RemoveRange(deadRows);
+            await _db.SaveChangesAsync(ct);
+        }
+        return true;
+    }
+
     /// <summary>Sends one push to every device of the given customers (for example staff who use the cafe app
     /// on their phone and get stock alerts on it). Same rules as order pushes: a no-op while Firebase or the push
     /// module is off, dead tokens are pruned, and a failure never propagates.</summary>

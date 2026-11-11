@@ -163,6 +163,42 @@ public class DiscountCodeConfiguration : IEntityTypeConfiguration<DiscountCode>
         builder.Property(e => e.DiscountValue).HasPrecision(10, 2);
         builder.Property(e => e.MinOrderAmount).HasPrecision(10, 2);
         builder.Property(e => e.UsedCount).HasDefaultValue(0);
+        // Personal codes from guest messages: deleting the guest or the message removes / unlinks them.
+        builder.HasOne<CustomerUser>().WithMany().HasForeignKey(e => e.CustomerUserId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<MarketingCampaign>().WithMany().HasForeignKey(e => e.CampaignId).OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+public class MarketingCampaignConfiguration : IEntityTypeConfiguration<MarketingCampaign>
+{
+    public void Configure(EntityTypeBuilder<MarketingCampaign> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Kind).HasConversion<string>().HasMaxLength(30);
+        builder.Property(e => e.Name).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.Segment).HasMaxLength(40);
+        builder.Property(e => e.Title).HasMaxLength(120);
+        builder.Property(e => e.TitleRu).HasMaxLength(120);
+        builder.Property(e => e.TitleKk).HasMaxLength(120);
+        builder.Property(e => e.Body).HasMaxLength(500);
+        builder.Property(e => e.BodyRu).HasMaxLength(500);
+        builder.Property(e => e.BodyKk).HasMaxLength(500);
+        builder.Property(e => e.DiscountType).HasConversion<string>().HasMaxLength(20);
+        builder.Property(e => e.DiscountValue).HasPrecision(10, 2);
+        builder.Property(e => e.MinOrderAmount).HasPrecision(10, 2);
+    }
+}
+
+public class MarketingMessageConfiguration : IEntityTypeConfiguration<MarketingMessage>
+{
+    public void Configure(EntityTypeBuilder<MarketingMessage> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasOne(e => e.Campaign).WithMany(c => c.Messages).HasForeignKey(e => e.CampaignId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<CustomerUser>().WithMany().HasForeignKey(e => e.CustomerUserId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<DiscountCode>().WithMany().HasForeignKey(e => e.DiscountCodeId).OnDelete(DeleteBehavior.SetNull);
+        builder.HasIndex(e => new { e.CustomerUserId, e.CreatedAt });
+        builder.HasIndex(e => new { e.CampaignId, e.CustomerUserId });
     }
 }
 
@@ -535,6 +571,7 @@ public class CustomerDeviceTokenConfiguration : IEntityTypeConfiguration<Custome
         builder.HasIndex(e => e.Token).IsUnique();
         builder.Property(e => e.Token).HasMaxLength(500).IsRequired();
         builder.Property(e => e.Platform).HasConversion<string>().HasMaxLength(20);
+        builder.Property(e => e.Language).HasMaxLength(5);
         builder.HasOne(e => e.Customer).WithMany(c => c.DeviceTokens)
             .HasForeignKey(e => e.CustomerUserId).OnDelete(DeleteBehavior.Cascade);
     }

@@ -732,6 +732,57 @@ public static class DemoDataSeeder
         foreach (var p in promos)
             if (!await db.Promotions.AnyAsync(x => x.Title == p.Title, ct)) db.Promotions.Add(p);
         await db.SaveChangesAsync(ct);
+        await GuestMessagesAsync(d, ct);
+    }
+
+    /// <summary>The three automatic guest messages, switched on, plus one one-off message already sent to a few guests.</summary>
+    private static async Task GuestMessagesAsync(Demo d, CancellationToken ct)
+    {
+        var db = d.Db;
+        if (await db.MarketingCampaigns.AnyAsync(ct)) return;
+        db.MarketingCampaigns.AddRange(
+            new MarketingCampaign
+            {
+                Kind = CampaignKind.ComeBack, Name = "We miss you", Days = 30, IsActive = true,
+                Title = "We miss you, {name}!", TitleRu = "Мы скучаем, {name}!", TitleKk = "Сізді сағындық, {name}!",
+                Body = "Come back for coffee: {discount} off with code {code} for {days} days.",
+                BodyRu = "Заходите на кофе: скидка {discount} по коду {code}, действует {days} дней.",
+                BodyKk = "Кофеге келіңіз: {code} коды бойынша {discount} жеңілдік, {days} күн жарамды.",
+                DiscountType = DiscountType.Percentage, DiscountValue = 15, CodeValidDays = 7,
+            },
+            new MarketingCampaign
+            {
+                Kind = CampaignKind.Birthday, Name = "Birthday gift", Days = 3, IsActive = true,
+                Title = "Happy birthday, {name}!", TitleRu = "С днём рождения, {name}!", TitleKk = "Туған күніңізбен, {name}!",
+                Body = "A gift from us: {discount} off with code {code}.",
+                BodyRu = "Подарок от нас: скидка {discount} по коду {code}.",
+                BodyKk = "Бізден сыйлық: {code} коды бойынша {discount} жеңілдік.",
+                DiscountType = DiscountType.Percentage, DiscountValue = 20, CodeValidDays = 10,
+            },
+            new MarketingCampaign
+            {
+                Kind = CampaignKind.FirstOrderThanks, Name = "Thanks for the first order", Days = 1, IsActive = true,
+                Title = "Thank you, {name}!", TitleRu = "Спасибо, {name}!", TitleKk = "Рахмет, {name}!",
+                Body = "Glad you tried us. Your next coffee is {discount} cheaper with code {code}.",
+                BodyRu = "Рады, что вы с нами. Следующий кофе дешевле на {discount} по коду {code}.",
+                BodyKk = "Бізбен болғаныңызға қуаныштымыз. Келесі кофе {code} коды бойынша {discount} арзан.",
+                DiscountType = DiscountType.Percentage, DiscountValue = 10, CodeValidDays = 14,
+            });
+        var oneOff = new MarketingCampaign
+        {
+            Kind = CampaignKind.OneOff, Name = "Pumpkin latte is back", Segment = "all", IsActive = false,
+            SentAt = d.Now.AddDays(-5),
+            Title = "Pumpkin latte is back", TitleRu = "Тыквенный латте вернулся", TitleKk = "Асқабақ латте қайта оралды",
+            Body = "Our autumn favourite is on the menu until the end of November.",
+            BodyRu = "Осенний хит снова в меню до конца ноября.",
+            BodyKk = "Күзгі хит қараша соңына дейін мәзірде.",
+        };
+        db.MarketingCampaigns.Add(oneOff);
+        var guests = await db.CustomerUsers.Where(c => c.DeviceTokens.Any()).OrderBy(c => c.MobileNumber).Take(8)
+            .Select(c => c.Id).ToListAsync(ct);
+        foreach (var guest in guests)
+            db.MarketingMessages.Add(new MarketingMessage { Campaign = oneOff, CustomerUserId = guest, CreatedAt = oneOff.SentAt.Value });
+        await db.SaveChangesAsync(ct);
     }
 
     // ── printers ──

@@ -45,6 +45,12 @@ import {
   DashboardData,
   DeclineOrderRequest,
   DiscountCode,
+  Campaign,
+  MarketingOverview,
+  MyDiscountCode,
+  SaveCampaign,
+  SegmentGuest,
+  SendCampaignResult,
   GroupCart,
   IikoNomenclatureProduct,
   IikoPaymentType,
@@ -348,6 +354,7 @@ export class YurtApiService {
     firstName: string;
     lastName: string;
     dateOfBirth?: string | null;
+    marketingOptOut?: boolean;
   }): Observable<CustomerProfile> {
     return this.http.put<CustomerProfile>(`${this.api}/auth/me`, data);
   }
@@ -1260,8 +1267,9 @@ export class YurtApiService {
     return this.http.delete<void>(`${this.api}/auth/me`);
   }
 
-  registerDeviceToken(token: string, platform: 'ios' | 'android'): Observable<void> {
-    return this.http.post<void>(`${this.api}/auth/device-tokens`, { token, platform });
+  /** `language`: the app language on this phone, so guest messages come in it. */
+  registerDeviceToken(token: string, platform: 'ios' | 'android', language?: string): Observable<void> {
+    return this.http.post<void>(`${this.api}/auth/device-tokens`, { token, platform, language });
   }
 
   unregisterDeviceToken(token: string): Observable<void> {
@@ -1327,6 +1335,41 @@ export class YurtApiService {
 
   deleteDiscountCode(id: string): Observable<void> {
     return this.http.delete<void>(`${this.api}/admin/discount-codes/${id}`);
+  }
+
+  /** The signed-in guest's own personal codes (from guest messages) that can still be used. */
+  getMyDiscountCodes(): Observable<MyDiscountCode[]> {
+    return this.http.get<MyDiscountCode[]>(`${this.api}/discount-codes/mine`);
+  }
+
+  // ── Guest messages (marketing) ──
+
+  getMarketingOverview(): Observable<MarketingOverview> {
+    return this.http.get<MarketingOverview>(`${this.api}/admin/marketing/overview`);
+  }
+
+  getSegmentGuests(key: string): Observable<SegmentGuest[]> {
+    return this.http.get<SegmentGuest[]>(`${this.api}/admin/marketing/segments/${encodeURIComponent(key)}`);
+  }
+
+  getCampaigns(): Observable<Campaign[]> {
+    return this.http.get<Campaign[]>(`${this.api}/admin/marketing/campaigns`);
+  }
+
+  createCampaign(data: SaveCampaign): Observable<Campaign> {
+    return this.http.post<Campaign>(`${this.api}/admin/marketing/campaigns`, data);
+  }
+
+  updateCampaign(id: string, data: SaveCampaign): Observable<Campaign> {
+    return this.http.put<Campaign>(`${this.api}/admin/marketing/campaigns/${id}`, data);
+  }
+
+  deleteCampaign(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/marketing/campaigns/${id}`);
+  }
+
+  sendCampaign(id: string): Observable<SendCampaignResult> {
+    return this.http.post<SendCampaignResult>(`${this.api}/admin/marketing/campaigns/${id}/send`, {});
   }
 
   validateDiscountCode(code: string, subtotal: number): Observable<ValidateDiscountCodeResponse> {
