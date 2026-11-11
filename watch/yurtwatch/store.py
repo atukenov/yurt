@@ -28,7 +28,7 @@ EXTRA_COLUMNS = {
     "left_n": "INTEGER NOT NULL DEFAULT 0",   # door: people out
     "sent": "INTEGER NOT NULL DEFAULT 0",     # 1 = delivered to Yurt
 }
-ALERT_EXTRA = {"sent": "INTEGER NOT NULL DEFAULT 0"}
+ALERT_EXTRA = {"sent": "INTEGER NOT NULL DEFAULT 0", "picture": "BLOB"}  # picture: small blurred JPEG, some alerts only
 
 KEEP_DAYS = 90
 
@@ -146,9 +146,17 @@ class Store:
         )
         self.db.commit()
 
-    def log_alert(self, at: datetime, kind: str, zone: str, text: str) -> None:
-        self.db.execute("INSERT INTO alerts (at, kind, zone, text, sent) VALUES (?,?,?,?,0)", (at.strftime("%Y-%m-%d %H:%M"), kind, zone, text))
+    def log_alert(self, at: datetime, kind: str, zone: str, text: str, picture: bytes | None = None) -> None:
+        self.db.execute("INSERT INTO alerts (at, kind, zone, text, sent, picture) VALUES (?,?,?,?,0,?)",
+                        (at.strftime("%Y-%m-%d %H:%M"), kind, zone, text, picture))
         self.db.commit()
+
+    def visitors(self, day) -> tuple[int, int]:
+        """Door crossings (in, out) saved for a day."""
+        d = day.isoformat()
+        r = self.db.execute("SELECT COALESCE(SUM(entered),0), COALESCE(SUM(left_n),0) FROM minutes WHERE minute >= ? AND minute < ?",
+                            (f"{d} 00:00", f"{d} 99")).fetchone()
+        return int(r[0]), int(r[1])
 
     _COLS = "minute, zone, seconds, occupied, people_sum, people_max, phone, still, entered, left_n"
 
@@ -168,10 +176,12 @@ class Store:
         self.db.commit()
 
     def unsent_alerts(self, limit: int = 50) -> list[tuple]:
-        return self.db.execute("SELECT rowid, at, kind, zone, text FROM alerts WHERE sent = 0 ORDER BY at LIMIT ?", (limit,)).fetchall()
+        """(rowid, at, kind, zone, text, picture) not yet delivered to Yurt."""
+        return self.db.execute("SELECT rowid, at, kind, zone, text, picture FROM alerts WHERE sent = 0 ORDER BY at LIMIT ?", (limit,)).fetchall()
 
     def mark_alerts_sent(self, rowids: list[int]) -> None:
-        self.db.executemany("UPDATE alerts SET sent = 1 WHERE rowid = ?", [(r,) for r in rowids])
+        # the picture is only needed until Yurt has it
+        self.db.executemany("UPDATE alerts SET sent = 1, picture = NULL WHERE rowid = ?", [(r,) for r in rowids])
         self.db.commit()
 
     def alerts_between(self, start: datetime, end: datetime) -> list[tuple[str, str, str, str]]:

@@ -35,11 +35,36 @@ reports and a few check pictures (heads blurred, deleted after 7 days) are kept,
 Copy this `watch` folder to the cafe computer, open a terminal in it and run:
 
 ```
+python -m venv .venv                      (once; then .venv\Scripts\activate, Linux/Mac: source .venv/bin/activate)
 python -m pip install -r requirements.txt
 python watch.py download-model --config config.example.toml
 copy config.example.toml config.toml      (Linux/Mac: cp config.example.toml config.toml)
 copy staff.example.csv staff.csv          (Linux/Mac: cp staff.example.csv staff.csv)
 ```
+
+Updating from an older box: `python -m pip uninstall -y opencv-python-headless`, then the install line again.
+
+### Better detection: RF-DETR (recommended)
+
+Two detection engines come with the box. YOLOX-Tiny is downloaded above and works everywhere. RF-DETR Nano (newer,
+better with people standing close together or half hidden by the coffee machine) has to be made on this computer
+once, because its maker publishes it only for PyTorch:
+
+```
+python watch.py download-model --engine rfdetr
+```
+
+This downloads about 1 GB of tools into `models/.rfdetr-export`, makes `models/rfdetr_nano.onnx` (about 100 MB) in a
+few minutes and deletes the tools again. The box then uses RF-DETR by itself (`engine = "auto"` in `config.toml`).
+`python watch.py compare` runs both engines on a picture from each camera (or `--video file.mp4`) and saves
+side-by-side pictures in `data/compare/`, so you can see which one finds your staff and guests better and how fast.
+
+### Hardware (optional)
+
+`device` in `config.toml` says where the model runs: `cpu`, `intel` (OpenVINO, faster on Intel CPUs and their
+built-in graphics: `pip install onnxruntime-openvino`), `nvidia` (an NVIDIA card: `pip uninstall onnxruntime` then
+`pip install onnxruntime-gpu`), or `auto` (the best one installed). If the chosen one is missing, the box says so
+in the log and uses the CPU.
 
 ## 3. Cameras and zones
 
@@ -113,7 +138,14 @@ Good to know when connected:
   very still while waiting; the check picture tells.
 - A door camera needs about `fps = 5` so people are seen on both sides of the line. Visitors include couriers and
   staff walking in; compare with orders, not with an exact guest count.
-- The box keeps working when the internet drops and sends the missed minutes later.
+- The box keeps working when the internet drops and sends the missed minutes and alerts later.
+- **Right now** on the Day tab: is each station staffed or away (and for how long), how many guests wait, visitors
+  in and out today, and whether the box is online (it checks in every minute; offline after 3 missed minutes).
+- **Guests waiting with nobody at the station** is checked every second: after `away_grace_seconds` (20) without
+  anyone at the station it counts as away, and when guests wait that long in total (`queue_wait_seconds`, 90) an
+  alert goes out at once with a small picture (heads blurred) to Telegram and the Day tab.
+- To keep the server bill small the box sends minute counts once a minute, the "right now" state only when it
+  changes (at most every 10 seconds, never saved up while offline), and pictures only with that one alert.
 - Only numbers, alert texts, the day report and a still picture on request leave the cafe. Camera passwords never do.
 
 ## 6. Run it
@@ -127,7 +159,8 @@ Startup folder (`Win+R`, `shell:startup`). Linux: a systemd service with `Restar
 
 ## What you get
 
-- **Live alerts:** station empty 3 min while 2+ guests wait · station empty 10 min during someone's shift ·
+- **Live alerts:** guests waiting with nobody at the station for 90 s (counted by the second, with a picture) ·
+  station empty 10 min during someone's shift ·
   someone not at their station 10 min after the shift starts · a camera not answering (those minutes are never
   counted against staff). Each alert fires once, then waits until the station is covered again. Times are in `[alerts]`.
 - **Daily report** 15 min after closing (or after the last shift): per station the % of open hours covered, minutes
@@ -151,6 +184,9 @@ Startup folder (`Win+R`, `shell:startup`). Linux: a systemd service with `Restar
 - Counting is a hint, not proof. Talk to the person before acting on a number.
 - Data: minute counts 90 days, check pictures 7 days, all in `data/` on this computer. Telegram messages with names
   pass through Telegram's servers; ask the lawyer if that is fine with the staff notice.
-- Detection takes about 50 ms per picture on a normal CPU, so 1–4 cameras at one picture a second is light work.
-- The model is YOLOX-Tiny (Apache-2.0 licence, free for commercial use).
+- Detection takes about 50 ms (YOLOX) to 100–200 ms (RF-DETR) per picture on a normal CPU, so 1–4 cameras at one
+  picture a second is light work; a door camera at 5 pictures a second costs the most.
+- Models: RF-DETR Nano (Roboflow) and YOLOX-Tiny (Megvii), both Apache-2.0, free for commercial use. People are
+  followed between pictures with ByteTrack (`trackers`, Apache-2.0) and door lines / zones are checked with
+  `supervision` (MIT). Each person is counted at most once each way through a door.
 - Run the tests: `python -m unittest discover -s tests -t .`

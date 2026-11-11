@@ -19,6 +19,22 @@ public class AdminStaffWatchController(StaffWatchService watch) : ApiControllerB
     public async Task<IActionResult> Day([FromQuery] Guid locationId, [FromQuery] string? day, CancellationToken ct)
         => ToResult(await watch.DayAsync(locationId, day, ct));
 
+    /// <summary>The branch right now (then follow the "WatchLive" SignalR message after SubscribeToWatch).</summary>
+    [HttpGet("live")]
+    [Authorize(Policy = "AdminRoleAdmin")]
+    public async Task<IActionResult> Live([FromQuery] Guid locationId, CancellationToken ct) => Ok(await watch.LiveAsync(locationId, ct));
+
+    /// <summary>The picture attached to an alert (heads blurred by the box).</summary>
+    [HttpGet("alerts/{id:guid}/picture")]
+    [Authorize(Policy = "AdminRoleAdmin")]
+    public async Task<IActionResult> AlertPicture(Guid id, CancellationToken ct)
+    {
+        var jpeg = await watch.AlertPictureAsync(id, ct);
+        if (jpeg is null) return NotFound();
+        Response.Headers.CacheControl = "private, max-age=3600";
+        return File(jpeg, "image/jpeg");
+    }
+
     [HttpGet("boxes")]
     public async Task<IActionResult> Boxes(CancellationToken ct) => Ok(await watch.BoxesAsync(ct));
 
@@ -115,6 +131,12 @@ public class WatchAgentController(StaffWatchService watch) : ApiControllerBase
     [HttpPost("reports")]
     public async Task<IActionResult> Report([FromHeader(Name = KeyHeader)] string? key, [FromBody] AgentReportDto dto, CancellationToken ct)
         => ToResult(await watch.AgentReportAsync(key, dto, ct));
+
+    /// <summary>What the box sees right now; sent only when it changes, at most every few seconds.</summary>
+    [HttpPost("live")]
+    [RequestSizeLimit(64 * 1024)]
+    public async Task<IActionResult> Live([FromHeader(Name = KeyHeader)] string? key, [FromBody] System.Text.Json.JsonElement state, CancellationToken ct)
+        => ToResult(await watch.AgentLiveAsync(key, state, ct));
 
     [HttpPost("snapshots")]
     public async Task<IActionResult> Snapshot([FromHeader(Name = KeyHeader)] string? key, [FromBody] AgentSnapshotDto dto, CancellationToken ct)

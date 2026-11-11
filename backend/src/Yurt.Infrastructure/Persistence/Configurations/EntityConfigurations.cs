@@ -739,6 +739,20 @@ public class WatchAlertConfiguration : IEntityTypeConfiguration<WatchAlert>
         builder.Property(e => e.Text).HasMaxLength(1000).IsRequired();
         builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(e => new { e.LocationId, e.At });
+        // the box may send an alert again when an answer got lost; the same time, kind and zone is stored once
+        builder.HasIndex(e => new { e.LocationId, e.At, e.Kind, e.Zone }).IsUnique();
+    }
+}
+
+public class WatchLiveConfiguration : IEntityTypeConfiguration<WatchLive>
+{
+    public void Configure(EntityTypeBuilder<WatchLive> builder)
+    {
+        builder.ToTable("WatchLive");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.StateJson).IsRequired();
+        builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => e.LocationId).IsUnique();
     }
 }
 

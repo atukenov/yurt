@@ -4,6 +4,7 @@ TEXTS = {
     "ru": {
         "empty_while_queue": "⚠️ {station}: никого нет уже {minutes} мин, в очереди {guests} гост.{duty}",
         "empty_on_shift": "⚠️ {station}: никого нет уже {minutes} мин во время смены{duty}",
+        "unattended_queue": "🚨 {station}: гости ждут, а за стойкой никого уже {seconds} с (в очереди {guests}).{duty}",
         "late": "⏰ {name} не на месте ({station}) к {at}, смена с {start}",
         "empty": "⚠️ {station}: никого нет уже {minutes} мин",
         "phone": "📱 {station}: телефон в руках уже {minutes} мин подряд.{duty}",
@@ -33,6 +34,7 @@ TEXTS = {
     "en": {
         "empty_while_queue": "⚠️ {station}: empty for {minutes} min with {guests} guests waiting.{duty}",
         "empty_on_shift": "⚠️ {station}: empty for {minutes} min during a shift.{duty}",
+        "unattended_queue": "🚨 {station}: guests waiting with nobody at the station for {seconds} s ({guests} in the queue).{duty}",
         "late": "⏰ {name} not at {station} by {at}, shift from {start}",
         "empty": "⚠️ {station}: empty for {minutes} min",
         "phone": "📱 {station}: phone in hand for {minutes} min in a row.{duty}",

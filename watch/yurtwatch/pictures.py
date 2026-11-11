@@ -26,6 +26,15 @@ def blur_heads(frame: np.ndarray, boxes) -> np.ndarray:
     return out
 
 
+def alert_jpeg(frame: np.ndarray, people, max_width: int = 640, quality: int = 70) -> bytes:
+    """A small picture for an alert (about 30-50 KB): heads blurred, at most 640 px wide."""
+    pic = blur_heads(frame, people)
+    if pic.shape[1] > max_width:
+        pic = cv2.resize(pic, (max_width, int(pic.shape[0] * max_width / pic.shape[1])), interpolation=cv2.INTER_AREA)
+    ok, jpg = cv2.imencode(".jpg", pic, [cv2.IMWRITE_JPEG_QUALITY, quality])
+    return jpg.tobytes() if ok else b""
+
+
 def draw_grid(frame: np.ndarray) -> np.ndarray:
     """10% grid with numbers: read zone corners off this picture."""
     out = frame.copy()

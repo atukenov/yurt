@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Yurt Watch: camera box for the Yurt module "Staff watch" (or standalone). See README.md.
 
-  python watch.py download-model          get the detection model (once)
+  python watch.py download-model [--engine rfdetr]   get the detection model (once; RF-DETR is made on this computer)
+  python watch.py compare [--video FILE]  RF-DETR vs YOLOX on your own camera: people found and speed
   python watch.py snapshot                save one picture per camera with a % grid (standalone zone setup)
   python watch.py check                   show zones + people/phones found right now (heads blurred)
   python watch.py connect                 check the Yurt connection and show the settings it sends
@@ -29,7 +30,8 @@ log = logging.getLogger("watch")
 
 REPORT_DELAY_MINUTES = 15
 CONFIG_EVERY = 60      # seconds between settings fetches from Yurt
-UPLOAD_EVERY = 15      # seconds between sending counts and alerts to Yurt
+UPLOAD_EVERY = 60      # seconds between sending minute counts to Yurt (alerts go out at once)
+LIVE_MIN_GAP = 10      # live panel: at most one update every N seconds, and only when something changed
 
 
 def local_now(cfg) -> datetime:
@@ -84,9 +86,27 @@ def sync_config(cfg, client) -> list[str]:
     return remote.get("snapshotRequests", []) or []
 
 
-def cmd_download_model(cfg, _args):
+def make_detector(cfg):
+    from yurtwatch.detector import make_detector as make
+
+    det = make(cfg.engine, cfg.model, cfg.rfdetr_model, cfg.min_confidence, cfg.detect.phone_confidence, cfg.device)
+    log.info("detector: %s", det.name)
+    return det
+
+
+def cmd_download_model(cfg, args):
     from yurtwatch.detector import download_model
 
+    if getattr(args, "engine", None) == "rfdetr":
+        from yurtwatch.export_rfdetr import export
+
+        if cfg.rfdetr_model.exists():
+            print(f"model already here: {cfg.rfdetr_model}")
+            return
+        print("RF-DETR Nano is made on this computer once: about 1 GB of tools is downloaded into a separate folder,")
+        print("used for a few minutes and deleted. The camera box itself stays small.")
+        export(cfg.rfdetr_model)
+        return
     if cfg.model.exists():
         print(f"model already here: {cfg.model}")
         return
@@ -118,13 +138,12 @@ def cmd_check(cfg, _args):
 
     from yurtwatch.analyze import CameraAnalyzer
     from yurtwatch.camera import grab_one
-    from yurtwatch.detector import Detector
     from yurtwatch.pictures import draw_check
 
     client = client_for(cfg)
     if client:
         sync_config(cfg, client)
-    det = Detector(cfg.model, cfg.min_confidence, cfg.detect.phone_confidence)
+    det = make_detector(cfg)
     out = cfg.data_dir / "snapshots"
     out.mkdir(parents=True, exist_ok=True)
     for cam in cfg.cameras:
@@ -143,6 +162,70 @@ def cmd_check(cfg, _args):
         on_phone = [k for k, v in samples.items() if v.phone]
         print(f"{cam.name}: {len(people)} people, {len(phones)} phones in picture, by zone {found}"
               f"{', phone at ' + ', '.join(on_phone) if on_phone else ''}, {ms:.0f} ms -> {p}")
+
+
+def cmd_compare(cfg, args):
+    """Runs both detectors on the same pictures, so you can see which finds your staff and guests better."""
+    import cv2
+    import numpy as np
+
+    from yurtwatch.camera import grab_one
+    from yurtwatch.detector import RfDetrDetector, YoloxDetector
+    from yurtwatch.pictures import blur_heads
+
+    missing = [str(p) for p in (cfg.model, cfg.rfdetr_model) if not p.exists()]
+    if missing:
+        sys.exit("missing " + ", ".join(missing) + ": run  python watch.py download-model  and  python watch.py download-model --engine rfdetr")
+    dets = [YoloxDetector(cfg.model, cfg.min_confidence, cfg.detect.phone_confidence, device=cfg.device),
+            RfDetrDetector(cfg.rfdetr_model, cfg.min_confidence, cfg.detect.phone_confidence, device=cfg.device)]
+    frames: list[tuple[str, object]] = []
+    if args.video:
+        cap = cv2.VideoCapture(args.video)
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 300
+        for i in range(10):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, int(total * i / 10))
+            ok, f = cap.read()
+            if ok:
+                frames.append((f"video-{i}", f))
+        cap.release()
+    else:
+        for cam in cfg.cameras:
+            f = grab_one(cam.url)
+            if f is not None:
+                frames.append((cam.name, f))
+    if not frames:
+        sys.exit("no pictures (check the camera addresses, or pass --video FILE)")
+    out = cfg.data_dir / "compare"
+    out.mkdir(parents=True, exist_ok=True)
+    totals = {d.name: [0, 0, 0.0] for d in dets}
+    for name, f in frames:
+        sides = []
+        line = []
+        for d in dets:
+            d.detect_all(f)  # warm up, so the first run's start-up time is not counted
+            t0 = time.perf_counter()
+            people, phones = d.detect_all(f)
+            ms = (time.perf_counter() - t0) * 1000
+            totals[d.name][0] += len(people)
+            totals[d.name][1] += len(phones)
+            totals[d.name][2] += ms
+            pic = blur_heads(f, people)
+            for b in people:
+                cv2.rectangle(pic, (int(b[0]), int(b[1])), (int(b[2]), int(b[3])), (0, 200, 0), 2)
+            for b in phones:
+                cv2.rectangle(pic, (int(b[0]), int(b[1])), (int(b[2]), int(b[3])), (0, 0, 255), 2)
+            cv2.putText(pic, f"{d.name}: {len(people)} people, {ms:.0f} ms", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+            sides.append(pic)
+            line.append(f"{d.name} {len(people)} people / {len(phones)} phones / {ms:.0f} ms")
+        p = out / f"{name}.jpg"
+        cv2.imwrite(str(p), np.hstack(sides))
+        print(f"{name}: " + "  |  ".join(line) + f"  -> {p}")
+    n = len(frames)
+    print("\nOn average per picture:")
+    for k, (pe, ph, ms) in totals.items():
+        print(f"  {k:7s} {pe / n:.1f} people, {ph / n:.1f} phones, {ms / n:.0f} ms")
+    print("Look at the pictures: the better engine finds everyone behind the counter and in the queue without extra boxes.")
+    print("Then set  engine = \"rfdetr\"  or  engine = \"yolox\"  in config.toml (auto picks RF-DETR when its file is there).")
 
 
 def cmd_connect(cfg, _args):
@@ -181,14 +264,14 @@ def cmd_test_telegram(cfg, _args):
 def cmd_run(cfg, _args):
     import cv2
 
+    import base64
+
     from yurtwatch.analyze import CameraAnalyzer
     from yurtwatch.camera import CameraReader
-    from yurtwatch.detector import Detector
-    from yurtwatch.pictures import blur_heads, draw_check, prune
+    from yurtwatch.live import LiveEngine
+    from yurtwatch.pictures import alert_jpeg, blur_heads, draw_check, prune
     from yurtwatch.yurt import YurtError
 
-    if not cfg.model.exists():
-        sys.exit("model missing: run  python watch.py download-model")
     client = client_for(cfg)
     snapshot_requests: list[str] = []
     if client:
@@ -200,21 +283,30 @@ def cmd_run(cfg, _args):
                 log.error("%s; trying again in 30 s", e)
                 time.sleep(30)
     store = Store(cfg.data_dir / "watch.db")
-    det = Detector(cfg.model, cfg.min_confidence, cfg.detect.phone_confidence)
+    try:
+        det = make_detector(cfg)
+    except FileNotFoundError as e:
+        sys.exit(str(e))
     readers = {c.name: CameraReader(c.name, c.url) for c in cfg.cameras}
     for r in readers.values():
         r.start()
 
     def make_analyzers():
         return {c.name: CameraAnalyzer([z for z in cfg.zones if z.camera == c.name], cfg.detect.phones,
-                                       cfg.detect.still, cfg.detect.still_threshold) for c in cfg.cameras}
+                                       cfg.detect.still, cfg.detect.still_threshold, fps=c.fps,
+                                       min_confidence=cfg.min_confidence) for c in cfg.cameras}
 
     analyzers = make_analyzers()
     zones_sig = repr([(z.name, z.points, z.inside) for z in cfg.zones])
     last_look = {c.name: 0.0 for c in cfg.cameras}
     latest: dict[str, tuple] = {}   # camera -> (time, frame, people, phones, samples)
     agg = MinuteAggregator()
-    engine = AlertEngine(cfg)
+    engine = AlertEngine(cfg, queue_rule=False)  # the live engine below watches waiting guests by the second
+    live = LiveEngine(cfg)
+    live.set_visitors(local_now(cfg).date(), *store.visitors(local_now(cfg).date()))
+    live_sent: dict | None = None
+    last_live = 0.0
+    alerts_waiting = False
     sent_file = cfg.data_dir / "reports-sent.txt"
     sent = set(sent_file.read_text().split()) if sent_file.exists() else set()
     last_picture: datetime | None = None
@@ -234,6 +326,19 @@ def cmd_run(cfg, _args):
         d.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(d / f"{now:%H%M}-{name}.jpg"), draw_check(f, zones, people, {k: v.people for k, v in samples.items()}, phones))
 
+    def raise_alert(a, now, picture: bytes | None = None):
+        nonlocal alerts_waiting
+        log.info("alert: %s", a.text)
+        store.log_alert(a.at, a.kind, a.zone, a.text, picture)
+        alerts_waiting = True
+        if not client:
+            if picture:
+                telegram.send_photo(cfg.telegram_token, cfg.telegram_chat, a.text, picture)
+            else:
+                telegram.send(cfg.telegram_token, cfg.telegram_chat, a.text)
+        cam = cfg.zone(a.zone).camera if a.zone in {z.name for z in cfg.zones} else a.zone
+        save_picture(f"alert-{a.kind}-{a.zone}", cam, now)
+
     def handle_closed(closed, now):
         nonlocal slots, slots_at
         if not closed:
@@ -246,12 +351,7 @@ def cmd_run(cfg, _args):
                 log.error("shift plan problem: %s", e)
             slots_at = now
         for a in engine.on_minutes(closed, slots):
-            log.info("alert: %s", a.text)
-            store.log_alert(a.at, a.kind, a.zone, a.text)
-            if not client:
-                telegram.send(cfg.telegram_token, cfg.telegram_chat, a.text)
-            cam = cfg.zone(a.zone).camera if a.zone in {z.name for z in cfg.zones} else a.zone
-            save_picture(f"alert-{a.kind}-{a.zone}", cam, now)
+            raise_alert(a, now)
 
     while True:
         t = time.monotonic()
@@ -270,6 +370,7 @@ def cmd_run(cfg, _args):
             latest[cam.name] = (t, f, people, phones, samples)
             for zname, s in samples.items():
                 if s.entered or s.left:
+                    live.add_crossings(now, s.entered, s.left)
                     handle_closed(agg.add_crossings(now, zname, s.entered, s.left), now)
 
         # one presence sample per second per zone
@@ -283,6 +384,11 @@ def cmd_run(cfg, _args):
                 for z in zones:
                     samples[z.name] = got[4].get(z.name) if fresh else None
             handle_closed(agg.add(now, samples), now)
+            for a in live.update(now, samples, slots):
+                st = cfg.zone(a.zone)
+                cam = cfg.zone(st.queue).camera if st.queue else st.camera  # the picture shows the waiting guests
+                got = latest.get(cam)
+                raise_alert(a, now, alert_jpeg(got[1], got[2]) if got else None)
 
         # a check picture every N minutes, to verify the counting by eye
         if latest and (last_picture is None or now - last_picture >= timedelta(minutes=cfg.check_picture_minutes)):
@@ -319,19 +425,37 @@ def cmd_run(cfg, _args):
                 except YurtError as e:
                     log.warning("%s", e)
                     break
-        if client and t - last_upload >= UPLOAD_EVERY:
-            last_upload = t
+        # alerts go out at once; minute counts once a minute (fewer, bigger requests keep the server bill small)
+        upload_due = t - last_upload >= UPLOAD_EVERY
+        if client and (upload_due or alerts_waiting):
+            if upload_due:
+                last_upload = t
             try:
-                rows = store.unsent_minutes()
-                if rows:
-                    client.send_minutes([m.to_json() for m in rows])
-                    store.mark_minutes_sent(rows)
-                al = store.unsent_alerts()
+                al = store.unsent_alerts(20)
                 if al:
-                    client.send_alerts([{"at": a[1].replace(" ", "T"), "kind": a[2], "zone": a[3], "text": a[4]} for a in al])
+                    client.send_alerts([{"at": a[1].replace(" ", "T"), "kind": a[2], "zone": a[3], "text": a[4],
+                                         **({"jpegBase64": base64.b64encode(a[5]).decode()} if a[5] else {})} for a in al])
                     store.mark_alerts_sent([a[0] for a in al])
+                alerts_waiting = bool(al) and len(al) == 20
+                if upload_due:
+                    rows = store.unsent_minutes()
+                    if rows:
+                        client.send_minutes([m.to_json() for m in rows])
+                        store.mark_minutes_sent(rows)
             except YurtError as e:
+                alerts_waiting = False  # try again with the next minute upload
                 log.warning("%s (kept, will send later)", e)
+
+        # live panel in Yurt: only when something changed, at most every LIVE_MIN_GAP seconds, never queued up
+        if client and t - last_live >= LIVE_MIN_GAP:
+            state = live.state(now)
+            if state != live_sent:
+                last_live = t
+                try:
+                    client.send_live({**state, "at": now.strftime("%Y-%m-%dT%H:%M:%S")})
+                    live_sent = state
+                except YurtError as e:
+                    log.debug("live update dropped: %s", e)
 
         # daily report shortly after closing (and after the last shift)
         for day in (now.date() - timedelta(days=1), now.date()):
@@ -364,7 +488,9 @@ def cmd_run(cfg, _args):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Yurt Watch camera box")
-    p.add_argument("command", choices=["download-model", "snapshot", "check", "connect", "run", "report", "test-telegram"])
+    p.add_argument("command", choices=["download-model", "snapshot", "check", "compare", "connect", "run", "report", "test-telegram"])
+    p.add_argument("--engine", choices=["yolox", "rfdetr"], help="download-model: which model (default yolox)")
+    p.add_argument("--video", help="compare: a video file instead of the cameras")
     p.add_argument("--config", default="config.toml")
     p.add_argument("--date", help="report day, YYYY-MM-DD (default today)")
     p.add_argument("--send", action="store_true", help="also send the report (to Yurt, or Telegram when standalone)")
@@ -373,6 +499,7 @@ def main(argv=None):
     cfg = config_mod.load(args.config)
     {
         "download-model": cmd_download_model,
+        "compare": cmd_compare,
         "snapshot": cmd_snapshot,
         "check": cmd_check,
         "connect": cmd_connect,

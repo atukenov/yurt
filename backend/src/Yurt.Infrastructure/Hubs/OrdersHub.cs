@@ -15,6 +15,7 @@ public class OrdersHub : Hub
     // Every group name carries the cafe, so one cafe's staff never hear another cafe's orders.
     public static string AdminsGroup(Guid tenantId) => $"admins:{tenantId}";
     public static string LocationGroup(Guid tenantId, string locationId) => $"location:{tenantId}:{locationId}";
+    public static string WatchGroup(Guid tenantId, string locationId) => $"watch:{tenantId}:{locationId.ToLowerInvariant()}";
     public static string GroupCartGroup(Guid tenantId, Guid groupCartId) => $"group:{tenantId}:{groupCartId}";
 
     /// <summary>The cafe this connection was opened for (already checked against the token by the tenant middleware).</summary>
@@ -57,6 +58,20 @@ public class OrdersHub : Hub
     public async Task UnsubscribeFromLocation(string locationId)
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, LocationGroup(Cafe(), locationId));
+    }
+
+    /// <summary>Staff watch live panel: only managers (Admin, CEO, SuperAdmin), never the staff being watched.</summary>
+    public async Task SubscribeToWatch(string locationId)
+    {
+        if (Context.User?.FindFirstValue("user_type") != "admin") return;
+        if (!(Context.User.IsInRole("Admin") || Context.User.IsInRole("Ceo") || Context.User.IsInRole("SuperAdmin"))) return;
+        if (!Guid.TryParse(locationId, out _)) return;
+        await Groups.AddToGroupAsync(Context.ConnectionId, WatchGroup(Cafe(), locationId));
+    }
+
+    public async Task UnsubscribeFromWatch(string locationId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, WatchGroup(Cafe(), locationId));
     }
 
     public async Task JoinGroupCart(string groupCartId)

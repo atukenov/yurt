@@ -1455,6 +1455,10 @@ export interface WatchAlertSettings {
   lateGraceMinutes: number;
   phoneMinutes: number;
   stillMinutes: number;
+  /** Guests waiting with nobody at the station this long (0 = off). */
+  queueWaitSeconds: number;
+  /** A station counts as away only after nobody is seen this long. */
+  awayGraceSeconds: number;
 }
 
 export interface WatchSettings {
@@ -1481,6 +1485,8 @@ export interface WatchBox {
   lastSeenAt: string | null;
   cameraNames: string[];
   version: string | null;
+  /** Checked in within the last 3 minutes. */
+  online: boolean;
 }
 
 export interface WatchAlert {
@@ -1488,6 +1494,42 @@ export interface WatchAlert {
   kind: string;
   zone: string;
   text: string;
+  id?: string | null;
+  hasPicture?: boolean;
+}
+
+/** One station right now, as the camera box sees it (times are the cafe's local time). */
+export interface WatchLiveStation {
+  zone: string;
+  label: string;
+  known: boolean;
+  present: boolean;
+  awaySince: string | null;
+  phone: boolean;
+  still: boolean;
+  unattendedSince: string | null;
+}
+
+export interface WatchLiveQueue {
+  zone: string;
+  label: string;
+  known: boolean;
+  people: number;
+  waitingSince: string | null;
+}
+
+export interface WatchLive {
+  locationId: string;
+  hasBox: boolean;
+  online: boolean;
+  lastSeenAt: string | null;
+  at: string | null;
+  state: {
+    stations?: WatchLiveStation[];
+    queues?: WatchLiveQueue[];
+    visitorsIn?: number;
+    visitorsOut?: number;
+  } | null;
 }
 
 export interface WatchStationLive {
