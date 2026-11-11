@@ -19,7 +19,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 [RequireModule(ModuleKeys.OwnPos)]
 public class AdminPurchasingController(PurchasingService purchasing) : ApiControllerBase
 {
-    private bool IsCafeAdmin => User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    private bool IsCafeAdmin => User.IsInRole("Admin") || User.IsInRole("Ceo") || User.IsInRole("SuperAdmin");
 
     /// <summary>Suppliers with what they sell. Cafe admins also see what the cafe owes each one.</summary>
     [HttpGet("suppliers")]

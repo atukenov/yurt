@@ -10,7 +10,7 @@ namespace Yurt.WebApi.Controllers.Admin;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/admin/dashboard")]
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "CeoOnly")]
 [RequireModule(ModuleKeys.Analytics)]
 public class AdminDashboardController : ApiControllerBase
 {

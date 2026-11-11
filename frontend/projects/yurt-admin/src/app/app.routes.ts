@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { adminAuthGuard } from './guards/auth.guard';
 import { superAdminGuard } from './guards/super-admin.guard';
 import { cafeScreenGuard } from './guards/cafe-screen.guard';
+import { ceoGuard } from './guards/ceo.guard';
 import { moduleGuard } from 'shared-api';
 
 export const routes: Routes = [
@@ -124,7 +125,7 @@ export const routes: Routes = [
           },
           {
             path: 'analytics',
-            canActivate: [moduleGuard('analytics', '/orders')],
+            canActivate: [ceoGuard, moduleGuard('analytics', '/orders')],
             loadComponent: () =>
               import('./features/analytics/analytics.component').then((m) => m.AnalyticsComponent),
           },
@@ -155,12 +156,18 @@ export const routes: Routes = [
           },
           {
             path: 'audit-log',
-            canActivate: [moduleGuard('staff_audit', '/orders')],
+            canActivate: [ceoGuard, moduleGuard('staff_audit', '/orders')],
             loadComponent: () =>
               import('./features/audit-log/audit-log.component').then((m) => m.AuditLogComponent),
           },
           {
+            path: 'payroll',
+            canActivate: [ceoGuard, moduleGuard('payroll', '/orders')],
+            loadComponent: () => import('./features/payroll/payroll.component').then((m) => m.PayrollComponent),
+          },
+          {
             path: 'subscription',
+            canActivate: [ceoGuard],
             loadComponent: () =>
               import('./features/subscription/subscription.component').then((m) => m.SubscriptionComponent),
           },

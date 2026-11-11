@@ -3,7 +3,7 @@ export const MODULE_GROUPS: { key: string; modules: string[] }[] = [
   { key: 'basics', modules: ['core', 'branding', 'verification', 'multi_location'] },
   { key: 'ordering', modules: ['online_payments', 'table_ordering', 'group_orders'] },
   { key: 'customers', modules: ['loyalty', 'marketing', 'engagement', 'push'] },
-  { key: 'running', modules: ['own_pos', 'staff_audit', 'staff_watch', 'analytics'] },
+  { key: 'running', modules: ['own_pos', 'staff_audit', 'staff_watch', 'payroll', 'analytics'] },
   { key: 'connections', modules: ['iiko_sync'] },
 ];
 

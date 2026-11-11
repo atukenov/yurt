@@ -120,6 +120,11 @@ public class PlatformController : ApiControllerBase
     public async Task<IActionResult> ResetCafeAdminPassword(Guid id, Guid adminId, [FromBody] ResetCafeAdminPasswordDto dto, CancellationToken ct)
         => ToResult(await _cafes.ResetAdminPasswordAsync(id, adminId, dto.NewPassword, ct));
 
+    /// <summary>Makes a cafe's management account the CEO (money screens, payroll) or an Admin.</summary>
+    [HttpPut("cafes/{id:guid}/admins/{adminId:guid}/role")]
+    public async Task<IActionResult> SetCafeAdminRole(Guid id, Guid adminId, [FromBody] SetCafeAdminRoleDto dto, CancellationToken ct)
+        => ToResult(await _cafes.SetAdminRoleAsync(id, adminId, dto.Role, ct));
+
     /// <summary>ZIP with all of a cafe's data (one CSV per table, cafe.json, README) for a cafe that leaves Yurt.</summary>
     [HttpGet("cafes/{id:guid}/export")]
     public async Task<IActionResult> ExportCafe(Guid id, [FromServices] ICafeDataExporter exporter, CancellationToken ct)

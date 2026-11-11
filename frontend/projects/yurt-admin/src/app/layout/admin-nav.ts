@@ -29,6 +29,8 @@ export interface NavGroup {
 
 export interface NavContext {
   isAdmin: boolean;
+  /** The cafe's CEO: money screens and payroll. */
+  isCeo: boolean;
   isSuperAdmin: boolean;
   moduleEnabled: (key: string) => boolean;
 }
@@ -36,6 +38,8 @@ export interface NavContext {
 interface NavItemDef extends NavItem {
   /** Cafe admins only (staff see just what has no flag). */
   adminOnly?: boolean;
+  /** The CEO only: money screens (sales, billing, audit log) and payroll. Admins do not see them. */
+  ceoOnly?: boolean;
   /** Hidden unless this module is on for the cafe. */
   module?: string;
 }
@@ -66,6 +70,7 @@ const ICON = {
   customers: ['M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
   workers: ['M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'],
   auditLog: ['M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+  payroll: ['M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
   staffWatch: ['M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z'],
   reports: ['M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
   subscription: ['M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
@@ -112,9 +117,9 @@ const CAFE_NAV: NavGroupDef[] = [
     label: 'nav.group.reports',
     items: [
       { link: '/reports', label: 'nav.reports', icon: ICON.reports, adminOnly: true },
-      { link: '/analytics', label: 'nav.analytics', icon: ICON.analytics, adminOnly: true, module: 'analytics' },
+      { link: '/analytics', label: 'nav.analytics', icon: ICON.analytics, ceoOnly: true, module: 'analytics' },
       { link: '/staff-watch', label: 'nav.staffWatch', icon: ICON.staffWatch, adminOnly: true, module: 'staff_watch' },
-      { link: '/audit-log', label: 'nav.auditLog', icon: ICON.auditLog, adminOnly: true, module: 'staff_audit' },
+      { link: '/audit-log', label: 'nav.auditLog', icon: ICON.auditLog, ceoOnly: true, module: 'staff_audit' },
     ],
   },
   {
@@ -124,7 +129,8 @@ const CAFE_NAV: NavGroupDef[] = [
       { link: '/locations', label: 'nav.locations', icon: ICON.locations, adminOnly: true },
       { link: '/workers', label: 'nav.workers', icon: ICON.workers, adminOnly: true, module: 'staff_audit' },
       { link: '/printers', label: 'nav.printers', icon: ICON.printers, adminOnly: true, module: 'own_pos' },
-      { link: '/subscription', label: 'nav.subscription', icon: ICON.subscription, adminOnly: true },
+      { link: '/payroll', label: 'nav.payroll', icon: ICON.payroll, ceoOnly: true, module: 'payroll' },
+      { link: '/subscription', label: 'nav.subscription', icon: ICON.subscription, ceoOnly: true },
     ],
   },
 ];
@@ -151,8 +157,13 @@ export function buildAdminNav(ctx: NavContext): NavGroup[] {
       id: g.id,
       label: g.label,
       items: g.items
-        .filter((i) => (!i.adminOnly || ctx.isAdmin) && (!i.module || ctx.moduleEnabled(i.module)))
-        .map(({ adminOnly: _a, module: _m, ...item }) => item),
+        .filter(
+          (i) =>
+            (!i.adminOnly || ctx.isAdmin) &&
+            (!i.ceoOnly || ctx.isCeo) &&
+            (!i.module || ctx.moduleEnabled(i.module)),
+        )
+        .map(({ adminOnly: _a, ceoOnly: _c, module: _m, ...item }) => item),
     }))
     .filter((g) => g.items.length > 0);
 }

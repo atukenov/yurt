@@ -53,6 +53,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<WatchCamera> WatchCameras => Set<WatchCamera>();
     public DbSet<WatchSettings> WatchSettings => Set<WatchSettings>();
     public DbSet<WatchShift> WatchShifts => Set<WatchShift>();
+    public DbSet<StaffSalary> StaffSalaries => Set<StaffSalary>();
+    public DbSet<PayAdjustment> PayAdjustments => Set<PayAdjustment>();
+    public DbSet<PayrollMonth> PayrollMonths => Set<PayrollMonth>();
+    public DbSet<PayrollLine> PayrollLines => Set<PayrollLine>();
     public DbSet<WatchMinute> WatchMinutes => Set<WatchMinute>();
     public DbSet<WatchAlert> WatchAlerts => Set<WatchAlert>();
     public DbSet<WatchReport> WatchReports => Set<WatchReport>();

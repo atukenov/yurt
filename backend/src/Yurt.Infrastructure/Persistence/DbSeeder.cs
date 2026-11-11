@@ -24,6 +24,7 @@ public static class DbSeeder
         await SeedMenuAsync(db, logger);
         await SeedToppingsAsync(db, logger);
         await SeedAdminsAsync(db, logger);
+        await SeedCeoAsync(db, logger);
         await SeedSuperAdminAsync(db, logger);
         await SeedModuleLicensesAsync(db, logger);
     }
@@ -224,6 +225,49 @@ public static class DbSeeder
         });
         await db.SaveChangesAsync();
         logger.LogInformation("Admin user '{Username}' seeded (MustChangePassword=true).", username);
+    }
+
+    /// <summary>
+    /// Makes sure the default Yurt cafe has a CEO (the owner role that sees reports, billing and payroll). Created from
+    /// SEED_CEO_USERNAME / SEED_CEO_PASSWORD (8+ characters) only while the cafe has no CEO; it must change the password
+    /// at first sign-in. Existing Admin accounts are never promoted by this seed. Other cafes get their CEO when the
+    /// operator opens them, or later through Platform → Cafes → Admins.
+    /// </summary>
+    private static async Task SeedCeoAsync(ApplicationDbContext db, ILogger logger)
+    {
+        if (await db.AdminUsers.AnyAsync(u => u.Role == AdminRole.Ceo)) return;
+
+        var username = Environment.GetEnvironmentVariable("SEED_CEO_USERNAME");
+        var password = Environment.GetEnvironmentVariable("SEED_CEO_PASSWORD");
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            logger.LogWarning(
+                "The default cafe has no CEO. Set SEED_CEO_USERNAME and SEED_CEO_PASSWORD and restart " +
+                "(or promote an Admin with the 'set-admin-role' command) to create one; until then nobody sees reports, billing or payroll.");
+            return;
+        }
+        if (password.Length < 8)
+        {
+            logger.LogWarning("SEED_CEO_PASSWORD must be at least 8 characters. Skipping CEO seed.");
+            return;
+        }
+        username = username.Trim();
+        if (await db.AdminUsers.IgnoreQueryFilters().AnyAsync(u => u.Username == username))
+        {
+            logger.LogWarning("SEED_CEO_USERNAME '{Username}' is already used by another account. Skipping CEO seed.", username);
+            return;
+        }
+
+        db.AdminUsers.Add(new AdminUser
+        {
+            Username = username,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = AdminRole.Ceo,
+            IsActive = true,
+            MustChangePassword = true
+        });
+        await db.SaveChangesAsync();
+        logger.LogInformation("CEO '{Username}' seeded (MustChangePassword=true).", username);
     }
 
     /// <summary>The cafe that owns all existing data. Created once; later edits (name, domain) are left alone.</summary>

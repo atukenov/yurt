@@ -72,7 +72,7 @@ public class CafeProvisioningService
             TenantId = tenant.Id,
             Username = username,
             PasswordHash = _hasher.Hash(password),
-            Role = AdminRole.Admin,
+            Role = AdminRole.Ceo, // the first account of a new cafe is its owner
             MustChangePassword = true,
         });
         var brand = BrandDto.Default with { Name = name };
@@ -122,9 +122,9 @@ public class CafeProvisioningService
             return Result<List<CafeAdminDto>>.Failure("Cafe not found.", 404);
 
         var admins = await _db.AdminUsers.IgnoreQueryFilters().AsNoTracking()
-            .Where(u => u.TenantId == cafeId && u.Role == AdminRole.Admin)
-            .OrderBy(u => u.Username)
-            .Select(u => new CafeAdminDto(u.Id, u.Username, u.IsActive))
+            .Where(u => u.TenantId == cafeId && (u.Role == AdminRole.Admin || u.Role == AdminRole.Ceo))
+            .OrderBy(u => u.Role).ThenBy(u => u.Username)
+            .Select(u => new CafeAdminDto(u.Id, u.Username, u.IsActive, u.Role.ToString()))
             .ToListAsync(ct);
         return Result<List<CafeAdminDto>>.Success(admins);
     }
@@ -139,7 +139,7 @@ public class CafeProvisioningService
             return Result<CafeAdminDto>.Failure($"New password must be at least {MinPasswordLength} characters.", 422);
 
         var admin = await _db.AdminUsers.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(u => u.Id == adminId && u.TenantId == cafeId && u.Role == AdminRole.Admin, ct);
+            .FirstOrDefaultAsync(u => u.Id == adminId && u.TenantId == cafeId && (u.Role == AdminRole.Admin || u.Role == AdminRole.Ceo), ct);
         if (admin is null) return Result<CafeAdminDto>.Failure("Admin not found.", 404);
 
         admin.PasswordHash = _hasher.Hash(newPassword);
@@ -154,6 +154,39 @@ public class CafeProvisioningService
         await _db.SaveChangesAsync(ct);
 
         await _audit.LogPlatformAsync("AdminPasswordReset", "AdminUser", adminId.ToString(), admin.Username, ct);
-        return Result<CafeAdminDto>.Success(new CafeAdminDto(admin.Id, admin.Username, admin.IsActive));
+        return Result<CafeAdminDto>.Success(new CafeAdminDto(admin.Id, admin.Username, admin.IsActive, admin.Role.ToString()));
+    }
+
+    /// <summary>
+    /// Makes one of the cafe's management accounts the CEO or an Admin. This is how the operator hands a cafe's money
+    /// screens (reports, billing, payroll) to its owner. The change takes effect at the account's next sign-in or token
+    /// refresh, so its open sessions are ended now. The cafe always keeps at least one active CEO.
+    /// </summary>
+    public async Task<Result<CafeAdminDto>> SetAdminRoleAsync(Guid cafeId, Guid adminId, string role, CancellationToken ct = default)
+    {
+        if (!Enum.TryParse<AdminRole>(role, true, out var newRole) || newRole is not (AdminRole.Ceo or AdminRole.Admin))
+            return Result<CafeAdminDto>.Failure("Role must be Ceo or Admin.", 422);
+
+        var admin = await _db.AdminUsers.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == adminId && u.TenantId == cafeId && (u.Role == AdminRole.Admin || u.Role == AdminRole.Ceo), ct);
+        if (admin is null) return Result<CafeAdminDto>.Failure("Admin not found.", 404);
+        if (admin.Role == newRole) return Result<CafeAdminDto>.Success(new CafeAdminDto(admin.Id, admin.Username, admin.IsActive, admin.Role.ToString()));
+
+        if (newRole == AdminRole.Admin &&
+            !await _db.AdminUsers.IgnoreQueryFilters().AnyAsync(
+                u => u.TenantId == cafeId && u.Role == AdminRole.Ceo && u.IsActive && u.Id != adminId, ct))
+            return Result<CafeAdminDto>.Failure("The cafe must keep at least one active CEO. Make someone else the CEO first.", 409);
+
+        admin.Role = newRole;
+        admin.UpdatedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        var open = await _db.RefreshTokens.IgnoreQueryFilters()
+            .Where(t => t.UserType == RefreshTokenUserType.Admin && t.UserId == adminId && !t.IsRevoked)
+            .ToListAsync(ct);
+        foreach (var t in open) { t.IsRevoked = true; t.RevokedAt = now; }
+        await _db.SaveChangesAsync(ct);
+
+        await _audit.LogPlatformAsync("AdminRoleChanged", "AdminUser", adminId.ToString(), $"{admin.Username} -> {newRole}", ct);
+        return Result<CafeAdminDto>.Success(new CafeAdminDto(admin.Id, admin.Username, admin.IsActive, admin.Role.ToString()));
     }
 }

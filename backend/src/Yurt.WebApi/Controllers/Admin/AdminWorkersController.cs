@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using Yurt.Application.Features.Workers;
 using Yurt.Domain;
+using Yurt.Domain.Enums;
 using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
@@ -18,6 +19,9 @@ public class AdminWorkersController : ApiControllerBase
 
     public AdminWorkersController(WorkerService workers) => _workers = workers;
 
+    private AdminRole CallerRole =>
+        User.IsInRole(nameof(AdminRole.Ceo)) || User.IsInRole(nameof(AdminRole.SuperAdmin)) ? AdminRole.Ceo : AdminRole.Admin;
+
     [HttpGet]
     public async Task<IActionResult> GetWorkers(CancellationToken ct)
         => Ok(await _workers.GetWorkersAsync(ct));
@@ -30,7 +34,7 @@ public class AdminWorkersController : ApiControllerBase
         if (dto.Password.Length < 6)
             return ValidationError("Password must be at least 6 characters.");
 
-        var result = await _workers.CreateWorkerAsync(dto, ct);
+        var result = await _workers.CreateWorkerAsync(dto, CallerRole, ct);
         return ToResult(result);
     }
 
@@ -40,14 +44,14 @@ public class AdminWorkersController : ApiControllerBase
         if (string.IsNullOrWhiteSpace(dto.Username))
             return ValidationError("Username is required.");
 
-        var result = await _workers.UpdateWorkerAsync(id, dto, ct);
+        var result = await _workers.UpdateWorkerAsync(id, dto, CallerRole, ct);
         return ToResult(result);
     }
 
     [HttpPatch("{id:guid}/active")]
     public async Task<IActionResult> SetActive(Guid id, [FromBody] SetWorkerActiveDto dto, CancellationToken ct)
     {
-        var result = await _workers.SetActiveAsync(id, dto.IsActive, ct);
+        var result = await _workers.SetActiveAsync(id, dto.IsActive, CallerRole, ct);
         return ToResult(result);
     }
 
@@ -57,7 +61,7 @@ public class AdminWorkersController : ApiControllerBase
         if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
             return ValidationError("New password must be at least 6 characters.");
 
-        var result = await _workers.ResetPasswordAsync(id, dto, ct);
+        var result = await _workers.ResetPasswordAsync(id, dto, CallerRole, ct);
         return ToResult(result);
     }
 }

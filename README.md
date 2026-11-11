@@ -144,6 +144,7 @@ Use this only if you want to run the API with your own .NET SDK; `./scripts/dev.
 export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=YurtDb;Username=postgres;Password=postgres"
 export Jwt__Secret="any-random-string-of-at-least-32-characters"
 export SEED_ADMIN_USERNAME=admin SEED_ADMIN_PASSWORD=admin12345
+export SEED_CEO_USERNAME=ceo SEED_CEO_PASSWORD=ceo12345   # the cafe owner: sales, billing, payroll (see docs/roles.md)
 ```
 
 2. Run the API (migrations run at start-up):

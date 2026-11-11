@@ -107,7 +107,7 @@ cat <<EOF
 
 Yurt is running locally:
   Customer app  http://localhost:$CUSTOMER_PORT
-  Admin panel   http://localhost:$ADMIN_PORT   (cafe admin: admin / admin12345; platform operator: superadmin / superadmin12345; both must change the password at first login)
+  Admin panel   http://localhost:$ADMIN_PORT   (cafe owner / CEO: ceo / ceo12345; cafe admin: admin / admin12345; platform operator: superadmin / superadmin12345; both must change the password at first login)
   API           $API_URL   (Swagger: $API_URL/swagger)
   Postgres      localhost:5432  (postgres / postgres, db YurtDb)
 
