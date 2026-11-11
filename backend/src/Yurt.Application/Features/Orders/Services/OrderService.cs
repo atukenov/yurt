@@ -1,3 +1,4 @@
+using Yurt.Application.Features.Profit;
 using Yurt.Application.Features.Payments.Services;
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
@@ -410,6 +411,8 @@ public class OrderService
         order.EtaMinutes = dto.EtaMinutes;
         order.AcceptedAt = DateTime.UtcNow;
         order.UpdatedAt = DateTime.UtcNow;
+        // Keep what the ingredients cost today, for the profit report (prices change later).
+        await new IngredientCostCalculator(_db).SnapshotAsync(order, ct);
         await _db.SaveChangesAsync(ct);
 
         await _hub.NotifyOrderUpdatedAsync(order, ct);

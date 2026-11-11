@@ -200,6 +200,7 @@ public static class DependencyInjection
         services.AddScoped<TableService>();
         services.AddScoped<StaffWatchService>();
         services.AddScoped<PayrollService>();
+        services.AddScoped<Yurt.Application.Features.Profit.ProfitService>();
         services.AddSingleton<IWatchTelegram, WatchTelegram>();
         services.AddScoped<StationReadyService>();
         services.AddSingleton<PrintQueueSignal>();

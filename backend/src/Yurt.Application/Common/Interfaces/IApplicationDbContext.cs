@@ -49,6 +49,7 @@ public interface IApplicationDbContext
     DbSet<PayAdjustment> PayAdjustments { get; }
     DbSet<PayrollMonth> PayrollMonths { get; }
     DbSet<PayrollLine> PayrollLines { get; }
+    DbSet<CafeExpense> CafeExpenses { get; }
     DbSet<ToppingUse> ToppingUses { get; }
     DbSet<CashMovement> CashMovements { get; }
     DbSet<Ingredient> Ingredients { get; }

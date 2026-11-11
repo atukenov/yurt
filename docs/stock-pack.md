@@ -12,8 +12,8 @@ and the "what to order" list are in [purchasing.md](purchasing.md).
 | Delivery arrived (amount + what it cost) | Stock → Ingredients → *Delivery arrived* | Staff and admins (page is in the admin menu) |
 | Cost per unit by hand | Stock → Ingredients → *Cost per unit* | Admins |
 | Stocktake | Stock → Stocktake | Staff and admins (page is in the admin menu) |
-| Food cost and margin per dish | Stock → Food cost | Admins |
-| Write-offs of the last 30 days by reason | Stock → History | Admins |
+| Food cost and margin per dish | Stock → Food cost | CEO only |
+| Write-offs of the last 30 days by reason (and the cost of each change) | Stock → History | CEO only (others see the history without money) |
 
 ## How the numbers work
 

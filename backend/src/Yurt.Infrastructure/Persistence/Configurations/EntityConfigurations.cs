@@ -174,6 +174,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(e => e.MenuItemName).HasMaxLength(200).IsRequired();
         builder.Property(e => e.UnitPrice).HasPrecision(10, 2);
         builder.Property(e => e.LineTotal).HasPrecision(10, 2);
+        builder.Property(e => e.UnitCost).HasPrecision(12, 4);
         builder.HasOne(e => e.Order).WithMany(o => o.Items)
             .HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(e => e.MenuItem).WithMany(m => m.OrderItems)
@@ -863,5 +864,21 @@ public class PayrollLineConfiguration : IEntityTypeConfiguration<PayrollLine>
         builder.Property(e => e.Deductions).HasPrecision(12, 2);
         builder.Property(e => e.Total).HasPrecision(12, 2);
         builder.HasOne(e => e.PayrollMonth).WithMany(m => m.Lines).HasForeignKey(e => e.PayrollMonthId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class CafeExpenseConfiguration : IEntityTypeConfiguration<CafeExpense>
+{
+    public void Configure(EntityTypeBuilder<CafeExpense> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Month).HasMaxLength(7).IsRequired();
+        builder.Property(e => e.Category).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Name).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.Amount).HasPrecision(14, 2);
+        builder.Property(e => e.CreatedBy).HasMaxLength(100).IsRequired();
+        builder.HasOne(e => e.Location).WithMany()
+            .HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => e.Month);
     }
 }

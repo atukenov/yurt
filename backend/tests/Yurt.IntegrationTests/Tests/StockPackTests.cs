@@ -30,6 +30,14 @@ public class StockPackTests(YurtWebAppFactory factory)
         return admin;
     }
 
+    private async Task<HttpClient> CeoAsync()
+    {
+        var ceo = factory.CreateClient();
+        ceo.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            await ApiHelpers.CreateAdminTokenAsync(factory.Services, ceo, "stockceo", "StockCeo@123", role: AdminRole.Ceo));
+        return ceo;
+    }
+
     private async Task<HttpClient> WorkerAsync()
     {
         var worker = factory.CreateClient();
@@ -95,7 +103,7 @@ public class StockPackTests(YurtWebAppFactory factory)
         Assert.Equal(12000m, history[0].GetProperty("costValue").GetDecimal());
         Assert.Equal("Invoice 12", history[1].GetProperty("note").GetString());
 
-        var food = await admin.GetFromJsonAsync<List<JsonElement>>("/api/v1/admin/stock/food-cost");
+        var food = await (await CeoAsync()).GetFromJsonAsync<List<JsonElement>>("/api/v1/admin/stock/food-cost");
         var row = food!.Single(f => f.GetProperty("menuItemId").GetGuid() == latte);
         Assert.Equal(180m, row.GetProperty("cost").GetDecimal());          // 18 g x 10
         Assert.Equal(18m, row.GetProperty("foodCostPercent").GetDecimal()); // 180 of 1000
@@ -139,12 +147,13 @@ public class StockPackTests(YurtWebAppFactory factory)
         Assert.Equal(-200m, spilled.GetProperty("change").GetDecimal());
         Assert.Equal(100m, spilled.GetProperty("costValue").GetDecimal());
 
-        var summary = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/admin/stock/write-offs?locationId={Downtown}");
+        var summary = await (await CeoAsync()).GetFromJsonAsync<JsonElement>($"/api/v1/admin/stock/write-offs?locationId={Downtown}");
         var reasons = summary.GetProperty("byReason").EnumerateArray().ToDictionary(r => r.GetProperty("reason").GetString()!);
         Assert.True(reasons["staff"].GetProperty("cost").GetDecimal() >= 150m);
         Assert.True(reasons["spilled"].GetProperty("cost").GetDecimal() >= 100m);
 
-        // Money figures are for cafe admins only.
+        // Money figures are for the CEO only.
+        Assert.Equal(HttpStatusCode.Forbidden, (await admin.GetAsync($"/api/v1/admin/stock/write-offs?locationId={Downtown}")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await worker.GetAsync($"/api/v1/admin/stock/write-offs?locationId={Downtown}")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await worker.GetAsync("/api/v1/admin/stock/food-cost")).StatusCode);
     }
