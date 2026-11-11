@@ -177,6 +177,12 @@ export const routes: Routes = [
               import('./features/subscription/subscription.component').then((m) => m.SubscriptionComponent),
           },
           {
+            path: 'guest-messages',
+            canActivate: [moduleGuard('marketing', '/orders')],
+            loadComponent: () =>
+              import('./features/guest-messages/guest-messages.component').then((m) => m.GuestMessagesComponent),
+          },
+          {
             path: 'discount-codes',
             canActivate: [moduleGuard('marketing', '/orders')],
             loadComponent: () =>

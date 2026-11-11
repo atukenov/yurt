@@ -15,6 +15,9 @@ public class CustomerUser : BaseEntity, ITenantOwned
     public int FailedLoginAttempts { get; set; }
     public DateTime? LockoutEnd { get; set; }
 
+    /// <summary>The guest switched off offers in their profile: no marketing messages (order updates still come).</summary>
+    public bool MarketingOptOut { get; set; }
+
     // iiko loyalty link (null until the customer is first synced to iikoCloud)
     public Guid? IikoCustomerId { get; set; }
     public Guid? IikoWalletId { get; set; }

@@ -114,3 +114,16 @@ public enum ModuleLicenseSource
     Trial = 1,
     Paid = 2
 }
+
+/// <summary>What a guest message (marketing campaign) is.</summary>
+public enum CampaignKind
+{
+    /// <summary>Sent once to a guest group by an admin.</summary>
+    OneOff = 0,
+    /// <summary>Automatic: a guest who has not ordered for a number of days.</summary>
+    ComeBack = 1,
+    /// <summary>Automatic: a few days before the guest's birthday.</summary>
+    Birthday = 2,
+    /// <summary>Automatic: a day or so after the guest's first order.</summary>
+    FirstOrderThanks = 3
+}

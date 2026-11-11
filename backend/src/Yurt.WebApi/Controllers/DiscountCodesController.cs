@@ -29,4 +29,9 @@ public class DiscountCodesController : ApiControllerBase
     [HttpPost("validate")]
     public async Task<IActionResult> Validate([FromBody] ValidateDiscountCodeDto dto, CancellationToken ct)
         => Ok(await _service.ValidateAsync(dto.Code, dto.Subtotal, _currentUser.UserId!.Value, ct));
+
+    /// <summary>The guest's own personal codes from guest messages that can still be used.</summary>
+    [HttpGet("mine")]
+    public async Task<IActionResult> Mine(CancellationToken ct)
+        => Ok(await _service.GetMineAsync(_currentUser.UserId!.Value, ct));
 }

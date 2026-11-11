@@ -110,7 +110,7 @@ public class AuthController : ApiControllerBase
         var userId = _currentUser.UserId!.Value;
         var user = await _db.CustomerUsers.FindAsync([userId], ct);
         if (user == null) return NotFound();
-        return Ok(new { user.Id, user.MobileNumber, user.FirstName, user.LastName, user.CreatedAt, user.DateOfBirth });
+        return Ok(new { user.Id, user.MobileNumber, user.FirstName, user.LastName, user.CreatedAt, user.DateOfBirth, user.MarketingOptOut });
     }
 
     /// <summary>Update current customer's name.</summary>
@@ -211,12 +211,14 @@ public class AuthController : ApiControllerBase
             return ValidationError("A token and a valid platform (ios/android) are required.");
 
         var userId = _currentUser.UserId!.Value;
+        var language = dto.Language?.Trim().ToLowerInvariant() is "ru" or "kk" or "en" ? dto.Language.Trim().ToLowerInvariant() : null;
         var existing = await _db.CustomerDeviceTokens.FirstOrDefaultAsync(t => t.Token == dto.Token, ct);
         if (existing != null)
         {
             existing.CustomerUserId = userId;
             existing.Platform = platform;
             existing.LastSeenAt = DateTime.UtcNow;
+            existing.Language = language ?? existing.Language;
         }
         else
         {
@@ -225,6 +227,7 @@ public class AuthController : ApiControllerBase
                 CustomerUserId = userId,
                 Token = dto.Token,
                 Platform = platform,
+                Language = language,
             });
         }
         await _db.SaveChangesAsync(ct);

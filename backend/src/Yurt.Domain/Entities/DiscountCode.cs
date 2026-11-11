@@ -18,5 +18,11 @@ public class DiscountCode : BaseEntity, ITenantOwned
     public DateTime? ExpiresAt { get; set; }
     public bool IsActive { get; set; } = true;
 
+    /// <summary>A personal code: only this guest can use it (made by an automatic message). Null = anyone.</summary>
+    public Guid? CustomerUserId { get; set; }
+
+    /// <summary>The guest message that made this personal code, for its results.</summary>
+    public Guid? CampaignId { get; set; }
+
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

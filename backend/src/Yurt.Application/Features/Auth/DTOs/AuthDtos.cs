@@ -28,10 +28,12 @@ public record RegistrationStartResponseDto(
     AuthResponseDto? Auth = null);
 public record CustomerLoginDto(string MobileNumber, string Pin4);
 public record AdminLoginDto(string Username, string Password);
-public record UpdateProfileDto(string FirstName, string LastName, DateOnly? DateOfBirth = null);
+/// <summary>MarketingOptOut: true = no offers by push; null = leave as it is (older apps don't send it).</summary>
+public record UpdateProfileDto(string FirstName, string LastName, DateOnly? DateOfBirth = null, bool? MarketingOptOut = null);
 public record ChangeMobileNumberDto(string MobileNumber);
 
-public record CustomerProfileDto(Guid Id, string MobileNumber, string FirstName, string LastName, DateTime CreatedAt, DateOnly? DateOfBirth = null);
+public record CustomerProfileDto(Guid Id, string MobileNumber, string FirstName, string LastName, DateTime CreatedAt, DateOnly? DateOfBirth = null, bool MarketingOptOut = false);
 public record ChangePinDto(string CurrentPin, string NewPin);
 public record ChangeAdminPasswordDto(string CurrentPassword, string NewPassword);
-public record RegisterDeviceTokenDto(string Token, string Platform);
+/// <summary>Language: the app language on the phone (ru, kk or en), so guest messages come in it.</summary>
+public record RegisterDeviceTokenDto(string Token, string Platform, string? Language = null);

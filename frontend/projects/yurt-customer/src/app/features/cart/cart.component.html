@@ -185,6 +185,24 @@
             @if (promoError()) {
               <p style="color:#ef4444;font-size:11px;margin:6px 0 0">{{ promoError() }}</p>
             }
+            <!-- The guest's own codes from the cafe's messages: one tap applies one -->
+            @if (myCodes().length) {
+              <p style="font-size:11px;font-weight:700;color:var(--ink-500);margin:10px 0 6px">{{ 'cart.myCodes' | t }}</p>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                @for (c of myCodes(); track c.code) {
+                  <button type="button" (click)="useMyCode(c.code)" [disabled]="promoLoading()"
+                    class="active:scale-95 transition-transform"
+                    style="display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 10px;border-radius:12px;border:1px dashed var(--tone-green);background:transparent;cursor:pointer;font-family:inherit;text-align:left">
+                    <span style="font-size:12px;font-weight:800;color:var(--tone-green)">
+                      {{ c.discountType === 'Percentage' ? '−' + c.discountValue + '%' : '−' + (c.discountValue | currency2) }} · {{ c.code }}
+                    </span>
+                    @if (c.expiresAt) {
+                      <span style="font-size:10.5px;font-weight:600;color:var(--ink-500)">{{ 'cart.codeUntil' | t: { date: (c.expiresAt | ldate: 'shortDate') } }}</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
           </div>
         }
 

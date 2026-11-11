@@ -1,0 +1,313 @@
+<div class="flex-1 overflow-y-auto">
+  <div class="px-4 sm:px-6 py-6 max-w-5xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">{{ 'gm.title' | t }}</h1>
+      <p class="text-sm text-slate-500 mt-1">{{ 'gm.subtitle' | t }}</p>
+    </div>
+
+    @if (!pushReady()) {
+      <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+        {{ 'gm.pushOff' | t }}
+      </div>
+    }
+
+    <!-- Guest groups -->
+    <section aria-labelledby="gm-groups">
+      <h2 id="gm-groups" class="text-lg font-bold text-slate-800">{{ 'gm.groups' | t }}</h2>
+      <p class="text-sm text-slate-500 mb-3">{{ 'gm.groupsHint' | t }}</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        @for (key of segmentKeys; track key) {
+          <button
+            type="button"
+            (click)="toggleSegment(key)"
+            [attr.aria-expanded]="openSegment() === key"
+            class="text-left bg-surface rounded-2xl border px-4 py-3 shadow-sm hover:border-brand-300 transition-colors"
+            [class.border-brand-500]="openSegment() === key"
+            [class.border-slate-200]="openSegment() !== key"
+          >
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="font-semibold text-slate-800">{{ 'gm.seg.' + key | t }}</span>
+              <span class="text-xl font-bold text-slate-800">{{ segment(key)?.guests ?? 0 }}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">{{ 'gm.segHint.' + key | t }}</p>
+            <p class="text-xs text-slate-600 mt-2">{{ 'gm.reachable' | t: { count: segment(key)?.reachable ?? 0 } }}</p>
+          </button>
+        }
+      </div>
+
+      @if (openSegment(); as key) {
+        <div class="mt-3 bg-surface rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+            <span class="font-semibold text-slate-800">{{ 'gm.seg.' + key | t }}</span>
+            <button type="button" (click)="openNew('OneOff', key)"
+              class="px-3 py-1.5 rounded-xl bg-brand-500 text-on-brand text-xs font-semibold hover:bg-brand-600">
+              {{ 'gm.messageThisGroup' | t }}
+            </button>
+          </div>
+          @if (segmentLoading()) {
+            <p class="px-4 py-3 text-sm text-slate-500">{{ 'label.loading' | t }}</p>
+          } @else if (!segmentGuests().length) {
+            <p class="px-4 py-3 text-sm text-slate-500">{{ 'gm.groupEmpty' | t }}</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-600">
+                    <th class="px-4 py-2 text-left font-semibold">{{ 'gm.guest' | t }}</th>
+                    <th class="px-4 py-2 text-left font-semibold">{{ 'gm.orders' | t }}</th>
+                    <th class="px-4 py-2 text-left font-semibold">{{ 'gm.lastOrder' | t }}</th>
+                    <th class="px-4 py-2 text-left font-semibold">{{ 'gm.spent' | t }}</th>
+                    <th class="px-4 py-2 text-left font-semibold">{{ 'gm.push' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (g of segmentGuests(); track g.id) {
+                    <tr>
+                      <td class="px-4 py-2 text-slate-800">{{ g.name || g.mobileNumber }}<div class="text-xs text-slate-500">{{ g.mobileNumber }}</div></td>
+                      <td class="px-4 py-2 text-slate-700">{{ g.orders }}</td>
+                      <td class="px-4 py-2 text-slate-600 text-xs">{{ g.lastOrderAt ? (g.lastOrderAt | ldate: 'shortDate') : '—' }}</td>
+                      <td class="px-4 py-2 text-slate-700">{{ g.totalSpent | lnumber: '1.0-0' }} ₸</td>
+                      <td class="px-4 py-2 text-xs">
+                        @if (g.reachable) {
+                          <span class="text-emerald-700">{{ 'gm.yes' | t }}</span>
+                        } @else {
+                          <span class="text-slate-500">{{ 'gm.no' | t }}</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Automatic messages -->
+    <section aria-labelledby="gm-auto">
+      <h2 id="gm-auto" class="text-lg font-bold text-slate-800">{{ 'gm.auto' | t }}</h2>
+      <p class="text-sm text-slate-500 mb-3">{{ 'gm.rules' | t: { days: 3 } }}</p>
+      @if (loading()) {
+        <p class="text-slate-500 text-sm">{{ 'label.loading' | t }}</p>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          @for (kind of autoKinds; track kind) {
+            @let c = auto(kind);
+            <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col gap-2">
+              <div class="flex items-start justify-between gap-2">
+                <span class="font-semibold text-slate-800">{{ 'gm.kind.' + kind | t }}</span>
+                @if (c) {
+                  @if (c.isActive) {
+                    <span class="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">{{ 'label.active' | t }}</span>
+                  } @else {
+                    <span class="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{{ 'gm.off' | t }}</span>
+                  }
+                }
+              </div>
+              <p class="text-xs text-slate-500">{{ 'gm.kindHint.' + kind | t: { days: c?.days ?? 0 } }}</p>
+              @if (c) {
+                <p class="text-xs text-slate-600">
+                  @if (c.discountType) {
+                    {{ 'gm.gives' | t: { discount: c.discountType === 'Percentage' ? c.discountValue + '%' : c.discountValue + ' ₸', days: c.codeValidDays } }}
+                  } @else {
+                    {{ 'gm.noCode' | t }}
+                  }
+                </p>
+                <div class="grid grid-cols-3 gap-1 text-center bg-slate-50 rounded-xl py-2 mt-1">
+                  <div><div class="font-bold text-slate-800">{{ c.results.sent }}</div><div class="text-[11px] text-slate-500">{{ 'gm.sent' | t }}</div></div>
+                  <div><div class="font-bold text-slate-800">{{ c.results.codesUsed }}</div><div class="text-[11px] text-slate-500">{{ 'gm.used' | t }}</div></div>
+                  <div><div class="font-bold text-slate-800">{{ c.results.revenue | lnumber: '1.0-0' }}</div><div class="text-[11px] text-slate-500">{{ 'gm.revenue' | t }}</div></div>
+                </div>
+                <div class="flex flex-wrap gap-3 mt-auto pt-1">
+                  <button type="button" (click)="toggleActive(c)" class="text-xs font-semibold text-brand-ink hover:underline">
+                    {{ (c.isActive ? 'gm.turnOff' : 'gm.turnOn') | t }}
+                  </button>
+                  <button type="button" (click)="openEdit(c)" class="text-xs font-medium text-slate-500 hover:text-brand-ink">{{ 'action.edit' | t }}</button>
+                  <button type="button" (click)="remove(c)" class="text-xs font-medium text-slate-500 hover:text-red-500">{{ 'action.delete' | t }}</button>
+                </div>
+              } @else {
+                <button type="button" (click)="openNew(kind)"
+                  class="mt-auto px-3 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600">
+                  {{ 'gm.setUp' | t }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- One-off messages -->
+    <section aria-labelledby="gm-oneoff">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 id="gm-oneoff" class="text-lg font-bold text-slate-800">{{ 'gm.oneOff' | t }}</h2>
+          <p class="text-sm text-slate-500">{{ 'gm.oneOffHint' | t }}</p>
+        </div>
+        <button type="button" (click)="openNew('OneOff')"
+          class="shrink-0 px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 shadow-sm">
+          {{ 'gm.new' | t }}
+        </button>
+      </div>
+      @if (!loading() && !oneOffs().length) {
+        <p class="text-sm text-slate-500">{{ 'gm.noOneOffs' | t }}</p>
+      } @else {
+        <div class="space-y-2">
+          @for (c of oneOffs(); track c.id) {
+            <div class="bg-surface rounded-2xl border border-slate-200 shadow-sm px-4 py-3 flex flex-wrap items-center gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="font-semibold text-slate-800 truncate">{{ c.name }}</div>
+                <div class="text-xs text-slate-500">
+                  {{ 'gm.seg.' + c.segment | t }}
+                  ·
+                  @if (c.sentAt) {
+                    {{ 'gm.sentOn' | t: { date: (c.sentAt | ldate: 'shortDateTime24') } }}
+                  } @else {
+                    {{ 'gm.draft' | t }}
+                  }
+                </div>
+              </div>
+              @if (c.sentAt) {
+                <div class="text-xs text-slate-600">
+                  {{ 'gm.resultsLine' | t: { sent: c.results.sent, used: c.results.codesUsed, revenue: (c.results.revenue | lnumber: '1.0-0') } }}
+                </div>
+              } @else {
+                <div class="flex items-center gap-3">
+                  <button type="button" (click)="send(c)" [disabled]="sendingId() === c.id || !pushReady()"
+                    class="px-3 py-1.5 rounded-xl bg-brand-500 text-on-brand text-xs font-semibold hover:bg-brand-600 disabled:opacity-50">
+                    {{ 'gm.sendNow' | t }}
+                  </button>
+                  <button type="button" (click)="openEdit(c)" class="text-xs font-medium text-slate-500 hover:text-brand-ink">{{ 'action.edit' | t }}</button>
+                </div>
+              }
+              <button type="button" (click)="remove(c)" class="text-xs font-medium text-slate-500 hover:text-red-500">{{ 'action.delete' | t }}</button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</div>
+
+<!-- Create / edit dialog -->
+@if (form(); as f) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="close()" (keydown.escape)="close()">
+    <div class="bg-surface rounded-2xl shadow-xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-6" role="dialog" aria-modal="true"
+      aria-labelledby="gm-dialog-title" (click)="$event.stopPropagation()">
+      <h2 id="gm-dialog-title" class="text-lg font-bold text-slate-800 mb-4">{{ 'gm.kind.' + f.kind | t }}</h2>
+
+      <div class="space-y-4">
+        <div>
+          <label for="gm-name" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'gm.name' | t }} *</label>
+          <input id="gm-name" [ngModel]="f.name" (ngModelChange)="patch({ name: $event })"
+            class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300" />
+        </div>
+
+        @if (f.kind === 'OneOff') {
+          <div>
+            <label for="gm-segment" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'gm.group' | t }}</label>
+            <select id="gm-segment" [ngModel]="f.segment" (ngModelChange)="patch({ segment: $event })"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300">
+              @for (key of segmentKeys; track key) {
+                <option [value]="key">{{ 'gm.seg.' + key | t }} ({{ segment(key)?.reachable ?? 0 }})</option>
+              }
+            </select>
+          </div>
+        } @else {
+          <div class="flex flex-wrap items-end gap-4">
+            <div>
+              <label for="gm-days" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'gm.days.' + f.kind | t }}</label>
+              <input id="gm-days" type="number" [min]="f.kind === 'ComeBack' ? 7 : 0" [max]="f.kind === 'ComeBack' ? 365 : f.kind === 'Birthday' ? 14 : 30"
+                [ngModel]="f.days" (ngModelChange)="patch({ days: +$event })"
+                class="w-28 text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300" />
+            </div>
+            <label class="flex items-center gap-2 text-sm text-slate-700 pb-2.5">
+              <input type="checkbox" [ngModel]="f.isActive" (ngModelChange)="patch({ isActive: $event })" class="rounded" />
+              {{ 'gm.activeField' | t }}
+            </label>
+          </div>
+        }
+
+        <!-- Texts per language -->
+        <div>
+          <div class="flex gap-1 mb-2" role="tablist">
+            @for (l of textLangs; track l) {
+              <button type="button" role="tab" [attr.aria-selected]="textLang() === l" (click)="textLang.set(l)"
+                class="px-3 py-1 rounded-lg text-xs font-semibold"
+                [class.bg-brand-500]="textLang() === l" [class.text-on-brand]="textLang() === l"
+                [class.bg-slate-100]="textLang() !== l" [class.text-slate-600]="textLang() !== l">
+                {{ 'gm.lang.' + l | t }}
+              </button>
+            }
+          </div>
+          <label for="gm-title" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'gm.msgTitle' | t }}</label>
+          <input id="gm-title" maxlength="120" [ngModel]="title(textLang())" (ngModelChange)="setTitle(textLang(), $event)"
+            class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 mb-2 focus:outline-none focus:ring-2 focus:ring-brand-300" />
+          <label for="gm-body" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'gm.msgBody' | t }}</label>
+          <textarea id="gm-body" rows="3" maxlength="500" [ngModel]="body(textLang())" (ngModelChange)="setBody(textLang(), $event)"
+            class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300"></textarea>
+          <p class="text-xs text-slate-500 mt-1">{{ 'gm.placeholders' | t }}</p>
+        </div>
+
+        <!-- Personal code -->
+        <div class="rounded-xl border border-slate-200 p-3 space-y-3">
+          <div>
+            <label for="gm-discount" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'gm.code' | t }}</label>
+            <select id="gm-discount" [ngModel]="f.discountType ?? 'none'" (ngModelChange)="setDiscount($event)"
+              class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300">
+              <option value="none">{{ 'gm.codeNone' | t }}</option>
+              <option value="Percentage">{{ 'discountCodes.percentage' | t }}</option>
+              <option value="FixedAmount">{{ 'discountCodes.fixedAmount' | t }}</option>
+            </select>
+          </div>
+          @if (f.discountType) {
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label for="gm-value" class="block text-xs font-semibold text-slate-600 mb-1">
+                  {{ f.discountType === 'Percentage' ? ('discountCodes.percent' | t) : ('discountCodes.amountTenge' | t) }}
+                </label>
+                <input id="gm-value" type="number" min="1" [max]="f.discountType === 'Percentage' ? 100 : null"
+                  [ngModel]="f.discountValue" (ngModelChange)="patch({ discountValue: +$event })"
+                  class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300" />
+              </div>
+              <div>
+                <label for="gm-valid" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'gm.validDays' | t }}</label>
+                <input id="gm-valid" type="number" min="1" max="90" [ngModel]="f.codeValidDays" (ngModelChange)="patch({ codeValidDays: +$event })"
+                  class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300" />
+              </div>
+              <div>
+                <label for="gm-min" class="block text-xs font-semibold text-slate-600 mb-1">{{ 'discountCodes.minOrder' | t }}</label>
+                <input id="gm-min" type="number" min="0" placeholder="0" [ngModel]="f.minOrderAmount"
+                  (ngModelChange)="patch({ minOrderAmount: $event === '' || $event === null ? null : +$event })"
+                  class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-300" />
+              </div>
+            </div>
+            <p class="text-xs text-slate-500">{{ 'gm.codeHint' | t }}</p>
+          }
+        </div>
+
+        <!-- Preview -->
+        @if (preview(); as p) {
+          <div>
+            <p class="text-xs font-semibold text-slate-600 mb-1">{{ 'gm.preview' | t }}</p>
+            <div class="rounded-2xl bg-slate-100 px-4 py-3">
+              <div class="text-sm font-semibold text-slate-800">{{ p.title }}</div>
+              <div class="text-sm text-slate-700 whitespace-pre-line">{{ p.body }}</div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <button type="button" (click)="close()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">{{ 'action.cancel' | t }}</button>
+        <button type="button" (click)="save()" [disabled]="saving()"
+          class="px-4 py-2 rounded-xl bg-brand-500 text-on-brand text-sm font-semibold hover:bg-brand-600 disabled:opacity-50">
+          {{ saving() ? ('label.saving' | t) : ('action.save' | t) }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

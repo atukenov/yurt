@@ -218,6 +218,7 @@ public static class DependencyInjection
         services.AddScoped<PaymentService>();
         services.AddScoped<PromotionService>();
         services.AddScoped<DiscountCodeService>();
+        services.AddScoped<Yurt.Application.Features.Marketing.MarketingService>();
         services.AddScoped<FavoriteService>();
         services.AddScoped<CustomerService>();
         services.AddScoped<WorkerService>();
@@ -230,6 +231,7 @@ public static class DependencyInjection
         services.AddHostedService<LoyaltyRetryService>();
         services.AddHostedService<IikoOrderSyncRetryService>();
         services.AddHostedService<FiscalReceiptJob>();
+        services.AddHostedService<MarketingJob>();
         services.AddHostedService<PrintJobService>();
 
         // Error alerts to Telegram (off until Alerts:TelegramBotToken and Alerts:TelegramChatId are set; docs/monitoring.md)

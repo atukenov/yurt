@@ -29,7 +29,9 @@ export class PushNotificationService {
         const token = isIos ? (await FCM.getToken()).token : apnsOrFcmToken.value;
         this.lastToken = token;
         console.log('FCM token:', token);
-        this.api.registerDeviceToken(token, isIos ? 'ios' : 'android').subscribe({
+        // The app language (set on <html lang>), so guest messages come in it.
+        const lang = document.documentElement.lang?.slice(0, 2) || undefined;
+        this.api.registerDeviceToken(token, isIos ? 'ios' : 'android', lang).subscribe({
           error: (error) => console.error('Failed to save push token:', error),
         });
       } catch (error) {

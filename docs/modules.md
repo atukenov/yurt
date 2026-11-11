@@ -22,9 +22,9 @@ How a gate is built:
 - **Does not cover:** the customer-report moderation page (`/admin/reports`, `ReportsController`), which belongs to `core`.
 - **Depends on:** nothing.
 
-### `marketing` (promotions and discount codes)
-- **Covers:** `/api/v1/promotions/*`, `/api/v1/discount-codes/*`, `/api/v1/admin/promotions/*`, `/api/v1/admin/discount-codes/*`; the admin **Promotions** and **Discount codes** pages and menu entries; in the customer app the promo popup, the promotions strips on Menu and News, and the code field in the cart.
-- **When off:** those endpoints return `403 module_disabled`, admin routes redirect to Orders, the customer UI hides the promo surfaces, and a code already applied in the cart is cleared.
+### `marketing` (promotions, discount codes, guest messages)
+- **Covers:** `/api/v1/promotions/*`, `/api/v1/discount-codes/*`, `/api/v1/admin/promotions/*`, `/api/v1/admin/discount-codes/*`, `/api/v1/admin/marketing/*`; the admin **Promotions**, **Discount codes** and **Guest messages** pages and menu entries; in the customer app the promo popup, the promotions strips on Menu and News, the code field and "Your codes" in the cart, and the "Offers from the cafe" switch on Profile. Automatic guest messages also need the `push` module (see [guest-messages.md](guest-messages.md)).
+- **When off:** those endpoints return `403 module_disabled`, admin routes redirect to Orders, the customer UI hides the promo surfaces, a code already applied in the cart is cleared, and the background job sends no guest messages.
 - **Checkout is unaffected:** `POST /orders` ignores a `discountCode` while the module is off and creates the order at full price (no error).
 - **Existing data:** promotions, codes and the discount recorded on past orders stay as they are and show again when the module is back on.
 - **Depends on:** nothing.

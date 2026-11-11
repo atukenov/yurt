@@ -38,6 +38,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<DiscountCode> DiscountCodes => Set<DiscountCode>();
+    public DbSet<MarketingCampaign> MarketingCampaigns => Set<MarketingCampaign>();
+    public DbSet<MarketingMessage> MarketingMessages => Set<MarketingMessage>();
     public DbSet<MenuItemLocation> MenuItemLocations => Set<MenuItemLocation>();
     public DbSet<MenuItemStock> MenuItemStocks => Set<MenuItemStock>();
     public DbSet<Shift> Shifts => Set<Shift>();
