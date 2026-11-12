@@ -1,4 +1,4 @@
-import { BluetoothConnector, BluetoothLink } from './bluetooth-printing';
+import { BluetoothConnector, BluetoothLink } from 'shared-api';
 
 /**
  * The tablet app's own Bluetooth plugin (frontend/admin-native: YurtPrinterPlugin.java for Android,

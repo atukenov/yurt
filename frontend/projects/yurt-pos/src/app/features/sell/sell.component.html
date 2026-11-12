@@ -14,6 +14,11 @@
     <button type="button" (click)="showSales.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
       {{ 'top.sales' | t }}
     </button>
+    @if (branch()) {
+      <button type="button" (click)="showPrinter.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+        {{ (printer.hasPrinter() ? 'printer.on' : 'printer.title') | t }}
+      </button>
+    }
     <div class="flex rounded-lg ring-1 ring-slate-200">
       @for (l of langs; track l) {
         <button type="button" (click)="lang.setLang(l)" [attr.aria-pressed]="lang.lang() === l"
@@ -141,6 +146,11 @@
                 <p class="text-xl font-bold text-slate-900">{{ 'done.savedTitle' | t }}</p>
                 <p class="text-2xl font-bold text-slate-900">{{ q.total | currency2 }}</p>
                 <p class="text-slate-600">{{ 'done.savedText' | t }}</p>
+                @if (printProblem(); as problem) {
+                  <p class="text-sm text-red-700" role="alert">{{ 'printer.failed' | t: { reason: problem } }}</p>
+                } @else if (printer.hasPrinter()) {
+                  <p class="text-sm text-slate-600">{{ 'printer.printed' | t }}</p>
+                }
               }
               <button type="button" (click)="next()" class="mt-2 w-full rounded-xl bg-brand-500 py-4 text-lg font-bold text-on-brand">
                 {{ 'done.next' | t }}
@@ -319,6 +329,49 @@
           <li class="py-6 text-center text-sm text-slate-500">{{ 'sales.empty' | t }}</li>
         }
       </ul>
+    </div>
+  </div>
+}
+
+<!-- Receipt printer -->
+@if (showPrinter()) {
+  <div class="fixed inset-0 z-40 flex justify-end bg-black/40" (click)="showPrinter.set(false)">
+    <div class="h-full w-full max-w-sm overflow-y-auto bg-surface p-5" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
+         [attr.aria-label]="'printer.title' | t">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-900">{{ 'printer.title' | t }}</h2>
+        <button type="button" (click)="showPrinter.set(false)" class="rounded-lg px-3 py-2 text-sm ring-1 ring-slate-200">{{ 'sales.close' | t }}</button>
+      </div>
+      <p class="mt-3 text-sm text-slate-600">{{ 'printer.help' | t }}</p>
+      @if (!printer.supported()) {
+        <p class="mt-3 text-sm text-red-700">{{ 'printer.unsupported' | t }}</p>
+      }
+      <ul class="mt-4 space-y-2">
+        @for (p of printer.printers(); track p.id) {
+          <li class="flex items-center justify-between gap-2 rounded-xl p-3 ring-1 ring-slate-200">
+            <div class="min-w-0">
+              <p class="truncate font-semibold text-slate-900">{{ p.name }}</p>
+              @if (printer.connected().get(p.id); as state) {
+                <p class="text-xs text-green-700">{{ 'printer.connectedTo' | t: { name: state.name } }}</p>
+                @if (state.lastError) { <p class="text-xs text-red-700">{{ state.lastError }}</p> }
+              } @else {
+                <p class="text-xs text-slate-500">{{ 'printer.notConnected' | t }}</p>
+              }
+            </div>
+            @if (printer.connected().get(p.id)) {
+              <button type="button" (click)="printer.disconnect(p.id)" class="rounded-lg px-3 py-2 text-sm ring-1 ring-slate-300">{{ 'printer.disconnect' | t }}</button>
+            } @else {
+              <button type="button" (click)="printer.connect(p.id)" [disabled]="!printer.supported()"
+                      class="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-40">{{ 'printer.connect' | t }}</button>
+            }
+          </li>
+        } @empty {
+          <li class="py-4 text-sm text-slate-500">{{ 'printer.none' | t }}</li>
+        }
+      </ul>
+      @if (printer.error(); as err) {
+        <p class="mt-3 text-sm text-red-700" role="alert">{{ err }}</p>
+      }
     </div>
   </div>
 }
