@@ -1,4 +1,4 @@
-import { CreateCounterSaleRequest, MenuItem, MenuTopping, OptionRule, PaymentMethod } from 'shared-models';
+import { CreateCounterSaleRequest, MenuItem, MenuTopping, OptionRule, OrderType, PaymentMethod } from 'shared-models';
 
 /** One line on the till: an item in one size with its add-ons. Prices are only for the screen; the server sets the real ones. */
 export interface CartLine {
@@ -116,9 +116,10 @@ export function changeDue(total: number, given: number | null): number | null {
 
 export function toRequest(
   lines: CartLine[], locationId: string, method: PaymentMethod, idempotencyKey: string,
-  handedOver: boolean, etaMinutes: number | null,
+  handedOver: boolean, etaMinutes: number | null, orderType: OrderType = 'TakeAway',
 ): CreateCounterSaleRequest {
   return {
+    orderType,
     locationId,
     paymentMethod: method,
     idempotencyKey,

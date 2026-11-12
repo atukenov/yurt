@@ -2,7 +2,7 @@ using Yurt.Domain.Enums;
 
 namespace Yurt.Application.Features.Orders.DTOs;
 
-public record CreateOrderDto(Guid LocationId, List<OrderItemInputDto> Items, PaymentMethod? PaymentMethod = null, string? DiscountCode = null, string? IdempotencyKey = null, decimal? LoyaltyPointsToSpend = null, DateTime? PickupAt = null, string? TableCode = null);
+public record CreateOrderDto(Guid LocationId, List<OrderItemInputDto> Items, PaymentMethod? PaymentMethod = null, string? DiscountCode = null, string? IdempotencyKey = null, decimal? LoyaltyPointsToSpend = null, DateTime? PickupAt = null, string? TableCode = null, OrderType? OrderType = null);
 public record OrderItemInputDto(Guid MenuItemId, int Quantity, List<OrderItemToppingInputDto>? Toppings = null, string? Notes = null, Guid? VariantId = null);
 public record OrderItemToppingInputDto(Guid ToppingId, string ToppingName, decimal Price);
 
@@ -47,7 +47,9 @@ public record OrderDto(
     // The table the guest ordered to by its QR code (table_ordering); null = pick up at the counter.
     string? TableLabel = null,
     // Where the order came from: "App" (the guest's app) or "Counter" (rung up by a cashier for a walk-in guest).
-    OrderSource Source = OrderSource.App);
+    OrderSource Source = OrderSource.App,
+    // Here or to go.
+    OrderType OrderType = OrderType.TakeAway);
 
 public record OrderItemDto(
     Guid Id,
@@ -75,6 +77,7 @@ public record CreateCounterSaleDto(
     string IdempotencyKey,
     DateTime? SoldAt = null,
     bool HandedOver = false,
-    int? EtaMinutes = null);
+    int? EtaMinutes = null,
+    OrderType OrderType = OrderType.TakeAway);
 
 public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null);

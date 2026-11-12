@@ -162,6 +162,9 @@
                 <div>
                   <p class="text-lg font-bold text-slate-800">#{{ shortId(order) }}</p>
                   <p class="text-sm text-slate-500">{{ order.customerName || ('orders.walkIn' | t) }}</p>
+                  <p class="text-base font-bold" [class]="order.orderType === 'DineIn' ? 'text-brand-ink' : 'text-slate-600'">
+                    {{ (order.orderType === 'DineIn' ? 'order.here' : 'order.toGo') | t }}
+                  </p>
                   @if (order.tableLabel) {
                     <p class="text-base font-bold text-brand-ink">🍽️ {{ 'tables.tableN' | t: { table: order.tableLabel } }}</p>
                   }
@@ -262,6 +265,13 @@
                 class="mt-2 w-full rounded-xl border border-slate-200 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
               >
                 {{ 'kitchen.printTicket' | t }}
+              </button>
+              <button
+                type="button"
+                (click)="printLabels(order)"
+                class="mt-2 w-full rounded-xl border border-slate-200 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                {{ 'printers.printLabels' | t }}
               </button>
             </article>
           } @empty {

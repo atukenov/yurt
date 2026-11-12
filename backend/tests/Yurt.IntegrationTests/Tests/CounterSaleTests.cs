@@ -84,6 +84,66 @@ public class CounterSaleTests(YurtWebAppFactory factory)
     }
 
     [Fact]
+    public async Task CounterSale_KeepsHereOrToGo_AndDefaultsToTakeAway()
+    {
+        var admin = await AdminAsync();
+        var (item, _, _) = await SeedMenuAsync();
+        async Task<JsonElement> Sell(object? type)
+        {
+            var body = new Dictionary<string, object?>
+            {
+                ["locationId"] = LocationId, ["paymentMethod"] = "Cash", ["idempotencyKey"] = Guid.NewGuid().ToString(),
+                ["items"] = new[] { new { menuItemId = item, quantity = 1 } },
+            };
+            if (type is not null) body["orderType"] = type;
+            var res = await admin.PostAsJsonAsync(Url, body);
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+            return await res.Content.ReadFromJsonAsync<JsonElement>();
+        }
+
+        Assert.Equal("TakeAway", (await Sell(null)).GetProperty("orderType").GetString());
+        Assert.Equal("DineIn", (await Sell("DineIn")).GetProperty("orderType").GetString());
+    }
+
+    [Fact]
+    public async Task PrintLabels_WithNoLabelPrinter_QueuesNothing_AndWithOneQueuesAJob()
+    {
+        var admin = await AdminAsync();
+        var (item, _, _) = await SeedMenuAsync();
+        var sale = await (await admin.PostAsJsonAsync(Url, new
+        {
+            locationId = LocationId, paymentMethod = "Cash", idempotencyKey = Guid.NewGuid().ToString(),
+            items = new[] { new { menuItemId = item, quantity = 2 } },
+        })).Content.ReadFromJsonAsync<JsonElement>();
+        var id = sale.GetProperty("id").GetGuid();
+
+        var none = await admin.PostAsync($"/api/v1/admin/orders/{id}/print/labels", null);
+        none.EnsureSuccessStatusCode();
+        Assert.Equal(0, (await none.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("printers").GetInt32());
+
+        Guid printerId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var printer = new Printer { LocationId = LocationId, Name = "Cups", Kind = Printer.LabelKind, Host = "10.255.255.1", ViaAgent = true, AutoPrint = false };
+            db.Printers.Add(printer);
+            await db.SaveChangesAsync();
+            printerId = printer.Id;
+        }
+        try
+        {
+            var one = await admin.PostAsync($"/api/v1/admin/orders/{id}/print/labels", null);
+            one.EnsureSuccessStatusCode();
+            Assert.Equal(1, (await one.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("printers").GetInt32());
+        }
+        finally
+        {
+            // The tests share one database: a leftover agent printer would fill the print agent's job batches in other tests.
+            await admin.DeleteAsync($"/api/v1/admin/printers/{printerId}");
+        }
+    }
+
+    [Fact]
     public async Task OfflineSale_KeepsItsTime_IsHandedOver_AndIsTakenEvenIfTheItemIsNowStopped()
     {
         var admin = await AdminAsync();

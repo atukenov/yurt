@@ -43,6 +43,7 @@ public class PrintService(
         try
         {
             await QueueTicketsAsync(order, null, autoOnly: true, ct);
+            await QueueLabelsAsync(order, autoOnly: true, ct);
             await QueueReceiptAsync(order, autoOnly: true, ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -101,6 +102,42 @@ public class PrintService(
         foreach (var printer in printers)
             db.PrintJobs.Add(new PrintJob { PrinterId = printer.Id, OrderId = orderId, Kind = PrintJob.DrawerKind, Data = PrintLayouts.Drawer(printer) });
         return await SaveAsync(printers.Count, ct);
+    }
+
+    /// <summary>Staff pressed Print labels: one sticker per piece on every label printer of the order's branch.</summary>
+    public async Task<Result<PrintQueuedDto>> PrintLabelsAsync(Guid orderId, CancellationToken ct = default)
+    {
+        var order = await LoadAsync(orderId, ct);
+        if (order is null) return Result<PrintQueuedDto>.NotFound();
+        return Result<PrintQueuedDto>.Success(new PrintQueuedDto(await QueueLabelsAsync(order, autoOnly: false, ct)));
+    }
+
+    /// <summary>
+    /// Label printers get a sticker per piece. Like kitchen printers, a printer with a station gets that station's items
+    /// plus items with no station (so a bar label printer sticks only the drinks).
+    /// </summary>
+    public async Task<int> QueueLabelsAsync(Order order, bool autoOnly, CancellationToken ct = default)
+    {
+        var printers = await db.Printers.AsNoTracking()
+            .Where(p => p.LocationId == order.LocationId && p.Kind == Printer.LabelKind && (!autoOnly || p.AutoPrint))
+            .ToListAsync(ct);
+        if (printers.Count == 0) return 0;
+
+        var menuItemIds = order.Items.Select(i => i.MenuItemId).Distinct().ToList();
+        var itemStations = await db.MenuItems.Where(m => menuItemIds.Contains(m.Id) && m.Category.StationId != null)
+            .Select(m => new { m.Id, StationId = m.Category.StationId!.Value }).ToDictionaryAsync(m => m.Id, m => m.StationId, ct);
+
+        var queued = 0;
+        foreach (var printer in printers)
+        {
+            var items = printer.StationId is { } sid
+                ? order.Items.Where(i => !itemStations.TryGetValue(i.MenuItemId, out var s) || s == sid).ToList()
+                : order.Items.ToList();
+            if (items.Count == 0) continue;
+            Add(printer, order.Id, PrintJob.LabelKind, PrintLayouts.Labels(printer, order, items));
+            queued++;
+        }
+        return await SaveAsync(queued, ct);
     }
 
     /// <summary>

@@ -62,6 +62,8 @@ export class CartComponent implements OnInit {
   private readonly now = signal(new Date());
   readonly pickupLater = signal(false);
   readonly pickupAt = signal<string | null>(null);
+  /** Eat here or take away. A table order is always eaten here, so the server ignores this for it. */
+  readonly orderType = signal<'DineIn' | 'TakeAway'>('TakeAway');
   readonly pickupTimes = computed(() =>
     pickupSlots(this.locationSvc.workingHours(), this.now()).map((d) => d.toISOString()));
 
@@ -292,7 +294,7 @@ export class CartComponent implements OnInit {
     const tableCode = this.modules.isEnabled('table_ordering') ? this.tableSvc.current()?.code : undefined;
 
     this.api.createOrder(
-      { locationId, items, paymentMethod: paymentMethod ?? undefined, discountCode, loyaltyPointsToSpend, pickupAt, tableCode },
+      { locationId, items, paymentMethod: paymentMethod ?? undefined, discountCode, loyaltyPointsToSpend, pickupAt, tableCode, orderType: tableCode ? undefined : this.orderType() },
       this.checkoutKey,
     ).subscribe({
       next: async (order) => {

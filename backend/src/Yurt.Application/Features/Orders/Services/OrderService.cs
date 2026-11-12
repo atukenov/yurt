@@ -171,7 +171,9 @@ public class OrderService
             DiningTableId = table?.Id,
             TableLabel = table?.Label,
             Status = OrderStatus.Created,
-            PickupAt = pickupAt
+            PickupAt = pickupAt,
+            // A table order is always eaten here; otherwise the guest chooses (default: to go).
+            OrderType = table is not null ? OrderType.DineIn : dto.OrderType ?? OrderType.TakeAway
         };
 
         var variantIds = dto.Items
@@ -619,6 +621,7 @@ public class OrderService
             o.ReadyStations.Select(r => r.StationId).ToList(),
             PickupAt: o.PickupAt,
             TableLabel: o.TableLabel,
-            Source: o.Source);
+            Source: o.Source,
+            OrderType: o.OrderType);
     }
 }

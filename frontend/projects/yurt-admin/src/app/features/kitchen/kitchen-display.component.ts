@@ -186,6 +186,17 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Sends one cup sticker per piece to the branch's label printers. Says so when the branch has none. */
+  printLabels(order: Order): void {
+    this.api.printOrderLabels(order.id).subscribe({
+      next: (r) =>
+        r.printers > 0
+          ? this.toast.success(this.lang.t('printers.sent'))
+          : this.toast.error(this.lang.t('printers.noLabelPrinter')),
+      error: () => this.toast.error(this.lang.t('common.orderUpdateFailed')),
+    });
+  }
+
   pickStation(id: string): void {
     this.stationFilter.set(id);
     localStorage.setItem(this.STATION_KEY, id);

@@ -120,6 +120,37 @@ public class EscPosTests
     }
 
     [Fact]
+    public void Labels_PrintOneStickerPerPiece_WithOrderTypeAndExtras()
+    {
+        var printer = new Printer { Name = "Labels", Kind = Printer.LabelKind, LineWidth = 32, CodeTable = 17, Language = "ru" };
+        var order = new Order
+        {
+            Id = Guid.Parse("11111111-2222-3333-4444-5555555abcde"),
+            OrderType = OrderType.DineIn,
+            Items =
+            [
+                new OrderItem { MenuItemName = "Латте", Quantity = 2, VariantLabel = "L", Notes = "без сахара" },
+                new OrderItem { MenuItemName = "Эспрессо", Quantity = 1 },
+            ],
+        };
+
+        var labels = Cp866.GetString(PrintLayouts.Labels(printer, order, order.Items.ToList()));
+        Assert.Equal(2, labels.Split("Латте").Length - 1);
+        Assert.Contains("Эспрессо", labels);
+        Assert.Contains("#5ABCDE", labels);
+        Assert.Contains("Здесь 1/3", labels);
+        Assert.Contains("Здесь 3/3", labels);
+        Assert.Contains("! без сахара", labels);
+
+        order.OrderType = OrderType.TakeAway;
+        Assert.Contains("С собой", Cp866.GetString(PrintLayouts.Labels(printer, order, order.Items.ToList())));
+    }
+
+    [Fact]
+    public void GuestNumber_IsTheLastSixCharactersOfTheOrderId()
+        => Assert.Equal("5ABCDE", PrintLayouts.GuestNumber(Guid.Parse("11111111-2222-3333-4444-5555555abcde")));
+
+    [Fact]
     public void QrCode_StoresTheLinkWithItsLength_ThenPrintsIt()
     {
         var url = new string('a', 300);

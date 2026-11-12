@@ -92,6 +92,7 @@ const CAFE_NAV: NavGroupDef[] = [
       { link: '/orders', label: 'nav.orders', icon: ICON.orders },
       { link: '/stock-moves', label: 'nav.stockMoves', icon: ICON.stockMoves, module: 'own_pos' },
       { link: '/kitchen', label: 'nav.kitchen', icon: ICON.kitchen, adminOnly: true, module: 'own_pos' },
+      { link: '/tv', label: 'nav.tv', icon: ICON.kitchen, adminOnly: true, module: 'own_pos' },
       { link: '/cashier', label: 'nav.cashier', icon: ICON.cashier, adminOnly: true, module: 'own_pos' },
       { link: '/tables', label: 'nav.tables', icon: ICON.tables, adminOnly: true, module: 'table_ordering' },
     ],

@@ -96,7 +96,7 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
     {
         var name = dto.Name?.Trim() ?? "";
         if (name.Length == 0 || name.Length > MaxName) return Result<PrinterDto>.Failure($"Name is required (up to {MaxName} characters).", 400);
-        if (dto.Kind is not (Printer.KitchenKind or Printer.ReceiptKind)) return Result<PrinterDto>.Failure("Kind must be Kitchen or Receipt.", 400);
+        if (dto.Kind is not (Printer.KitchenKind or Printer.ReceiptKind or Printer.LabelKind)) return Result<PrinterDto>.Failure("Kind must be Kitchen, Receipt or Label.", 400);
         // A Bluetooth printer is reached by the tablet paired with it, never by the server, so it has no address.
         var host = dto.ViaBluetooth ? "" : dto.Host?.Trim() ?? "";
         var port = dto.ViaBluetooth ? MinPort : dto.Port;
@@ -106,7 +106,7 @@ public partial class PrinterService(IApplicationDbContext db, IPrinterTransport 
         if (dto.CodeTable is < 0 or > 255) return Result<PrinterDto>.Failure("Character table must be between 0 and 255.", 400);
         if (!PrintLayouts.Languages.Contains(dto.Language)) return Result<PrinterDto>.Failure("Language must be ru, kk or en.", 400);
         if (!await db.Locations.AnyAsync(l => l.Id == dto.LocationId, ct)) return Result<PrinterDto>.Failure("Branch not found.", 404);
-        var stationId = dto.Kind == Printer.KitchenKind ? dto.StationId : null;
+        var stationId = dto.Kind != Printer.ReceiptKind ? dto.StationId : null;
         if (stationId is { } sid && !await db.Stations.AnyAsync(s => s.Id == sid, ct)) return Result<PrinterDto>.Failure("Station not found.", 404);
 
         printer.LocationId = dto.LocationId;

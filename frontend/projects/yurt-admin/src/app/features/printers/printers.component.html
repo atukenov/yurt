@@ -50,9 +50,13 @@
         >
           <option value="Kitchen">{{ 'printers.kitchen' | t }}</option>
           <option value="Receipt">{{ 'printers.receipt' | t }}</option>
+          <option value="Label">{{ 'printers.label' | t }}</option>
         </select>
       </label>
-      @if (form.kind === 'Kitchen') {
+      @if (form.kind === 'Label') {
+        <p class="col-span-full text-sm text-slate-500">{{ 'printers.labelHint' | t }}</p>
+      }
+      @if (form.kind !== 'Receipt') {
         <label class="text-sm text-slate-600">
           {{ 'printers.station' | t }}
           <select
@@ -204,8 +208,8 @@
             <div class="min-w-0">
               <p class="font-semibold text-slate-800">{{ p.name }}</p>
               <p class="text-sm text-slate-500">
-                {{ (p.kind === 'Kitchen' ? 'printers.kitchen' : 'printers.receipt') | t }}
-                @if (p.kind === 'Kitchen') {
+                {{ (p.kind === 'Kitchen' ? 'printers.kitchen' : p.kind === 'Label' ? 'printers.label' : 'printers.receipt') | t }}
+                @if (p.kind !== 'Receipt') {
                   · {{ stationName(p.stationId) }}
                 }
                 @if (p.viaBluetooth) {

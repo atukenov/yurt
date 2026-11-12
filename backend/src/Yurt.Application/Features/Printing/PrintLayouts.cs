@@ -16,27 +16,30 @@ public static class PrintLayouts
             ["subtotal"] = "Подытог", ["discount"] = "Скидка", ["total"] = "Итого", ["bonus"] = "Оплачено бонусами",
             ["paid"] = "К оплате", ["method"] = "Оплата", ["thanks"] = "Спасибо!", ["test"] = "Тестовая печать",
             ["testOk"] = "Принтер работает", ["currency"] = "тг", ["Cash"] = "Наличные", ["Card"] = "Карта", ["Other"] = "Другое",
-            ["fiscal"] = "Фискальный чек", ["fiscalScan"] = "Отсканируйте, чтобы открыть чек", ["pickup"] = "Выдать к", ["table"] = "Стол",
+            ["fiscal"] = "Фискальный чек", ["fiscalScan"] = "Отсканируйте, чтобы открыть чек", ["pickup"] = "Выдать к", ["table"] = "Стол", ["here"] = "Здесь", ["toGo"] = "С собой",
         },
         ["kk"] = new()
         {
             ["subtotal"] = "Аралық сома", ["discount"] = "Жеңілдік", ["total"] = "Барлығы", ["bonus"] = "Бонуспен төленді",
             ["paid"] = "Төлеуге", ["method"] = "Төлем", ["thanks"] = "Рахмет!", ["test"] = "Сынақ басып шығару",
             ["testOk"] = "Принтер жұмыс істейді", ["currency"] = "тг", ["Cash"] = "Қолма-қол", ["Card"] = "Карта", ["Other"] = "Басқа",
-            ["fiscal"] = "Фискалдық чек", ["fiscalScan"] = "Чекті ашу үшін сканерлеңіз", ["pickup"] = "Беру уақыты", ["table"] = "Үстел",
+            ["fiscal"] = "Фискалдық чек", ["fiscalScan"] = "Чекті ашу үшін сканерлеңіз", ["pickup"] = "Беру уақыты", ["table"] = "Үстел", ["here"] = "Осында", ["toGo"] = "Алып кету",
         },
         ["en"] = new()
         {
             ["subtotal"] = "Subtotal", ["discount"] = "Discount", ["total"] = "Total", ["bonus"] = "Paid with bonus",
             ["paid"] = "To pay", ["method"] = "Payment", ["thanks"] = "Thank you!", ["test"] = "Test print",
             ["testOk"] = "The printer works", ["currency"] = "KZT", ["Cash"] = "Cash", ["Card"] = "Card", ["Other"] = "Other",
-            ["fiscal"] = "Tax receipt", ["fiscalScan"] = "Scan to open the receipt", ["pickup"] = "Pickup at", ["table"] = "Table",
+            ["fiscal"] = "Tax receipt", ["fiscalScan"] = "Scan to open the receipt", ["pickup"] = "Pickup at", ["table"] = "Table", ["here"] = "Here", ["toGo"] = "To go",
         },
     };
 
     public static readonly IReadOnlyCollection<string> Languages = Words.Keys;
 
     public static string ShortId(Guid orderId) => orderId.ToString("N")[..8].ToUpperInvariant();
+
+    /// <summary>The number the guest sees in the app and on the screens: the last 6 characters of the order id.</summary>
+    public static string GuestNumber(Guid orderId) => orderId.ToString()[^6..].ToUpperInvariant();
 
     /// <summary>
     /// A kitchen ticket: big order number, station and time, the pickup time when the guest chose one, then each item
@@ -46,9 +49,10 @@ public static class PrintLayouts
     {
         var w = Words.GetValueOrDefault(printer.Language) ?? Words["ru"];
         var p = new EscPos(printer.LineWidth, printer.CodeTable);
-        p.Center().Big(true).Bold(true).Line($"#{ShortId(order.Id)}", p.Width / 2).Big(false).Bold(false);
+        p.Center().Big(true).Bold(true).Line($"#{GuestNumber(order.Id)}", p.Width / 2).Big(false).Bold(false);
         // Staff carry a table order over instead of calling the guest, so the table stands out.
         if (!string.IsNullOrWhiteSpace(order.TableLabel)) p.Big(true).Bold(true).Line($"{w["table"]} {order.TableLabel}", p.Width / 2).Big(false).Bold(false);
+        p.Bold(true).Line(OrderTypeName(order, w)).Bold(false);
         var when = Local(order.AcceptedAt ?? order.CreatedAt).ToString("HH:mm", CultureInfo.InvariantCulture);
         p.Line(string.IsNullOrWhiteSpace(stationName) ? when : $"{stationName} · {when}");
         if (order.PickupAt is { } pickupAt)
@@ -85,6 +89,7 @@ public static class PrintLayouts
         p.Line(Local(order.CompletedAt ?? order.CreatedAt).ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture));
         p.Line($"#{ShortId(order.Id)}");
         if (!string.IsNullOrWhiteSpace(order.TableLabel)) p.Bold(true).Line($"{w["table"]} {order.TableLabel}").Bold(false);
+        p.Line(OrderTypeName(order, w));
         p.Left().Rule();
         foreach (var item in order.Items)
         {
@@ -138,6 +143,36 @@ public static class PrintLayouts
         if (printer.CashDrawer) p.OpenDrawer();
         return p.Cut().ToArray();
     }
+
+    /// <summary>
+    /// Cup stickers: one small label for every piece (three lattes = three labels), each with the order number, here or
+    /// to go, the drink, its size and add-ons, and the guest's note. The barista sticks it on the cup.
+    /// </summary>
+    public static byte[] Labels(Printer printer, Order order, IReadOnlyList<OrderItem> items)
+    {
+        var w = Words.GetValueOrDefault(printer.Language) ?? Words["ru"];
+        var p = new EscPos(printer.LineWidth, printer.CodeTable);
+        var total = items.Sum(i => Math.Max(1, i.Quantity));
+        var n = 0;
+        foreach (var item in items)
+        {
+            for (var q = 0; q < Math.Max(1, item.Quantity); q++)
+            {
+                n++;
+                p.Center().Big(true).Bold(true).Line($"#{GuestNumber(order.Id)}", p.Width / 2).Big(false).Bold(false);
+                p.Bold(true).Line($"{OrderTypeName(order, w)}  {n}/{total}").Bold(false);
+                p.Bold(true).Line(item.MenuItemName).Bold(false);
+                var extras = Extras(item);
+                if (extras.Length > 0) p.Line(extras);
+                if (!string.IsNullOrWhiteSpace(item.Notes)) p.Line("! " + item.Notes);
+                p.Cut();
+            }
+        }
+        return p.ToArray();
+    }
+
+    private static string OrderTypeName(Order order, Dictionary<string, string> w)
+        => order.OrderType == OrderType.DineIn ? w["here"] : w["toGo"];
 
     /// <summary>Only opens the cash drawer: nothing is printed and no paper is used.</summary>
     public static byte[] Drawer(Printer printer) => new EscPos(printer.LineWidth, printer.CodeTable).OpenDrawer().ToArray();

@@ -156,7 +156,7 @@ export class PrintersComponent implements OnInit, OnDestroy {
       port: Number(this.form.port),
       lineWidth: Number(this.form.lineWidth),
       codeTable: Number(this.form.codeTable),
-      stationId: this.form.kind === 'Kitchen' ? this.form.stationId || null : null,
+      stationId: this.form.kind !== 'Receipt' ? this.form.stationId || null : null,
     };
     this.busyId.set('form');
     (id ? this.api.updatePrinter(id, body) : this.api.createPrinter(body)).subscribe({
