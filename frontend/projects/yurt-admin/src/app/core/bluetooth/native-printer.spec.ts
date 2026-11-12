@@ -1,4 +1,4 @@
-import { BluetoothJob, BluetoothPrintPump } from './bluetooth-printing';
+import { BluetoothJob, BluetoothPrintPump } from 'shared-api';
 import { NativeBluetoothConnector, PickTexts, toBase64, YurtPrinterPlugin } from './native-printer';
 
 /** A pretend tablet-app plugin: keeps what was sent, can fire "disconnected". */

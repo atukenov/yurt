@@ -8,7 +8,7 @@ import {
   BluetoothPrinterState,
   BluetoothPrintPump,
   WebBluetoothConnector,
-} from './bluetooth-printing';
+} from 'shared-api';
 import { NativeBluetoothConnector, YurtPrinterPlugin } from './native-printer';
 
 /** Which device each Bluetooth printer was paired with on this tablet, so it reconnects after a reload. */

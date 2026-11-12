@@ -1,5 +1,5 @@
 /**
- * Bluetooth printers (Phase 6, `own_pos`): the admin app on a tablet in the cafe is paired with a thermal printer over
+ * Bluetooth printers (Phase 6, `own_pos`): the admin app (or the Yurt POS till) on a tablet in the cafe is paired with a thermal printer over
  * Bluetooth Low Energy. Every few seconds it asks the server for the jobs of the printers it is connected to, sends the
  * ESC/POS bytes over Bluetooth and says how each one went, like the print agent does for network printers.
  *
@@ -139,6 +139,8 @@ export class BluetoothPrintPump {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private running = false;
   private busy = false;
+  /** Writes to the printers one after the other (jobs from the server and the till's own pages). */
+  private chain: Promise<void> = Promise.resolve();
 
   constructor(
     private api: BluetoothPrintApi,
@@ -201,13 +203,36 @@ export class BluetoothPrintPump {
     return printed;
   }
 
+  /**
+   * Prints bytes the tablet made itself (a receipt for a sale made without internet) on a connected printer, waiting
+   * for any job being sent so two pages never mix. Fails with the reason when the printer is not connected or does not answer.
+   */
+  async printNow(printerId: string, data: Uint8Array): Promise<void> {
+    const run = this.chain.then(async () => {
+      const link = this.links.get(printerId);
+      if (!link) throw new Error('The tablet lost the Bluetooth printer.');
+      await withTimeout(link.write(data), this.options.sendTimeoutMs ?? 30_000, 'The Bluetooth printer did not answer.');
+      const state = this.states.get(printerId);
+      if (state) {
+        state.printed++;
+        state.lastError = undefined;
+        this.changed();
+      }
+    });
+    this.chain = run.catch(() => undefined);
+    return run;
+  }
+
   private async send(job: BluetoothJob): Promise<boolean> {
     const link = this.links.get(job.printerId);
     let error: string | undefined;
     if (!link) error = 'The tablet lost the Bluetooth printer.';
     else {
       try {
-        await withTimeout(link.write(fromBase64(job.data)), this.options.sendTimeoutMs ?? 30_000, 'The Bluetooth printer did not answer.');
+        const bytes = fromBase64(job.data);
+        const run = this.chain.then(() => withTimeout(link.write(bytes), this.options.sendTimeoutMs ?? 30_000, 'The Bluetooth printer did not answer.'));
+        this.chain = run.catch(() => undefined);
+        await run;
       } catch (e) {
         error = (e instanceof Error && e.message) || 'Could not print over Bluetooth.';
       }

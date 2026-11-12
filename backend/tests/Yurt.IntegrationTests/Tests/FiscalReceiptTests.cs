@@ -276,6 +276,47 @@ public class FiscalReceiptTests(YurtWebAppFactory factory)
         Assert.DoesNotContain(await JobsAsync(cafe, fresh), j => j.PrinterId == plain);
     }
 
+    [Fact]
+    public async Task TillSaleMadeOffline_GetsItsTaxReceiptAfterUpload_ButIsNotPrintedAgainByItself()
+    {
+        var cafe = await NewCafeAsync();
+        await TurnOnAsync(cafe);
+        using (var scope = ScopeFor(cafe))
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Printers.Add(new Printer { LocationId = cafe.LocationId, Name = "Till", Kind = Printer.ReceiptKind, Host = "10.0.0.9", ViaAgent = true, ReprintWithTaxQr = true });
+            await db.SaveChangesAsync();
+        }
+
+        // Receipts count from when the cafe switched them on; the sale below was made after that, before the upload.
+        using (var scope = ScopeFor(cafe))
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.Tenants.Where(t => t.Id == cafe.Id).ExecuteUpdateAsync(x => x.SetProperty(t => t.FiscalSince, DateTime.UtcNow.AddHours(-3)));
+        }
+
+        // The till kept the sale for two hours without internet, then uploaded it (a walk-in guest, no account).
+        Guid orderId;
+        using (var scope = ScopeFor(cafe))
+        {
+            var sale = await scope.ServiceProvider.GetRequiredService<CounterSaleService>().CreateAsync(new Yurt.Application.Features.Orders.DTOs.CreateCounterSaleDto(
+                cafe.LocationId, [new(cafe.MenuItemId, 2)], PaymentMethod.Cash, $"till-{Guid.NewGuid():N}",
+                SoldAt: DateTime.UtcNow.AddHours(-2), HandedOver: true));
+            Assert.True(sale.Succeeded, sale.Error);
+            orderId = sale.Data!.Id;
+        }
+
+        var registrar = new FakeRegistrar();
+        await RunAsync(cafe, registrar);
+
+        var receipt = Assert.Single(await ReceiptsAsync(cafe, orderId));
+        Assert.Equal(FiscalReceiptStatus.Sent, receipt.Status);
+        Assert.Equal(2000m, receipt.Amount);
+        Assert.Single(registrar.Sent);
+        // The guest left long ago: no receipt comes out of the printer by itself. Staff can still press Print receipt.
+        Assert.Empty(await JobsAsync(cafe, orderId));
+    }
+
     private async Task<List<PrintJob>> JobsAsync(Cafe cafe, Guid orderId)
     {
         using var scope = ScopeFor(cafe);

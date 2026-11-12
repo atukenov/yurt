@@ -176,18 +176,20 @@ public class FiscalReceiptService(
         }
         await db.SaveChangesAsync(ct);
 
-        if (ShouldReprint(row, DateTime.UtcNow)) await print.ReprintWithTaxQrAsync(row.OrderId, ct);
+        if (ShouldReprint(row, DateTime.UtcNow, order?.CreatedAt)) await print.ReprintWithTaxQrAsync(row.OrderId, ct);
     }
 
     /// <summary>
     /// A sale receipt that just went through, with a link to put in the QR code, for a guest who is most likely still
     /// there: queued at most <see cref="PrintService.MaxAge"/> ago. A receipt sent much later (the cash register service
-    /// was down for a while) is not printed again by itself; staff can still press Print receipt.
+    /// was down for a while) is not printed again by itself; staff can still press Print receipt. The same goes for a
+    /// sale made long before it reached the server (a till sale made without internet and uploaded later).
     /// </summary>
-    public static bool ShouldReprint(FiscalReceipt row, DateTime now)
+    public static bool ShouldReprint(FiscalReceipt row, DateTime now, DateTime? soldAt = null)
         => row is { Kind: FiscalReceiptKind.Sale, Status: FiscalReceiptStatus.Sent }
             && FiscalLinks.Safe(row.TicketUrl) is not null
-            && row.CreatedAt >= now - PrintService.MaxAge;
+            && row.CreatedAt >= now - PrintService.MaxAge
+            && (soldAt is null || soldAt >= now - PrintService.MaxAge);
 
     /// <summary>1, 2, 4, 8 ... minutes between tries, at most 30. Never gives up: every sale needs its receipt.</summary>
     public static TimeSpan Pause(int attempts)

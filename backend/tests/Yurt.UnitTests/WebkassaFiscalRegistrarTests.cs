@@ -192,4 +192,17 @@ public class WebkassaFiscalRegistrarTests
         var row = new FiscalReceipt { Kind = kind, Status = status, TicketUrl = url, CreatedAt = now.AddMinutes(-minutesAgo) };
         Assert.Equal(expected, FiscalReceiptService.ShouldReprint(row, now));
     }
+
+    [Theory]
+    [InlineData(1, true)]
+    [InlineData(90, false)] // a till sale made offline and uploaded later: the guest has long left
+    public void ShouldReprint_NotForASaleMadeLongBefore(int soldMinutesAgo, bool expected)
+    {
+        var now = DateTime.UtcNow;
+        var row = new FiscalReceipt
+        {
+            Kind = FiscalReceiptKind.Sale, Status = FiscalReceiptStatus.Sent, TicketUrl = "https://ofd.example/t/1", CreatedAt = now.AddMinutes(-1),
+        };
+        Assert.Equal(expected, FiscalReceiptService.ShouldReprint(row, now, now.AddMinutes(-soldMinutesAgo)));
+    }
 }

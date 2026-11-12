@@ -9,7 +9,7 @@ Built in steps, one pull request each:
 1. **Counter sales on the server** (done, PR #179). Staff can ring up a paid sale for a walk-in guest with no account.
 2. **Yurt POS app, online** (done, PR #180). Tap items, add-ons, pay by cash or card, send to the kitchen.
 3. **Offline** (done). App and menu saved on the tablet, sales queued there and uploaded when the internet is back.
-4. **Printing and tax receipts offline.** Receipts from the tablet's own printer; tax receipts catch up after upload.
+4. **Printing and tax receipts offline** (done). Receipts from the till's own Bluetooth printer; tax receipts catch up after upload.
 
 Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in sync while the internet is down.
 
@@ -80,6 +80,25 @@ Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in
 
 - Locally: `./scripts/dev.sh` also starts it on http://localhost:4400.
 - Build: `cd frontend && npx ng build yurt-pos` (output `dist/yurt-pos/browser`). Tests: `npx ng test yurt-pos`.
+
+### Printer and tax receipts
+
+- **Printer:** the top bar has **Receipt printer**. It lists the branch's Bluetooth printers (add them first in the admin
+  app: Printers, "Bluetooth, through a tablet in the cafe"). **Connect** opens Chrome's Bluetooth list; pick the
+  printer once, and the till reconnects to it by itself later. It needs Chrome (Android, Windows, Mac) and a Bluetooth
+  Low Energy printer, the same limits as `docs/bluetooth-printers.md`. The Yurt POS till does not run in the Capacitor
+  tablet app, so classic Bluetooth printers and iPad printers are still only for the admin tablet app.
+- **Online sales:** the server makes the receipt (and opens the drawer for cash) like for any order and the till, which
+  claims that printer's jobs every 3 seconds, prints it. The kitchen ticket goes to the kitchen printer as before.
+- **Sales made without internet:** the server does not know them yet, so the till prints the guest's receipt itself
+  (same layout as the server's, in the printer's language and paper width) and opens the drawer for cash. It says the
+  tax receipt follows. Its number is `T-` and six characters of the sale's key, because the server has not given it one.
+  If the printer is off or out of range the cashier sees why, and the sale is still saved.
+- **Tax receipt (Kazakhstan):** the server sends it to the cash register service after the sale is uploaded, like for any
+  other sale,. The
+  receipt is **not printed again by itself** with the tax QR for a sale made long before it was uploaded (the guest has
+  left); staff can press Print receipt on the order in the admin app.
+- The shared Bluetooth code lives in `shared-api` (`bluetooth-printing.ts`), used by both the admin app and the till.
 
 ### Putting it online (one time)
 

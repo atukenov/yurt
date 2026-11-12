@@ -8,13 +8,14 @@ import { AuthStateService, BrandService, YurtApiService } from 'shared-api';
 import { Location, MenuCategory, MenuItem, MenuItemVariant, MenuTopping, Order, PaymentMethod } from 'shared-models';
 import { Currency2Pipe, LocalDatePipe } from 'shared-ui';
 import {
-  addLine, branchMethods, cartCount, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
+  addLine, branchMethods, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
   toggleTopping, toRequest,
 } from '../../core/cart';
 import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillService } from '../../core/till.service';
 import { isTooOld, outcomeOf, QueuedSale } from '../../core/outbox';
 import { OutboxService } from '../../core/outbox.service';
+import { TillPrinterService } from '../../core/till-printer.service';
 import { PosTranslatePipe } from '../../core/translate.pipe';
 
 type Step = 'cart' | 'pay' | 'done';
@@ -34,6 +35,10 @@ export class SellComponent implements OnInit {
   readonly lang = inject(PosLangService);
   readonly till = inject(TillService);
   readonly outbox = inject(OutboxService);
+  readonly printer = inject(TillPrinterService);
+  readonly showPrinter = signal(false);
+  /** Why the receipt of a sale kept on the tablet did not print (null = printed, or no printer connected). */
+  readonly printProblem = signal<string | null>(null);
 
   readonly langs: PosLang[] = ['ru', 'kk', 'en'];
   readonly cashier = this.auth.currentUser?.displayName ?? '';
@@ -94,7 +99,7 @@ export class SellComponent implements OnInit {
     effect(() => {
       const branch = this.till.branchId();
       this.lang.lang();
-      if (branch && this.branchesLoaded()) untracked(() => this.loadMenu());
+      if (branch && this.branchesLoaded()) untracked(() => { this.loadMenu(); void this.printer.start(branch); });
     });
   }
 
@@ -269,7 +274,18 @@ export class SellComponent implements OnInit {
   }
 
   private keepOffline(request: ReturnType<typeof toRequest>): void {
-    const sale = this.outbox.save(request, this.total());
+    const lines = this.lines();
+    const total = this.total();
+    const sale = this.outbox.save(request, total);
+    // The server never sees this sale until the internet is back, so the till prints the guest's receipt itself.
+    this.printProblem.set(null);
+    if (this.printer.hasPrinter()) {
+      void this.printer.printOffline({
+        brand: this.brand.name(), branch: this.branch()?.name ?? '', at: new Date(sale.request.soldAt),
+        number: offlineNumber(request.idempotencyKey), lines: receiptLines(lines), total,
+        method: request.paymentMethod, offline: true,
+      }, request.paymentMethod === PaymentMethod.Cash).then((problem) => this.printProblem.set(problem));
+    }
     this.lastSale.set(null);
     this.lastQueued.set(sale);
     this.lines.set([]);
@@ -293,6 +309,7 @@ export class SellComponent implements OnInit {
   next(): void {
     this.lastSale.set(null);
     this.lastQueued.set(null);
+    this.printProblem.set(null);
     this.handedOver.set(false);
     this.step.set('cart');
   }

@@ -7,7 +7,7 @@ import {
   WebBluetoothConnector,
   WritableCharacteristic,
   writeInChunks,
-} from './bluetooth-printing';
+} from 'shared-api';
 
 /** A pretend Bluetooth printer: keeps what it was sent, can be told to fail or to go away. */
 class FakeLink implements BluetoothLink {
@@ -76,6 +76,19 @@ describe('Bluetooth printing', () => {
     expect(api.reports).toEqual([{ jobId: 'j1', ok: true, error: undefined }]);
     expect(pump.connected.get('p1')).toEqual({ name: 'MPT-II', printed: 1, lastError: undefined });
     expect(api.waiting.map((j) => j.id)).toEqual(['j2']); // Another tablet's printer: left for it.
+  });
+
+  it('prints a page the tablet made itself, one write after another with the server jobs', async () => {
+    const api = new FakeApi();
+    const pump = new BluetoothPrintPump(api);
+    const link = new FakeLink();
+    pump.attach('p1', link);
+    api.waiting.push(job('j1', 'p1', 'from server'));
+    await Promise.all([pump.tick(), pump.printNow('p1', new Uint8Array([7, 8, 9]))]);
+    expect(link.received.length).toBe(2);
+    expect(link.received.some((r) => [...r].join() === '7,8,9')).toBe(true);
+    expect(pump.connected.get('p1')?.printed).toBe(2);
+    await expect(pump.printNow('nope', new Uint8Array([1]))).rejects.toThrow('lost the Bluetooth printer');
   });
 
   it('reports a failed print with the reason', async () => {

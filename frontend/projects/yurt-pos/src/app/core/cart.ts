@@ -107,3 +107,18 @@ export function toRequest(
     })),
   };
 }
+
+/** The cart's lines as the printed receipt shows them: size and add-ons after the name, like the server's receipt. */
+export function receiptLines(lines: CartLine[]): { quantity: number; name: string; extras: string; total: number }[] {
+  return lines.map((l) => ({
+    quantity: l.quantity,
+    name: l.name,
+    extras: [l.variantLabel, ...l.toppings.map((t) => `+ ${t.name}`)].filter((s) => !!s && s.trim()).join(', '),
+    total: l.unitPrice * l.quantity,
+  }));
+}
+
+/** The number on a receipt printed before the server had the sale: "T-" and the start of the sale's key. */
+export function offlineNumber(key: string): string {
+  return 'T-' + key.replace(/-/g, '').slice(0, 6).toUpperCase();
+}

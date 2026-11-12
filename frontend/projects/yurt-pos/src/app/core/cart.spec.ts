@@ -1,7 +1,7 @@
 import { MenuItem, MenuTopping, PaymentMethod } from 'shared-models';
 import {
   addLine, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant,
-  needsOptions, toggleTopping, toRequest,
+  needsOptions, offlineNumber, receiptLines, toggleTopping, toRequest,
 } from './cart';
 
 const latte: MenuItem = {
@@ -73,5 +73,16 @@ describe('till cart', () => {
       items: [{ menuItemId: 'latte', quantity: 1, variantId: 'm', toppingIds: ['oat'] }],
     });
     expect(toRequest(lines, 'branch', PaymentMethod.Card, 'key-2', false, 5).etaMinutes).toBe(5);
+  });
+});
+
+describe('receipt lines', () => {
+  it('puts size and add-ons after the name and gives the line total', () => {
+    const lines = receiptLines([{
+      key: 'k', menuItemId: 'm', name: 'Latte', variantId: 'v', variantLabel: 'L',
+      toppings: [{ id: 't', name: 'Oat milk', price: 200 }], unitPrice: 1400, quantity: 2,
+    }]);
+    expect(lines).toEqual([{ quantity: 2, name: 'Latte', extras: 'L, + Oat milk', total: 2800 }]);
+    expect(offlineNumber('3f2a9c10-aaaa-bbbb')).toBe('T-3F2A9C');
   });
 });
