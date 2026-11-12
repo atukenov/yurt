@@ -128,6 +128,15 @@ public enum CampaignKind
     FirstOrderThanks = 3
 }
 
+/// <summary>Whether the guest eats at the cafe or takes the order away.</summary>
+public enum OrderType
+{
+    // To go: cups with lids, bags. The default, and what every order made before this field existed was.
+    TakeAway = 0,
+    // Here: served in the cafe (a table order is always this).
+    DineIn = 1
+}
+
 /// <summary>Where an order came from.</summary>
 public enum OrderSource
 {

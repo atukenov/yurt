@@ -83,6 +83,7 @@ export class SellComponent implements OnInit {
   readonly cashGiven = signal<number | null>(null);
   readonly change = computed(() => changeDue(this.total(), this.cashGiven()));
   readonly handedOver = signal(false);
+  readonly orderType = signal<'DineIn' | 'TakeAway'>('TakeAway');
   readonly eta = signal(5);
   readonly sending = signal(false);
   readonly failed = signal(false);
@@ -239,7 +240,7 @@ export class SellComponent implements OnInit {
     if (!branch || !method || !this.canFinish()) return;
     this.saleKey ??= crypto.randomUUID();
     const handedOver = this.handedOver();
-    const request = toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta());
+    const request = toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta(), this.orderType());
     this.failed.set(false);
     this.signinNeeded.set(false);
     // Known to be offline: keep the sale on the tablet straight away.
@@ -311,6 +312,7 @@ export class SellComponent implements OnInit {
     this.lastQueued.set(null);
     this.printProblem.set(null);
     this.handedOver.set(false);
+    this.orderType.set('TakeAway');
     this.step.set('cart');
   }
 

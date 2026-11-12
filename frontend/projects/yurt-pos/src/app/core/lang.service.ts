@@ -4,6 +4,7 @@ export type PosLang = 'en' | 'ru' | 'kk';
 
 const T: Record<PosLang, Record<string, string>> = {
   en: {
+    'cart.orderType': 'Here or to go', 'cart.here': 'Here', 'cart.toGo': 'To go',
     'app.name': '{cafe} POS',
     'login.title': 'Cashier sign-in', 'login.username': 'Username', 'login.password': 'Password', 'login.submit': 'Sign in',
     'login.invalid': 'Wrong username or password.', 'login.changePassword': 'Change your password in the admin app first, then sign in here.',
@@ -42,6 +43,7 @@ const T: Record<PosLang, Record<string, string>> = {
     'sales.title': 'Sales on this till today', 'sales.empty': 'No sales yet today.', 'sales.close': 'Close',
   },
   ru: {
+    'cart.orderType': 'Здесь или с собой', 'cart.here': 'Здесь', 'cart.toGo': 'С собой',
     'app.name': '{cafe} POS',
     'login.title': 'Вход для кассира', 'login.username': 'Логин', 'login.password': 'Пароль', 'login.submit': 'Войти',
     'login.invalid': 'Неверный логин или пароль.', 'login.changePassword': 'Сначала смените пароль в админ-панели, потом войдите здесь.',
@@ -81,6 +83,7 @@ const T: Record<PosLang, Record<string, string>> = {
     'sales.title': 'Продажи на этой кассе сегодня', 'sales.empty': 'Сегодня продаж ещё нет.', 'sales.close': 'Закрыть',
   },
   kk: {
+    'cart.orderType': 'Осында немесе алып кету', 'cart.here': 'Осында', 'cart.toGo': 'Алып кету',
     'app.name': '{cafe} POS',
     'login.title': 'Кассирдің кіруі', 'login.username': 'Логин', 'login.password': 'Құпиясөз', 'login.submit': 'Кіру',
     'login.invalid': 'Логин немесе құпиясөз қате.', 'login.changePassword': 'Алдымен әкімші қолданбасында құпиясөзді ауыстырыңыз, содан кейін осында кіріңіз.',

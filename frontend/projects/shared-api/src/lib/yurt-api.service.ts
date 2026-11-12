@@ -1066,6 +1066,11 @@ export class YurtApiService {
     });
   }
 
+  /** Sends one sticker per cup to the branch's label printers. `printers` is 0 when the branch has none. */
+  printOrderLabels(orderId: string): Observable<PrintQueued> {
+    return this.http.post<PrintQueued>(`${this.api}/admin/orders/${orderId}/print/labels`, {});
+  }
+
   /** Opens the cash drawer plugged into the branch's receipt printer. `printers` is 0 when the branch has none. */
   openCashDrawer(locationId: string): Observable<PrintQueued> {
     return this.http.post<PrintQueued>(`${this.api}/admin/cash-drawer/${locationId}/open`, {});

@@ -200,6 +200,8 @@ export interface CreateOrderRequest {
   pickupAt?: string;
   /** Code of the table QR the guest scanned (table_ordering); left out for a pickup order. */
   tableCode?: string;
+  /** Eat here or take away. Left out = take away; a table order is always eaten here. */
+  orderType?: OrderType;
 }
 
 export interface CreatePaymentRequest {
@@ -381,7 +383,7 @@ export interface Printer {
   id: string;
   locationId: string;
   name: string;
-  kind: 'Kitchen' | 'Receipt';
+  kind: 'Kitchen' | 'Receipt' | 'Label';
   stationId?: string | null;
   host: string;
   port: number;
@@ -568,6 +570,8 @@ export interface StockAlertPhone {
 
 /** Where an order came from: the guest's app, or a cashier at the counter (Yurt POS). */
 export type OrderSource = 'App' | 'Counter';
+/** Eat in the cafe (DineIn) or take away (TakeAway, the default). */
+export type OrderType = 'DineIn' | 'TakeAway';
 
 export interface Order {
   id: string;
@@ -607,6 +611,7 @@ export interface Order {
   /** The table the guest ordered to by its QR code (table_ordering); empty for a pickup order. */
   tableLabel?: string | null;
   source?: OrderSource;
+  orderType?: OrderType;
 }
 
 /** A paid sale rung up at the counter for a walk-in guest (Yurt POS). Prices come from the server's menu. */
@@ -621,6 +626,8 @@ export interface CreateCounterSaleRequest {
   /** The guest already has everything; nothing goes to the kitchen. */
   handedOver?: boolean;
   etaMinutes?: number | null;
+  /** Eat here or take away (default). */
+  orderType?: OrderType;
 }
 
 export enum IikoOrderSyncStatus {

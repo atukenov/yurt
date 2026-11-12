@@ -198,6 +198,12 @@
               </div>
 
               @if (step() === 'cart') {
+                <div class="grid grid-cols-2 gap-2" role="group" [attr.aria-label]="'cart.orderType' | t">
+                  <button type="button" (click)="orderType.set('TakeAway')" [attr.aria-pressed]="orderType() === 'TakeAway'"
+                          [class]="'rounded-lg px-3 py-2 text-sm font-semibold ' + (orderType() === 'TakeAway' ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-200')">{{ 'cart.toGo' | t }}</button>
+                  <button type="button" (click)="orderType.set('DineIn')" [attr.aria-pressed]="orderType() === 'DineIn'"
+                          [class]="'rounded-lg px-3 py-2 text-sm font-semibold ' + (orderType() === 'DineIn' ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-200')">{{ 'cart.here' | t }}</button>
+                </div>
                 <label class="flex items-center gap-2 text-sm text-slate-700">
                   <input type="checkbox" [ngModel]="handedOver()" (ngModelChange)="handedOver.set($event)" class="h-5 w-5" />
                   {{ 'cart.handedOver' | t }}

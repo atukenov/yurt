@@ -95,6 +95,7 @@
                 <p class="text-xs font-medium text-slate-700 truncate mt-0.5">
                   {{ order.customerName || ('orders.walkIn' | t) }}
                 </p>
+                <p class="text-xs font-bold text-slate-600 mt-0.5">{{ (order.orderType === 'DineIn' ? 'order.here' : 'order.toGo') | t }}</p>
                 @if (order.tableLabel) {
                   <p class="text-xs font-bold text-brand-ink mt-0.5">🍽️ {{ 'tables.tableN' | t: { table: order.tableLabel } }}</p>
                 }

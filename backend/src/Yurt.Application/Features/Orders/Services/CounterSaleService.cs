@@ -107,6 +107,7 @@ public class CounterSaleService(
         {
             CustomerUserId = null,
             Source = OrderSource.Counter,
+            OrderType = dto.OrderType,
             SoldByAdminId = user.UserId,
             LocationId = location.Id,
             Status = OrderStatus.Accepted,

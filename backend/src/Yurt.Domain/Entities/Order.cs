@@ -16,6 +16,9 @@ public class Order : BaseEntity, ITenantOwned
     public Guid? SoldByAdminId { get; set; }
     public Guid LocationId { get; set; }
 
+    // Here or to go. Shown on the kitchen screen, tickets, cup labels and the order-ready screen.
+    public OrderType OrderType { get; set; } = OrderType.TakeAway;
+
     // The table the guest ordered to by scanning its QR code (table_ordering). Null = pick up at the counter. The label is
     // kept on the order so it still reads right after the table is renamed or deleted.
     public Guid? DiningTableId { get; set; }

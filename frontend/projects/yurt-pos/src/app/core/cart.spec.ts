@@ -69,10 +69,11 @@ describe('till cart', () => {
     const lines = addLine([], latte, 'm', [oat]);
     const req = toRequest(lines, 'branch', PaymentMethod.Cash, 'key-1', true, 5);
     expect(req).toEqual({
-      locationId: 'branch', paymentMethod: PaymentMethod.Cash, idempotencyKey: 'key-1', handedOver: true, etaMinutes: null,
+      locationId: 'branch', paymentMethod: PaymentMethod.Cash, idempotencyKey: 'key-1', handedOver: true, etaMinutes: null, orderType: 'TakeAway',
       items: [{ menuItemId: 'latte', quantity: 1, variantId: 'm', toppingIds: ['oat'] }],
     });
     expect(toRequest(lines, 'branch', PaymentMethod.Card, 'key-2', false, 5).etaMinutes).toBe(5);
+    expect(toRequest(lines, 'branch', PaymentMethod.Card, 'key-3', false, 5, 'DineIn').orderType).toBe('DineIn');
   });
 });
 

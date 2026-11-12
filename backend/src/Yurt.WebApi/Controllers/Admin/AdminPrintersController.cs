@@ -79,6 +79,9 @@ public class AdminOrderPrintController(PrintService print) : ApiControllerBase
     public async Task<IActionResult> Ticket(Guid orderId, [FromQuery] Guid? stationId, CancellationToken ct)
         => ToResult(await print.PrintTicketAsync(orderId, stationId, ct));
 
+    [HttpPost("labels")]
+    public async Task<IActionResult> Labels(Guid orderId, CancellationToken ct) => ToResult(await print.PrintLabelsAsync(orderId, ct));
+
     [HttpPost("receipt")]
     public async Task<IActionResult> Receipt(Guid orderId, CancellationToken ct) => ToResult(await print.PrintReceiptAsync(orderId, ct));
 }

@@ -9,7 +9,7 @@ namespace Yurt.Domain.Entities;
 /// </summary>
 public class Printer : BaseEntity, ITenantOwned
 {
-    public const string KitchenKind = "Kitchen", ReceiptKind = "Receipt";
+    public const string KitchenKind = "Kitchen", ReceiptKind = "Receipt", LabelKind = "Label";
 
     public Guid TenantId { get; set; }
 
@@ -18,10 +18,10 @@ public class Printer : BaseEntity, ITenantOwned
 
     public string Name { get; set; } = string.Empty;
 
-    /// <summary><see cref="KitchenKind"/> or <see cref="ReceiptKind"/>.</summary>
+    /// <summary><see cref="KitchenKind"/>, <see cref="ReceiptKind"/> or <see cref="LabelKind"/> (a sticker per cup).</summary>
     public string Kind { get; set; } = KitchenKind;
 
-    /// <summary>Kitchen printers only: the station whose items this printer gets. Null = every item.</summary>
+    /// <summary>Kitchen and label printers only: the station whose items this printer gets. Null = every item.</summary>
     public Guid? StationId { get; set; }
 
     /// <summary>Network address of the printer, such as 192.168.1.50. Empty for a Bluetooth printer.</summary>

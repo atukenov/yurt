@@ -146,6 +146,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         // Kept on purpose: the filtered index above is no use for ordinary branch queries.
         builder.HasIndex(e => e.LocationId);
         builder.Property(e => e.Source).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderSource.App);
+        builder.Property(e => e.OrderType).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderType.TakeAway);
         builder.Property(e => e.Subtotal).HasPrecision(10, 2);
         builder.Property(e => e.DiscountAmount).HasPrecision(10, 2).HasDefaultValue(0m);
         builder.Property(e => e.Total).HasPrecision(10, 2);

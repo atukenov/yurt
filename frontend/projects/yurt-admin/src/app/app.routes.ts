@@ -13,6 +13,12 @@ export const routes: Routes = [
       import('./features/auth/admin-login.component').then((m) => m.AdminLoginComponent),
   },
   {
+    // The order-ready TV: full screen, no menu. Staff sign in once on the TV's browser.
+    path: 'tv',
+    canActivate: [adminAuthGuard, cafeScreenGuard, moduleGuard('own_pos', '/orders')],
+    loadComponent: () => import('./features/tv/order-ready-tv.component').then((m) => m.OrderReadyTvComponent),
+  },
+  {
     path: 'auth/change-password',
     loadComponent: () =>
       import('./features/auth/change-password.component').then((m) => m.ChangePasswordComponent),

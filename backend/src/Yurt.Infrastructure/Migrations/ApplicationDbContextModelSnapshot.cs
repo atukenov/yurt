@@ -1641,6 +1641,13 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<decimal?>("LoyaltyPointsSpent")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("OrderType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("TakeAway");
+
                     b.Property<string>("PaymentMethod")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");

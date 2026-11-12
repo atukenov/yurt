@@ -266,6 +266,24 @@
 
       <!-- A guest at a table gets the order brought now, so there is no pickup time to choose -->
       @if (!table()) {
+      <!-- Here or to go -->
+      <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.12em">{{ 'cart.orderType' | t }}</p>
+      <div class="grid grid-cols-2 gap-2" role="group" [attr.aria-label]="'cart.orderType' | t">
+        <button
+          (click)="orderType.set('TakeAway')"
+          class="py-3 px-3 rounded-2xl border-2 font-semibold text-sm transition-all active:scale-95 bg-surface"
+          [class]="orderType() === 'TakeAway' ? 'border-brand-400 shadow-sm' : 'border-stone-200 hover:border-stone-300'"
+          [attr.aria-pressed]="orderType() === 'TakeAway'"
+          style="color:var(--ink-900)"
+        >{{ 'cart.toGo' | t }}</button>
+        <button
+          (click)="orderType.set('DineIn')"
+          class="py-3 px-3 rounded-2xl border-2 font-semibold text-sm transition-all active:scale-95 bg-surface"
+          [class]="orderType() === 'DineIn' ? 'border-brand-400 shadow-sm' : 'border-stone-200 hover:border-stone-300'"
+          [attr.aria-pressed]="orderType() === 'DineIn'"
+          style="color:var(--ink-900)"
+        >{{ 'cart.here' | t }}</button>
+      </div>
       <!-- Pickup time: as soon as possible, or a time later today within the branch's hours -->
       <p style="margin:18px 4px 8px;font-size:11px;font-weight:700;color:var(--ink-600);text-transform:uppercase;letter-spacing:.12em">{{ 'cart.pickupWhen' | t }}</p>
       <div class="grid grid-cols-2 gap-2" role="group" [attr.aria-label]="'cart.pickupWhen' | t">
