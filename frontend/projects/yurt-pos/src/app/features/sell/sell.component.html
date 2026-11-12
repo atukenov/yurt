@@ -1,0 +1,271 @@
+<div class="flex h-dvh flex-col">
+  <!-- Top bar -->
+  <header class="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-surface px-3 py-2">
+    <img [src]="brand.logo() || 'logo.png'" alt="" class="brand-logo h-8 w-8 object-contain" />
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-sm font-bold text-slate-900">{{ branch()?.name || ('app.name' | t: { cafe: brand.name() }) }}</p>
+      <p class="truncate text-xs text-slate-500">{{ cashier }}</p>
+    </div>
+    @if (branches().length > 1 && branch()) {
+      <button type="button" (click)="pickBranch(null)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+        {{ 'branch.change' | t }}
+      </button>
+    }
+    <button type="button" (click)="showSales.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+      {{ 'top.sales' | t }}
+    </button>
+    <div class="flex rounded-lg ring-1 ring-slate-200">
+      @for (l of langs; track l) {
+        <button type="button" (click)="lang.setLang(l)" [attr.aria-pressed]="lang.lang() === l"
+                [class]="'px-2.5 py-2 text-xs font-semibold uppercase ' + (lang.lang() === l ? 'bg-slate-900 text-white rounded-lg' : 'text-slate-600')">
+          {{ l }}
+        </button>
+      }
+    </div>
+    <button type="button" (click)="signOut()" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+      {{ 'top.signOut' | t }}
+    </button>
+  </header>
+
+  @if (!branchesLoaded()) {
+    <p class="p-6 text-slate-500">{{ 'menu.loading' | t }}</p>
+  } @else if (!branch()) {
+    <!-- Which branch is this till at -->
+    <main class="mx-auto w-full max-w-lg p-4">
+      <h1 class="mb-3 text-lg font-bold text-slate-900">{{ 'branch.pick' | t }}</h1>
+      @for (b of branches(); track b.id) {
+        <button type="button" (click)="pickBranch(b.id)"
+                class="mb-2 block w-full rounded-xl bg-surface p-4 text-left ring-1 ring-slate-200 hover:ring-brand-500">
+          <span class="block font-semibold text-slate-900">{{ b.name }}</span>
+          <span class="block text-sm text-slate-500">{{ b.address }}</span>
+        </button>
+      } @empty {
+        <p class="text-slate-600">{{ 'branch.none' | t }}</p>
+      }
+    </main>
+  } @else {
+    <div class="flex min-h-0 flex-1 flex-col md:flex-row">
+      <!-- Menu -->
+      <main class="flex min-h-0 flex-1 flex-col">
+        <div class="flex gap-2 overflow-x-auto border-b border-slate-200 px-3 py-2">
+          <input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" [placeholder]="'menu.search' | t"
+                 [attr.aria-label]="'menu.search' | t"
+                 class="w-40 shrink-0 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm" />
+          <button type="button" (click)="category.set(null); search.set('')"
+                  [class]="'shrink-0 rounded-lg px-3 py-2 text-sm font-semibold ' + (!category() && !search() ? 'bg-slate-900 text-white' : 'bg-surface text-slate-700 ring-1 ring-slate-200')">
+            {{ 'menu.all' | t }}
+          </button>
+          @for (c of categories(); track c.id) {
+            <button type="button" (click)="category.set(c.id); search.set('')"
+                    [class]="'shrink-0 rounded-lg px-3 py-2 text-sm font-semibold ' + (category() === c.id && !search() ? 'bg-slate-900 text-white' : 'bg-surface text-slate-700 ring-1 ring-slate-200')">
+              {{ c.name }}
+            </button>
+          }
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto p-3">
+          @switch (menuState()) {
+            @case ('loading') { <p class="text-slate-500">{{ 'menu.loading' | t }}</p> }
+            @case ('failed') {
+              <p class="text-slate-700">{{ 'menu.failed' | t }}</p>
+              <button type="button" (click)="loadMenu()" class="mt-2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white">{{ 'menu.retry' | t }}</button>
+            }
+            @default {
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                @for (item of shown(); track item.id) {
+                  <button type="button" (click)="tap(item)" [disabled]="step() === 'pay'"
+                          class="flex min-h-24 flex-col justify-between rounded-xl bg-surface p-3 text-left ring-1 ring-slate-200 active:scale-[0.98] disabled:opacity-50">
+                    <span class="line-clamp-2 text-sm font-semibold text-slate-900">{{ item.name }}</span>
+                    <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}</span>
+                  </button>
+                } @empty {
+                  <p class="col-span-full text-slate-500">{{ 'menu.empty' | t }}</p>
+                }
+              </div>
+            }
+          }
+        </div>
+      </main>
+
+      <!-- The sale -->
+      <aside class="flex max-h-[50dvh] min-h-0 w-full flex-col border-t border-slate-200 bg-surface md:max-h-none md:w-96 md:border-l md:border-t-0">
+        @switch (step()) {
+          @case ('done') {
+            <div class="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+              <p class="text-4xl" aria-hidden="true">✓</p>
+              <p class="text-xl font-bold text-slate-900">{{ 'done.title' | t: { no: shortNo(lastSale()!.id) } }}</p>
+              <p class="text-2xl font-bold text-slate-900">{{ lastSale()!.total | currency2 }}</p>
+              <p class="text-slate-600">{{ (lastSale()!.status === 'Completed' ? 'done.handedOver' : 'done.toKitchen') | t }}</p>
+              <button type="button" (click)="next()" class="mt-2 w-full rounded-xl bg-brand-500 py-4 text-lg font-bold text-on-brand">
+                {{ 'done.next' | t }}
+              </button>
+            </div>
+          }
+          @default {
+            <div class="flex items-center justify-between px-4 pt-3">
+              <h2 class="text-base font-bold text-slate-900">{{ 'cart.title' | t }}</h2>
+              @if (lines().length && step() === 'cart') {
+                <button type="button" (click)="clear()" class="text-sm text-slate-500 underline">{{ 'cart.clear' | t }}</button>
+              }
+            </div>
+            <ul class="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+              @for (l of lines(); track l.key) {
+                <li class="flex items-center gap-2 border-b border-slate-100 py-2">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-slate-900">
+                      {{ l.name }}@if (l.variantLabel) { · {{ l.variantLabel }} }
+                    </p>
+                    @if (l.toppings.length) {
+                      <p class="text-xs text-slate-500">
+                        @for (t of l.toppings; track t.id; let last = $last) { + {{ t.name }}{{ last ? '' : ', ' }} }
+                      </p>
+                    }
+                    <p class="text-xs text-slate-500">{{ l.unitPrice * l.quantity | currency2 }}</p>
+                  </div>
+                  @if (step() === 'cart') {
+                    <button type="button" (click)="minus(l)" aria-label="−" class="h-10 w-10 rounded-lg bg-slate-100 text-lg font-bold text-slate-800">−</button>
+                  }
+                  <span class="w-6 text-center font-semibold text-slate-900">{{ l.quantity }}</span>
+                  @if (step() === 'cart') {
+                    <button type="button" (click)="plus(l)" aria-label="+" class="h-10 w-10 rounded-lg bg-slate-100 text-lg font-bold text-slate-800">+</button>
+                  }
+                </li>
+              } @empty {
+                <li class="py-6 text-center text-sm text-slate-500">{{ 'cart.empty' | t }}</li>
+              }
+            </ul>
+
+            <div class="space-y-3 border-t border-slate-200 p-4">
+              <div class="flex items-baseline justify-between">
+                <span class="text-sm text-slate-600">{{ 'cart.total' | t }} · {{ 'cart.items' | t: { count: count() } }}</span>
+                <span class="text-2xl font-bold text-slate-900">{{ total() | currency2 }}</span>
+              </div>
+
+              @if (step() === 'cart') {
+                <label class="flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" [ngModel]="handedOver()" (ngModelChange)="handedOver.set($event)" class="h-5 w-5" />
+                  {{ 'cart.handedOver' | t }}
+                </label>
+                @if (!handedOver()) {
+                  <div class="flex items-center gap-2 text-sm text-slate-700">
+                    <span>{{ 'cart.ready' | t }}</span>
+                    @for (m of [0, 5, 10, 15]; track m) {
+                      <button type="button" (click)="eta.set(m)"
+                              [class]="'rounded-lg px-3 py-1.5 ' + (eta() === m ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-200')">
+                        {{ m }} {{ 'cart.min' | t }}
+                      </button>
+                    }
+                  </div>
+                }
+                <button type="button" (click)="toPay()" [disabled]="!lines().length"
+                        class="w-full rounded-xl bg-brand-500 py-4 text-lg font-bold text-on-brand disabled:opacity-40">
+                  {{ total() | currency2 }}
+                </button>
+              } @else {
+                <p class="text-sm font-semibold text-slate-800">{{ 'pay.title' | t }}</p>
+                <div class="grid grid-cols-2 gap-2">
+                  @for (m of methods(); track m) {
+                    <button type="button" (click)="method.set(m)" [attr.aria-pressed]="method() === m"
+                            [class]="'rounded-xl py-3 text-base font-semibold ' + (method() === m ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300 text-slate-800')">
+                      {{ 'pay.' + m | t }}
+                    </button>
+                  }
+                </div>
+                @if (method() === 'Cash') {
+                  <label class="block text-sm text-slate-700">
+                    {{ 'pay.given' | t }}
+                    <input type="number" inputmode="numeric" min="0" [ngModel]="cashGiven()" (ngModelChange)="setCash($event)"
+                           class="mt-1 w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-lg" />
+                  </label>
+                  @if (cashGiven() !== null) {
+                    @if (change() !== null) {
+                      <p class="text-lg font-bold text-slate-900">{{ 'pay.change' | t: { amount: (change()! | currency2) } }}</p>
+                    } @else {
+                      <p class="text-sm text-red-700">{{ 'pay.short' | t }}</p>
+                    }
+                  }
+                }
+                @if (failed()) {
+                  <p class="text-sm text-red-700" role="alert">{{ 'err.failed' | t }}</p>
+                }
+                <div class="flex gap-2">
+                  <button type="button" (click)="backToCart()" [disabled]="sending()"
+                          class="rounded-xl px-4 py-4 text-base text-slate-700 ring-1 ring-slate-300 disabled:opacity-40">
+                    {{ 'pay.back' | t }}
+                  </button>
+                  <button type="button" (click)="finish()" [disabled]="!canFinish()"
+                          class="flex-1 rounded-xl bg-brand-500 py-4 text-lg font-bold text-on-brand disabled:opacity-40">
+                    {{ (sending() ? 'pay.sending' : 'pay.confirm') | t }}
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        }
+      </aside>
+    </div>
+  }
+</div>
+
+<!-- Size and add-ons -->
+@if (picking(); as item) {
+  <div class="fixed inset-0 z-40 flex items-end justify-center bg-black/40 sm:items-center" (click)="picking.set(null)">
+    <div class="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-surface p-5 sm:rounded-2xl" (click)="$event.stopPropagation()"
+         role="dialog" aria-modal="true" [attr.aria-label]="item.name">
+      <h2 class="text-lg font-bold text-slate-900">{{ item.name }}</h2>
+      @if (variantsOf(item).length > 1) {
+        <p class="mt-4 text-sm font-semibold text-slate-700">{{ 'opt.size' | t }}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          @for (v of variantsOf(item); track v.id) {
+            <button type="button" (click)="pickVariant.set(v.id ?? null)" [attr.aria-pressed]="pickVariant() === v.id"
+                    [class]="'rounded-xl px-4 py-3 text-sm font-semibold ' + (pickVariant() === v.id ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300 text-slate-800')">
+              {{ v.label }} · {{ v.price | currency2 }}
+            </button>
+          }
+        </div>
+      }
+      @if (toppingsOf(item).length) {
+        <p class="mt-4 text-sm font-semibold text-slate-700">{{ 'opt.addons' | t }}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          @for (t of toppingsOf(item); track t.id) {
+            <button type="button" (click)="toggle(t)" [attr.aria-pressed]="isPicked(t)"
+                    [class]="'rounded-xl px-4 py-3 text-sm ' + (isPicked(t) ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300 text-slate-800')">
+              {{ t.name }} +{{ t.price | currency2 }}
+            </button>
+          }
+        </div>
+      }
+      <div class="mt-6 flex gap-2">
+        <button type="button" (click)="picking.set(null)" class="rounded-xl px-4 py-3 text-slate-700 ring-1 ring-slate-300">{{ 'opt.cancel' | t }}</button>
+        <button type="button" (click)="confirmPick()" class="flex-1 rounded-xl bg-brand-500 py-3 font-bold text-on-brand">
+          {{ 'opt.add' | t }} · {{ pickPrice() | currency2 }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Sales on this till -->
+@if (showSales()) {
+  <div class="fixed inset-0 z-40 flex justify-end bg-black/40" (click)="showSales.set(false)">
+    <div class="h-full w-full max-w-sm overflow-y-auto bg-surface p-5" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
+         [attr.aria-label]="'sales.title' | t">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-900">{{ 'sales.title' | t }}</h2>
+        <button type="button" (click)="showSales.set(false)" class="rounded-lg px-3 py-2 text-sm ring-1 ring-slate-200">{{ 'sales.close' | t }}</button>
+      </div>
+      <ul class="mt-4">
+        @for (s of till.today(); track s.id) {
+          <li class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
+            <span class="text-slate-500">{{ s.at | ldate: 'time24' }}</span>
+            <span class="font-mono text-slate-700">#{{ shortNo(s.id) }}</span>
+            <span class="text-slate-600">{{ 'pay.' + s.method | t }}</span>
+            <span class="font-semibold text-slate-900">{{ s.total | currency2 }}</span>
+          </li>
+        } @empty {
+          <li class="py-6 text-center text-sm text-slate-500">{{ 'sales.empty' | t }}</li>
+        }
+      </ul>
+    </div>
+  </div>
+}

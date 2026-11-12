@@ -19,11 +19,12 @@ cd "$ROOT"
 API_URL="http://localhost:8080"
 CUSTOMER_PORT=4200
 ADMIN_PORT=4300
+POS_PORT=4400
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "error: '$1' is required but not installed" >&2; exit 1; }; }
 
 stop_frontend() {
-  for f in customer admin; do
+  for f in customer admin pos; do
     if [[ -f "$STATE/$f.pid" ]]; then
       pid="$(cat "$STATE/$f.pid")"
       # ng serve spawns children; kill the whole process group
@@ -94,13 +95,15 @@ if [[ "$cmd" != "--no-frontend" ]]; then
   fi
 
   stop_frontend
-  echo "▶ Starting the customer app and the admin panel…"
+  echo "▶ Starting the customer app, the admin panel and the cashier app…"
   CUSTOMER_HOST=localhost
   [[ "$cmd" == "phone" ]] && CUSTOMER_HOST=0.0.0.0
   start_bg customer npx ng serve yurt-customer --configuration local --host "$CUSTOMER_HOST" --port "$CUSTOMER_PORT"
   start_bg admin npx ng serve yurt-admin --configuration local --port "$ADMIN_PORT"
+  start_bg pos npx ng serve yurt-pos --configuration local --port "$POS_PORT"
   wait_for "http://localhost:$CUSTOMER_PORT" "customer app" 120 || tail -n 20 "$STATE/customer.log" >&2 || true
   wait_for "http://localhost:$ADMIN_PORT" "admin panel" 120 || tail -n 20 "$STATE/admin.log" >&2 || true
+  wait_for "http://localhost:$POS_PORT" "cashier app" 120 || tail -n 20 "$STATE/pos.log" >&2 || true
 fi
 
 cat <<EOF
@@ -108,6 +111,7 @@ cat <<EOF
 Yurt is running locally:
   Customer app  http://localhost:$CUSTOMER_PORT
   Admin panel   http://localhost:$ADMIN_PORT   (cafe owner / CEO: ceo / ceo12345; cafe admin: admin / admin12345; platform operator: superadmin / superadmin12345; both must change the password at first login)
+  Cashier app   http://localhost:$POS_PORT   (Yurt POS: sign in with any staff login, e.g. admin)
   Demo data     staff demo.manager / demo12345, customers +77015550001 / PIN 1234 (docs/demo-data.md)
   API           $API_URL   (Swagger: $API_URL/swagger)
   Postgres      localhost:5432  (postgres / postgres, db YurtDb)
