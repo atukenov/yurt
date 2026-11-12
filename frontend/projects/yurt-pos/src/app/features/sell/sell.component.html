@@ -289,10 +289,12 @@
           }
         </div>
       }
-      @if (toppingsOf(item).length) {
-        <p class="mt-4 text-sm font-semibold text-slate-700">{{ 'opt.addons' | t }}</p>
+      @for (g of pickGroups(item); track g.key) {
+        <p class="mt-4 text-sm font-semibold text-slate-700">
+          {{ g.title }}@if (g.hint) { <span class="font-normal text-slate-500"> · {{ g.hint }}</span> }
+        </p>
         <div class="mt-2 flex flex-wrap gap-2">
-          @for (t of toppingsOf(item); track t.id) {
+          @for (t of g.toppings; track t.id) {
             <button type="button" (click)="toggle(t)" [attr.aria-pressed]="isPicked(t)"
                     [class]="'rounded-xl px-4 py-3 text-sm ' + (isPicked(t) ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300 text-slate-800')">
               {{ t.name }} +{{ t.price | currency2 }}
@@ -302,8 +304,9 @@
       }
       <div class="mt-6 flex gap-2">
         <button type="button" (click)="picking.set(null)" class="rounded-xl px-4 py-3 text-slate-700 ring-1 ring-slate-300">{{ 'opt.cancel' | t }}</button>
-        <button type="button" (click)="confirmPick()" class="flex-1 rounded-xl bg-brand-500 py-3 font-bold text-on-brand">
-          {{ 'opt.add' | t }} · {{ pickPrice() | currency2 }}
+        <button type="button" (click)="confirmPick()" [disabled]="pickMissing() !== null"
+                class="flex-1 rounded-xl bg-brand-500 py-3 font-bold text-on-brand disabled:opacity-40">
+          @if (pickMissing(); as need) { {{ 'opt.choose' | t: { title: need } }} } @else { {{ 'opt.add' | t }} · {{ pickPrice() | currency2 }} }
         </button>
       </div>
     </div>

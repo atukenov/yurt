@@ -113,6 +113,33 @@ export interface MenuTopping {
   isAvailable: boolean;
   categoryIds: string[];
   group?: string | null;
+  /** Prices that differ by branch (admin only; the guest menu already carries the branch price). */
+  locationPrices?: LocationPrice[];
+}
+
+export interface LocationPrice {
+  locationId: string;
+  price: number;
+}
+
+/** What the guest has to choose for a dish: how many options of one group. `max` null = no limit. */
+export interface OptionRule {
+  group: string;
+  title: string;
+  required: boolean;
+  min: number;
+  max: number | null;
+}
+
+/** Admin: the rule of one option group (the same text as a topping's `group`). */
+export interface OptionGroupRule {
+  key: string;
+  title?: string | null;
+  titleRu?: string | null;
+  titleKk?: string | null;
+  required: boolean;
+  minSelect: number;
+  maxSelect: number | null;
 }
 
 export interface MenuItemVariant {
@@ -148,6 +175,12 @@ export interface MenuItem {
   variants?: MenuItemVariant[];
   iikoProductId?: string | null;
   iikoProductSizeId?: string | null;
+  /** Rules for the option groups this dish offers. */
+  optionRules?: OptionRule[];
+  /** Admin: options picked by hand for this dish (empty = the category's options). */
+  toppingIds?: string[];
+  /** Admin: dish prices that differ by branch. */
+  locationPrices?: LocationPrice[];
 }
 
 // ── iiko reference lookups (admin mapping UI) ──────────────────────────────────

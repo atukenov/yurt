@@ -9,7 +9,7 @@ import { Location, MenuCategory, MenuItem, MenuItemVariant, MenuTopping, Order, 
 import { Currency2Pipe, LocalDatePipe } from 'shared-ui';
 import {
   addLine, branchMethods, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
-  toggleTopping, toRequest,
+  missingChoice, ruleOf, toggleTopping, toRequest,
 } from '../../core/cart';
 import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillService } from '../../core/till.service';
@@ -188,12 +188,35 @@ export class SellComponent implements OnInit {
   }
 
   toggle(t: MenuTopping): void {
-    this.pickToppings.set(toggleTopping(this.pickToppings(), t));
+    this.pickToppings.set(toggleTopping(this.pickToppings(), t, this.picking()?.optionRules));
   }
+
+  /** The add-ons in their groups, each with the rule line the cashier sees ("Required", "Up to 2"...). */
+  pickGroups(item: MenuItem): { key: string; title: string; hint: string; toppings: MenuTopping[] }[] {
+    const all = this.toppingsOf(item);
+    const keys = [...new Set(all.filter((t) => t.group).map((t) => t.group!))];
+    const result = keys.map((key) => {
+      const r = ruleOf(item.optionRules, key);
+      const hint = r.min > 0 && r.max !== null && r.max > r.min ? this.lang.t('opt.range', { min: r.min, max: r.max })
+        : r.min > 1 ? this.lang.t('opt.atLeast', { min: r.min })
+        : r.min > 0 ? this.lang.t('opt.required')
+        : r.max !== null && r.max > 1 ? this.lang.t('opt.upTo', { max: r.max }) : '';
+      return { key, title: r.title && r.title !== key ? r.title : key, hint, toppings: all.filter((t) => t.group === key) };
+    });
+    const free = all.filter((t) => !t.group);
+    if (free.length) result.push({ key: '', title: this.lang.t('opt.addons'), hint: '', toppings: free });
+    return result;
+  }
+
+  /** What is still to choose for the item being picked; null when the add button may work. */
+  readonly pickMissing = computed(() => {
+    const item = this.picking();
+    return item ? missingChoice(item, this.pickToppings())?.title ?? null : null;
+  });
 
   confirmPick(): void {
     const item = this.picking();
-    if (!item) return;
+    if (!item || missingChoice(item, this.pickToppings())) return;
     this.setLines(addLine(this.lines(), item, this.pickVariant(), this.pickToppings()));
     this.picking.set(null);
   }

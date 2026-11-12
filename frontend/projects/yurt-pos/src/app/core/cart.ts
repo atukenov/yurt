@@ -1,4 +1,4 @@
-import { CreateCounterSaleRequest, MenuItem, MenuTopping, OrderType, PaymentMethod } from 'shared-models';
+import { CreateCounterSaleRequest, MenuItem, MenuTopping, OptionRule, OrderType, PaymentMethod } from 'shared-models';
 
 /** One line on the till: an item in one size with its add-ons. Prices are only for the screen; the server sets the real ones. */
 export interface CartLine {
@@ -39,14 +39,39 @@ export function needsOptions(item: MenuItem): boolean {
   return (item.variants?.length ?? 0) > 1 || (item.availableToppings?.some((t) => t.isAvailable) ?? false);
 }
 
+/** The rule for an option group. A group nobody set up means: at most one, may be none. */
+export function ruleOf(rules: OptionRule[] | undefined, group: string): OptionRule {
+  return rules?.find((r) => r.group === group) ?? { group, title: group, required: false, min: 0, max: 1 };
+}
+
 /**
- * Picks an add-on. Add-ons with the same group (milk, syrup...) replace each other; add-ons with no group are plain
- * on/off ticks.
+ * Picks an add-on. A group allowing one choice (milk, syrup...) swaps the old choice for the new one; a group
+ * allowing several stops at its largest number; add-ons with no group are plain on/off ticks. A required group
+ * keeps its last choice until another one is picked.
  */
-export function toggleTopping(chosen: MenuTopping[], topping: MenuTopping): MenuTopping[] {
-  if (chosen.some((t) => t.id === topping.id)) return chosen.filter((t) => t.id !== topping.id);
-  const rest = topping.group ? chosen.filter((t) => t.group !== topping.group) : chosen;
-  return [...rest, topping];
+export function toggleTopping(chosen: MenuTopping[], topping: MenuTopping, rules?: OptionRule[]): MenuTopping[] {
+  const group = topping.group;
+  const rule = group ? ruleOf(rules, group) : null;
+  const inGroup = group ? chosen.filter((t) => t.group === group).length : 0;
+  if (chosen.some((t) => t.id === topping.id)) {
+    if (rule && rule.min > 0 && inGroup <= rule.min) return chosen;
+    return chosen.filter((t) => t.id !== topping.id);
+  }
+  if (!group || !rule) return [...chosen, topping];
+  if (rule.max === 1) return [...chosen.filter((t) => t.group !== group), topping];
+  if (rule.max !== null && inGroup >= rule.max) return chosen;
+  return [...chosen, topping];
+}
+
+/** The first option group the cashier still has to choose from, or null when every rule is met. */
+export function missingChoice(item: MenuItem, chosen: MenuTopping[]): OptionRule | null {
+  const offered = (item.availableToppings ?? []).filter((t) => t.isAvailable);
+  for (const group of new Set(offered.filter((t) => t.group).map((t) => t.group!))) {
+    const rule = ruleOf(item.optionRules, group);
+    const need = Math.min(rule.min, offered.filter((t) => t.group === group).length);
+    if (chosen.filter((t) => t.group === group).length < need) return rule;
+  }
+  return null;
 }
 
 export function addLine(

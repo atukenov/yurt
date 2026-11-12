@@ -127,4 +127,19 @@ public class AdminMenuController : ApiControllerBase
     [HttpDelete("toppings/{id:guid}")]
     public async Task<IActionResult> DeleteTopping(Guid id, CancellationToken ct)
         => ToResult(await _menuService.DeleteToppingAsync(id, ct));
+
+    // ── OPTION GROUP RULES (required, smallest / largest number of choices) ─────
+
+    [HttpGet("option-groups")]
+    public async Task<IActionResult> GetOptionGroups(CancellationToken ct)
+        => Ok(await _menuService.AdminGetOptionGroupsAsync(ct));
+
+    [HttpPut("option-groups")]
+    public async Task<IActionResult> SaveOptionGroup(
+        [FromBody] AdminOptionGroupDto dto, CancellationToken ct)
+        => ToResult(await _menuService.SaveOptionGroupAsync(dto, ct));
+
+    [HttpDelete("option-groups")]
+    public async Task<IActionResult> DeleteOptionGroup([FromQuery] string key, CancellationToken ct)
+        => ToResult(await _menuService.DeleteOptionGroupAsync(key, ct));
 }

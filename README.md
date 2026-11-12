@@ -189,6 +189,7 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/print-agent.md](docs/print-agent.md), [docs/bluetooth-printers.md](docs/bluetooth-printers.md), [docs/tablet-app.md](docs/tablet-app.md) — printers and hardware
 - [docs/modules.md](docs/modules.md) — what each paid module covers
 - [docs/stock-pack.md](docs/stock-pack.md), [docs/purchasing.md](docs/purchasing.md) — stock costs, write-offs, suppliers and deliveries
+- [docs/option-rules.md](docs/option-rules.md) — required choices (milk), min / max, options per dish, prices per branch
 - [docs/profit.md](docs/profit.md) — monthly profit and profit by dish (CEO only)
 - [docs/accounting-export.md](docs/accounting-export.md) — Excel and 1C files for the cafe's accountant (CEO only)
 - [docs/cafe-data-export.md](docs/cafe-data-export.md) — exporting a café's data

@@ -82,6 +82,7 @@ public static class DemoDataSeeder
         new("Vanilla Syrup", "Ванильный сироп", 0.50m, "syrup", ["Coffee", "Cold Drinks"]),
         new("Caramel Syrup", "Карамельный сироп", 0.50m, "syrup", ["Coffee", "Cold Drinks"]),
         new("Hazelnut Syrup", "Ореховый сироп", 0.50m, "syrup", ["Coffee", "Cold Drinks"]),
+        new("Regular Milk", "Обычное молоко", 0m, "milk", ["Coffee", "Cold Drinks"]),
         new("Oat Milk", "Овсяное молоко", 0.75m, "milk", ["Coffee", "Cold Drinks"]),
         new("Almond Milk", "Миндальное молоко", 0.75m, "milk", ["Coffee", "Cold Drinks"]),
         new("Whipped Cream", "Взбитые сливки", 0.50m, null, ["Coffee", "Cold Drinks"]),
@@ -358,6 +359,20 @@ public static class DemoDataSeeder
         var toast = items.FirstOrDefault(i => i.Name == "Avocado Toast");
         if (toast is not null && d.Branches.Count > 1 && !await db.MenuItemLocations.AnyAsync(l => l.MenuItemId == toast.Id, ct))
             db.MenuItemLocations.Add(new MenuItemLocation { MenuItem = toast, LocationId = d.Branches[0].Id });
+
+        // Option rules: milk is a must for coffee (one choice), syrups at most two. Dish list and branch prices too.
+        if (!await db.MenuOptionGroups.AnyAsync(ct))
+        {
+            db.MenuOptionGroups.AddRange(
+                new MenuOptionGroup { Key = "milk", Title = "Milk", TitleRu = "Молоко", TitleKk = "Сүт", Required = true, MinSelect = 1, MaxSelect = 1 },
+                new MenuOptionGroup { Key = "syrup", Title = "Syrup", TitleRu = "Сироп", TitleKk = "Сироп", MinSelect = 0, MaxSelect = 2 });
+        }
+        var egg = toppings.FirstOrDefault(t => t.Name == "Poached Egg");
+        if (toast is not null && egg is not null && !await db.MenuItemToppings.AnyAsync(ct))
+            db.MenuItemToppings.Add(new MenuItemTopping { MenuItem = toast, Topping = egg });
+        var shot = toppings.FirstOrDefault(t => t.Name == "Extra Espresso Shot");
+        if (shot is not null && d.Branches.Count > 1 && !await db.MenuToppingLocations.AnyAsync(ct))
+            db.MenuToppingLocations.Add(new MenuToppingLocation { Topping = shot, LocationId = d.Branches[1].Id, Price = shot.Price + 0.25m });
 
         await db.SaveChangesAsync(ct);
     }

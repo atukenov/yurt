@@ -319,7 +319,7 @@
               <div class="flex items-center gap-2 mb-3">
                 <p class="text-xs font-bold text-stone-400 uppercase tracking-widest">{{ group.label }}</p>
                 @if (group.toppings[0]?.group) {
-                  <span class="text-[10px] bg-stone-100 text-stone-400 rounded-full px-2 py-0.5 font-medium">{{ 'item.chooseOne' | t }}</span>
+                  <span class="text-[10px] bg-stone-100 text-stone-400 rounded-full px-2 py-0.5 font-medium">{{ groupHint(group.toppings[0].group!) }}</span>
                 }
               </div>
 

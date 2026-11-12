@@ -1,7 +1,7 @@
 import { MenuItem, MenuTopping, PaymentMethod } from 'shared-models';
 import {
   addLine, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant,
-  needsOptions, offlineNumber, receiptLines, toggleTopping, toRequest,
+  missingChoice, needsOptions, offlineNumber, receiptLines, toggleTopping, toRequest,
 } from './cart';
 
 const latte: MenuItem = {
@@ -52,6 +52,34 @@ describe('till cart', () => {
     expect(chosen.map((t) => t.id).sort()).toEqual(['soy', 'syrup']);
     chosen = toggleTopping(chosen, syrup);
     expect(chosen.map((t) => t.id)).toEqual(['soy']);
+  });
+
+  it('keeps a required group at its smallest number and stops a group at its largest', () => {
+    const rules = [
+      { group: 'milk', title: 'Milk', required: true, min: 1, max: 1 },
+      { group: 'syrup', title: 'Syrup', required: false, min: 0, max: 2 },
+    ];
+    const s1: MenuTopping = { ...syrup, id: 's1', group: 'syrup' };
+    const s2: MenuTopping = { ...syrup, id: 's2', group: 'syrup' };
+    const s3: MenuTopping = { ...syrup, id: 's3', group: 'syrup' };
+    // milk is required: tapping the chosen one again does not drop it, picking another one swaps it
+    let chosen = toggleTopping([], oat, rules);
+    expect(toggleTopping(chosen, oat, rules).map((t) => t.id)).toEqual(['oat']);
+    expect(toggleTopping(chosen, soy, rules).map((t) => t.id)).toEqual(['soy']);
+    // syrup allows two
+    chosen = toggleTopping(toggleTopping(toggleTopping(chosen, s1, rules), s2, rules), s3, rules);
+    expect(chosen.map((t) => t.id).sort()).toEqual(['oat', 's1', 's2']);
+    expect(toggleTopping(chosen, s1, rules).map((t) => t.id).sort()).toEqual(['oat', 's2']);
+  });
+
+  it('says which required group is still open', () => {
+    const latteWithMilk: MenuItem = {
+      ...latte, availableToppings: [oat, soy],
+      optionRules: [{ group: 'milk', title: 'Milk', required: true, min: 1, max: 1 }],
+    };
+    expect(missingChoice(latteWithMilk, [])?.title).toBe('Milk');
+    expect(missingChoice(latteWithMilk, [oat])).toBeNull();
+    expect(missingChoice(latte, [])).toBeNull();
   });
 
   it('works out the change for cash', () => {
