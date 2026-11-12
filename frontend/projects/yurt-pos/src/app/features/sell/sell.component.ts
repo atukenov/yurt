@@ -1,4 +1,6 @@
-import { Component, computed, effect, inject, OnInit, signal, untracked } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnInit, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -11,6 +13,8 @@ import {
 } from '../../core/cart';
 import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillService } from '../../core/till.service';
+import { isTooOld, outcomeOf, QueuedSale } from '../../core/outbox';
+import { OutboxService } from '../../core/outbox.service';
 import { PosTranslatePipe } from '../../core/translate.pipe';
 
 type Step = 'cart' | 'pay' | 'done';
@@ -25,9 +29,11 @@ export class SellComponent implements OnInit {
   private api = inject(YurtApiService);
   private auth = inject(AuthStateService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
   readonly brand = inject(BrandService);
   readonly lang = inject(PosLangService);
   readonly till = inject(TillService);
+  readonly outbox = inject(OutboxService);
 
   readonly langs: PosLang[] = ['ru', 'kk', 'en'];
   readonly cashier = this.auth.currentUser?.displayName ?? '';
@@ -42,6 +48,8 @@ export class SellComponent implements OnInit {
   readonly categories = signal<MenuCategory[]>([]);
   readonly items = signal<MenuItem[]>([]);
   readonly menuState = signal<'loading' | 'ready' | 'failed'>('loading');
+  /** When the menu on screen was saved, if it came from this tablet because the server could not be reached. */
+  readonly menuSavedAt = signal<string | null>(null);
   readonly category = signal<string | null>(null);
   readonly search = signal('');
   readonly shown = computed(() => {
@@ -74,6 +82,9 @@ export class SellComponent implements OnInit {
   readonly sending = signal(false);
   readonly failed = signal(false);
   readonly lastSale = signal<Order | null>(null);
+  /** The last sale was kept on this tablet (no internet): its total. */
+  readonly lastQueued = signal<QueuedSale | null>(null);
+  readonly signinNeeded = signal(false);
   readonly showSales = signal(false);
   /** One key per sale, kept for every retry of it, so a resend never makes a second sale. A new cart gets a new key. */
   private saleKey: string | null = null;
@@ -88,16 +99,24 @@ export class SellComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Signed out (for example the sign-in ran out): back to the sign-in screen. Waiting sales stay on the tablet.
+    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((u) => { if (!u) this.router.navigateByUrl('/login'); });
     this.api.getAdminLocations().subscribe({
       next: (list) => {
-        const open = list.filter((l) => l.isActive);
-        this.branches.set(open);
-        const saved = this.till.branchId();
-        if (!open.some((b) => b.id === saved)) this.till.setBranch(open.length === 1 ? open[0].id : null);
-        this.branchesLoaded.set(true);
+        this.till.saveBranches(list);
+        this.useBranches(list);
       },
-      error: () => this.branchesLoaded.set(true),
+      // No internet: the branches this tablet saw last time.
+      error: () => this.useBranches(this.till.savedBranches() ?? []),
     });
+  }
+
+  private useBranches(list: Location[]): void {
+    const open = list.filter((l) => l.isActive);
+    this.branches.set(open);
+    const saved = this.till.branchId();
+    if (!open.some((b) => b.id === saved)) this.till.setBranch(open.length === 1 ? open[0].id : null);
+    this.branchesLoaded.set(true);
   }
 
   loadMenu(): void {
@@ -109,14 +128,25 @@ export class SellComponent implements OnInit {
       items: this.api.getMenuItems(undefined, undefined, this.lang.lang(), branch),
     }).subscribe({
       next: ({ categories, items }) => {
-        const used = new Set(items.map((i) => i.categoryId));
-        this.categories.set(categories.filter((c) => used.has(c.id)));
-        this.items.set(items);
-        if (this.category() && !used.has(this.category()!)) this.category.set(null);
-        this.menuState.set('ready');
+        this.till.saveMenu(branch, this.lang.lang(), categories, items);
+        this.showMenu(categories, items, null);
       },
-      error: () => this.menuState.set('failed'),
+      error: () => {
+        // No internet: sell from the menu this tablet saved last time.
+        const saved = this.till.savedMenu(branch, this.lang.lang());
+        if (saved) this.showMenu(saved.categories, saved.items, saved.savedAt);
+        else this.menuState.set('failed');
+      },
     });
+  }
+
+  private showMenu(categories: MenuCategory[], items: MenuItem[], savedAt: string | null): void {
+    const used = new Set(items.map((i) => i.categoryId));
+    this.categories.set(categories.filter((c) => used.has(c.id)));
+    this.items.set(items);
+    if (this.category() && !used.has(this.category()!)) this.category.set(null);
+    this.menuSavedAt.set(savedAt);
+    this.menuState.set('ready');
   }
 
   pickBranch(id: string | null): void {
@@ -204,27 +234,65 @@ export class SellComponent implements OnInit {
     if (!branch || !method || !this.canFinish()) return;
     this.saleKey ??= crypto.randomUUID();
     const handedOver = this.handedOver();
-    this.sending.set(true);
+    const request = toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta());
     this.failed.set(false);
-    this.api.createCounterSale(toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta())).subscribe({
+    this.signinNeeded.set(false);
+    // Known to be offline: keep the sale on the tablet straight away.
+    if (!this.outbox.online()) {
+      this.keepOffline(request);
+      return;
+    }
+    this.sending.set(true);
+    this.api.createCounterSale(request).subscribe({
       next: (order) => {
         this.sending.set(false);
+        this.outbox.online.set(true);
         this.till.remember(order, handedOver);
+        this.lastQueued.set(null);
         this.lastSale.set(order);
         this.lines.set([]);
         this.saleKey = null;
         this.step.set('done');
       },
-      error: () => {
-        // The key stays, so pressing again cannot make the sale twice.
+      error: (e: unknown) => {
         this.sending.set(false);
-        this.failed.set(true);
+        const outcome = outcomeOf(e instanceof HttpErrorResponse ? e.status : 0);
+        // No answer (or the server is down): the guest has paid, so the sale is kept on the tablet with the same key.
+        // If the first try did reach the server, the upload gets that sale back instead of making a second one.
+        if (outcome === 'retry') this.keepOffline(request);
+        else {
+          this.failed.set(outcome === 'refused');
+          this.signinNeeded.set(outcome === 'signin');
+        }
       },
     });
   }
 
+  private keepOffline(request: ReturnType<typeof toRequest>): void {
+    const sale = this.outbox.save(request, this.total());
+    this.lastSale.set(null);
+    this.lastQueued.set(sale);
+    this.lines.set([]);
+    this.saleKey = null;
+    this.step.set('done');
+  }
+
+  retryQueued(key: string): void {
+    this.outbox.retry(key);
+  }
+
+  removeQueued(sale: QueuedSale): void {
+    if (!confirm(this.lang.t('queue.removeConfirm'))) return;
+    this.outbox.remove(sale.request.idempotencyKey);
+  }
+
+  tooOld(sale: QueuedSale): boolean {
+    return isTooOld(sale, new Date());
+  }
+
   next(): void {
     this.lastSale.set(null);
+    this.lastQueued.set(null);
     this.handedOver.set(false);
     this.step.set('cart');
   }

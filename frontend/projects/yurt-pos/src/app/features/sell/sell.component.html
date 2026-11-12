@@ -27,6 +27,43 @@
     </button>
   </header>
 
+  <!-- Internet and sales waiting to upload -->
+  @if (!outbox.online() || outbox.waiting().length || outbox.refused().length || outbox.needsSignIn()) {
+    <div class="space-y-1 border-b border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" role="status">
+      @if (!outbox.online()) {
+        <p class="font-semibold">{{ 'queue.offline' | t }}</p>
+      }
+      @if (outbox.waiting().length) {
+        <p class="flex flex-wrap items-center gap-2">
+          <span>{{ 'queue.waiting' | t: { count: outbox.waiting().length } }}</span>
+          @if (outbox.online() && !outbox.needsSignIn()) {
+            <button type="button" (click)="outbox.sync()" [disabled]="outbox.syncing()"
+                    class="rounded-lg px-2 py-1 text-xs font-semibold ring-1 ring-amber-400 disabled:opacity-50">
+              {{ (outbox.syncing() ? 'queue.sending' : 'queue.sendNow') | t }}
+            </button>
+          }
+        </p>
+      }
+      @if (outbox.needsSignIn()) {
+        <p class="flex flex-wrap items-center gap-2">
+          <span>{{ 'queue.signIn' | t }}</span>
+          <button type="button" (click)="signOut()" class="rounded-lg px-2 py-1 text-xs font-semibold ring-1 ring-amber-400">{{ 'top.signOut' | t }}</button>
+        </p>
+      }
+      @for (q of outbox.refused(); track q.request.idempotencyKey) {
+        <div class="flex flex-wrap items-center gap-2 rounded-lg bg-white/70 px-2 py-1 text-red-800">
+          <span>{{ 'queue.refused' | t: { time: (q.request.soldAt | ldate: 'time24'), amount: (q.total | currency2) } }}</span>
+          @if (q.error) { <span class="text-xs">({{ q.error }})</span> }
+          @if (tooOld(q)) { <span class="text-xs">{{ 'queue.tooOld' | t }}</span> }
+          @else {
+            <button type="button" (click)="retryQueued(q.request.idempotencyKey)" class="rounded-lg px-2 py-1 text-xs font-semibold ring-1 ring-red-300">{{ 'queue.retry' | t }}</button>
+          }
+          <button type="button" (click)="removeQueued(q)" class="rounded-lg px-2 py-1 text-xs ring-1 ring-red-300">{{ 'queue.remove' | t }}</button>
+        </div>
+      }
+    </div>
+  }
+
   @if (!branchesLoaded()) {
     <p class="p-6 text-slate-500">{{ 'menu.loading' | t }}</p>
   } @else if (!branch()) {
@@ -71,6 +108,9 @@
               <button type="button" (click)="loadMenu()" class="mt-2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white">{{ 'menu.retry' | t }}</button>
             }
             @default {
+              @if (menuSavedAt(); as at) {
+                <p class="mb-2 text-xs text-slate-500">{{ 'menu.saved' | t: { time: (at | ldate: 'short') } }}</p>
+              }
               <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 @for (item of shown(); track item.id) {
                   <button type="button" (click)="tap(item)" [disabled]="step() === 'pay'"
@@ -93,9 +133,15 @@
           @case ('done') {
             <div class="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
               <p class="text-4xl" aria-hidden="true">✓</p>
-              <p class="text-xl font-bold text-slate-900">{{ 'done.title' | t: { no: shortNo(lastSale()!.id) } }}</p>
-              <p class="text-2xl font-bold text-slate-900">{{ lastSale()!.total | currency2 }}</p>
-              <p class="text-slate-600">{{ (lastSale()!.status === 'Completed' ? 'done.handedOver' : 'done.toKitchen') | t }}</p>
+              @if (lastSale(); as sale) {
+                <p class="text-xl font-bold text-slate-900">{{ 'done.title' | t: { no: shortNo(sale.id) } }}</p>
+                <p class="text-2xl font-bold text-slate-900">{{ sale.total | currency2 }}</p>
+                <p class="text-slate-600">{{ (sale.status === 'Completed' ? 'done.handedOver' : 'done.toKitchen') | t }}</p>
+              } @else if (lastQueued(); as q) {
+                <p class="text-xl font-bold text-slate-900">{{ 'done.savedTitle' | t }}</p>
+                <p class="text-2xl font-bold text-slate-900">{{ q.total | currency2 }}</p>
+                <p class="text-slate-600">{{ 'done.savedText' | t }}</p>
+              }
               <button type="button" (click)="next()" class="mt-2 w-full rounded-xl bg-brand-500 py-4 text-lg font-bold text-on-brand">
                 {{ 'done.next' | t }}
               </button>
@@ -188,6 +234,9 @@
                 @if (failed()) {
                   <p class="text-sm text-red-700" role="alert">{{ 'err.failed' | t }}</p>
                 }
+                @if (signinNeeded()) {
+                  <p class="text-sm text-red-700" role="alert">{{ 'err.signIn' | t }}</p>
+                }
                 <div class="flex gap-2">
                   <button type="button" (click)="backToCart()" [disabled]="sending()"
                           class="rounded-xl px-4 py-4 text-base text-slate-700 ring-1 ring-slate-300 disabled:opacity-40">
@@ -258,7 +307,11 @@
         @for (s of till.today(); track s.id) {
           <li class="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
             <span class="text-slate-500">{{ s.at | ldate: 'time24' }}</span>
-            <span class="font-mono text-slate-700">#{{ shortNo(s.id) }}</span>
+            @if (s.pending) {
+              <span class="rounded bg-amber-100 px-1.5 text-xs text-amber-900">{{ 'sales.pending' | t }}</span>
+            } @else {
+              <span class="font-mono text-slate-700">#{{ shortNo(s.id) }}</span>
+            }
             <span class="text-slate-600">{{ 'pay.' + s.method | t }}</span>
             <span class="font-semibold text-slate-900">{{ s.total | currency2 }}</span>
           </li>
