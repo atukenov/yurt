@@ -7,8 +7,8 @@ sends it to Yurt Cloud (the one server) when it can. The server stays the one so
 Built in steps, one pull request each:
 
 1. **Counter sales on the server** (done, PR #179). Staff can ring up a paid sale for a walk-in guest with no account.
-2. **Yurt POS app, online** (done). Tap items, add-ons, pay by cash or card, send to the kitchen.
-3. **Offline.** App and menu saved on the tablet, sales queued there and uploaded when the internet is back.
+2. **Yurt POS app, online** (done, PR #180). Tap items, add-ons, pay by cash or card, send to the kitchen.
+3. **Offline** (done). App and menu saved on the tablet, sales queued there and uploaded when the internet is back.
 4. **Printing and tax receipts offline.** Receipts from the tablet's own printer; tax receipts catch up after upload.
 
 Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in sync while the internet is down.
@@ -53,7 +53,28 @@ Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in
   payment method (only the counter methods the branch takes), cash given and the change, and "Paid, finish sale".
 - **Never twice:** each sale gets its own key when the cashier first presses "Paid". If the answer is lost (bad
   internet), pressing again sends the same key and the server returns the first sale. A changed cart gets a new key.
-- **Sales on this till:** today's sales from this tablet (kept on the tablet only).
+- **Sales on this till:** today's sales from this tablet (kept on the tablet only). Sales not uploaded yet say "waiting".
+
+### Without internet
+
+- **The app itself** is saved on the tablet after the first visit (`public/sw.js`, a small service worker that keeps
+  `index.html` and the app's files; it never touches API calls). It opens with no internet, also after a reload.
+  `ng serve` does not use it; only built versions do.
+- **Branches and menu:** each time they load, a copy is saved on the tablet (per branch and language). With no
+  internet the till uses that copy and says when it was saved. Prices are always taken from the server when the sale
+  goes up, so an old copy can't change what the cafe earns.
+- **Sales:** if a sale can't reach the server (no internet, or the server is down), it is saved on the tablet with its
+  key and the time it was made, and the cashier sees "Sale saved on this tablet". A yellow bar shows "No internet" and
+  how many sales wait. They go up by themselves, oldest first, when the internet is back (also every 20 seconds, at
+  sign-in, and with "Send now"). Saved sales are sent as handed over (the guest already has the order) and with their
+  real time, so the server counts them on the right day and does not print or open the drawer late.
+- **Never twice:** the key stays with the sale, so a lost answer or a second try returns the first sale.
+- **Refused sales** (for example an item deleted meanwhile) stay on the tablet in the yellow bar with the server's
+  reason, "Try again" and "Remove". Older than 7 days the server can't take them any more; enter those by hand.
+- **Sign-in ran out:** waiting sales stay on the tablet (per cafe, also through sign-out) and go up after the next
+  sign-in.
+- Signing in needs the internet. One tablet = one till: two tablets offline don't see each other's sales until both
+  have uploaded.
 
 ### Running it
 
