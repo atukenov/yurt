@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Menu.Services;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Printing;
 using Yurt.Application.Features.Profit;
@@ -93,15 +94,10 @@ public class CounterSaleService(
             ? await db.MenuItemVariants.Where(v => variantIds.Contains(v.Id)).ToDictionaryAsync(v => v.Id, ct)
             : [];
         // Prices come from the menu, never from the till: a till with an old menu can't sell at a wrong price.
-        var toppingIds = dto.Items.SelectMany(i => i.ToppingIds ?? []).Distinct().ToList();
-        var toppings = toppingIds.Count > 0
-            ? await db.MenuToppings.Where(t => toppingIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id, ct)
-            : [];
-        var toppingCategories = toppingIds.Count > 0
-            ? (await db.MenuToppingCategories.Where(tc => toppingIds.Contains(tc.ToppingId))
-                .Select(tc => new { tc.ToppingId, tc.CategoryId }).ToListAsync(ct))
-                .ToLookup(x => x.ToppingId, x => x.CategoryId)
-            : null;
+        var soldOutToppings = live && stock is not null ? await stock.SoldOutToppingIdsAsync(dto.LocationId, ct) : [];
+        var offeredByItem = await DishOptions.LoadAsync(db, menuItems.Values.ToList(), dto.LocationId, soldOutToppings, !live, ct);
+        var optionGroups = await DishOptions.LoadGroupsAsync(
+            db, offeredByItem.Values.SelectMany(v => v).Select(o => o.Topping.Group), ct);
 
         var order = new Order
         {
@@ -125,16 +121,18 @@ public class CounterSaleService(
             if (line.VariantId is { } vid && (!variants.TryGetValue(vid, out variant) || variant.MenuItemId != item.Id))
                 return Result<OrderDto>.Failure($"That size of '{item.Name}' is no longer on the menu.", 400);
 
-            var lineToppings = new List<OrderItemTopping>();
-            foreach (var tid in (line.ToppingIds ?? []).Distinct())
-            {
-                if (!toppings.TryGetValue(tid, out var topping) || (live && !topping.IsAvailable)
-                    || toppingCategories is null || !toppingCategories[tid].Contains(item.CategoryId))
-                    return Result<OrderDto>.Failure($"One of the add-ons for '{item.Name}' is not available.", 400);
-                lineToppings.Add(new OrderItemTopping { ToppingId = topping.Id, ToppingName = topping.Name, Price = topping.Price });
-            }
+            var offered = offeredByItem[item.Id];
+            var pickedIds = (line.ToppingIds ?? []).Distinct().ToList();
+            if (pickedIds.Any(id => offered.All(o => o.Topping.Id != id)))
+                return Result<OrderDto>.Failure($"One of the add-ons for '{item.Name}' is not available.", 400);
+            // The choice rules apply to a live sale; a sale made earlier while offline already happened.
+            if (live && DishOptions.Check(item.Name, offered, pickedIds, optionGroups) is { } problem)
+                return Result<OrderDto>.Failure(problem, 400);
+            var lineToppings = offered.Where(o => pickedIds.Contains(o.Topping.Id))
+                .Select(o => new OrderItemTopping { ToppingId = o.Topping.Id, ToppingName = o.Topping.Name, Price = o.Price })
+                .ToList();
 
-            var unit = (variant?.Price ?? item.Price) + lineToppings.Sum(t => t.Price);
+            var unit = (variant?.Price ?? DishOptions.BranchPrice(item, location.Id)) + lineToppings.Sum(t => t.Price);
             var orderItem = new OrderItem
             {
                 OrderId = order.Id,

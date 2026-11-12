@@ -23,7 +23,15 @@ public record MenuItemDto(
     // Names in every language so the client can search across languages.
     string? NameEn = null,
     string? NameRu = null,
-    string? NameKk = null);
+    string? NameKk = null,
+    // What the guest has to choose for this dish (only groups the dish offers).
+    List<OptionRuleDto>? OptionRules = null);
+
+/// <summary>How many options of one group the guest must / may choose. Max null = no limit.</summary>
+public record OptionRuleDto(string Group, string Title, bool Required, int Min, int? Max);
+
+/// <summary>An option's price at one branch.</summary>
+public record LocationPriceDto(Guid LocationId, decimal Price);
 
 public record MenuToppingDto(Guid Id, string Name, decimal Price, bool IsAvailable, List<Guid> CategoryIds, string? Group = null);
 
@@ -53,7 +61,10 @@ public record AdminMenuItemDto(
     List<MenuToppingDto>? AvailableToppings = null,
     List<AdminMenuItemVariantDto>? Variants = null,
     Guid? IikoProductId = null,
-    Guid? IikoProductSizeId = null);
+    Guid? IikoProductSizeId = null,
+    // Options picked by hand for this dish (empty = the category's options) and prices that differ by branch.
+    List<Guid>? ToppingIds = null,
+    List<LocationPriceDto>? LocationPrices = null);
 
 public record AdminMenuToppingDto(
     Guid Id,
@@ -63,7 +74,11 @@ public record AdminMenuToppingDto(
     decimal Price,
     bool IsAvailable,
     List<Guid> CategoryIds,
-    string? Group = null);
+    string? Group = null,
+    List<LocationPriceDto>? LocationPrices = null);
+
+public record AdminOptionGroupDto(
+    string Key, string? Title, string? TitleRu, string? TitleKk, bool Required, int MinSelect, int? MaxSelect);
 
 // ── Admin write DTOs ──────────────────────────────────────────────────────────
 
@@ -87,7 +102,9 @@ public record CreateMenuItemDto(
     List<CreateMenuItemVariantDto>? Variants = null,
     Guid? IikoProductId = null,
     Guid? IikoProductSizeId = null,
-    bool IsNew = false);
+    bool IsNew = false,
+    List<Guid>? ToppingIds = null,
+    List<LocationPriceDto>? LocationPrices = null);
 
 public record UpdateMenuItemDto(
     Guid CategoryId,
@@ -104,7 +121,9 @@ public record UpdateMenuItemDto(
     List<CreateMenuItemVariantDto>? Variants = null,
     Guid? IikoProductId = null,
     Guid? IikoProductSizeId = null,
-    bool IsNew = false);
+    bool IsNew = false,
+    List<Guid>? ToppingIds = null,
+    List<LocationPriceDto>? LocationPrices = null);
 
 public record CreateToppingDto
 {
@@ -115,6 +134,8 @@ public record CreateToppingDto
     public bool IsAvailable { get; init; }
     public List<Guid> CategoryIds { get; init; } = [];
     public string? Group { get; init; }
+    /// <summary>Null = leave the branch prices as they are.</summary>
+    public List<LocationPriceDto>? LocationPrices { get; init; }
 }
 
 public record UpdateToppingDto
@@ -126,4 +147,6 @@ public record UpdateToppingDto
     public bool IsAvailable { get; init; }
     public List<Guid> CategoryIds { get; init; } = [];
     public string? Group { get; init; }
+    /// <summary>Null = leave the branch prices as they are.</summary>
+    public List<LocationPriceDto>? LocationPrices { get; init; }
 }
