@@ -95,8 +95,7 @@ Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in
   tax receipt follows. Its number is `T-` and six characters of the sale's key, because the server has not given it one.
   If the printer is off or out of range the cashier sees why, and the sale is still saved.
 - **Tax receipt (Kazakhstan):** the server sends it to the cash register service after the sale is uploaded, like for any
-  other sale,. The
-  receipt is **not printed again by itself** with the tax QR for a sale made long before it was uploaded (the guest has
+  other sale. The receipt is **not printed again by itself** with the tax QR for a sale made long before it was uploaded (the guest has
   left); staff can press Print receipt on the order in the admin app.
 - The shared Bluetooth code lives in `shared-api` (`bluetooth-printing.ts`), used by both the admin app and the till.
 
