@@ -62,6 +62,7 @@ import {
   MenuCategory,
   MenuItem,
   MenuTopping,
+  OptionGroupRule,
   Order,
   StockItem,
   StockAlertPhone,
@@ -530,6 +531,18 @@ export class YurtApiService {
 
   adminUpdateTopping(id: string, data: Partial<MenuTopping>): Observable<MenuTopping> {
     return this.http.put<MenuTopping>(`${this.api}/admin/menu/toppings/${id}`, data);
+  }
+
+  adminGetOptionGroups(): Observable<OptionGroupRule[]> {
+    return this.http.get<OptionGroupRule[]>(`${this.api}/admin/menu/option-groups`);
+  }
+
+  adminSaveOptionGroup(rule: OptionGroupRule): Observable<OptionGroupRule> {
+    return this.http.put<OptionGroupRule>(`${this.api}/admin/menu/option-groups`, rule);
+  }
+
+  adminDeleteOptionGroup(key: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/menu/option-groups`, { params: { key } });
   }
 
   adminDeleteTopping(id: string): Observable<void> {

@@ -348,6 +348,48 @@
       @if (!filteredToppings().length) {
         <div class="py-12 text-center text-slate-500 text-sm">{{ 'menu.noToppings' | t }}</div>
       }
+      <div class="border-t border-slate-100 px-6 py-5">
+        <h3 class="text-sm font-bold text-slate-800">{{ 'menu.rulesTitle' | t }}</h3>
+        <p class="text-xs text-slate-500 mb-3">{{ 'menu.rulesHint' | t }}</p>
+        @for (row of ruleRows(); track row.key) {
+          <div class="border border-slate-100 rounded-xl p-3 mb-3">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full">{{ row.key }}</span>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input type="checkbox" [checked]="row.required" (change)="patchRule(row.key, 'required', $any($event.target).checked)"
+                  class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
+                {{ 'menu.ruleRequired' | t }}
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">{{ 'menu.ruleMin' | t }}
+                <input type="number" min="0" [ngModel]="row.minSelect" (ngModelChange)="patchRule(row.key, 'minSelect', $event)"
+                  class="w-16 border border-slate-200 rounded-lg px-2 py-1 text-sm" />
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">{{ 'menu.ruleMax' | t }}
+                <input type="number" min="1" [ngModel]="row.maxSelect" (ngModelChange)="patchRule(row.key, 'maxSelect', $event)"
+                  class="w-16 border border-slate-200 rounded-lg px-2 py-1 text-sm" />
+              </label>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (EN)'" [ngModel]="row.title" (ngModelChange)="patchRule(row.key, 'title', $event)"
+                class="border border-slate-200 rounded-lg px-2 py-1 text-sm" />
+              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (RU)'" [ngModel]="row.titleRu" (ngModelChange)="patchRule(row.key, 'titleRu', $event)"
+                class="border border-slate-200 rounded-lg px-2 py-1 text-sm" />
+              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (KK)'" [ngModel]="row.titleKk" (ngModelChange)="patchRule(row.key, 'titleKk', $event)"
+                class="border border-slate-200 rounded-lg px-2 py-1 text-sm" />
+            </div>
+            <div class="flex items-center gap-3 mt-2">
+              <button (click)="saveRule(row)" class="text-xs font-semibold text-brand-ink px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100">{{ 'action.save' | t }}</button>
+              @if (row.saved) {
+                <button (click)="resetRule(row)" class="text-xs text-slate-600 px-2 py-1 rounded hover:bg-slate-50">{{ 'menu.ruleReset' | t }}</button>
+              } @else {
+                <span class="text-xs text-slate-400">{{ 'menu.ruleDefault' | t }}</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="text-xs text-slate-400">{{ 'menu.ruleNoGroups' | t }}</p>
+        }
+      </div>
     }
   </div>
 </div>
@@ -559,6 +601,36 @@
             }
           </div>
         </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.dishOptions' | t }}</label>
+          <p class="text-xs text-slate-500 mb-2">{{ 'menu.dishOptionsHint' | t }}</p>
+          <div class="space-y-2 max-h-32 overflow-y-auto border border-slate-100 rounded-xl p-3">
+            @for (t of toppings(); track t.id) {
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" [checked]="isItemToppingSelected(t.id)" (change)="toggleItemTopping(t.id)"
+                  class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
+                <span class="text-sm text-slate-700">{{ localizedToppingName(t) }}</span>
+              </label>
+            }
+          </div>
+        </div>
+        @if (locations().length > 1) {
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.branchPrices' | t }}</label>
+            <p class="text-xs text-slate-500 mb-2">{{ 'menu.branchPricesHint' | t }}</p>
+            <div class="space-y-2 border border-slate-100 rounded-xl p-3">
+              @for (loc of locations(); track loc.id) {
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-sm text-slate-700">{{ loc.name }}</span>
+                  <input type="number" min="0" step="0.01" [attr.aria-label]="loc.name"
+                    [ngModel]="itemForm().locationPrices[loc.id] ?? null"
+                    (ngModelChange)="setItemBranchPrice(loc.id, $event)"
+                    class="w-28 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-right focus:ring-2 focus:ring-brand-400 outline-none" />
+                </div>
+              }
+            </div>
+          </div>
+        }
         <div class="flex items-center gap-2">
           <input
             type="checkbox"
@@ -681,6 +753,23 @@
             class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
           />
         </div>
+        @if (locations().length > 1) {
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.branchPrices' | t }}</label>
+            <p class="text-xs text-slate-500 mb-2">{{ 'menu.branchPricesHint' | t }}</p>
+            <div class="space-y-2 border border-slate-100 rounded-xl p-3">
+              @for (loc of locations(); track loc.id) {
+                <div class="flex items-center justify-between gap-3">
+                  <span class="text-sm text-slate-700">{{ loc.name }}</span>
+                  <input type="number" min="0" step="0.01" [attr.aria-label]="loc.name"
+                    [ngModel]="toppingForm().locationPrices[loc.id] ?? null"
+                    (ngModelChange)="setToppingBranchPrice(loc.id, $event)"
+                    class="w-28 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-right focus:ring-2 focus:ring-brand-400 outline-none" />
+                </div>
+              }
+            </div>
+          </div>
+        }
         <div>
           <label for="topping-selection-type" class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.selectionType' | t }}</label>
           <select

@@ -138,6 +138,8 @@ public class MenuServiceTests
         var (svc, db) = Build(items: [apple, cola]);
         var links = new List<MenuToppingCategory>().BuildMockDbSet();
         db.MenuToppingCategories.Returns(links);
+        db.MenuItemToppings.Returns(new List<MenuItemTopping>().BuildMockDbSet());
+        db.MenuOptionGroups.Returns(new List<MenuOptionGroup>().BuildMockDbSet());
 
         // App is in Russian, customer searches in English
         var result = await svc.GetItemsAsync(null, "apple", "ru");

@@ -1338,6 +1338,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<Guid>("LocationId")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.Property<Guid>("TenantId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
@@ -1393,6 +1397,28 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("MenuItemStocks");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuItemTopping", b =>
+                {
+                    b.Property<Guid>("MenuItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ToppingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.HasKey("MenuItemId", "ToppingId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("ToppingId");
+
+                    b.ToTable("MenuItemToppings");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.MenuItemVariant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1446,6 +1472,59 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("MenuItemVariants");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuOptionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("MaxSelect")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MinSelect")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Required")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("TitleKk")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("TitleRu")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("MenuOptionGroups");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.MenuTopping", b =>
@@ -1515,6 +1594,32 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("MenuToppingCategories");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuToppingLocation", b =>
+                {
+                    b.Property<Guid>("ToppingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.HasKey("ToppingId", "LocationId");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("MenuToppingLocations");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.ModuleLicense", b =>
@@ -4117,6 +4222,31 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("MenuItem");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuItemTopping", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.MenuItem", "MenuItem")
+                        .WithMany("ToppingLinks")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.MenuTopping", "Topping")
+                        .WithMany()
+                        .HasForeignKey("ToppingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MenuItem");
+
+                    b.Navigation("Topping");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.MenuItemVariant", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.MenuItem", "MenuItem")
@@ -4132,6 +4262,15 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("MenuItem");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuOptionGroup", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.MenuTopping", b =>
@@ -4164,6 +4303,31 @@ namespace Yurt.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("Topping");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.MenuToppingLocation", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.MenuTopping", "Topping")
+                        .WithMany("LocationPrices")
+                        .HasForeignKey("ToppingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
 
                     b.Navigation("Topping");
                 });
@@ -4847,11 +5011,15 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Navigation("OrderItems");
 
+                    b.Navigation("ToppingLinks");
+
                     b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.MenuTopping", b =>
                 {
+                    b.Navigation("LocationPrices");
+
                     b.Navigation("ToppingCategories");
                 });
 

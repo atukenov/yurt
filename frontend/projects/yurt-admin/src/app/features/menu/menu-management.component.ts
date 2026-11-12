@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ModuleService, YurtApiService } from 'shared-api';
-import { MenuItem, MenuCategory, MenuTopping, Location, MenuItemVariant, IikoNomenclatureProduct } from 'shared-models';
+import { MenuItem, MenuCategory, MenuTopping, OptionGroupRule, Location, MenuItemVariant, IikoNomenclatureProduct } from 'shared-models';
 import { ButtonComponent, ToastService, Currency2Pipe } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -35,6 +35,8 @@ interface MenuItemForm {
   isAvailable: boolean;
   isNew: boolean;
   locationIds: string[];
+  toppingIds: string[];
+  locationPrices: Record<string, number | null>;
   variants: VariantRow[];
   iikoProductId: string;
   iikoProductSizeId: string;
@@ -49,6 +51,19 @@ interface ToppingForm {
   isAvailable: boolean;
   categoryIds: string[];
   group: string;
+  locationPrices: Record<string, number | null>;
+}
+
+/** One row of the "Rules for choices" panel. */
+interface RuleRow {
+  key: string;
+  title: string;
+  titleRu: string;
+  titleKk: string;
+  required: boolean;
+  minSelect: number;
+  maxSelect: number | null;
+  saved: boolean;
 }
 
 interface CatInput {
@@ -78,6 +93,8 @@ export class MenuManagementComponent implements OnInit {
   items = signal<MenuItem[]>([]);
   categories = signal<MenuCategory[]>([]);
   toppings = signal<MenuTopping[]>([]);
+  optionGroups = signal<OptionGroupRule[]>([]);
+  ruleRows = signal<RuleRow[]>([]);
   locations = signal<Location[]>([]);
   loading = signal(true);
   showImport = signal(false);
@@ -91,7 +108,7 @@ export class MenuManagementComponent implements OnInit {
   itemForm = signal<MenuItemForm>({
     name: '', nameRu: '', nameKk: '',
     description: '', descriptionRu: '', descriptionKk: '',
-    price: 0, categoryId: '', imageUrl: '', isAvailable: true, isNew: false, locationIds: [], variants: [],
+    price: 0, categoryId: '', imageUrl: '', isAvailable: true, isNew: false, locationIds: [], toppingIds: [], locationPrices: {}, variants: [],
     iikoProductId: '', iikoProductSizeId: '',
   });
 
@@ -103,7 +120,7 @@ export class MenuManagementComponent implements OnInit {
 
   toppingForm = signal<ToppingForm>({
     name: '', nameRu: '', nameKk: '',
-    price: 0, isAvailable: true, categoryIds: [], group: '',
+    price: 0, isAvailable: true, categoryIds: [], group: '', locationPrices: {},
   });
 
   itemSearch = signal('');
@@ -141,7 +158,8 @@ export class MenuManagementComponent implements OnInit {
       next: (items) => { this.items.set(items); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
-    this.api.adminGetToppings().subscribe((toppings) => this.toppings.set(toppings));
+    this.api.adminGetToppings().subscribe((toppings) => { this.toppings.set(toppings); this.buildRuleRows(); });
+    this.api.adminGetOptionGroups().subscribe({ next: (g) => { this.optionGroups.set(g); this.buildRuleRows(); }, error: () => {} });
     this.api.getAdminLocations().subscribe((locs) => this.locations.set(locs));
     if (this.modules.isEnabled('iiko_sync')) {
       this.api.getIikoNomenclature().subscribe({
@@ -249,6 +267,8 @@ export class MenuManagementComponent implements OnInit {
       isAvailable: item?.isAvailable ?? true,
       isNew: item?.isNew ?? false,
       locationIds: item?.locationIds ? [...item.locationIds] : [],
+      toppingIds: item?.toppingIds ? [...item.toppingIds] : [],
+      locationPrices: Object.fromEntries((item?.locationPrices ?? []).map((p) => [p.locationId, p.price])),
       variants: item?.variants
         ? item.variants.map((v: MenuItemVariant) => ({
             label: v.label, labelRu: (v as any).labelRu ?? '', labelKk: (v as any).labelKk ?? '',
@@ -306,6 +326,73 @@ export class MenuManagementComponent implements OnInit {
     }));
   }
 
+  // ── Options per dish and prices per branch ──
+  isItemToppingSelected(id: string): boolean { return this.itemForm().toppingIds.includes(id); }
+
+  toggleItemTopping(id: string): void {
+    this.itemForm.update((f) => ({
+      ...f,
+      toppingIds: f.toppingIds.includes(id) ? f.toppingIds.filter((x) => x !== id) : [...f.toppingIds, id],
+    }));
+  }
+
+  /** The prices typed in, as a list; empty boxes mean "usual price". */
+  private priceList(prices: Record<string, number | null>): { locationId: string; price: number }[] {
+    return Object.entries(prices)
+      .filter(([, v]) => v !== null && v !== undefined && `${v}` !== '' && Number(v) >= 0)
+      .map(([locationId, v]) => ({ locationId, price: Number(v) }));
+  }
+
+  setItemBranchPrice(locId: string, value: number | null): void {
+    this.itemForm.update((f) => ({ ...f, locationPrices: { ...f.locationPrices, [locId]: value } }));
+  }
+
+  setToppingBranchPrice(locId: string, value: number | null): void {
+    this.toppingForm.update((f) => ({ ...f, locationPrices: { ...f.locationPrices, [locId]: value } }));
+  }
+
+  // ── Rules for choices ──
+  private buildRuleRows(): void {
+    const saved = new Map(this.optionGroups().map((g) => [g.key, g]));
+    const keys = new Set<string>([...saved.keys(), ...this.toppings().map((t) => t.group).filter((g): g is string => !!g)]);
+    this.ruleRows.set([...keys].sort().map((key) => {
+      const g = saved.get(key);
+      return {
+        key, saved: !!g,
+        title: g?.title ?? '', titleRu: g?.titleRu ?? '', titleKk: g?.titleKk ?? '',
+        required: g?.required ?? false, minSelect: g?.minSelect ?? 0, maxSelect: g ? g.maxSelect : 1,
+      };
+    }));
+  }
+
+  patchRule(key: string, field: keyof RuleRow, value: unknown): void {
+    this.ruleRows.update((rows) => rows.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
+  }
+
+  saveRule(row: RuleRow): void {
+    const max = row.maxSelect === null || `${row.maxSelect}` === '' ? null : Number(row.maxSelect);
+    this.api.adminSaveOptionGroup({
+      key: row.key, title: row.title || null, titleRu: row.titleRu || null, titleKk: row.titleKk || null,
+      required: row.required, minSelect: Number(row.minSelect) || 0, maxSelect: max,
+    }).subscribe({
+      next: (saved) => {
+        this.optionGroups.update((l) => [...l.filter((g) => g.key !== saved.key), saved]);
+        this.buildRuleRows();
+        this.toast.success(this.langService.t('menu.ruleSaved'));
+      },
+    });
+  }
+
+  resetRule(row: RuleRow): void {
+    this.api.adminDeleteOptionGroup(row.key).subscribe({
+      next: () => {
+        this.optionGroups.update((l) => l.filter((g) => g.key !== row.key));
+        this.buildRuleRows();
+        this.toast.success(this.langService.t('menu.ruleSaved'));
+      },
+    });
+  }
+
   isItemLocationSelected(locId: string): boolean {
     return this.itemForm().locationIds.includes(locId);
   }
@@ -351,6 +438,8 @@ export class MenuManagementComponent implements OnInit {
       isAvailable: f.isAvailable,
       isNew: f.isNew,
       locationIds: f.locationIds,
+      toppingIds: f.toppingIds,
+      locationPrices: this.priceList(f.locationPrices),
       variants: f.variants.length > 0
         ? f.variants.map((v, i) => ({
             label: v.label, labelRu: v.labelRu || undefined, labelKk: v.labelKk || undefined,
@@ -450,6 +539,7 @@ export class MenuManagementComponent implements OnInit {
       isAvailable: topping?.isAvailable ?? true,
       categoryIds: topping?.categoryIds ? [...topping.categoryIds] : [],
       group: topping?.group ?? '',
+      locationPrices: Object.fromEntries((topping?.locationPrices ?? []).map((p) => [p.locationId, p.price])),
     });
     this.showToppingDialog.set(true);
   }
@@ -486,6 +576,7 @@ export class MenuManagementComponent implements OnInit {
       isAvailable: f.isAvailable,
       categoryIds: f.categoryIds,
       group: f.group || undefined,
+      locationPrices: this.priceList(f.locationPrices),
     };
     const obs = f.id ? this.api.adminUpdateTopping(f.id, payload) : this.api.adminCreateTopping(payload);
     obs.subscribe({
@@ -497,6 +588,7 @@ export class MenuManagementComponent implements OnInit {
         }
         this.saving.set(false);
         this.showToppingDialog.set(false);
+        this.buildRuleRows();
         this.toast.success(this.langService.t('menu.toppingSaved'));
       },
       error: () => this.saving.set(false),

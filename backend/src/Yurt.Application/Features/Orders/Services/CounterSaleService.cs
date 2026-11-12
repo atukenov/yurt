@@ -121,14 +121,14 @@ public class CounterSaleService(
             if (line.VariantId is { } vid && (!variants.TryGetValue(vid, out variant) || variant.MenuItemId != item.Id))
                 return Result<OrderDto>.Failure($"That size of '{item.Name}' is no longer on the menu.", 400);
 
-            var offered = offeredByItem[item.Id];
+            var dishOpts = offeredByItem[item.Id];
             var pickedIds = (line.ToppingIds ?? []).Distinct().ToList();
-            if (pickedIds.Any(id => offered.All(o => o.Topping.Id != id)))
+            if (pickedIds.Any(id => dishOpts.All(o => o.Topping.Id != id)))
                 return Result<OrderDto>.Failure($"One of the add-ons for '{item.Name}' is not available.", 400);
             // The choice rules apply to a live sale; a sale made earlier while offline already happened.
-            if (live && DishOptions.Check(item.Name, offered, pickedIds, optionGroups) is { } problem)
+            if (live && DishOptions.Check(item.Name, dishOpts, pickedIds, optionGroups) is { } problem)
                 return Result<OrderDto>.Failure(problem, 400);
-            var lineToppings = offered.Where(o => pickedIds.Contains(o.Topping.Id))
+            var lineToppings = dishOpts.Where(o => pickedIds.Contains(o.Topping.Id))
                 .Select(o => new OrderItemTopping { ToppingId = o.Topping.Id, ToppingName = o.Topping.Name, Price = o.Price })
                 .ToList();
 

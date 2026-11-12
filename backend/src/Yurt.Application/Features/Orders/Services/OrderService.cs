@@ -154,13 +154,13 @@ public class OrderService
         foreach (var line in dto.Items)
         {
             var dishName = menuItems.First(m => m.Id == line.MenuItemId).Name;
-            var offered = offeredByItem[line.MenuItemId];
+            var dishOpts = offeredByItem[line.MenuItemId];
             var pickedIds = (line.Toppings ?? []).Select(t => t.ToppingId).Distinct().ToList();
-            if (pickedIds.Any(id => offered.All(o => o.Topping.Id != id)))
+            if (pickedIds.Any(id => dishOpts.All(o => o.Topping.Id != id)))
                 return Result<OrderDto>.Failure($"One of the add-ons for '{dishName}' is not available.", 400);
-            var problem = DishOptions.Check(dishName, offered, pickedIds, optionGroups);
+            var problem = DishOptions.Check(dishName, dishOpts, pickedIds, optionGroups);
             if (problem != null) return Result<OrderDto>.Failure(problem, 400);
-            chosenOptions.Add(offered.Where(o => pickedIds.Contains(o.Topping.Id)).ToList());
+            chosenOptions.Add(dishOpts.Where(o => pickedIds.Contains(o.Topping.Id)).ToList());
         }
 
         // Build order

@@ -168,7 +168,9 @@
             <!-- ── Milk / Syrup chip row ─────────────────────────────────── -->
             } @else if (groupKey) {
               <div style="margin-bottom:18px">
-                <p class="section-label" style="margin-bottom:10px">{{ group.label }}</p>
+                <p class="section-label" style="margin-bottom:10px">{{ group.label }}
+                  @if (groupHint(groupKey) ) { <span style="font-weight:600;text-transform:none;color:var(--ink-400)"> · {{ groupHint(groupKey) }}</span> }
+                </p>
                 <div class="chip-scroll">
                   @for (topping of group.toppings; track topping.id) {
                     @let sel = isToppingSelected(topping.id);
