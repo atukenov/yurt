@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import "../../shared-ui/src/lib/theme/brand.css";
+
+/* The till sits on slate like the admin pages (unlayered, so it wins over brand.css). */
+:root {
+  --surface-page: var(--slate-50);
+}
+:root[data-theme='dark'] {
+  --surface-page: var(--surface-warm);
+}
+
+@layer base {
+  html {
+    font-family: var(--brand-font);
+    /* A till is tapped all day: no double-tap zoom, no text picked up by a long press. */
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  body {
+    background-color: var(--surface-page);
+    color: var(--text-body);
+  }
+  input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  * {
+    @apply box-border;
+  }
+}

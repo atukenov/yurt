@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..');
-const apps = ['customer', 'admin'];
+const apps = ['customer', 'admin', 'pos'];
 const langs = ['en', 'ru', 'kk'];
 
 /** The translation keys of each language block in an app's lang.service.ts. */
@@ -61,8 +61,9 @@ for (const app of apps) {
 
 const customerApp = join(repo, 'frontend/projects/yurt-customer/src/app');
 const adminApp = join(repo, 'frontend/projects/yurt-admin/src/app');
+const posApp = join(repo, 'frontend/projects/yurt-pos/src/app');
 
-for (const [app, dir] of [['customer', customerApp], ['admin', adminApp]]) test(`${app}: every key used in a template or component exists`, () => {
+for (const [app, dir] of [['customer', customerApp], ['admin', adminApp], ['pos', posApp]]) test(`${app}: every key used in a template or component exists`, () => {
   const en = keysByLang(app).en;
   const unknown = [];
   for (const f of htmlFiles(dir)) {
@@ -143,7 +144,7 @@ function hardCodedEnglish(dir) {
   return found;
 }
 
-for (const [app, dir] of [['customer', customerApp], ['admin', adminApp]]) {
+for (const [app, dir] of [['customer', customerApp], ['admin', adminApp], ['pos', posApp]]) {
   test(`${app}: templates have no hard-coded English text`, () => {
     assert.deepEqual(hardCodedEnglish(dir), []);
   });
@@ -165,7 +166,7 @@ function untranslatedMessages(dir) {
   return found;
 }
 
-for (const [app, dir] of [['customer', customerApp], ['admin', adminApp]]) {
+for (const [app, dir] of [['customer', customerApp], ['admin', adminApp], ['pos', posApp]]) {
   test(`${app}: toasts, form errors and confirm questions are translated`, () => {
     assert.deepEqual(untranslatedMessages(dir), []);
   });
