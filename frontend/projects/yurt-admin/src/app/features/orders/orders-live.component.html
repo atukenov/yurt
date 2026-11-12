@@ -93,7 +93,7 @@
                   {{ 'orders.orderNo' | t: { no: order.id.slice(-6).toUpperCase() } }}
                 </p>
                 <p class="text-xs font-medium text-slate-700 truncate mt-0.5">
-                  {{ order.customerName }}
+                  {{ order.customerName || ('orders.walkIn' | t) }}
                 </p>
                 @if (order.tableLabel) {
                   <p class="text-xs font-bold text-brand-ink mt-0.5">🍽️ {{ 'tables.tableN' | t: { table: order.tableLabel } }}</p>
@@ -142,7 +142,7 @@
             <h2 class="text-xl font-bold text-slate-800">
               {{ 'orders.orderNo' | t: { no: o.id.slice(-6).toUpperCase() } }}
             </h2>
-            <p class="text-slate-800 text-sm font-semibold">{{ o.customerName }}</p>
+            <p class="text-slate-800 text-sm font-semibold">{{ o.customerName || ('orders.walkIn' | t) }}</p>
             @if (o.tableLabel) {
               <p class="mt-1 inline-block rounded-lg bg-brand-50 px-2.5 py-1 text-base font-bold text-brand-ink">
                 🍽️ {{ 'tables.tableN' | t: { table: o.tableLabel } }} · {{ 'tables.bringIt' | t }}

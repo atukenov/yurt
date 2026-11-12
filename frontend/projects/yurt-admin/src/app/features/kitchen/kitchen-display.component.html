@@ -161,7 +161,7 @@
               <div class="flex items-start justify-between gap-2">
                 <div>
                   <p class="text-lg font-bold text-slate-800">#{{ shortId(order) }}</p>
-                  <p class="text-sm text-slate-500">{{ order.customerName }}</p>
+                  <p class="text-sm text-slate-500">{{ order.customerName || ('orders.walkIn' | t) }}</p>
                   @if (order.tableLabel) {
                     <p class="text-base font-bold text-brand-ink">🍽️ {{ 'tables.tableN' | t: { table: order.tableLabel } }}</p>
                   }

@@ -1582,7 +1582,7 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("CustomerUserId")
+                    b.Property<Guid?>("CustomerUserId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("DeclineReason")
@@ -1662,6 +1662,16 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<string>("RatingComment")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("SoldByAdminId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("App");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1700,6 +1710,11 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("CustomerUserId", "IdempotencyKey")
                         .IsUnique()
                         .HasFilter("\"IdempotencyKey\" IS NOT NULL");
+
+                    b.HasIndex("LocationId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Orders_LocationId_IdempotencyKey_Counter")
+                        .HasFilter("\"IdempotencyKey\" IS NOT NULL AND \"CustomerUserId\" IS NULL");
 
                     b.ToTable("Orders");
                 });
@@ -4167,8 +4182,7 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasOne("Yurt.Domain.Entities.CustomerUser", "CustomerUser")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Yurt.Domain.Entities.DiningTable", null)
                         .WithMany()

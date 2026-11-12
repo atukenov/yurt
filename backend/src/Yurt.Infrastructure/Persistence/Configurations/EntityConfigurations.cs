@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Yurt.Domain.Entities;
+using Yurt.Domain.Enums;
 
 namespace Yurt.Infrastructure.Persistence.Configurations;
 
@@ -136,6 +137,15 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(e => new { e.CustomerUserId, e.IdempotencyKey })
             .IsUnique()
             .HasFilter("\"IdempotencyKey\" IS NOT NULL");
+        // A counter sale has no guest account, so its key is unique per branch instead (a till that resends a sale
+        // after a lost answer, or after coming back online, never makes a second order).
+        builder.HasIndex(e => new { e.LocationId, e.IdempotencyKey })
+            .IsUnique()
+            .HasDatabaseName("IX_Orders_LocationId_IdempotencyKey_Counter")
+            .HasFilter("\"IdempotencyKey\" IS NOT NULL AND \"CustomerUserId\" IS NULL");
+        // Kept on purpose: the filtered index above is no use for ordinary branch queries.
+        builder.HasIndex(e => e.LocationId);
+        builder.Property(e => e.Source).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderSource.App);
         builder.Property(e => e.Subtotal).HasPrecision(10, 2);
         builder.Property(e => e.DiscountAmount).HasPrecision(10, 2).HasDefaultValue(0m);
         builder.Property(e => e.Total).HasPrecision(10, 2);

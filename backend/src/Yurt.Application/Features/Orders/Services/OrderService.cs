@@ -598,6 +598,7 @@ public class OrderService
             o.Location?.TwoGisUrl,
             o.ReadyStations.Select(r => r.StationId).ToList(),
             PickupAt: o.PickupAt,
-            TableLabel: o.TableLabel);
+            TableLabel: o.TableLabel,
+            Source: o.Source);
     }
 }

@@ -25,6 +25,12 @@ public class OrdersHubService : IOrdersHubService
     private string Staff(Order order)
         => OrdersHub.AdminsGroup(order.TenantId == Guid.Empty ? _tenant.TenantId : order.TenantId);
 
+    /// <summary>Sends to the guest's own app. A counter sale to a walk-in guest has no account, so nobody gets it.</summary>
+    private Task ToGuestAsync(Order order, string method, object dto, CancellationToken ct)
+        => order.CustomerUserId is { } guestId
+            ? _hubContext.Clients.Group($"customer:{guestId}").SendAsync(method, dto, ct)
+            : Task.CompletedTask;
+
     public async Task NotifyOrderCreatedAsync(Order order, CancellationToken ct = default)
     {
         var dto = OrderService.MapToDto(order);
@@ -33,9 +39,7 @@ public class OrdersHubService : IOrdersHubService
             .Group(Staff(order))
             .SendAsync("OrderCreated", dto, ct);
         // Notify customer
-        await _hubContext.Clients
-            .Group($"customer:{order.CustomerUserId}")
-            .SendAsync("OrderUpdated", dto, ct);
+        await ToGuestAsync(order, "OrderUpdated", dto, ct);
         // No push here — the customer is already looking at the app when they place an
         // order, so a push on creation would just be noise.
     }
@@ -46,15 +50,13 @@ public class OrdersHubService : IOrdersHubService
         await _hubContext.Clients
             .Group(Staff(order))
             .SendAsync("OrderUpdated", dto, ct);
-        await _hubContext.Clients
-            .Group($"customer:{order.CustomerUserId}")
-            .SendAsync("OrderUpdated", dto, ct);
+        await ToGuestAsync(order, "OrderUpdated", dto, ct);
 
         var copy = StatusPushCopy(order.Status, order.TableLabel);
-        if (copy != null)
+        if (copy != null && order.CustomerUserId is { } guestId)
         {
             await _push.SendOrderStatusPushAsync(
-                order.CustomerUserId, copy.Value.Title, copy.Value.Body,
+                guestId, copy.Value.Title, copy.Value.Body,
                 new Dictionary<string, string> { ["orderId"] = order.Id.ToString() }, ct);
         }
     }
@@ -65,16 +67,15 @@ public class OrdersHubService : IOrdersHubService
         await _hubContext.Clients
             .Group(Staff(order))
             .SendAsync("OrderDeclined", dto, ct);
-        await _hubContext.Clients
-            .Group($"customer:{order.CustomerUserId}")
-            .SendAsync("OrderDeclined", dto, ct);
+        await ToGuestAsync(order, "OrderDeclined", dto, ct);
 
         var body = string.IsNullOrWhiteSpace(order.DeclineReason)
             ? "Ваш заказ отклонён"
             : $"Ваш заказ отклонён: {order.DeclineReason}";
-        await _push.SendOrderStatusPushAsync(
-            order.CustomerUserId, "Заказ отклонён", body,
-            new Dictionary<string, string> { ["orderId"] = order.Id.ToString() }, ct);
+        if (order.CustomerUserId is { } guestId)
+            await _push.SendOrderStatusPushAsync(
+                guestId, "Заказ отклонён", body,
+                new Dictionary<string, string> { ["orderId"] = order.Id.ToString() }, ct);
     }
 
     /// <summary>Short fixed Russian copy per status — the backend has no persisted
@@ -97,9 +98,7 @@ public class OrdersHubService : IOrdersHubService
         await _hubContext.Clients
             .Group(Staff(order))
             .SendAsync("PaymentUpdated", dto, ct);
-        await _hubContext.Clients
-            .Group($"customer:{order.CustomerUserId}")
-            .SendAsync("PaymentUpdated", dto, ct);
+        await ToGuestAsync(order, "PaymentUpdated", dto, ct);
     }
 
     public async Task NotifyPaymentPendingAsync(Order order, CancellationToken ct = default)
@@ -108,9 +107,7 @@ public class OrdersHubService : IOrdersHubService
         await _hubContext.Clients
             .Group(Staff(order))
             .SendAsync("PaymentPending", dto, ct);
-        await _hubContext.Clients
-            .Group($"customer:{order.CustomerUserId}")
-            .SendAsync("PaymentPending", dto, ct);
+        await ToGuestAsync(order, "PaymentPending", dto, ct);
     }
 
     public async Task NotifyPaymentSucceededAsync(Order order, CancellationToken ct = default)
@@ -119,9 +116,7 @@ public class OrdersHubService : IOrdersHubService
         await _hubContext.Clients
             .Group(Staff(order))
             .SendAsync("PaymentSucceeded", dto, ct);
-        await _hubContext.Clients
-            .Group($"customer:{order.CustomerUserId}")
-            .SendAsync("PaymentSucceeded", dto, ct);
+        await ToGuestAsync(order, "PaymentSucceeded", dto, ct);
     }
 
     public async Task NotifyPaymentFailedAsync(Order order, CancellationToken ct = default)
@@ -130,9 +125,7 @@ public class OrdersHubService : IOrdersHubService
         await _hubContext.Clients
             .Group(Staff(order))
             .SendAsync("PaymentFailed", dto, ct);
-        await _hubContext.Clients
-            .Group($"customer:{order.CustomerUserId}")
-            .SendAsync("PaymentFailed", dto, ct);
+        await ToGuestAsync(order, "PaymentFailed", dto, ct);
     }
 
     public async Task NotifyGroupCartUpdatedAsync(Guid groupCartId, GroupCartDto dto, CancellationToken ct = default)

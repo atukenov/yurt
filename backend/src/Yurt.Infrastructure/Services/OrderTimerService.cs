@@ -70,7 +70,8 @@ public class OrderTimerService : BackgroundService
 
         if (needs5Min.Count > 0) await db.SaveChangesAsync(ct);
         foreach (var order in needs5Min)
-            await hub.NotifyEtaReminderAsync(order.Id, order.CustomerUserId, 5, ct);
+            if (order.CustomerUserId is { } guestId)
+                await hub.NotifyEtaReminderAsync(order.Id, guestId, 5, ct);
 
         // Pass 3: 1-min reminder
         var needs1Min = preparing
@@ -84,7 +85,8 @@ public class OrderTimerService : BackgroundService
 
         if (needs1Min.Count > 0) await db.SaveChangesAsync(ct);
         foreach (var order in needs1Min)
-            await hub.NotifyEtaReminderAsync(order.Id, order.CustomerUserId, 1, ct);
+            if (order.CustomerUserId is { } guestId)
+                await hub.NotifyEtaReminderAsync(order.Id, guestId, 1, ct);
 
         // Pass 4: Preparing → Ready when ETA expires
         var toReady = preparing

@@ -14,7 +14,7 @@ public record RateOrderDto(int Rating, string? Comment = null);
 
 public record OrderDto(
     Guid Id,
-    Guid CustomerUserId,
+    Guid? CustomerUserId,
     string CustomerName,
     string CustomerPhone,
     Guid LocationId,
@@ -45,7 +45,9 @@ public record OrderDto(
     // When the guest wants to pick the order up (UTC); null = as soon as possible.
     DateTime? PickupAt = null,
     // The table the guest ordered to by its QR code (table_ordering); null = pick up at the counter.
-    string? TableLabel = null);
+    string? TableLabel = null,
+    // Where the order came from: "App" (the guest's app) or "Counter" (rung up by a cashier for a walk-in guest).
+    OrderSource Source = OrderSource.App);
 
 public record OrderItemDto(
     Guid Id,
@@ -59,3 +61,20 @@ public record OrderItemDto(
     string? VariantLabel = null);
 
 public record OrderItemToppingDto(Guid ToppingId, string ToppingName, decimal Price);
+
+/// <summary>
+/// A sale rung up at the counter (Yurt POS). <c>IdempotencyKey</c> is made by the till for each sale and sent again on
+/// every retry. <c>SoldAt</c> is when the sale really happened (a sale made while the till was offline); empty = now.
+/// <c>HandedOver</c> = the guest already has everything (nothing for the kitchen). <c>EtaMinutes</c> = when it should be
+/// ready, for the kitchen screen.
+/// </summary>
+public record CreateCounterSaleDto(
+    Guid LocationId,
+    List<CounterSaleItemDto> Items,
+    PaymentMethod PaymentMethod,
+    string IdempotencyKey,
+    DateTime? SoldAt = null,
+    bool HandedOver = false,
+    int? EtaMinutes = null);
+
+public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null);

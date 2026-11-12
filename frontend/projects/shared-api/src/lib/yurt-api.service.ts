@@ -29,6 +29,7 @@ import {
   AuditLogEntry,
   AuthResponse,
   CreateOrderRequest,
+  CreateCounterSaleRequest,
   CreatePaymentRequest,
   PaymentConfig,
   PaymentSettings,
@@ -560,6 +561,11 @@ export class YurtApiService {
   createOrder(request: CreateOrderRequest, idempotencyKey?: string): Observable<Order> {
     const headers = idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined;
     return this.http.post<Order>(`${this.api}/orders`, request, { headers });
+  }
+
+  /** Rings up a paid counter sale (Yurt POS). Resending the same idempotencyKey returns the first sale. */
+  createCounterSale(request: CreateCounterSaleRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/admin/counter-sales`, request);
   }
 
   getActiveOrders(): Observable<Order[]> {

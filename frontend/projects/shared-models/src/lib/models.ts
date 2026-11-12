@@ -566,9 +566,13 @@ export interface StockAlertPhone {
   hasApp: boolean;
 }
 
+/** Where an order came from: the guest's app, or a cashier at the counter (Yurt POS). */
+export type OrderSource = 'App' | 'Counter';
+
 export interface Order {
   id: string;
-  customerUserId: string;
+  /** Empty for a counter sale to a walk-in guest with no account. */
+  customerUserId?: string | null;
   customerName: string;
   customerPhone?: string;
   locationId: string;
@@ -602,6 +606,21 @@ export interface Order {
   fiscalReturnUrl?: string | null;
   /** The table the guest ordered to by its QR code (table_ordering); empty for a pickup order. */
   tableLabel?: string | null;
+  source?: OrderSource;
+}
+
+/** A paid sale rung up at the counter for a walk-in guest (Yurt POS). Prices come from the server's menu. */
+export interface CreateCounterSaleRequest {
+  locationId: string;
+  items: { menuItemId: string; quantity: number; variantId?: string | null; toppingIds?: string[]; notes?: string | null }[];
+  paymentMethod: PaymentMethod;
+  /** Made by the till once per sale and sent again on every retry, so a sale is never counted twice. */
+  idempotencyKey: string;
+  /** When the sale really happened (ISO, UTC), for a sale made while offline; empty = now. */
+  soldAt?: string | null;
+  /** The guest already has everything; nothing goes to the kitchen. */
+  handedOver?: boolean;
+  etaMinutes?: number | null;
 }
 
 export enum IikoOrderSyncStatus {
