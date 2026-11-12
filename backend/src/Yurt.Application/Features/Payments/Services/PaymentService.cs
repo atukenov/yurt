@@ -265,7 +265,7 @@ public class PaymentService
   }
 
   /// <summary>Staff give an online payment back in full (Orders screen).</summary>
-  public async Task<Result> RefundOrderAsync(Guid orderId, CancellationToken cancellationToken = default)
+  public async Task<Result> RefundOrderAsync(Guid orderId, string? approvalNote = null, CancellationToken cancellationToken = default)
   {
     var payment = await _db.Payments
         .Include(p => p.Order)
@@ -284,7 +284,7 @@ public class PaymentService
     if (!refund.Succeeded) return refund;
 
     await _audit.LogAsync("OrderRefunded", "Order", orderId.ToString(),
-        $"{payment.Provider} {payment.Amount} {payment.Currency}", cancellationToken);
+        $"{payment.Provider} {payment.Amount} {payment.Currency}{(approvalNote is null ? "" : $" · {approvalNote}")}", cancellationToken);
     return Result.Success();
   }
 

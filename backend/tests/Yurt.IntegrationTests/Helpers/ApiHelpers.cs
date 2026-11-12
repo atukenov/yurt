@@ -75,6 +75,25 @@ internal static class ApiHelpers
         return body!.AccessToken;
     }
 
+    /// <summary>The PIN of the manager <see cref="EnsureManagerAsync"/> adds.</summary>
+    internal const string ManagerPin = "4821";
+
+    // A manager (Admin) with a manager PIN, added once to the default cafe. Tests that cancel, refund or discount send
+    // this PIN; the PIN is unique among managers, so other tests pick other numbers.
+    internal static async Task EnsureManagerAsync(IServiceProvider services)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var db     = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        if (await db.AdminUsers.AnyAsync(a => a.Username == "pin-manager")) return;
+        db.AdminUsers.Add(new AdminUser
+        {
+            Username = "pin-manager", PasswordHash = hasher.Hash("Manager@12345"), Role = AdminRole.Admin, IsActive = true,
+            ManagerPinHash = hasher.Hash(ManagerPin), ManagerPinSetAt = DateTime.UtcNow,
+        });
+        await db.SaveChangesAsync();
+    }
+
     // Fetch a seeded menu item by its English name.
     internal static async Task<(Guid Id, decimal Price, string Name)> GetMenuItemAsync(
         IServiceProvider services, string name)

@@ -12,4 +12,9 @@ public class AdminUser : BaseEntity, ITenantOwned
     public AdminRole Role { get; set; } = AdminRole.Worker;
     public bool IsActive { get; set; } = true;
     public bool MustChangePassword { get; set; }
+
+    // Hash of the manager PIN (Admin and CEO only) that approves cancels, refunds and discounts at the till.
+    // Null = no PIN set. Never the PIN itself.
+    public string? ManagerPinHash { get; set; }
+    public DateTime? ManagerPinSetAt { get; set; }
 }

@@ -114,11 +114,35 @@ export function changeDue(total: number, given: number | null): number | null {
   return Math.round((given - total) * 100) / 100;
 }
 
+/** A discount a manager approved at the till. The server checks the PIN again when the sale arrives. */
+export interface TillDiscount {
+  kind: 'percent' | 'amount';
+  value: number;
+  pin: string;
+  reason: string;
+}
+
+/** How much a discount takes off the bill: a percent of it, or a fixed amount, never more than the bill. */
+export function discountOf(total: number, discount: Pick<TillDiscount, 'kind' | 'value'> | null): number {
+  if (!discount || !(discount.value > 0)) return 0;
+  const off = discount.kind === 'percent' ? (total * Math.min(discount.value, 100)) / 100 : discount.value;
+  return Math.round(Math.min(off, total) * 100) / 100;
+}
+
 export function toRequest(
   lines: CartLine[], locationId: string, method: PaymentMethod, idempotencyKey: string,
   handedOver: boolean, etaMinutes: number | null, orderType: OrderType = 'TakeAway',
+  discount: TillDiscount | null = null,
 ): CreateCounterSaleRequest {
   return {
+    ...(discount ? {
+      discount: {
+        percent: discount.kind === 'percent' ? discount.value : null,
+        amount: discount.kind === 'amount' ? discount.value : null,
+        pin: discount.pin,
+        reason: discount.reason,
+      },
+    } : {}),
     orderType,
     locationId,
     paymentMethod: method,

@@ -190,7 +190,10 @@ public class StripePaymentTests(YurtWebAppFactory factory)
         await SendWebhookAsync(StripeWebhooks.SessionCompleted(invoice.InvoiceId, "pi_test_declined"));
 
         var staff = await StaffAsync();
-        (await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/decline", new { reason = "Out of milk" })).EnsureSuccessStatusCode();
+        await ApiHelpers.EnsureManagerAsync(factory.Services);
+        // The guest already paid online, so declining gives money back and needs a manager PIN.
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/decline", new { reason = "Out of milk" })).StatusCode);
+        (await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/decline", new { reason = "Out of milk", pin = ApiHelpers.ManagerPin })).EnsureSuccessStatusCode();
 
         var refund = Assert.Single(factory.Stripe.CallsFor(orderId.ToString()), c => c.Path == "/v1/refunds");
         Assert.Equal("pi_test_declined", refund.Form["payment_intent"]);
@@ -244,21 +247,25 @@ public class StripePaymentTests(YurtWebAppFactory factory)
         await TurnOnStripeForDefaultCafeAsync();
         var (customer, orderId, _) = await PlaceOrderAsync();
         var staff = await StaffAsync();
+        await ApiHelpers.EnsureManagerAsync(factory.Services);
+        var approval = new { pin = ApiHelpers.ManagerPin, reason = "Guest left" };
 
         // Nothing paid online yet.
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await staff.PostAsync($"/api/v1/admin/orders/{orderId}/refund", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/refund", approval)).StatusCode);
 
         var invoice = await PayAsync(customer, orderId);
         await SendWebhookAsync(StripeWebhooks.SessionCompleted(invoice.InvoiceId, "pi_test_staff"));
         (await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/accept", new { etaMinutes = 5 })).EnsureSuccessStatusCode();
 
-        var res = await staff.PostAsync($"/api/v1/admin/orders/{orderId}/refund", null);
+        // No PIN, no refund.
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/refund", new { reason = "Guest left" })).StatusCode);
+        var res = await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/refund", approval);
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal("Refunded", (await res.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("paymentStatus").GetString());
         Assert.Equal(PaymentRecordStatus.Refunded, (await PaymentAsync(invoice.InvoiceId)).Status);
 
         // Already given back.
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await staff.PostAsync($"/api/v1/admin/orders/{orderId}/refund", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await staff.PostAsJsonAsync($"/api/v1/admin/orders/{orderId}/refund", approval)).StatusCode);
     }
 
     [Fact]

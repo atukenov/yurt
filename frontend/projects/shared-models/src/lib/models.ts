@@ -661,6 +661,8 @@ export interface CreateCounterSaleRequest {
   etaMinutes?: number | null;
   /** Eat here or take away (default). */
   orderType?: OrderType;
+  /** Money off the bill, approved with a manager's PIN. Needs the internet: never part of an offline sale. */
+  discount?: DiscountRequest | null;
 }
 
 export enum IikoOrderSyncStatus {
@@ -699,6 +701,28 @@ export interface AcceptOrderRequest {
 
 export interface DeclineOrderRequest {
   reason: string;
+  /** Manager PIN; needed when the guest already paid online (own_pos). */
+  pin?: string;
+}
+
+/** A manager's PIN and the reason for a cancel, refund or discount (own_pos). */
+export interface ManagerApprovalRequest {
+  pin: string;
+  reason: string;
+}
+
+/** Money taken off a bill by hand: either an amount or a percent, with a manager's PIN and reason. */
+export interface DiscountRequest extends ManagerApprovalRequest {
+  amount?: number | null;
+  percent?: number | null;
+}
+
+export interface ManagerPinStatus {
+  /** A PIN is asked for in this cafe (own_pos is on). */
+  required: boolean;
+  anyManagerHasPin: boolean;
+  /** The signed-in person has a PIN of their own. */
+  iHavePin: boolean;
 }
 
 export interface UpdateStatusRequest {
@@ -707,6 +731,9 @@ export interface UpdateStatusRequest {
 
 export interface UpdatePaymentRequest {
   paymentStatus: PaymentStatus;
+  /** Taking back "Paid" needs a manager PIN and a reason (own_pos). */
+  pin?: string;
+  reason?: string;
 }
 
 // ── Analytics ────────────────────────────────────────────────────────────────

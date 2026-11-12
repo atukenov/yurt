@@ -254,7 +254,7 @@
                 {{ 'orders.accept' | t }}
               </button>
               <button
-                (click)="showDecline.set(true)"
+                (click)="startDecline(o)"
                 class="flex-1 inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
               >
                 {{ 'orders.decline' | t }}
@@ -354,6 +354,23 @@
                 class="mt-3 w-full text-xs font-semibold py-2 rounded-xl border-2 border-slate-200 bg-surface text-slate-700 hover:border-slate-300 disabled:opacity-50">
                 {{ 'orders.refundOnline' | t }}
               </button>
+            }
+            @if (canCancel(o) || canDiscount(o)) {
+              <!-- Cancels and discounts ask a manager for a PIN and a reason. -->
+              <div class="mt-3 flex gap-2">
+                @if (canDiscount(o)) {
+                  <button type="button" (click)="openApproval('discount', o)"
+                    class="flex-1 text-xs font-semibold py-2 rounded-xl border-2 border-slate-200 bg-surface text-slate-700 hover:border-slate-300">
+                    {{ 'orders.discountButton' | t }}
+                  </button>
+                }
+                @if (canCancel(o)) {
+                  <button type="button" (click)="openApproval('cancel', o)"
+                    class="flex-1 text-xs font-semibold py-2 rounded-xl border-2 border-red-200 bg-surface text-red-700 hover:border-red-300">
+                    {{ 'orders.cancelButton' | t }}
+                  </button>
+                }
+              </div>
             }
             @if (modules.isEnabled('own_pos')) {
               <app-split-payment [order]="o" (saved)="onSplitSaved(o, $event)" />
@@ -502,4 +519,34 @@
       </div>
     </div>
   </div>
+}
+
+<!-- Manager PIN dialog: cancel, refund, discount, declining a paid order, taking back "Paid". -->
+@if (approval(); as a) {
+  <yurt-manager-approval
+    [title]="approvalTitle()"
+    [hint]="'approval.hint' | t"
+    [reasonLabel]="'approval.reason' | t"
+    [pinLabel]="'approval.pin' | t"
+    [confirmLabel]="'approval.confirm' | t"
+    [cancelLabel]="'action.cancel' | t"
+    [destructive]="a.kind !== 'discount'"
+    [busy]="actionLoading() || refundLoading() || paymentLoading()"
+    [extraReady]="approvalReady()"
+    (approved)="approve($event)"
+    (closed)="closeApproval()"
+  >
+    @if (a.kind === 'discount') {
+      <div class="flex gap-2">
+        <select [(ngModel)]="discountMode" name="discountMode" [attr.aria-label]="'approval.discount.kind' | t"
+          class="border border-slate-200 rounded-xl px-2 py-2 text-sm bg-surface">
+          <option value="percent">%</option>
+          <option value="amount">{{ 'approval.discount.amount' | t }}</option>
+        </select>
+        <input type="number" min="0" step="any" [(ngModel)]="discountValue" name="discountValue"
+          [attr.aria-label]="'approval.discount.value' | t"
+          class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
+      </div>
+    }
+  </yurt-manager-approval>
 }

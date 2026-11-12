@@ -10,6 +10,8 @@ export interface TillSale {
   handedOver: boolean;
   /** Saved on this tablet, not on the server yet (id is the sale's key until then). */
   pending?: boolean;
+  /** A manager cancelled it; the money was handed back. */
+  cancelled?: boolean;
 }
 
 /** The last menu this till loaded for a branch, used when the internet is down. */
@@ -64,6 +66,10 @@ export class TillService {
   /** The server has the sale now: show its real number. */
   markUploaded(key: string, order: Order): void {
     this.save(this.sales().map((s) => (s.id === key ? { ...s, id: order.id, pending: false } : s)));
+  }
+
+  markCancelled(id: string): void {
+    this.save(this.sales().map((s) => (s.id === id ? { ...s, cancelled: true } : s)));
   }
 
   forget(key: string): void {

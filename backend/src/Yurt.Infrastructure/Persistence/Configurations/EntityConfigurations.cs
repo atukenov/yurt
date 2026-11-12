@@ -39,6 +39,7 @@ public class AdminUserConfiguration : IEntityTypeConfiguration<AdminUser>
         builder.Property(e => e.Username).HasMaxLength(100).IsRequired();
         builder.Property(e => e.PasswordHash).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
+        builder.Property(e => e.ManagerPinHash).HasMaxLength(200);
     }
 }
 
