@@ -14,5 +14,6 @@ public class MenuTopping : BaseEntity, ITenantOwned
     /// <summary>Mutual-exclusion group key (e.g. "milk", "syrup"). Null = free checkbox.</summary>
     public string? Group { get; set; }
 
+    public ICollection<MenuToppingLocation> LocationPrices { get; set; } = new List<MenuToppingLocation>();
     public ICollection<MenuToppingCategory> ToppingCategories { get; set; } = new List<MenuToppingCategory>();
 }

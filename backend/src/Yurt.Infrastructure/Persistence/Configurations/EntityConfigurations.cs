@@ -267,6 +267,44 @@ public class MenuToppingCategoryConfiguration : IEntityTypeConfiguration<MenuTop
     }
 }
 
+public class MenuOptionGroupConfiguration : IEntityTypeConfiguration<MenuOptionGroup>
+{
+    public void Configure(EntityTypeBuilder<MenuOptionGroup> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Key).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.Title).HasMaxLength(100);
+        builder.Property(e => e.TitleRu).HasMaxLength(100);
+        builder.Property(e => e.TitleKk).HasMaxLength(100);
+        builder.HasIndex(e => new { e.TenantId, e.Key }).IsUnique();
+    }
+}
+
+public class MenuItemToppingConfiguration : IEntityTypeConfiguration<MenuItemTopping>
+{
+    public void Configure(EntityTypeBuilder<MenuItemTopping> builder)
+    {
+        builder.HasKey(e => new { e.MenuItemId, e.ToppingId });
+        builder.HasOne(e => e.MenuItem).WithMany(m => m.ToppingLinks)
+            .HasForeignKey(e => e.MenuItemId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Topping).WithMany()
+            .HasForeignKey(e => e.ToppingId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class MenuToppingLocationConfiguration : IEntityTypeConfiguration<MenuToppingLocation>
+{
+    public void Configure(EntityTypeBuilder<MenuToppingLocation> builder)
+    {
+        builder.HasKey(e => new { e.ToppingId, e.LocationId });
+        builder.Property(e => e.Price).HasPrecision(10, 2);
+        builder.HasOne(e => e.Topping).WithMany(t => t.LocationPrices)
+            .HasForeignKey(e => e.ToppingId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(e => e.Location).WithMany()
+            .HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public class OrderItemToppingConfiguration : IEntityTypeConfiguration<OrderItemTopping>
 {
     public void Configure(EntityTypeBuilder<OrderItemTopping> builder)
@@ -329,6 +367,7 @@ public class MenuItemLocationConfiguration : IEntityTypeConfiguration<MenuItemLo
     public void Configure(EntityTypeBuilder<MenuItemLocation> builder)
     {
         builder.HasKey(e => new { e.MenuItemId, e.LocationId });
+        builder.Property(e => e.Price).HasPrecision(10, 2);
         builder.HasOne(e => e.MenuItem).WithMany(m => m.MenuItemLocations)
             .HasForeignKey(e => e.MenuItemId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(e => e.Location).WithMany()

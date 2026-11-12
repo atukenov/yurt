@@ -29,5 +29,6 @@ public class MenuItem : BaseEntity, ITenantOwned
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
     public ICollection<MenuItemLocation> MenuItemLocations { get; set; } = new List<MenuItemLocation>();
+    public ICollection<MenuItemTopping> ToppingLinks { get; set; } = new List<MenuItemTopping>();
     public ICollection<MenuItemVariant> Variants { get; set; } = new List<MenuItemVariant>();
 }

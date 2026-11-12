@@ -8,6 +8,7 @@ import {
   MenuItem,
   MenuItemVariant,
   MenuTopping,
+  OptionRule,
   OrderItemToppingInput,
   Promotion,
 } from 'shared-models';
@@ -215,12 +216,45 @@ export class MenuListComponent implements OnInit {
     }
 
     const result: { label: string; toppings: MenuTopping[] }[] = [];
-    groupMap.forEach((toppings, key) =>
-      result.push({ label: this.langService.t(`topping.${key}`), toppings }),
-    );
+    groupMap.forEach((toppings, key) => {
+      const title = this.ruleFor(key).title;
+      result.push({ label: title && title !== key ? title : this.langService.t(`topping.${key}`), toppings });
+    });
     if (extras.length)
       result.push({ label: this.langService.t('topping.extras'), toppings: extras });
     return result;
+  }
+
+  /** The rule for an option group; a group nobody set up means: at most one, may be none. */
+  ruleFor(group: string): OptionRule {
+    const rule = this.toppingModalItem()?.optionRules?.find((r) => r.group === group);
+    return rule ?? { group, title: group, required: false, min: 0, max: 1 };
+  }
+
+  /** Short line under a group's title: what the guest has to do. */
+  groupHint(group: string): string {
+    const r = this.ruleFor(group);
+    const t = (k: string, p?: Record<string, string | number>) => this.langService.t(k, p);
+    if (r.min > 0 && r.max !== null && r.max > r.min) return t('item.optRange', { min: r.min, max: r.max });
+    if (r.min > 1) return t('item.optAtLeast', { min: r.min });
+    if (r.min > 0) return t('item.optRequired');
+    if (r.max !== null && r.max > 1) return t('item.optUpTo', { max: r.max });
+    return t('item.chooseOne');
+  }
+
+  private pickedInGroup(group: string): number {
+    const ids = this.selectedToppingIds();
+    return this.toppingModalToppings.filter((t) => t.group === group && ids.has(t.id)).length;
+  }
+
+  private missingGroup(): string | null {
+    const all = this.toppingModalToppings;
+    for (const g of new Set(all.filter((t) => t.group).map((t) => t.group!))) {
+      const r = this.ruleFor(g);
+      if (this.pickedInGroup(g) < Math.min(r.min, all.filter((t) => t.group === g).length))
+        return r.title && r.title !== g ? r.title : this.langService.t(`topping.${g}`);
+    }
+    return null;
   }
 
   ngOnInit(): void {
@@ -423,13 +457,20 @@ export class MenuListComponent implements OnInit {
     this.selectedToppingIds.update((set) => {
       const next = new Set(set);
       if (next.has(topping.id)) {
+        // A required group keeps its last choice; change it by picking another one.
+        const rule = topping.group ? this.ruleFor(topping.group) : null;
+        if (rule && rule.min > 0 && this.pickedInGroup(topping.group!) <= rule.min) return next;
         next.delete(topping.id);
       } else {
-        // For grouped toppings: deselect any sibling already selected
-        if (topping.group) {
+        const max = topping.group ? this.ruleFor(topping.group).max : null;
+        if (topping.group && max === 1) {
+          // Only one allowed: the new choice replaces the old one.
           for (const t of this.toppingModalToppings) {
             if (t.group === topping.group) next.delete(t.id);
           }
+        } else if (topping.group && max !== null && this.pickedInGroup(topping.group) >= max) {
+          this.toast.warning(this.langService.t('item.optUpTo', { max }));
+          return next;
         }
         next.add(topping.id);
       }
@@ -440,6 +481,11 @@ export class MenuListComponent implements OnInit {
   confirmToppings(event: MouseEvent): void {
     const item = this.toppingModalItem();
     if (!item) return;
+    const missing = this.missingGroup();
+    if (missing) {
+      this.toast.warning(this.langService.t('item.chooseOption', { title: missing }));
+      return;
+    }
     const toppings = (item.availableToppings ?? [])
       .filter((t) => this.selectedToppingIds().has(t.id))
       .map<OrderItemToppingInput>((t) => ({

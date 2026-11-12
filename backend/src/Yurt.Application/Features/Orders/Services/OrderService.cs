@@ -6,6 +6,7 @@ using Yurt.Application.Common.Models;
 using Yurt.Application.Features.DiscountCodes.Services;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Loyalty.Services;
+using Yurt.Application.Features.Menu.Services;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Printing;
 using Yurt.Application.Features.Stock;
@@ -144,6 +145,24 @@ public class OrderService
             if (shortage != null) return Result<OrderDto>.Failure(shortage, 400);
         }
 
+        // Add-ons come from the menu, never from the app: price, name and which ones a dish offers here.
+        var soldOutToppings = _stock is not null ? await _stock.SoldOutToppingIdsAsync(dto.LocationId, ct) : [];
+        var offeredByItem = await DishOptions.LoadAsync(_db, menuItems, dto.LocationId, soldOutToppings, false, ct);
+        var optionGroups = await DishOptions.LoadGroupsAsync(
+            _db, offeredByItem.Values.SelectMany(v => v).Select(o => o.Topping.Group), ct);
+        var chosenOptions = new List<List<DishOption>>();
+        foreach (var line in dto.Items)
+        {
+            var dishName = menuItems.First(m => m.Id == line.MenuItemId).Name;
+            var dishOpts = offeredByItem[line.MenuItemId];
+            var pickedIds = (line.Toppings ?? []).Select(t => t.ToppingId).Distinct().ToList();
+            if (pickedIds.Any(id => dishOpts.All(o => o.Topping.Id != id)))
+                return Result<OrderDto>.Failure($"One of the add-ons for '{dishName}' is not available.", 400);
+            var problem = DishOptions.Check(dishName, dishOpts, pickedIds, optionGroups);
+            if (problem != null) return Result<OrderDto>.Failure(problem, 400);
+            chosenOptions.Add(dishOpts.Where(o => pickedIds.Contains(o.Topping.Id)).ToList());
+        }
+
         // Build order
         var order = new Order
         {
@@ -164,12 +183,13 @@ public class OrderService
             ? await _db.MenuItemVariants.Where(v => variantIds.Contains(v.Id)).ToListAsync(ct)
             : [];
 
-        var orderItems = dto.Items.Select(i =>
+        var orderItems = dto.Items.Select((i, index) =>
         {
+            var chosen = chosenOptions[index];
             var menuItem = menuItems.First(m => m.Id == i.MenuItemId);
             var variant = i.VariantId.HasValue ? variants.FirstOrDefault(v => v.Id == i.VariantId.Value && v.MenuItemId == i.MenuItemId) : null;
-            var basePrice = variant?.Price ?? menuItem.Price;
-            var toppingTotal = i.Toppings?.Sum(t => t.Price) ?? 0m;
+            var basePrice = variant?.Price ?? DishOptions.BranchPrice(menuItem, dto.LocationId);
+            var toppingTotal = chosen.Sum(o => o.Price);
             var lineTotal = (basePrice + toppingTotal) * i.Quantity;
             var orderItem = new OrderItem
             {
@@ -183,13 +203,13 @@ public class OrderService
                 VariantLabel = variant?.Label,
                 Notes = i.Notes
             };
-            if (i.Toppings is { Count: > 0 })
-                orderItem.Toppings = i.Toppings.Select(t => new OrderItemTopping
+            if (chosen.Count > 0)
+                orderItem.Toppings = chosen.Select(o => new OrderItemTopping
                 {
                     OrderItemId = orderItem.Id,
-                    ToppingId = t.ToppingId,
-                    ToppingName = t.ToppingName,
-                    Price = t.Price
+                    ToppingId = o.Topping.Id,
+                    ToppingName = o.Topping.Name,
+                    Price = o.Price
                 }).ToList();
             return orderItem;
         }).ToList();
