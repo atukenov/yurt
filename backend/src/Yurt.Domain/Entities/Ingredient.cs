@@ -17,6 +17,9 @@ public class Ingredient : BaseEntity, ITenantOwned
     /// restocks with a price, which keep a running average. Null means the cost is not known yet.
     /// </summary>
     public decimal? CostPerUnit { get; set; }
+
+    /// <summary>The number on the supplier's pack. Scanned to find the ingredient when a delivery arrives. Unique per cafe.</summary>
+    public string? Barcode { get; set; }
 }
 
 /// <summary>How much of an ingredient a branch has. No row means the branch does not count it (unlimited).</summary>

@@ -111,6 +111,8 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(e => e.DescriptionKk).HasMaxLength(1000);
         builder.Property(e => e.Price).HasPrecision(10, 2);
         builder.Property(e => e.ImageUrl).HasMaxLength(500);
+        builder.Property(e => e.Barcode).HasMaxLength(64);
+        builder.HasIndex(e => new { e.TenantId, e.Barcode }).IsUnique().HasFilter("\"Barcode\" IS NOT NULL");
         builder.HasOne<MenuSchedule>().WithMany().HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(e => e.Category).WithMany(c => c.Items)
             .HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Restrict);
@@ -593,7 +595,9 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
         builder.Property(e => e.Name).HasMaxLength(100).IsRequired();
         builder.Property(e => e.Unit).HasMaxLength(20).IsRequired();
         builder.Property(e => e.CostPerUnit).HasPrecision(18, 4);
+        builder.Property(e => e.Barcode).HasMaxLength(64);
         builder.HasIndex(e => new { e.TenantId, e.Name }).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.Barcode }).IsUnique().HasFilter("\"Barcode\" IS NOT NULL");
     }
 }
 

@@ -651,6 +651,35 @@
           />
           <label for="isNew" class="text-sm text-slate-700">{{ 'label.new' | t }}</label>
         </div>
+        <div>
+          <label for="itemBarcode" class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.barcode' | t }}</label>
+          <input
+            id="itemBarcode"
+            type="text"
+            inputmode="numeric"
+            maxlength="64"
+            autocomplete="off"
+            [ngModel]="itemForm().barcode"
+            (ngModelChange)="patchItemForm('barcode', $event)"
+            (keydown.enter)="$event.preventDefault()"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
+          />
+          <p class="text-xs text-slate-500 mt-1">{{ (itemForm().soldByWeight ? 'menu.barcodeWeightHint' : 'menu.barcodeHint') | t }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="soldByWeight"
+            [ngModel]="itemForm().soldByWeight"
+            (ngModelChange)="patchItemForm('soldByWeight', $event)"
+            [disabled]="itemForm().variants.length > 0"
+            class="rounded border-slate-300 text-brand-500 focus:ring-brand-400"
+          />
+          <label for="soldByWeight" class="text-sm text-slate-700">{{ 'menu.soldByWeight' | t }}</label>
+        </div>
+        @if (itemForm().soldByWeight) {
+          <p class="text-xs text-slate-500">{{ 'menu.soldByWeightHint' | t }}</p>
+        }
       </div>
       <div class="flex gap-3 mt-5">
         <yurt-button variant="ghost" size="md" [fullWidth]="true" (clicked)="showItemDialog.set(false)">

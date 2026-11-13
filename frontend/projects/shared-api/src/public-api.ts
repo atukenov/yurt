@@ -16,3 +16,4 @@ export * from './lib/push-notification.service';
 export * from './lib/signalr.service';
 export * from './lib/yurt-api.service';
 export * from './lib/bluetooth-printing';
+export * from './lib/barcode';

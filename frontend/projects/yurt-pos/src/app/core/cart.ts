@@ -1,3 +1,4 @@
+import { weighedPrice } from 'shared-api';
 import { CreateCounterSaleRequest, MenuItem, MenuTopping, OptionRule, OrderType, PaymentMethod } from 'shared-models';
 
 /** One line on the till: an item in one size with its add-ons. Prices are only for the screen; the server sets the real ones. */
@@ -10,6 +11,8 @@ export interface CartLine {
   toppings: { id: string; name: string; price: number }[];
   unitPrice: number;
   quantity: number;
+  /** Set on a weighed item: the weight in grams. Such a line is always 1 and is its own line for each weighing. */
+  weightGrams?: number | null;
 }
 
 /** The methods a cashier can take at the counter, in the order the buttons show. */
@@ -98,10 +101,30 @@ export function addLine(
   }];
 }
 
-/** Changes a line's quantity by `delta`; a line that drops to 0 goes away. */
+/** Adds one weighing of an item sold by weight. Each weighing is its own line (the cashier removes it with −). */
+export function addWeighedLine(lines: CartLine[], item: MenuItem, grams: number, id: string): CartLine[] {
+  return [...lines, {
+    key: `${item.id}|w|${id}`,
+    menuItemId: item.id,
+    name: item.name,
+    variantId: null,
+    variantLabel: null,
+    toppings: [],
+    unitPrice: weighedPrice(item.price, grams),
+    quantity: 1,
+    weightGrams: grams,
+  }];
+}
+
+/** "0.350 kg" for 350 g. */
+export function kgText(grams: number): string {
+  return `${(grams / 1000).toFixed(3)} kg`;
+}
+
+/** Changes a line's quantity by `delta`; a line that drops to 0 goes away. A weighed line has no "more": weigh again. */
 export function changeQuantity(lines: CartLine[], key: string, delta: number): CartLine[] {
   return lines
-    .map((l) => (l.key === key ? { ...l, quantity: Math.min(999, l.quantity + delta) } : l))
+    .map((l) => (l.key === key && !(l.weightGrams && delta > 0) ? { ...l, quantity: Math.min(999, l.quantity + delta) } : l))
     .filter((l) => l.quantity > 0);
 }
 
@@ -175,14 +198,16 @@ export function toRequest(
       quantity: l.quantity,
       variantId: l.variantId,
       toppingIds: l.toppings.map((t) => t.id),
+      ...(l.weightGrams ? { weightGrams: l.weightGrams } : {}),
     })),
   };
 }
 
 /** The cart's lines as the printed receipt shows them: size and add-ons after the name, like the server's receipt. */
-export function receiptLines(lines: CartLine[]): { quantity: number; name: string; extras: string; total: number }[] {
+export function receiptLines(lines: CartLine[]): { quantity: number; name: string; extras: string; total: number; weightGrams?: number }[] {
   return lines.map((l) => ({
     quantity: l.quantity,
+    ...(l.weightGrams ? { weightGrams: l.weightGrams } : {}),
     name: l.name,
     extras: [l.variantLabel, ...l.toppings.map((t) => `+ ${t.name}`)].filter((s) => !!s && s.trim()).join(', '),
     total: l.unitPrice * l.quantity,

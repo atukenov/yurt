@@ -35,6 +35,8 @@ public class CounterSaleService(
     public static readonly TimeSpan TimeMenuGrace = TimeSpan.FromMinutes(10);
 
     public const int MaxEtaMinutes = 240;
+    /// <summary>The lightest and heaviest weighing the till may send (a scale that reads 0 or a typo is refused).</summary>
+    public const int MinWeightGrams = 1, MaxWeightGrams = 50_000;
 
     private static readonly PaymentMethod[] CounterMethods =
         [PaymentMethod.Cash, PaymentMethod.Card, PaymentMethod.KaspiBank, PaymentMethod.HalykBank, PaymentMethod.FreedomBank];
@@ -85,6 +87,21 @@ public class CounterSaleService(
         var itemIds = dto.Items.Select(i => i.MenuItemId).Distinct().ToList();
         var menuItems = await db.MenuItems.Include(m => m.MenuItemLocations)
             .Where(m => itemIds.Contains(m.Id)).ToDictionaryAsync(m => m.Id, ct);
+        foreach (var line in dto.Items)
+        {
+            if (!menuItems.TryGetValue(line.MenuItemId, out var weighable)) continue; // reported just below
+            if (weighable.SoldByWeight)
+            {
+                if (line.WeightGrams is not { } grams || grams is < MinWeightGrams or > MaxWeightGrams)
+                    return Result<OrderDto>.Failure($"'{weighable.Name}' is sold by weight: weigh it first (between {MinWeightGrams} g and {MaxWeightGrams / 1000} kg).", 400);
+                if (line.Quantity != 1)
+                    return Result<OrderDto>.Failure($"'{weighable.Name}' is sold by weight: one line per weighing.", 400);
+                if (line.VariantId is not null || line.ToppingIds is { Count: > 0 })
+                    return Result<OrderDto>.Failure($"'{weighable.Name}' is sold by weight and has no sizes or add-ons.", 400);
+            }
+            else if (line.WeightGrams is not null)
+                return Result<OrderDto>.Failure($"'{weighable.Name}' is not sold by weight.", 400);
+        }
         foreach (var id in itemIds)
         {
             if (!menuItems.TryGetValue(id, out var item))
@@ -158,12 +175,15 @@ public class CounterSaleService(
                 .ToList();
 
             var unit = timed.PriceOf(item, variant?.Price ?? DishOptions.BranchPrice(item, location.Id), variant is not null) + lineToppings.Sum(t => t.Price);
+            // A weighed dish: the menu price is for 1 kg, the line is priced for what was weighed (rounded to the cent).
+            if (item.SoldByWeight) unit = Math.Round(unit * line.WeightGrams!.Value / 1000m, 2, MidpointRounding.AwayFromZero);
             var orderItem = new OrderItem
             {
                 OrderId = order.Id,
                 MenuItemId = item.Id,
                 MenuItemName = item.Name,
                 Quantity = line.Quantity,
+                WeightGrams = item.SoldByWeight ? line.WeightGrams : null,
                 UnitPrice = unit,
                 LineTotal = unit * line.Quantity,
                 VariantId = variant?.Id,

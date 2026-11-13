@@ -91,7 +91,10 @@ export class NewsComponent implements OnInit {
       promotions: this.modules.isEnabled('marketing')
         ? this.api.getActivePromotions().pipe(catchError(() => of<Promotion[]>([])))
         : of<Promotion[]>([]),
-      items: this.api.getMenuItems(undefined, undefined, this.lang.lang()).pipe(catchError(() => of<MenuItem[]>([]))),
+      items: this.api.getMenuItems(undefined, undefined, this.lang.lang()).pipe(
+        map((list) => list.filter((i) => !i.soldByWeight)), // weighed at the till only
+        catchError(() => of<MenuItem[]>([])),
+      ),
       orders: this.api.getOrderHistory().pipe(catchError(() => of<Order[]>([]))),
       loyalty: this.api.getLoyaltyBalance().pipe(
         catchError(() => of<LoyaltyBalance>({ enabled: false, available: false, linked: false, balance: null, earnPercent: 0 }))

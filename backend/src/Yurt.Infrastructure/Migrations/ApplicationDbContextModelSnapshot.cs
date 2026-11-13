@@ -902,6 +902,10 @@ namespace Yurt.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<decimal?>("CostPerUnit")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
@@ -930,6 +934,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Barcode")
+                        .IsUnique()
+                        .HasFilter("\"Barcode\" IS NOT NULL");
 
                     b.HasIndex("TenantId", "Name")
                         .IsUnique();
@@ -1324,6 +1332,10 @@ namespace Yurt.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
 
@@ -1382,6 +1394,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<Guid?>("ScheduleId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("SoldByWeight")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
@@ -1400,6 +1415,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Barcode")
+                        .IsUnique()
+                        .HasFilter("\"Barcode\" IS NOT NULL");
 
                     b.ToTable("MenuItems");
                 });
@@ -2062,6 +2081,9 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Property<string>("VariantLabel")
                         .HasColumnType("text");
+
+                    b.Property<int?>("WeightGrams")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

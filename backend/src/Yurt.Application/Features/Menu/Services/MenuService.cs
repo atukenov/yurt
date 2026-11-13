@@ -281,6 +281,9 @@ public class MenuService
         if (cat == null)
             return Result<AdminMenuItemDto>.Failure("Category not found.", 400);
 
+        var (barcode, weighed, scanError) = await CheckScanFieldsAsync(null, dto.Barcode, dto.SoldByWeight, dto.Variants?.Count > 0, ct);
+        if (scanError is not null) return Result<AdminMenuItemDto>.Failure(scanError, scanError.StartsWith("Another") ? 409 : 400);
+
         var nextSortOrder = await _db.MenuItems.CountAsync(i => i.CategoryId == dto.CategoryId, ct);
 
         var item = new MenuItem
@@ -298,7 +301,9 @@ public class MenuService
             ImageUrl = dto.ImageUrl,
             SortOrder = nextSortOrder,
             IikoProductId = dto.IikoProductId,
-            IikoProductSizeId = dto.IikoProductSizeId
+            IikoProductSizeId = dto.IikoProductSizeId,
+            Barcode = barcode,
+            SoldByWeight = weighed
         };
         _db.MenuItems.Add(item);
 
@@ -347,6 +352,11 @@ public class MenuService
         if (item == null) return Result<AdminMenuItemDto>.NotFound();
         if (item.CategoryId != dto.CategoryId && !await _db.MenuCategories.AnyAsync(c => c.Id == dto.CategoryId, ct))
             return Result<AdminMenuItemDto>.Failure("Category not found.", 400);
+
+        var (barcode, weighed, scanError) = await CheckScanFieldsAsync(item, dto.Barcode, dto.SoldByWeight, dto.Variants?.Count > 0, ct);
+        if (scanError is not null) return Result<AdminMenuItemDto>.Failure(scanError, scanError.StartsWith("Another") ? 409 : 400);
+        item.Barcode = barcode;
+        item.SoldByWeight = weighed;
 
         item.CategoryId = dto.CategoryId;
         item.Name = dto.Name;
@@ -664,7 +674,21 @@ public class MenuService
                LocalizationHelper.Localize(i.Name, i.NameRu, i.NameKk, lang),
                LocalizationHelper.Localize(i.Description, i.DescriptionRu, i.DescriptionKk, lang),
                price, i.IsAvailable, i.IsNew, i.ImageUrl, i.CreatedAt, locationIds, toppings, variants,
-               i.Name, i.NameRu, i.NameKk, rules is { Count: > 0 } ? rules : null, Was(usualPrice, price), i.IsCombo, comboItems);
+               i.Name, i.NameRu, i.NameKk, rules is { Count: > 0 } ? rules : null, Was(usualPrice, price), i.IsCombo, comboItems,
+               i.Barcode, i.SoldByWeight);
+    }
+
+    /// <summary>Checks the barcode (clean, not on another dish) and the by-weight switch (no sizes, not a combo).</summary>
+    private async Task<(string? Barcode, bool SoldByWeight, string? Error)> CheckScanFieldsAsync(
+        MenuItem? existing, string? barcode, bool soldByWeight, bool hasVariants, CancellationToken ct)
+    {
+        var code = Barcodes.Clean(barcode, out var codeError);
+        if (codeError is not null) return (null, false, codeError);
+        if (soldByWeight && hasVariants) return (null, false, "A dish sold by weight has no sizes.");
+        if (soldByWeight && existing?.IsCombo == true) return (null, false, "A combo cannot be sold by weight.");
+        if (code is not null && await _db.MenuItems.AnyAsync(i => i.Barcode == code && (existing == null || i.Id != existing.Id), ct))
+            return (null, false, "Another dish already has this barcode.");
+        return (code, soldByWeight, null);
     }
 
     private static AdminMenuItemDto MapAdminItemToDto(MenuItem i, List<MenuToppingDto>? toppings = null)
@@ -680,6 +704,7 @@ public class MenuService
                i.Price, i.IsAvailable, i.IsNew, i.ImageUrl, i.SortOrder, locationIds, toppings, variants,
                i.IikoProductId, i.IikoProductSizeId,
                i.ToppingLinks?.Select(l => l.ToppingId).ToList() ?? [],
-               i.MenuItemLocations?.Where(l => l.Price != null).Select(l => new LocationPriceDto(l.LocationId, l.Price!.Value)).ToList() ?? []);
+               i.MenuItemLocations?.Where(l => l.Price != null).Select(l => new LocationPriceDto(l.LocationId, l.Price!.Value)).ToList() ?? [],
+               i.Barcode, i.SoldByWeight);
     }
 }

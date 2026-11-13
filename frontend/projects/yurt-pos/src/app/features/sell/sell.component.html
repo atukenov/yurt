@@ -17,6 +17,18 @@
     <button type="button" (click)="showStaff.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
       {{ 'staff.button' | t }}
     </button>
+    @if (scale.supported && branch()) {
+      @if (!scale.connected()) {
+        <select [ngModel]="scale.baud()" (ngModelChange)="scale.setBaud(+$event)" [attr.aria-label]="'scale.baud' | t"
+                class="rounded-lg bg-surface px-2 py-2 text-xs text-slate-600 ring-1 ring-slate-200">
+          @for (b of baudRates; track b) { <option [ngValue]="b">{{ b }}</option> }
+        </select>
+      }
+      <button type="button" (click)="toggleScale()" [title]="(scale.connected() ? 'scale.disconnect' : 'scale.connect') | t"
+              class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+        @if (scale.connected()) { ⚖ {{ scale.usable() ? kgText(scale.usable()!.grams) : ('scale.waiting' | t) }} } @else { {{ 'scale.connect' | t }} }
+      </button>
+    }
     @if (branch()) {
       <button type="button" (click)="showPrinter.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
         {{ (printer.hasPrinter() ? 'printer.on' : 'printer.title') | t }}
@@ -34,6 +46,10 @@
       {{ 'top.signOut' | t }}
     </button>
   </header>
+
+  @if (scanNote(); as note) {
+    <p class="border-b border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="status">{{ note }}</p>
+  }
 
   <!-- Internet and sales waiting to upload -->
   @if (!outbox.online() || outbox.waiting().length || outbox.refused().length || outbox.needsSignIn()) {
@@ -93,7 +109,7 @@
       <!-- Menu -->
       <main class="flex min-h-0 flex-1 flex-col">
         <div class="flex gap-2 overflow-x-auto border-b border-slate-200 px-3 py-2">
-          <input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" [placeholder]="'menu.search' | t"
+          <input type="search" data-scan="search" [ngModel]="search()" (ngModelChange)="search.set($event)" [placeholder]="'menu.search' | t"
                  [attr.aria-label]="'menu.search' | t"
                  class="w-40 shrink-0 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm" />
           <button type="button" (click)="category.set(null); search.set('')"
@@ -127,7 +143,7 @@
                     @if (item.isCombo && item.comboItems?.length) {
                       <span class="mt-1 line-clamp-2 text-xs text-slate-500">{{ 'menu.combo' | t }}: {{ comboSummary(item) }}</span>
                     }
-                    <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}@if (item.regularPrice) { <s class="ml-1 text-slate-400">{{ item.regularPrice | currency2 }}</s> }</span>
+                    <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}@if (item.soldByWeight) { <span class="text-slate-500"> / {{ 'weigh.kg' | t }}</span> }@if (item.regularPrice) { <s class="ml-1 text-slate-400">{{ item.regularPrice | currency2 }}</s> }</span>
                   </button>
                 } @empty {
                   <p class="col-span-full text-slate-500">{{ 'menu.empty' | t }}</p>
@@ -180,6 +196,9 @@
                     <p class="text-sm font-semibold text-slate-900">
                       {{ l.name }}@if (l.variantLabel) { · {{ l.variantLabel }} }
                     </p>
+                    @if (l.weightGrams) {
+                      <p class="text-xs text-slate-500">{{ kgText(l.weightGrams) }}</p>
+                    }
                     @if (l.toppings.length) {
                       <p class="text-xs text-slate-500">
                         @for (t of l.toppings; track t.id; let last = $last) { + {{ t.name }}{{ last ? '' : ', ' }} }
@@ -190,8 +209,8 @@
                   @if (step() === 'cart') {
                     <button type="button" (click)="minus(l)" aria-label="−" class="h-10 w-10 rounded-lg bg-slate-100 text-lg font-bold text-slate-800">−</button>
                   }
-                  <span class="w-6 text-center font-semibold text-slate-900">{{ l.quantity }}</span>
-                  @if (step() === 'cart') {
+                  <span class="w-6 text-center font-semibold text-slate-900">{{ l.weightGrams ? '⚖' : l.quantity }}</span>
+                  @if (step() === 'cart' && !l.weightGrams) {
                     <button type="button" (click)="plus(l)" aria-label="+" class="h-10 w-10 rounded-lg bg-slate-100 text-lg font-bold text-slate-800">+</button>
                   }
                 </li>
@@ -368,6 +387,39 @@
         <button type="button" (click)="confirmPick()" [disabled]="pickMissing() !== null"
                 class="flex-1 rounded-xl bg-brand-500 py-3 font-bold text-on-brand disabled:opacity-40">
           @if (pickMissing(); as need) { {{ 'opt.choose' | t: { title: need } }} } @else { {{ 'opt.add' | t }} · {{ pickPrice() | currency2 }} }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Weigh an item sold by weight -->
+@if (weighing(); as item) {
+  <div class="fixed inset-0 z-40 flex items-end justify-center bg-black/40 sm:items-center" (click)="weighing.set(null)">
+    <div class="w-full max-w-sm rounded-t-2xl bg-surface p-5 sm:rounded-2xl" (click)="$event.stopPropagation()"
+         role="dialog" aria-modal="true" [attr.aria-label]="item.name">
+      <h2 class="text-lg font-bold text-slate-900">{{ item.name }}</h2>
+      <p class="text-sm text-slate-600">{{ item.price | currency2 }} / {{ 'weigh.kg' | t }}</p>
+      @if (scale.failed()) {
+        <p class="mt-3 text-xs text-red-700" role="alert">{{ 'scale.failed' | t }}</p>
+      }
+      @if (scale.connected()) {
+        <p class="mt-4 text-center text-3xl font-bold text-slate-900">
+          @if (scale.usable(); as live) { {{ kgText(live.grams) }} } @else { <span class="text-slate-400">{{ 'scale.waiting' | t }}</span> }
+        </p>
+        <p class="text-center text-xs text-slate-500">{{ 'weigh.fromScale' | t }}</p>
+      } @else if (scale.supported) {
+        <p class="mt-3 text-xs text-slate-500">{{ 'weigh.noScale' | t }}</p>
+      }
+      <label class="mt-4 block text-sm font-semibold text-slate-700" for="weigh-grams">{{ 'weigh.typed' | t }}</label>
+      <input id="weigh-grams" type="number" inputmode="numeric" min="1" max="50000" step="1" [ngModel]="weighGrams()"
+             (ngModelChange)="weighGrams.set($event === null ? '' : '' + $event)" (keydown.enter)="confirmWeigh()"
+             class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3 text-lg" autofocus />
+      <div class="mt-6 flex gap-2">
+        <button type="button" (click)="weighing.set(null)" class="rounded-xl px-4 py-3 text-slate-700 ring-1 ring-slate-300">{{ 'opt.cancel' | t }}</button>
+        <button type="button" (click)="confirmWeigh()" [disabled]="weighValue() === null"
+                class="flex-1 rounded-xl bg-brand-500 py-3 font-bold text-on-brand disabled:opacity-40">
+          @if (weighValue(); as g) { {{ 'opt.add' | t }} · {{ kgText(g) }} · {{ weighPrice() | currency2 }} } @else { {{ 'weigh.enter' | t }} }
         </button>
       </div>
     </div>

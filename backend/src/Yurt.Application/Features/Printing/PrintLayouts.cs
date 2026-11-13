@@ -63,7 +63,7 @@ public static class PrintLayouts
         p.Left().Rule();
         foreach (var item in items)
         {
-            p.Bold(true).Line($"{item.Quantity} x {item.MenuItemName}").Bold(false);
+            p.Bold(true).Line(ItemTitle(item)).Bold(false);
             var extras = Extras(item);
             if (extras.Length > 0) p.Line("  " + extras);
             // A combo: the kitchen sees what is inside it.
@@ -96,7 +96,7 @@ public static class PrintLayouts
         p.Left().Rule();
         foreach (var item in order.Items)
         {
-            p.Columns($"{item.Quantity} x {item.MenuItemName}", Money(item.LineTotal));
+            p.Columns(ItemTitle(item), Money(item.LineTotal));
             var extras = Extras(item);
             if (extras.Length > 0) p.Line("  " + extras);
         }
@@ -180,6 +180,12 @@ public static class PrintLayouts
 
     /// <summary>Only opens the cash drawer: nothing is printed and no paper is used.</summary>
     public static byte[] Drawer(Printer printer) => new EscPos(printer.LineWidth, printer.CodeTable).OpenDrawer().ToArray();
+
+    /// <summary>"2 x Latte", or "0.350 kg Cheese" for an item sold by weight.</summary>
+    internal static string ItemTitle(OrderItem item)
+        => item.WeightGrams is { } grams
+            ? $"{(grams / 1000m).ToString("0.000", CultureInfo.InvariantCulture)} kg {item.MenuItemName}"
+            : $"{item.Quantity} x {item.MenuItemName}";
 
     private static string Extras(OrderItem item)
         => string.Join(", ", new[] { item.VariantLabel }.Concat(item.Toppings.Select(t => "+ " + t.ToppingName))
