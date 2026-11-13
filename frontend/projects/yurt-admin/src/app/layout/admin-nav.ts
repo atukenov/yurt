@@ -59,6 +59,7 @@ const ICON = {
   combos: ['M20 12H4m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0a2 2 0 00-2-2H6a2 2 0 00-2 2m8-8v4m-4-3v3m8-3v3M6 18h12'],
   stock: ['M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
   purchasing: ['M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z'],
+  forecast: ['M3 17l6-6 4 4 8-8M14 7h7v7'],
   stockMoves: ['M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'],
   menu: ['M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
   timeMenus: ['M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
@@ -112,6 +113,8 @@ const CAFE_NAV: NavGroupDef[] = [
       { link: '/stock', label: 'nav.stock', icon: ICON.stock, adminOnly: true, module: 'own_pos', badge: 'stock' },
       // Staff type in deliveries too; supplier details and payments stay with admins on the page itself.
       { link: '/purchasing', label: 'nav.purchasing', icon: ICON.purchasing, module: 'own_pos' },
+      // Item counts and ingredient amounts only, no money: every staff role can open it.
+      { link: '/forecast', label: 'nav.forecast', icon: ICON.forecast, module: 'own_pos' },
     ],
   },
   {

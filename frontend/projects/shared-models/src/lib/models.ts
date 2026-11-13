@@ -2155,3 +2155,49 @@ export interface MenuSchedule {
 }
 
 export type SaveMenuSchedule = Omit<MenuSchedule, 'id' | 'runningNow'>;
+
+// ── Sales forecast and prep plan (own_pos) ─────────────────────────────────────
+
+/** One dish and size expected on the day, and how many to have ready in each part of the day. */
+export interface ForecastDish {
+  menuItemId: string;
+  variantId?: string | null;
+  name: string;
+  size?: string | null;
+  expected: number;
+  morning: number;
+  lunch: number;
+  afternoon: number;
+  evening: number;
+  usualPerDay: number;
+  daysSold: number;
+}
+
+/** What the day's dishes use of an ingredient, next to what the branch has now (`inStock` null = not counted). */
+export interface ForecastIngredient {
+  ingredientId: string;
+  name: string;
+  unit: string;
+  needed: number;
+  inStock?: number | null;
+  missing: number;
+}
+
+export type ForecastConfidence = 'none' | 'low' | 'medium' | 'high';
+
+export interface Forecast {
+  date: string;
+  weekday: number;
+  locationId: string;
+  daysUsed: number;
+  confidence: ForecastConfidence;
+  adjustPercent: number;
+  bufferPercent: number;
+  totalItems: number;
+  /** Expected items for each hour of the day (index 0-23, the cafe's local time). */
+  hourly: number[];
+  peakHour?: number | null;
+  dishes: ForecastDish[];
+  ingredients: ForecastIngredient[];
+  history: { date: string; items: number }[];
+}
