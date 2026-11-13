@@ -19,7 +19,7 @@ import {
   MaintenanceInfo,
   Cafe,
   CafeSecretStatus, CafeAdmin, PayrollStaff, PayAdjustment, PayrollSheet,
-  ItemProfitReport, ProfitMonth, CafeExpense, SaveCafeExpense,
+  ItemProfitReport, MenuAnalysis, ProfitMonth, CafeExpense, SaveCafeExpense,
   Combo, SaveCombo, ComboReport,
   CreateCafeRequest,
   MenuImportResult,
@@ -1298,12 +1298,16 @@ export class YurtApiService {
     return this.http.get<ItemProfitReport>(`${this.api}/admin/profit/items`, { params: this.profitParams(month, locationId) });
   }
 
+  getMenuAnalysis(month: string, locationId?: string | null): Observable<MenuAnalysis> {
+    return this.http.get<MenuAnalysis>(`${this.api}/admin/profit/menu-analysis`, { params: this.profitParams(month, locationId) });
+  }
+
   getProfitMonth(month: string, locationId?: string | null): Observable<ProfitMonth> {
     return this.http.get<ProfitMonth>(`${this.api}/admin/profit/month`, { params: this.profitParams(month, locationId) });
   }
 
   /** The report as an Excel file, with words in `lang`. */
-  exportProfit(kind: 'items' | 'month', month: string, locationId: string | null, lang: string): Observable<Blob> {
+  exportProfit(kind: 'items' | 'month' | 'menu-analysis', month: string, locationId: string | null, lang: string): Observable<Blob> {
     return this.http.get(`${this.api}/admin/profit/${kind}/export`, {
       params: this.profitParams(month, locationId, lang),
       responseType: 'blob',
