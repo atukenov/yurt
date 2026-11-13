@@ -426,11 +426,19 @@
 <!-- Item dialog -->
 @if (showItemDialog()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showItemDialog.set(false)">
-    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="item-dialog-title">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="item-dialog-title">
       <h3 id="item-dialog-title" class="text-lg font-bold text-slate-800 mb-4">
         {{ itemForm().id ? ('menu.editMenuItemTitle' | t) : ('menu.addMenuItemTitle' | t) }}
       </h3>
+      <div class="flex gap-1 bg-slate-100 rounded-xl p-1 mb-4 overflow-x-auto" role="tablist">
+        @for (tb of itemTabs; track tb[0]) {
+          <button type="button" role="tab" [attr.aria-selected]="itemTab() === tb[0]" (click)="itemTab.set($any(tb[0]))"
+            [class]="itemTab() === tb[0] ? 'bg-surface text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-800'"
+            class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-all">{{ tb[1] | t }}</button>
+        }
+      </div>
       <div class="space-y-3">
+        @if (itemTab() === 'basics') {
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1.5">{{ 'label.name' | t }} *</label>
           <div class="space-y-2">
@@ -510,6 +518,8 @@
             </select>
           </div>
         </div>
+        }
+        @if (itemTab() === 'details') {
         @if (modules.isEnabled('iiko_sync')) {
           <!-- iiko order-push mapping (optional) -->
           <div>
@@ -544,6 +554,8 @@
             </div>
           </div>
         }
+        }
+        @if (itemTab() === 'sizes') {
         <!-- Size Variants -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
@@ -596,7 +608,9 @@
             </div>
           }
         </div>
+        }
 
+        @if (itemTab() === 'basics') {
         <div>
           <label for="item-image-url" class="block text-xs font-medium text-slate-600 mb-1">{{ 'label.imageUrl' | t }}</label>
           <input
@@ -613,6 +627,8 @@
             <app-picture-upload [label]="'label.imageUrl' | t" (uploaded)="patchItemForm('imageUrl', $event)" />
           </div>
         </div>
+        }
+        @if (itemTab() === 'branches') {
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.onlyAt' | t }}</label>
           <p class="text-xs text-slate-500 mb-2">{{ 'menu.onlyAtHint' | t }}</p>
@@ -630,6 +646,8 @@
             }
           </div>
         </div>
+        }
+        @if (itemTab() === 'sizes') {
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.dishOptions' | t }}</label>
           <p class="text-xs text-slate-500 mb-2">{{ 'menu.dishOptionsHint' | t }}</p>
@@ -643,6 +661,8 @@
             }
           </div>
         </div>
+        }
+        @if (itemTab() === 'branches') {
         @if (locations().length > 1) {
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.branchPrices' | t }}</label>
@@ -660,6 +680,8 @@
             </div>
           </div>
         }
+        }
+        @if (itemTab() === 'details') {
         <!-- Allergens and nutrition (shown to guests on the menu) -->
         <div class="border border-slate-200 rounded-xl p-3" data-testid="nutrition-form">
           <p class="text-sm font-semibold text-slate-700">{{ 'menu.nutritionTitle' | t }}</p>
@@ -687,6 +709,8 @@
             }
           </div>
         </div>
+        }
+        @if (itemTab() === 'basics') {
         <div class="flex items-center gap-2">
           <input
             type="checkbox"
@@ -707,6 +731,8 @@
           />
           <label for="isNew" class="text-sm text-slate-700">{{ 'label.new' | t }}</label>
         </div>
+        }
+        @if (itemTab() === 'details') {
         <div>
           <label for="itemBarcode" class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.barcode' | t }}</label>
           <input
@@ -735,6 +761,7 @@
         </div>
         @if (itemForm().soldByWeight) {
           <p class="text-xs text-slate-500">{{ 'menu.soldByWeightHint' | t }}</p>
+        }
         }
       </div>
       <div class="flex gap-3 mt-5">

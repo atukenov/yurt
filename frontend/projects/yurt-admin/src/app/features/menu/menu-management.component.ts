@@ -98,6 +98,12 @@ export class MenuManagementComponent implements OnInit {
   activeTab = signal<'items' | 'toppings'>('items');
   mobileCatOpen = signal(false);
 
+  /** Sections of the dish editor; only the open one is shown, so the form stays short. */
+  itemTab = signal<'basics' | 'sizes' | 'branches' | 'details'>('basics');
+  readonly itemTabs: [string, string][] = [
+    ['basics', 'menu.tab.basics'], ['sizes', 'menu.tab.sizes'], ['branches', 'menu.tab.branches'], ['details', 'menu.tab.details'],
+  ];
+
   items = signal<MenuItem[]>([]);
   categories = signal<MenuCategory[]>([]);
   toppings = signal<MenuTopping[]>([]);
@@ -289,6 +295,7 @@ export class MenuManagementComponent implements OnInit {
   }
 
   openItemDialog(item?: MenuItem): void {
+    this.itemTab.set('basics');
     this.itemForm.set({
       id: item?.id,
       name: item?.name ?? '',
@@ -473,10 +480,12 @@ export class MenuManagementComponent implements OnInit {
   saveItem(): void {
     const f = this.itemForm();
     if (!f.name || !f.nameRu || !f.nameKk) {
+      this.itemTab.set('basics');
       this.toast.error(this.langService.t('menu.nameAll3'));
       return;
     }
     if (!f.price && f.variants.length === 0) {
+      this.itemTab.set('basics');
       this.toast.error(this.langService.t('menu.priceOrSizes'));
       return;
     }
