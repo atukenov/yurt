@@ -13,6 +13,8 @@ public record DeclineOrderDto(string Reason, string? Pin = null);
 /// Money taken off a bill by hand, with a manager's PIN and the reason. Give either an Amount or a Percent (1 to 100).
 /// </summary>
 public record DiscountInputDto(decimal? Amount = null, decimal? Percent = null, string? Pin = null, string? Reason = null);
+/// <summary>Change or remove the tip of an order (Amount 0 removes it). After the sale this needs a manager PIN and a reason.</summary>
+public record SetTipDto(decimal Amount, PaymentMethod? Method = null, string? Pin = null, string? Reason = null, Guid? StaffId = null);
 public record UpdateOrderStatusDto(OrderStatus Status);
 public record UpdatePaymentDto(PaymentStatus PaymentStatus, string? Pin = null, string? Reason = null);
 public record RateOrderDto(int Rating, string? Comment = null);
@@ -54,7 +56,10 @@ public record OrderDto(
     // Where the order came from: "App" (the guest's app) or "Counter" (rung up by a cashier for a walk-in guest).
     OrderSource Source = OrderSource.App,
     // Here or to go.
-    OrderType OrderType = OrderType.TakeAway);
+    OrderType OrderType = OrderType.TakeAway,
+    // A tip on top of the bill (own_pos). Not part of Total. TipMethod null = paid the same way as the bill.
+    decimal TipAmount = 0,
+    PaymentMethod? TipMethod = null);
 
 public record OrderItemDto(
     Guid Id,
@@ -84,6 +89,8 @@ public record CreateCounterSaleDto(
     bool HandedOver = false,
     int? EtaMinutes = null,
     OrderType OrderType = OrderType.TakeAway,
-    DiscountInputDto? Discount = null);
+    DiscountInputDto? Discount = null,
+    decimal? Tip = null,
+    PaymentMethod? TipMethod = null);
 
 public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null);

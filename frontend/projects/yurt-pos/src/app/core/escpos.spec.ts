@@ -64,6 +64,11 @@ describe('till printing (ESC/POS)', () => {
     expect(has(bytes, [0x1d, 0x56, 66, 0])).toBe(true);
   });
 
+  it('prints the tip under the total, only when there is one', () => {
+    expect(text(receiptBytes(printer, { ...sale, tip: 330 }))).toMatch(/Чаевые +330 тг/);
+    expect(text(receiptBytes(printer, sale))).not.toContain('Чаевые');
+  });
+
   it('opens the drawer only for cash on a printer with a drawer, and says nothing about tax when online', () => {
     expect(has(receiptBytes(printer, sale, false), [0x1b, 0x70])).toBe(false);
     expect(has(receiptBytes({ ...printer, cashDrawer: false }, sale, true), [0x1b, 0x70])).toBe(false);

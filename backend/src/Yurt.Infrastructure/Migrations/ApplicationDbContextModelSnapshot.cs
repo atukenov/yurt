@@ -1809,6 +1809,19 @@ namespace Yurt.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
 
+                    b.Property<decimal>("TipAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<Guid?>("TipForAdminId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TipMethod")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<decimal>("Total")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");

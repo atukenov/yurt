@@ -183,6 +183,11 @@ export const routes: Routes = [
               import('./features/audit-log/audit-log.component').then((m) => m.AuditLogComponent),
           },
           {
+            path: 'tips',
+            canActivate: [ceoGuard, moduleGuard('own_pos', '/orders')],
+            loadComponent: () => import('./features/tips/tips.component').then((m) => m.TipsComponent),
+          },
+          {
             path: 'payroll',
             canActivate: [ceoGuard, moduleGuard('payroll', '/orders')],
             loadComponent: () => import('./features/payroll/payroll.component').then((m) => m.PayrollComponent),

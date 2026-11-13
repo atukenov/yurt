@@ -370,6 +370,51 @@ export interface ShiftReport {
   expectedCash: number;
   difference?: number | null;
   movements: CashMovement[];
+  /** Tips left on top of the bills in this shift (not part of takings). */
+  tips?: number;
+  /** Tips paid in cash: they are in the drawer and counted in `expectedCash`. */
+  cashTips?: number;
+  tipsByStaff?: StaffTip[];
+}
+
+/** Tips one staff member got. `staffId` null = a tip nobody was named for. */
+export interface StaffTip {
+  staffId: string | null;
+  name: string;
+  orders: number;
+  total: number;
+  cash: number;
+  nonCash: number;
+}
+
+export interface ShiftTip {
+  shiftId: string;
+  locationId: string;
+  locationName: string;
+  openedAt: string;
+  closedAt?: string | null;
+  total: number;
+}
+
+/** Tips between two days, per staff member and per cashier shift (CEO only). */
+export interface TipReport {
+  from: string;
+  to: string;
+  orders: number;
+  total: number;
+  cash: number;
+  nonCash: number;
+  byStaff: StaffTip[];
+  byShift: ShiftTip[];
+}
+
+/** Change or remove the tip of an order (amount 0 removes it); needs a manager PIN and a reason. */
+export interface SetTipRequest {
+  amount: number;
+  method?: PaymentMethod | null;
+  pin?: string;
+  reason?: string;
+  staffId?: string | null;
 }
 
 /** A table in a branch with its QR code (table_ordering). */
@@ -627,6 +672,10 @@ export interface Order {
   paymentMethod?: PaymentMethod;
   subtotal: number;
   discountAmount: number;
+  /** A tip on top of the bill (own_pos). Not part of `total`. */
+  tipAmount?: number;
+  /** How the tip was paid; empty = the same way as the bill. */
+  tipMethod?: PaymentMethod | null;
   total: number;
   discountCode?: string;
   items: OrderItem[];
@@ -663,6 +712,10 @@ export interface CreateCounterSaleRequest {
   orderType?: OrderType;
   /** Money off the bill, approved with a manager's PIN. Needs the internet: never part of an offline sale. */
   discount?: DiscountRequest | null;
+  /** A tip on top of the bill. No PIN is needed to add it at the till, and it works offline too. */
+  tip?: number | null;
+  /** How the tip was paid when it differs from the bill (for example cash on a card sale). */
+  tipMethod?: PaymentMethod | null;
 }
 
 export enum IikoOrderSyncStatus {

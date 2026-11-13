@@ -141,6 +141,9 @@
               @if (lastSale(); as sale) {
                 <p class="text-xl font-bold text-slate-900">{{ 'done.title' | t: { no: shortNo(sale.id) } }}</p>
                 <p class="text-2xl font-bold text-slate-900">{{ sale.total | currency2 }}</p>
+                @if (sale.tipAmount) {
+                  <p class="text-sm text-slate-700">{{ 'tip.line' | t }} +{{ sale.tipAmount | currency2 }}</p>
+                }
                 <p class="text-slate-600">{{ (sale.status === 'Completed' ? 'done.handedOver' : 'done.toKitchen') | t }}</p>
               } @else if (lastQueued(); as q) {
                 <p class="text-xl font-bold text-slate-900">{{ 'done.savedTitle' | t }}</p>
@@ -257,6 +260,37 @@
                     }
                   }
                 }
+                <div role="group" [attr.aria-label]="'tip.title' | t" class="space-y-2">
+                  <p class="text-sm font-semibold text-slate-800">{{ 'tip.title' | t }}</p>
+                  <div class="flex flex-wrap gap-2">
+                    <button type="button" (click)="chooseTip(null)" [attr.aria-pressed]="tipChoice().kind === 'none'"
+                            [class]="'rounded-lg px-3 py-2 text-sm font-semibold ' + (tipChoice().kind === 'none' && !tipCustomOpen() ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300 text-slate-800')">{{ 'tip.none' | t }}</button>
+                    @for (p of tipPercents; track p) {
+                      <button type="button" (click)="chooseTip(p)"
+                              [attr.aria-pressed]="tipPercent() === p"
+                              [class]="'rounded-lg px-3 py-2 text-sm font-semibold ' + (tipPercent() === p ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300 text-slate-800')">{{ p }}%</button>
+                    }
+                    <button type="button" (click)="tipCustomOpen.set(true)" [attr.aria-pressed]="tipCustomOpen()"
+                            [class]="'rounded-lg px-3 py-2 text-sm font-semibold ' + (tipCustomOpen() ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300 text-slate-800')">{{ 'tip.custom' | t }}</button>
+                  </div>
+                  @if (tipCustomOpen()) {
+                    <input type="number" inputmode="decimal" min="0" step="any" (ngModelChange)="setTipAmount($event)" [ngModel]="tipTyped()"
+                           name="tipAmount" [attr.aria-label]="'tip.custom' | t"
+                           class="w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-lg" />
+                  }
+                  @if (tip() > 0) {
+                    <div class="flex items-baseline justify-between text-sm text-slate-700">
+                      <span>{{ 'tip.line' | t }}</span>
+                      <span class="font-semibold">+{{ tip() | currency2 }}</span>
+                    </div>
+                    @if (method() && method() !== 'Cash') {
+                      <label class="flex items-center gap-2 text-sm text-slate-700">
+                        <input type="checkbox" [ngModel]="tipInCash()" (ngModelChange)="tipInCash.set($event)" class="h-5 w-5" />
+                        {{ 'tip.inCash' | t }}
+                      </label>
+                    }
+                  }
+                </div>
                 @if (discount()) {
                   <button type="button" (click)="removeDiscount()" class="text-sm text-slate-600 underline">{{ 'disc.remove' | t }}</button>
                 } @else {

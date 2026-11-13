@@ -114,7 +114,7 @@ public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IA
         var orders = await db.Orders
             .Where(o => o.LocationId == shift.LocationId && o.CompletedAt != null
                 && o.CompletedAt >= shift.OpenedAt && o.CompletedAt <= to && o.Status == OrderStatus.Completed)
-            .Select(o => new { o.Id, o.Subtotal, o.DiscountAmount, o.Total, o.LoyaltyPointsSpent, o.PaymentMethod })
+            .Select(o => new { o.Id, o.Subtotal, o.DiscountAmount, o.Total, o.LoyaltyPointsSpent, o.PaymentMethod, o.TipAmount, o.TipMethod, o.TipForAdminId })
             .ToListAsync(ct);
         // Orders the cashier paid in parts: each part counts under its own method.
         var orderIds = orders.Select(o => o.Id).ToList();
@@ -133,14 +133,26 @@ public class ShiftService(IApplicationDbContext db, ICurrentUserService user, IA
         var cashSales = lines.Where(l => l.Method == PaymentMethod.Cash).Sum(l => l.Paid);
         var cashIn = shift.Movements.Where(m => !m.IsOut).Sum(m => m.Amount);
         var cashOut = shift.Movements.Where(m => m.IsOut).Sum(m => m.Amount);
-        var expected = shift.OpeningCash + cashSales + cashIn - cashOut;
+        // Tips: money on top of the bill. A tip paid in cash is in the drawer, so it counts in the cash expected (the
+        // cashier takes it out with Cash out when it is handed to staff); a tip paid by card is owed to staff from the bank.
+        var tipOrders = orders.Where(o => o.TipAmount > 0).ToList();
+        var cashTips = tipOrders.Where(o => (o.TipMethod ?? o.PaymentMethod ?? PaymentMethod.Cash) == PaymentMethod.Cash).Sum(o => o.TipAmount);
+        var expected = shift.OpeningCash + cashSales + cashTips + cashIn - cashOut;
+        var tipStaffIds = tipOrders.Where(o => o.TipForAdminId != null).Select(o => o.TipForAdminId!.Value).Distinct().ToList();
+        var tipNames = tipStaffIds.Count == 0 ? [] : await db.AdminUsers.Where(u => tipStaffIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Username, ct);
+        var tipsByStaff = tipOrders.GroupBy(o => o.TipForAdminId)
+            .Select(g => new StaffTipDto(g.Key, g.Key is { } id && tipNames.TryGetValue(id, out var n) ? n : "", g.Count(), g.Sum(o => o.TipAmount),
+                g.Where(o => (o.TipMethod ?? o.PaymentMethod ?? PaymentMethod.Cash) == PaymentMethod.Cash).Sum(o => o.TipAmount),
+                g.Where(o => (o.TipMethod ?? o.PaymentMethod ?? PaymentMethod.Cash) != PaymentMethod.Cash).Sum(o => o.TipAmount)))
+            .OrderByDescending(t => t.Total).ToList();
 
         var report = new ShiftReportDto(
             ToDto(shift), orders.Count, declined,
             orders.Sum(o => o.Subtotal), orders.Sum(o => o.DiscountAmount), orders.Sum(o => o.LoyaltyPointsSpent ?? 0m),
             lines.Sum(l => l.Paid), byMethod, cashSales, cashIn, cashOut, expected,
             shift.CountedCash is null ? null : shift.CountedCash - expected,
-            shift.Movements.OrderBy(m => m.CreatedAt).Select(ToDto).ToList());
+            shift.Movements.OrderBy(m => m.CreatedAt).Select(ToDto).ToList(),
+            tipOrders.Sum(o => o.TipAmount), cashTips, tipsByStaff);
         return Result<ShiftReportDto>.Success(report);
     }
 
