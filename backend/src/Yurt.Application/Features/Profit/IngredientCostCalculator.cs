@@ -17,6 +17,30 @@ public class IngredientCostCalculator(IApplicationDbContext db)
     public async Task<List<PortionCost>> ForLinesAsync(IReadOnlyList<StockLine> lines, CancellationToken ct = default)
     {
         if (lines.Count == 0) return [];
+        // A combo costs what the dishes inside it cost; the combo line itself has no recipe.
+        if (lines.Any(l => l.Parts is { Count: > 0 }))
+        {
+            var flat = new List<StockLine>();
+            foreach (var l in lines)
+            {
+                flat.Add(new StockLine(l.MenuItemId, l.VariantId, l.Quantity, l.ToppingIds));
+                foreach (var p in l.Parts ?? []) flat.Add(new StockLine(p.ItemId, p.VariantId, p.Quantity, []));
+            }
+            var costs = await ForLinesAsync(flat, ct);
+            var combined = new List<PortionCost>(lines.Count);
+            var at = 0;
+            foreach (var l in lines)
+            {
+                var own = costs[at++];
+                if (l.Parts is not { Count: > 0 }) { combined.Add(own); continue; }
+                var inside = costs.Skip(at).Take(l.Parts.Count).ToList();
+                at += l.Parts.Count;
+                combined.Add(inside.All(c => c.UnitCost is null)
+                    ? new PortionCost(null, false)
+                    : new PortionCost(Math.Round(inside.Select((c, k) => (c.UnitCost ?? 0m) * l.Parts[k].Quantity).Sum(), 4), inside.Any(c => c.UnitCost is null || c.MissingPrice)));
+            }
+            return combined;
+        }
         var itemIds = lines.Select(l => l.MenuItemId).Distinct().ToList();
         var recipes = await db.RecipeLines.AsNoTracking()
             .Where(r => itemIds.Contains(r.MenuItemId))
@@ -55,6 +79,5 @@ public class IngredientCostCalculator(IApplicationDbContext db)
         for (var i = 0; i < items.Count; i++) items[i].UnitCost = costs[i].UnitCost;
     }
 
-    public static StockLine ToLine(OrderItem i)
-        => new(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings.Select(t => t.ToppingId).ToList());
+    public static StockLine ToLine(OrderItem i) => StockLine.Of(i);
 }

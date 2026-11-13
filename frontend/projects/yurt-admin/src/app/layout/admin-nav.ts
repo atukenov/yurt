@@ -56,6 +56,7 @@ const ICON = {
   cashier: ['M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'],
   tables: ['M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2z'],
   printers: ['M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z'],
+  combos: ['M20 12H4m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0a2 2 0 00-2-2H6a2 2 0 00-2 2m8-8v4m-4-3v3m8-3v3M6 18h12'],
   stock: ['M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
   purchasing: ['M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z'],
   stockMoves: ['M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'],
@@ -104,6 +105,7 @@ const CAFE_NAV: NavGroupDef[] = [
     label: 'nav.group.menu',
     items: [
       { link: '/menu', label: 'nav.menu', icon: ICON.menu, adminOnly: true },
+      { link: '/combos', label: 'nav.combos', icon: ICON.combos, adminOnly: true },
       { link: '/stock', label: 'nav.stock', icon: ICON.stock, adminOnly: true, module: 'own_pos', badge: 'stock' },
       // Staff type in deliveries too; supplier details and payments stay with admins on the page itself.
       { link: '/purchasing', label: 'nav.purchasing', icon: ICON.purchasing, module: 'own_pos' },

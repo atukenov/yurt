@@ -25,7 +25,13 @@ public record MenuItemDto(
     string? NameRu = null,
     string? NameKk = null,
     // What the guest has to choose for this dish (only groups the dish offers).
-    List<OptionRuleDto>? OptionRules = null);
+    List<OptionRuleDto>? OptionRules = null,
+    // A combo: a set price for the dishes listed in ComboItems.
+    bool IsCombo = false,
+    List<ComboItemDto>? ComboItems = null);
+
+/// <summary>A dish inside a combo, for the guest: name, size (if one is set) and how many.</summary>
+public record ComboItemDto(Guid ItemId, string Name, string? VariantLabel, int Quantity);
 
 /// <summary>How many options of one group the guest must / may choose. Max null = no limit.</summary>
 public record OptionRuleDto(string Group, string Title, bool Required, int Min, int? Max);

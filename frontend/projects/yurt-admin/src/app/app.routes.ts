@@ -123,6 +123,10 @@ export const routes: Routes = [
               ),
           },
           {
+            path: 'combos',
+            loadComponent: () => import('./features/combos/combos.component').then((m) => m.CombosComponent),
+          },
+          {
             path: 'locations',
             loadComponent: () =>
               import('./features/locations/locations-management.component').then(

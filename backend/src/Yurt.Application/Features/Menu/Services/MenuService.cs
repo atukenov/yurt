@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Helpers;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Combos;
 using Yurt.Application.Features.Menu.DTOs;
 using Yurt.Application.Features.Stock;
 using Yurt.Domain.Entities;
@@ -101,8 +102,12 @@ public class MenuService
             .OrderBy(i => i.Category.SortOrder).ThenBy(i => i.SortOrder).ThenBy(i => i.Name)
             .ToListAsync(ct);
 
+        // A combo is off the menu while a dish inside it is on the stop-list or not sold at this branch.
+        var combos = await ComboSales.LoadAsync(_db, items, ct);
+        items = items.Where(i => !i.IsCombo || combos.Problem(i, locationId) is null).ToList();
+
         var options = await DishOptionsForGuestAsync(items, lang, locationId, ct);
-        var result = items.Select(i => MapItemToDto(i, lang, options.Toppings[i.Id], options.Rules[i.Id], locationId)).ToList();
+        var result = items.Select(i => MapItemToDto(i, lang, options.Toppings[i.Id], options.Rules[i.Id], locationId, combos)).ToList();
 
         if (cacheKey is not null) await _menuCache.SetAsync(cacheKey, result);
         return result;
@@ -122,8 +127,9 @@ public class MenuService
             !item.MenuItemLocations.Any(l => l.LocationId == locationId.Value))
             return Result<MenuItemDto>.Failure("This item is not available at your selected location.", 403);
 
+        var combos = await ComboSales.LoadAsync(_db, [item], ct);
         var options = await DishOptionsForGuestAsync([item], lang, locationId, ct);
-        return Result<MenuItemDto>.Success(MapItemToDto(item, lang, options.Toppings[item.Id], options.Rules[item.Id], locationId));
+        return Result<MenuItemDto>.Success(MapItemToDto(item, lang, options.Toppings[item.Id], options.Rules[item.Id], locationId, combos));
     }
 
     public async Task<List<MenuToppingDto>> GetToppingsAsync(
@@ -169,6 +175,7 @@ public class MenuService
             .Include(i => i.MenuItemLocations)
             .Include(i => i.Variants)
             .Include(i => i.ToppingLinks)
+            .Where(i => !i.IsCombo) // combos are managed on their own screen
             .OrderBy(i => i.Category.SortOrder).ThenBy(i => i.SortOrder).ThenBy(i => i.Name)
             .ToListAsync(ct);
 
@@ -392,6 +399,9 @@ public class MenuService
     {
         var item = await _db.MenuItems.FindAsync([id], ct);
         if (item == null) return Result<bool>.NotFound();
+        var inCombo = await _db.ComboParts.Where(p => p.ItemId == id).Select(p => p.Combo.Name).FirstOrDefaultAsync(ct);
+        if (inCombo is not null)
+            return Result<bool>.Failure($"'{item.Name}' is part of the combo '{inCombo}'. Take it out of the combo first.", 409);
         var name = item.Name;
         _db.MenuItems.Remove(item);
         await _db.SaveChangesAsync(ct);
@@ -614,8 +624,15 @@ public class MenuService
         => _stock is null || locationId is null ? [] : await _stock.SoldOutItemIdsAsync(locationId.Value, ct);
 
     private static MenuItemDto MapItemToDto(
-        MenuItem i, string lang, List<MenuToppingDto>? toppings = null, List<OptionRuleDto>? rules = null, Guid? locationId = null)
+        MenuItem i, string lang, List<MenuToppingDto>? toppings = null, List<OptionRuleDto>? rules = null, Guid? locationId = null,
+        ComboSales? combos = null)
     {
+        var comboItems = i.IsCombo && combos is not null
+            ? combos.PartsOf(i.Id).Select(p => new ComboItemDto(
+                p.ItemId, LocalizationHelper.Localize(p.Item.Name, p.Item.NameRu, p.Item.NameKk, lang),
+                combos.VariantOrNull(p) is { } v ? LocalizationHelper.Localize(v.Label, v.LabelRu, v.LabelKk, lang) : null,
+                p.Quantity)).ToList()
+            : null;
         var locationIds = i.MenuItemLocations?.Select(l => l.LocationId).ToList();
         var variants = i.Variants?.Count > 0
             ? i.Variants.OrderBy(v => v.SortOrder)
@@ -627,7 +644,7 @@ public class MenuService
                LocalizationHelper.Localize(i.Name, i.NameRu, i.NameKk, lang),
                LocalizationHelper.Localize(i.Description, i.DescriptionRu, i.DescriptionKk, lang),
                DishOptions.BranchPrice(i, locationId), i.IsAvailable, i.IsNew, i.ImageUrl, i.CreatedAt, locationIds, toppings, variants,
-               i.Name, i.NameRu, i.NameKk, rules is { Count: > 0 } ? rules : null);
+               i.Name, i.NameRu, i.NameKk, rules is { Count: > 0 } ? rules : null, i.IsCombo, comboItems);
     }
 
     private static AdminMenuItemDto MapAdminItemToDto(MenuItem i, List<MenuToppingDto>? toppings = null)

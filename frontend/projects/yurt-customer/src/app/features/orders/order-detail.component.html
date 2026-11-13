@@ -155,6 +155,11 @@
               + {{ toppingList(item.toppings) }}
             </p>
           }
+          @if (item.comboParts?.length) {
+            <p style="font-size:11.5px;color:var(--ink-500);margin-top:2px">
+              {{ item.comboParts!.map((c) => c.quantity + ' × ' + c.name).join(', ') }}
+            </p>
+          }
           @if (!last) {
             <div style="border-top:1px dashed var(--ink-200);margin:10px 0"></div>
           }

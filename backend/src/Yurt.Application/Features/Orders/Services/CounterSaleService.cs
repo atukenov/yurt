@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Approvals;
+using Yurt.Application.Features.Combos;
 using Yurt.Application.Features.Menu.Services;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Printing;
@@ -93,6 +94,12 @@ public class CounterSaleService(
                 return Result<OrderDto>.Failure($"'{item.Name}' is not sold at this branch.", 400);
         }
 
+        // Combos: what is inside, and whether every dish in them can be sold here (a live sale only).
+        var combos = await ComboSales.LoadAsync(db, menuItems.Values, ct);
+        foreach (var combo in menuItems.Values.Where(m => m.IsCombo))
+            if (combos.Problem(combo, dto.LocationId, live) is { } comboProblem)
+                return Result<OrderDto>.Failure(comboProblem, 400);
+
         var variantIds = dto.Items.Where(i => i.VariantId.HasValue).Select(i => i.VariantId!.Value).Distinct().ToList();
         var variants = variantIds.Count > 0
             ? await db.MenuItemVariants.Where(v => variantIds.Contains(v.Id)).ToDictionaryAsync(v => v.Id, ct)
@@ -123,7 +130,7 @@ public class CounterSaleService(
         {
             var item = menuItems[line.MenuItemId];
             MenuItemVariant? variant = null;
-            if (line.VariantId is { } vid && (!variants.TryGetValue(vid, out variant) || variant.MenuItemId != item.Id))
+            if (line.VariantId is { } vid && !item.IsCombo && (!variants.TryGetValue(vid, out variant) || variant.MenuItemId != item.Id))
                 return Result<OrderDto>.Failure($"That size of '{item.Name}' is no longer on the menu.", 400);
 
             var dishOpts = offeredByItem[item.Id];
@@ -152,6 +159,11 @@ public class CounterSaleService(
             };
             foreach (var t in lineToppings) t.OrderItemId = orderItem.Id;
             orderItem.Toppings = lineToppings;
+            if (item.IsCombo)
+            {
+                orderItem.ComboParts = combos.Snapshot(item, dto.LocationId);
+                foreach (var part in orderItem.ComboParts) part.OrderItemId = orderItem.Id;
+            }
             order.Items.Add(orderItem);
         }
 

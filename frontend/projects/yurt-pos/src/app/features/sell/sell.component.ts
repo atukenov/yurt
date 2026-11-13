@@ -8,7 +8,7 @@ import { AuthStateService, BrandService, YurtApiService } from 'shared-api';
 import { Location, MenuCategory, MenuItem, MenuItemVariant, MenuTopping, Order, PaymentMethod } from 'shared-models';
 import { Currency2Pipe, LocalDatePipe, ManagerApproval, ManagerApprovalComponent } from 'shared-ui';
 import {
-  addLine, branchMethods, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
+  addLine, branchMethods, comboSummary, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
   discountOf, missingChoice, ruleOf, TillDiscount, TIP_PERCENTS, TipChoice, tipOf, toggleTopping, toRequest,
 } from '../../core/cart';
 import { PosLang, PosLangService } from '../../core/lang.service';
@@ -36,6 +36,7 @@ export class SellComponent implements OnInit {
   readonly till = inject(TillService);
   readonly outbox = inject(OutboxService);
   readonly printer = inject(TillPrinterService);
+  readonly comboSummary = comboSummary;
   readonly showPrinter = signal(false);
   /** Why the receipt of a sale kept on the tablet did not print (null = printed, or no printer connected). */
   readonly printProblem = signal<string | null>(null);

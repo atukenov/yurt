@@ -7,7 +7,33 @@ using Yurt.Domain.Entities;
 namespace Yurt.Application.Features.Stock;
 
 /// <summary>One ordered item as the stock checks see it: which dish, which size, how many, and the toppings on each.</summary>
-public record StockLine(Guid MenuItemId, Guid? VariantId, int Quantity, IReadOnlyList<Guid> ToppingIds);
+public record StockLine(
+    Guid MenuItemId, Guid? VariantId, int Quantity, IReadOnlyList<Guid> ToppingIds, IReadOnlyList<ComboLinePart>? Parts = null)
+{
+    /// <summary>
+    /// The lines with every combo opened up: each combo line is followed by one line per dish inside it (quantity times
+    /// the combo's), so counts, recipes and costs follow the dishes that are really made.
+    /// </summary>
+    public static List<StockLine> Expand(IEnumerable<StockLine> lines)
+    {
+        var result = new List<StockLine>();
+        foreach (var line in lines)
+        {
+            result.Add(line);
+            foreach (var part in line.Parts ?? [])
+                result.Add(new StockLine(part.ItemId, part.VariantId, line.Quantity * part.Quantity, []));
+        }
+        return result;
+    }
+
+    /// <summary>The line of an ordered item, with what a combo contained when it was sold.</summary>
+    public static StockLine Of(OrderItem i)
+        => new(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings.Select(t => t.ToppingId).ToList(),
+            i.ComboParts.Count == 0 ? null : i.ComboParts.Select(p => new ComboLinePart(p.ItemId, p.VariantId, p.Quantity)).ToList());
+}
+
+/// <summary>One dish inside a combo line: which dish, which size, and how many per combo.</summary>
+public record ComboLinePart(Guid ItemId, Guid? VariantId, int Quantity);
 
 /// <summary>
 /// Per-branch stock counts and the automatic stop-list (Phase 6, <c>own_pos</c>). An item with a count is hidden from the
@@ -169,7 +195,11 @@ public class StockService(
             where r.VariantId == null && s.LocationId == locationId && s.Quantity < r.Quantity
             select r.MenuItemId).Distinct().ToListAsync(ct);
 
-        return byProduct.Union(byIngredient).ToList();
+        var sold = byProduct.Union(byIngredient).ToList();
+
+        // A combo cannot be sold while any dish inside it is sold out.
+        var combos = await db.ComboParts.Where(p => sold.Contains(p.ItemId)).Select(p => p.ComboId).Distinct().ToListAsync(ct);
+        return sold.Union(combos).ToList();
     }
 
     /// <summary>Toppings whose ingredient is not enough for one portion in this branch. Empty while the module is off.</summary>
@@ -193,6 +223,7 @@ public class StockService(
     {
         if (lines.Count == 0 || !await IsActiveAsync(ct)) return null;
 
+        lines = StockLine.Expand(lines);
         var recipes = await RecipesForAsync(lines, ct);
         var toppingUses = await ToppingUsesForAsync(lines, ct);
         if (recipes.Count == 0 && toppingUses.Count == 0) return null;
@@ -208,7 +239,9 @@ public class StockService(
             var culprit = lines.First(l =>
                 recipes.Any(r => r.IngredientId == ingredientId && Uses(r, l)) ||
                 toppingUses.Any(u => u.IngredientId == ingredientId && l.ToppingIds.Contains(u.ToppingId)));
-            return $"'{names.GetValueOrDefault(culprit.MenuItemId, "An item")}' is not available in that amount right now.";
+            var culpritName = names.TryGetValue(culprit.MenuItemId, out var known) ? known
+                : await db.MenuItems.Where(m => m.Id == culprit.MenuItemId).Select(m => m.Name).FirstOrDefaultAsync(ct) ?? "An item";
+            return $"'{culpritName}' is not available in that amount right now.";
         }
         return null;
     }
@@ -263,7 +296,8 @@ public class StockService(
         foreach (var (id, qty) in wanted)
         {
             if (!left.TryGetValue(id, out var have) || qty <= have) continue;
-            var name = names.GetValueOrDefault(id, "An item");
+            var name = names.TryGetValue(id, out var known) ? known
+                : await db.MenuItems.Where(m => m.Id == id).Select(m => m.Name).FirstOrDefaultAsync(ct) ?? "An item";
             return have <= 0 ? $"'{name}' is sold out." : $"Only {have} left of '{name}'.";
         }
         return null;
@@ -282,7 +316,8 @@ public class StockService(
         if (!await IsActiveAsync(ct)) return Result<List<StockShortDto>>.Success([]);
 
         var shorts = new List<StockShortDto>();
-        var dishes = order.Items.GroupBy(i => i.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+        var lines = StockLine.Expand(order.Items.Select(StockLine.Of));
+        var dishes = lines.GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
         var dishIds = dishes.Keys.ToList();
         var dishCounts = await db.MenuItemStocks
             .Where(s => s.LocationId == order.LocationId && dishIds.Contains(s.MenuItemId))
@@ -291,9 +326,6 @@ public class StockService(
         shorts.AddRange(dishCounts.Where(d => dishes[d.MenuItemId] > d.Quantity)
             .Select(d => new StockShortDto("dish", d.MenuItemId, d.Name, null, dishes[d.MenuItemId], Math.Max(0, d.Quantity))));
 
-        var lines = order.Items
-            .Select(i => new StockLine(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings.Select(t => t.ToppingId).ToList()))
-            .ToList();
         var needs = NeedsOf(lines, await RecipesForAsync(lines, ct), await ToppingUsesForAsync(lines, ct));
         var ids = needs.Keys.ToList();
         var counts = await db.IngredientStocks
@@ -316,7 +348,9 @@ public class StockService(
 
         var now = DateTime.UtcNow;
         var touched = false;
-        var dishes = order.Items.GroupBy(i => i.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+        // A combo takes stock off the dishes inside it (as they were when it was sold).
+        var orderLines = StockLine.Expand(order.Items.Select(StockLine.Of));
+        var dishes = orderLines.GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
         var dishIds = dishes.Keys.ToList();
         var dishesBefore = await db.MenuItemStocks.AsNoTracking()
             .Where(s => s.LocationId == order.LocationId && dishIds.Contains(s.MenuItemId))
@@ -332,9 +366,6 @@ public class StockService(
             touched |= changed > 0;
         }
 
-        var orderLines = order.Items
-            .Select(i => new StockLine(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings.Select(t => t.ToppingId).ToList()))
-            .ToList();
         var recipes = await RecipesForAsync(orderLines, ct);
         var toppingUses = await ToppingUsesForAsync(orderLines, ct);
         var needs = NeedsOf(orderLines, recipes, toppingUses);

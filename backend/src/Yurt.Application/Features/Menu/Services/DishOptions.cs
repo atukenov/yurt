@@ -42,6 +42,7 @@ public static class DishOptions
 
         foreach (var item in items)
         {
+            if (item.IsCombo) continue; // a combo has a set price and offers no add-ons
             var source = byDish.Contains(item.Id) ? byDish[item.Id] : byCategory[item.CategoryId];
             foreach (var t in source.DistinctBy(t => t.Id))
             {
