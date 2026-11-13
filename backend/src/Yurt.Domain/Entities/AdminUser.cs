@@ -17,4 +17,9 @@ public class AdminUser : BaseEntity, ITenantOwned
     // Null = no PIN set. Never the PIN itself.
     public string? ManagerPinHash { get; set; }
     public DateTime? ManagerPinSetAt { get; set; }
+
+    // Hash of the staff PIN (any role): switches the till to this person and clocks them in/out. Never the PIN itself.
+    // Different from every other staff PIN and from every manager PIN of the cafe.
+    public string? StaffPinHash { get; set; }
+    public DateTime? StaffPinSetAt { get; set; }
 }

@@ -40,6 +40,7 @@ public class AdminUserConfiguration : IEntityTypeConfiguration<AdminUser>
         builder.Property(e => e.PasswordHash).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
         builder.Property(e => e.ManagerPinHash).HasMaxLength(200);
+        builder.Property(e => e.StaffPinHash).HasMaxLength(200);
     }
 }
 
@@ -986,7 +987,19 @@ public class StaffSalaryConfiguration : IEntityTypeConfiguration<StaffSalary>
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.MonthlySalary).HasPrecision(12, 2);
+        builder.Property(e => e.HourlyRate).HasPrecision(12, 2);
         builder.HasIndex(e => e.AdminUserId).IsUnique();
+    }
+}
+
+public class TimeEntryConfiguration : IEntityTypeConfiguration<TimeEntry>
+{
+    public void Configure(EntityTypeBuilder<TimeEntry> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.EditedBy).HasMaxLength(100);
+        builder.Property(e => e.EditNote).HasMaxLength(200);
+        builder.HasIndex(e => new { e.AdminUserId, e.ClockInAt });
     }
 }
 
@@ -1022,6 +1035,9 @@ public class PayrollLineConfiguration : IEntityTypeConfiguration<PayrollLine>
         builder.Property(e => e.Username).HasMaxLength(100).IsRequired();
         builder.Property(e => e.Role).HasMaxLength(20).IsRequired();
         builder.Property(e => e.Salary).HasPrecision(12, 2);
+        builder.Property(e => e.Hours).HasPrecision(9, 2);
+        builder.Property(e => e.HourlyRate).HasPrecision(12, 2);
+        builder.Property(e => e.HourlyPay).HasPrecision(12, 2);
         builder.Property(e => e.Bonuses).HasPrecision(12, 2);
         builder.Property(e => e.Deductions).HasPrecision(12, 2);
         builder.Property(e => e.Total).HasPrecision(12, 2);

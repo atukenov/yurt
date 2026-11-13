@@ -24,7 +24,7 @@ purchasing, shifts, camera watch, the customer app. It is added by `DemoDataSeed
 | Owner (CEO, sees money) | `ceo` (from `SEED_CEO_USERNAME`) | `ceo12345`, change at first sign-in |
 | Customers | `+77015550001` ... `+77015550030` | PIN `1234` (the last one is blocked) |
 
-Demo staff do not have to change their password. A demo cafe made with `seed-demo <slug>` uses `<slug>.manager`
+Demo staff have staff PINs `2001`, `2002`, ... (staff list order) and two weeks of clocked shifts (`docs/time-clock.md`). Demo staff do not have to change their password. A demo cafe made with `seed-demo <slug>` uses `<slug>.manager`
 and so on instead of `demo.`.
 
 ## What is in it

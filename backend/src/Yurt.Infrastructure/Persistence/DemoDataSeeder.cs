@@ -644,6 +644,20 @@ public static class DemoDataSeeder
             db.AdminUsers.Add(new AdminUser { Username = former, PasswordHash = d.PasswordHash, Role = AdminRole.Worker, IsActive = false, CreatedAt = d.Now.AddDays(-200) });
         await db.SaveChangesAsync(ct);
 
+        // Staff PINs (2001, 2002...) for the till, and two weeks of clocked hours for everyone on the payroll.
+        for (var n = 0; n < users.Count; n++)
+            users[n].StaffPinHash ??= BCrypt.Net.BCrypt.HashPassword((2001 + n).ToString(CultureInfo.InvariantCulture));
+        var branchId = (await db.Locations.OrderBy(l => l.CreatedAt).Select(l => (Guid?)l.Id).FirstOrDefaultAsync(ct));
+        if (!await db.TimeEntries.AnyAsync(ct))
+            foreach (var u in users.Where(u => u.Role != AdminRole.Ceo))
+                for (var back = 1; back <= 14; back++)
+                {
+                    if ((back + users.IndexOf(u)) % 3 == 0) continue; // days off
+                    var day = d.Today.AddDays(-back);
+                    var start = 7.5 + d.Rng.Next(0, 4) * 0.5;
+                    db.TimeEntries.Add(new TimeEntry { AdminUserId = u.Id, LocationId = branchId, ClockInAt = d.At(day, start), ClockOutAt = d.At(day, start + 8 + d.Rng.Next(0, 3) * 0.5) });
+                }
+
         var salaried = (await db.StaffSalaries.Select(s => s.AdminUserId).ToListAsync(ct)).ToHashSet();
         foreach (var u in users.Where(u => !salaried.Contains(u.Id)))
             db.StaffSalaries.Add(new StaffSalary { AdminUserId = u.Id, MonthlySalary = Staff.First(s => d.User(s.Key) == u.Username).Salary });

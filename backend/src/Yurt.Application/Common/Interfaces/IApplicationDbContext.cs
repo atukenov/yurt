@@ -56,6 +56,7 @@ public interface IApplicationDbContext
     DbSet<WatchReport> WatchReports { get; }
     DbSet<Picture> Pictures { get; }
     DbSet<StaffSalary> StaffSalaries { get; }
+    DbSet<TimeEntry> TimeEntries { get; }
     DbSet<PayAdjustment> PayAdjustments { get; }
     DbSet<PayrollMonth> PayrollMonths { get; }
     DbSet<PayrollLine> PayrollLines { get; }

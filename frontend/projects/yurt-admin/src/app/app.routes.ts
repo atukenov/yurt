@@ -175,6 +175,16 @@ export const routes: Routes = [
               import('./features/manager-pin/manager-pin.component').then((m) => m.ManagerPinComponent),
           },
           {
+            path: 'staff-pin',
+            canActivate: [moduleGuard('own_pos', '/orders')],
+            loadComponent: () => import('./features/staff-pin/staff-pin.component').then((m) => m.StaffPinComponent),
+          },
+          {
+            path: 'hours',
+            canActivate: [moduleGuard('own_pos', '/orders')],
+            loadComponent: () => import('./features/hours/hours.component').then((m) => m.HoursComponent),
+          },
+          {
             path: 'workers',
             canActivate: [moduleGuard('staff_audit', '/orders')],
             loadComponent: () =>

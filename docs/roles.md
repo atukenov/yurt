@@ -40,6 +40,9 @@ With the `own_pos` module on, a cashier cannot cancel a sale, give money back or
 - **Tips:** changing or removing a tip after the sale (`PUT admin/orders/{id}/tip`, `{ amount, method, staffId, pin, reason }`; amount 0 removes it) asks for the PIN and a reason too. Audit actions `OrderTipChanged`, `OrderTipRemoved`. Adding a tip when the sale is rung up at the till does not. See `docs/tips.md`.
 - **Not covered yet:** stock a cancelled order already used stays used (write it off if it was made); a tax receipt already sent for a cancelled sale is not reversed automatically.
 
+## Staff PIN, clock-in and hours
+Any staff member can have a **staff PIN** (admin app → *Settings → Staff PIN*) to take over the till or clock in and out at the Yurt POS without a password. Everyone (barista, Admin, CEO) can also clock in from the admin app with the button in the sidebar. It is separate from the manager PIN and never the same number. An Admin sets PINs for Workers, the CEO for everybody; Admins and the CEO see everyone's **worked hours** (*Reports → Worked hours*) and fix forgotten clock-outs, while **rates and pay stay CEO only**. The CEO signs in with the password, not a PIN switch. See `docs/time-clock.md`.
+
 ## Technical notes
 - The role is stored as text in `AdminUsers.Role` (`Worker`, `Admin`, `SuperAdmin`, `Ceo`); adding `Ceo` needed no database change.
 - Policies: `AdminOnly` (any staff login), `AdminRoleAdmin` (Admin, CEO, SuperAdmin), `CeoOnly` (CEO, SuperAdmin: analytics, dashboard, audit log, billing checkout, food cost, write-off totals, profit by dish, monthly costs), `CeoPayroll` (CEO only, not even the operator: payroll and the month's profit, which includes wages).

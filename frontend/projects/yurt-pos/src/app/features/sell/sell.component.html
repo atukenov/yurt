@@ -14,6 +14,9 @@
     <button type="button" (click)="showSales.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
       {{ 'top.sales' | t }}
     </button>
+    <button type="button" (click)="showStaff.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+      {{ 'staff.button' | t }}
+    </button>
     @if (branch()) {
       <button type="button" (click)="showPrinter.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
         {{ (printer.hasPrinter() ? 'printer.on' : 'printer.title') | t }}
@@ -369,6 +372,11 @@
       </div>
     </div>
   </div>
+}
+
+<!-- Staff PIN: take over the till, clock in and out -->
+@if (showStaff()) {
+  <pos-staff-dialog [branchId]="till.branchId()" (closed)="showStaff.set(false)" (switched)="showStaff.set(false)" />
 }
 
 <!-- Sales on this till -->

@@ -136,6 +136,7 @@ Gated so far: the **Kitchen** screen, **Cashier**, **Stock** and **Printers**. O
 - **Kitchen screen:** admin route `/kitchen` and menu entry. A tablet page per branch with three columns (New, Preparing, Ready) of the accepted orders, oldest first, with items, toppings, notes and the wait time (red when past the promised minutes). One big button per card moves it on (Start, Ready, Handed over). It uses the same order API and live events as Live Orders, so no backend gate is needed and nothing changes for customers.
 - **When off:** the route redirects to Orders and the menu entry is hidden. Live Orders keeps working.
 - **Depends on:** nothing. It works next to iiko; orders still go to iiko as before while the cafe uses it.
+- **Staff PIN and clock-in:** a per-person PIN switches the till to that person and clocks them in and out; worked hours are reported to Admins and CEO and feed payroll when an hourly rate is set (`docs/time-clock.md`).
 - **Manager PIN:** cancelling an order, giving money back and taking money off a bill need a manager's PIN and a reason while `own_pos` is on (with `own_pos` off nothing changes). Details and endpoints in `docs/roles.md` (section "Manager PIN").
 - **Combos:** dishes sold together at a set price (no module of its own; stock follows the dishes inside, so counting needs `own_pos`; the money report needs `analytics`). See `docs/combos.md`.
 - **Tips:** a tip on top of the bill, added at the till (Yurt POS), changed or removed with a manager's PIN, and reported per shift and per staff member (CEO). See `docs/tips.md`.

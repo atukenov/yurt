@@ -24,7 +24,7 @@ public class AdminPayrollController(PayrollService payroll) : ApiControllerBase
 
     [HttpPut("staff/{id:guid}/salary")]
     public async Task<IActionResult> SetSalary(Guid id, [FromBody] SetSalaryDto dto, CancellationToken ct)
-        => ToResult(await payroll.SetSalaryAsync(id, dto.MonthlySalary, ct));
+        => ToResult(await payroll.SetSalaryAsync(id, dto.MonthlySalary, dto.HourlyRate, ct));
 
     /// <summary>The pay sheet of one month (<c>yyyy-MM</c>): live while open, as stored once closed.</summary>
     [HttpGet("months/{month}")]

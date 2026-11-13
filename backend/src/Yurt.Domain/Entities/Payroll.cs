@@ -12,6 +12,9 @@ public class StaffSalary : BaseEntity, ITenantOwned
 
     public Guid AdminUserId { get; set; }
     public decimal MonthlySalary { get; set; }
+
+    /// <summary>Paid per worked hour (from the time clock), on top of the monthly salary. 0 = no hourly pay.</summary>
+    public decimal HourlyRate { get; set; }
 }
 
 /// <summary>A one-off bonus or deduction (advance paid, shortage at the till...) for one person in one month.</summary>
@@ -57,6 +60,10 @@ public class PayrollLine : BaseEntity, ITenantOwned
     public string Role { get; set; } = string.Empty;
 
     public decimal Salary { get; set; }
+    /// <summary>Hours worked that month (time clock) and the rate they were paid at, as they were when the month was closed.</summary>
+    public decimal Hours { get; set; }
+    public decimal HourlyRate { get; set; }
+    public decimal HourlyPay { get; set; }
     public decimal Bonuses { get; set; }
     public decimal Deductions { get; set; }
     public decimal Total { get; set; }
