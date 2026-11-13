@@ -31,6 +31,8 @@ export interface TillReceipt {
   number: string;
   lines: TillReceiptLine[];
   total: number;
+  /** A tip on top of the total; printed under it. */
+  tip?: number;
   method: string;
   /** Made without internet: says that the tax receipt comes later. */
   offline: boolean;
@@ -38,17 +40,17 @@ export interface TillReceipt {
 
 const WORDS: Record<TillPrinterSettings['language'], Record<string, string>> = {
   ru: {
-    total: 'Итого', method: 'Оплата', thanks: 'Спасибо!', currency: 'тг', test: 'Тестовая печать', testOk: 'Принтер работает',
+    total: 'Итого', tip: 'Чаевые', method: 'Оплата', thanks: 'Спасибо!', currency: 'тг', test: 'Тестовая печать', testOk: 'Принтер работает',
     Cash: 'Наличные', Card: 'Карта', KaspiBank: 'Kaspi', HalykBank: 'Halyk', FreedomBank: 'Freedom',
     offline: 'Продажа без интернета.', offlineTax: 'Фискальный чек оформится, когда касса выйдет в сеть.',
   },
   kk: {
-    total: 'Барлығы', method: 'Төлем', thanks: 'Рахмет!', currency: 'тг', test: 'Сынақ басып шығару', testOk: 'Принтер жұмыс істейді',
+    total: 'Барлығы', tip: 'Шайлық', method: 'Төлем', thanks: 'Рахмет!', currency: 'тг', test: 'Сынақ басып шығару', testOk: 'Принтер жұмыс істейді',
     Cash: 'Қолма-қол', Card: 'Карта', KaspiBank: 'Kaspi', HalykBank: 'Halyk', FreedomBank: 'Freedom',
     offline: 'Интернетсіз сатылым.', offlineTax: 'Фискалдық чек касса желіге қосылғанда рәсімделеді.',
   },
   en: {
-    total: 'Total', method: 'Payment', thanks: 'Thank you!', currency: 'KZT', test: 'Test print', testOk: 'The printer works',
+    total: 'Total', tip: 'Tip', method: 'Payment', thanks: 'Thank you!', currency: 'KZT', test: 'Test print', testOk: 'The printer works',
     Cash: 'Cash', Card: 'Card', KaspiBank: 'Kaspi', HalykBank: 'Halyk', FreedomBank: 'Freedom',
     offline: 'Sold without internet.', offlineTax: 'The tax receipt is issued once the till is back online.',
   },
@@ -190,6 +192,7 @@ export function receiptBytes(p: TillPrinterSettings, r: TillReceipt, openDrawer 
   }
   e.rule();
   e.bold(true).columns(w['total'], money(r.total, w)).bold(false);
+  if (r.tip && r.tip > 0) e.columns(w['tip'], money(r.tip, w));
   e.rule();
   e.center().line(`${w['method']}: ${methodName(r.method, p)}`).line(w['thanks']);
   if (r.offline) e.rule().line(w['offline']).line(w['offlineTax']);

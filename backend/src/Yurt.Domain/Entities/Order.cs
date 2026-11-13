@@ -39,6 +39,13 @@ public class Order : BaseEntity, ITenantOwned
     public decimal DiscountAmount { get; set; } = 0;
     public decimal Total { get; set; }
 
+    // A tip the guest left on top of the bill (own_pos). It is NOT part of Total: sales, profit, tax receipts and online
+    // payments stay as they were. It belongs to the staff member who served (TipForAdminId) and is paid out by the cafe.
+    public decimal TipAmount { get; set; } = 0;
+    // How the tip was paid. Null = the same way as the bill (PaymentMethod).
+    public PaymentMethod? TipMethod { get; set; }
+    public Guid? TipForAdminId { get; set; }
+
     public Guid? DiscountCodeId { get; set; }
     public DiscountCode? DiscountCode { get; set; }
 

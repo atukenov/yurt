@@ -14,21 +14,21 @@ public static class PrintLayouts
         ["ru"] = new()
         {
             ["subtotal"] = "Подытог", ["discount"] = "Скидка", ["total"] = "Итого", ["bonus"] = "Оплачено бонусами",
-            ["paid"] = "К оплате", ["method"] = "Оплата", ["thanks"] = "Спасибо!", ["test"] = "Тестовая печать",
+            ["paid"] = "К оплате", ["tip"] = "Чаевые", ["method"] = "Оплата", ["thanks"] = "Спасибо!", ["test"] = "Тестовая печать",
             ["testOk"] = "Принтер работает", ["currency"] = "тг", ["Cash"] = "Наличные", ["Card"] = "Карта", ["Other"] = "Другое",
             ["fiscal"] = "Фискальный чек", ["fiscalScan"] = "Отсканируйте, чтобы открыть чек", ["pickup"] = "Выдать к", ["table"] = "Стол", ["here"] = "Здесь", ["toGo"] = "С собой",
         },
         ["kk"] = new()
         {
             ["subtotal"] = "Аралық сома", ["discount"] = "Жеңілдік", ["total"] = "Барлығы", ["bonus"] = "Бонуспен төленді",
-            ["paid"] = "Төлеуге", ["method"] = "Төлем", ["thanks"] = "Рахмет!", ["test"] = "Сынақ басып шығару",
+            ["paid"] = "Төлеуге", ["tip"] = "Шайлық", ["method"] = "Төлем", ["thanks"] = "Рахмет!", ["test"] = "Сынақ басып шығару",
             ["testOk"] = "Принтер жұмыс істейді", ["currency"] = "тг", ["Cash"] = "Қолма-қол", ["Card"] = "Карта", ["Other"] = "Басқа",
             ["fiscal"] = "Фискалдық чек", ["fiscalScan"] = "Чекті ашу үшін сканерлеңіз", ["pickup"] = "Беру уақыты", ["table"] = "Үстел", ["here"] = "Осында", ["toGo"] = "Алып кету",
         },
         ["en"] = new()
         {
             ["subtotal"] = "Subtotal", ["discount"] = "Discount", ["total"] = "Total", ["bonus"] = "Paid with bonus",
-            ["paid"] = "To pay", ["method"] = "Payment", ["thanks"] = "Thank you!", ["test"] = "Test print",
+            ["paid"] = "To pay", ["tip"] = "Tip", ["method"] = "Payment", ["thanks"] = "Thank you!", ["test"] = "Test print",
             ["testOk"] = "The printer works", ["currency"] = "KZT", ["Cash"] = "Cash", ["Card"] = "Card", ["Other"] = "Other",
             ["fiscal"] = "Tax receipt", ["fiscalScan"] = "Scan to open the receipt", ["pickup"] = "Pickup at", ["table"] = "Table", ["here"] = "Here", ["toGo"] = "To go",
         },
@@ -110,6 +110,7 @@ public static class PrintLayouts
             p.Columns(w["bonus"], "-" + Money(points));
             p.Bold(true).Columns(w["paid"], Money(Math.Max(0, order.Total - points))).Bold(false);
         }
+        if (order.TipAmount > 0) p.Columns(w["tip"], Money(order.TipAmount));
         p.Rule();
         if (split.Count > 1)
         {

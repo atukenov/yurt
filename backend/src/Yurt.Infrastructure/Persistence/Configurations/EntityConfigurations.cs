@@ -150,6 +150,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(e => e.OrderType).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderType.TakeAway);
         builder.Property(e => e.Subtotal).HasPrecision(10, 2);
         builder.Property(e => e.DiscountAmount).HasPrecision(10, 2).HasDefaultValue(0m);
+        builder.Property(e => e.TipAmount).HasPrecision(10, 2).HasDefaultValue(0m);
+        builder.Property(e => e.TipMethod).HasConversion<string>().HasMaxLength(20);
         builder.Property(e => e.Total).HasPrecision(10, 2);
         builder.HasOne(e => e.CustomerUser).WithMany(c => c.Orders)
             .HasForeignKey(e => e.CustomerUserId).OnDelete(DeleteBehavior.Restrict);

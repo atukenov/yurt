@@ -29,7 +29,14 @@ public record ShiftReportDto(
     decimal CashOut,
     decimal ExpectedCash,
     decimal? Difference,
-    List<CashMovementDto> Movements);
+    List<CashMovementDto> Movements,
+    // Tips left on top of the bills in this shift (not part of Takings). CashTips are in the drawer and counted in ExpectedCash.
+    decimal Tips = 0,
+    decimal CashTips = 0,
+    List<StaffTipDto>? TipsByStaff = null);
+
+/// <summary>Tips one staff member got. StaffId null = a tip nobody was named for.</summary>
+public record StaffTipDto(Guid? StaffId, string Name, int Orders, decimal Total, decimal Cash, decimal NonCash);
 
 public record SplitPaymentLineDto(string Method, decimal Amount);
 public record SplitPaymentInputDto(List<SplitPaymentLineDto> Lines);

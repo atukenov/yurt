@@ -528,7 +528,53 @@ public class OrderService
 
         await _hub.NotifyOrderDeclinedAsync(order, ct);
         await _audit.LogAsync("OrderCancelled", "Order", orderId.ToString(),
-            $"{(approval?.Describe() ?? reason)}{(wasPaidAtTill ? $" · {order.Total:0.##} to hand back" : "")}", ct);
+            $"{(approval?.Describe() ?? reason)}{(wasPaidAtTill ? $" · {order.Total + order.TipAmount:0.##} to hand back" : "")}", ct);
+        return Result<OrderDto>.Success(MapToDto(order));
+    }
+
+    /// <summary>
+    /// Changes or removes the tip of an order (own_pos). The tip is added at the till when the sale is rung up; any change
+    /// after that, including removing it, needs a manager PIN and a reason, because a tip is staff money and the
+    /// cashier must not be able to move it alone. The tip is never part of the total, so payments and tax receipts stay
+    /// as they are. Declined orders carry no tip.
+    /// </summary>
+    public async Task<Result<OrderDto>> SetTipAsync(Guid orderId, SetTipDto dto, CancellationToken ct = default)
+    {
+        var order = await LoadOrderAsync(orderId, ct);
+        if (order == null) return Result<OrderDto>.NotFound();
+        if (order.Status == OrderStatus.Declined)
+            return Result<OrderDto>.Failure("A cancelled order can't get a tip.", 422);
+        var tipError = TipRules.Check(dto.Amount, order.Total);
+        if (tipError is not null) return Result<OrderDto>.Failure(tipError, 400);
+        var amount = TipRules.Round(dto.Amount);
+        if (dto.StaffId is { } staffId && !await _db.AdminUsers.AnyAsync(u => u.Id == staffId && u.IsActive, ct))
+            return Result<OrderDto>.Failure("That staff member was not found.", 400);
+        if (dto.Method is { } m && (!Enum.IsDefined(m) || m is PaymentMethod.Other or PaymentMethod.ApplePay))
+            return Result<OrderDto>.Failure("Choose how the tip was paid: cash, card, Kaspi, Halyk or Freedom.", 400);
+        if (amount == order.TipAmount && (amount == 0 || (dto.Method == order.TipMethod && (dto.StaffId is null || dto.StaffId == order.TipForAdminId))))
+            return Result<OrderDto>.Failure("The tip is already like that.", 422);
+
+        ManagerApproval? approval = null;
+        if (_approvals is not null)
+        {
+            var gate = await _approvals.RequireAsync(amount == 0 ? "Remove tip" : "Change tip", new ManagerApprovalDto(dto.Pin, dto.Reason), ct);
+            if (!gate.Succeeded) return Result<OrderDto>.Failure(gate.Error!, gate.StatusCode);
+            approval = gate.Data;
+        }
+
+        var before = order.TipAmount;
+        order.TipAmount = amount;
+        order.TipMethod = amount > 0 && dto.Method is { } method && method != order.PaymentMethod ? method : null;
+        // Who gets it: the staff member named, else whoever it already belonged to, else the cashier who rang the sale
+        // up. An app order has no cashier, so a tip on it without a name is "not assigned" in the tip report.
+        if (amount == 0) order.TipForAdminId = null;
+        else order.TipForAdminId = dto.StaffId ?? order.TipForAdminId ?? order.SoldByAdminId;
+        order.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        await _hub.NotifyOrderUpdatedAsync(order, ct);
+        await _audit.LogAsync(amount == 0 ? "OrderTipRemoved" : "OrderTipChanged", "Order", orderId.ToString(),
+            $"{before:0.##} → {amount:0.##}{(approval is null ? "" : " · " + approval.Describe())}", ct);
         return Result<OrderDto>.Success(MapToDto(order));
     }
 
@@ -727,6 +773,8 @@ public class OrderService
             PickupAt: o.PickupAt,
             TableLabel: o.TableLabel,
             Source: o.Source,
-            OrderType: o.OrderType);
+            OrderType: o.OrderType,
+            TipAmount: o.TipAmount,
+            TipMethod: o.TipMethod);
     }
 }

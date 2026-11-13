@@ -48,6 +48,8 @@ import {
   DiscountRequest,
   ManagerApprovalRequest,
   ManagerPinStatus,
+  SetTipRequest,
+  TipReport,
   DiscountCode,
   Campaign,
   MarketingOverview,
@@ -1139,6 +1141,18 @@ export class YurtApiService {
   /** Takes money off an unfinished order. Needs a manager PIN and a reason (own_pos). */
   discountOrder(id: string, req: DiscountRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/orders/${id}/discount`, req);
+  }
+
+  /** Changes or removes the tip of an order (amount 0 removes it). Needs a manager PIN and a reason (own_pos). */
+  setOrderTip(id: string, req: SetTipRequest): Observable<Order> {
+    return this.http.put<Order>(`${this.api}/admin/orders/${id}/tip`, req);
+  }
+
+  /** Tips between two days (yyyy-MM-dd, both included), per staff member and per shift. CEO only. */
+  getTipReport(from: string, to: string, locationId?: string | null): Observable<TipReport> {
+    const params: Record<string, string> = { from, to };
+    if (locationId) params['locationId'] = locationId;
+    return this.http.get<TipReport>(`${this.api}/admin/tips`, { params });
   }
 
   getManagerPinStatus(): Observable<ManagerPinStatus> {
