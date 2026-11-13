@@ -129,12 +129,28 @@ export function discountOf(total: number, discount: Pick<TillDiscount, 'kind' | 
   return Math.round(Math.min(off, total) * 100) / 100;
 }
 
+/** What the cashier chose for a tip: nothing, a percent of the bill, or a typed amount. */
+export type TipChoice = { kind: 'none' } | { kind: 'percent'; value: number } | { kind: 'amount'; value: number };
+
+/** The tip buttons on the payment step. */
+export const TIP_PERCENTS = [5, 10, 15];
+
+/** How much the tip is: a percent of what the guest pays for the bill, or the typed amount. Never negative. */
+export function tipOf(bill: number, choice: TipChoice): number {
+  if (choice.kind === 'none' || !(choice.value > 0) || !(bill >= 0)) return 0;
+  const tip = choice.kind === 'percent' ? (bill * Math.min(choice.value, 100)) / 100 : choice.value;
+  return Math.round(Math.min(tip, 1_000_000) * 100) / 100;
+}
+
 export function toRequest(
   lines: CartLine[], locationId: string, method: PaymentMethod, idempotencyKey: string,
   handedOver: boolean, etaMinutes: number | null, orderType: OrderType = 'TakeAway',
   discount: TillDiscount | null = null,
+  tip = 0,
+  tipMethod: PaymentMethod | null = null,
 ): CreateCounterSaleRequest {
   return {
+    ...(tip > 0 ? { tip, ...(tipMethod && tipMethod !== method ? { tipMethod } : {}) } : {}),
     ...(discount ? {
       discount: {
         percent: discount.kind === 'percent' ? discount.value : null,

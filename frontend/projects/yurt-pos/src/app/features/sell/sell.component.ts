@@ -9,7 +9,7 @@ import { Location, MenuCategory, MenuItem, MenuItemVariant, MenuTopping, Order, 
 import { Currency2Pipe, LocalDatePipe, ManagerApproval, ManagerApprovalComponent } from 'shared-ui';
 import {
   addLine, branchMethods, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
-  discountOf, missingChoice, ruleOf, TillDiscount, toggleTopping, toRequest,
+  discountOf, missingChoice, ruleOf, TillDiscount, TIP_PERCENTS, TipChoice, tipOf, toggleTopping, toRequest,
 } from '../../core/cart';
 import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillSale, TillService } from '../../core/till.service';
@@ -86,7 +86,19 @@ export class SellComponent implements OnInit {
   readonly discountAmount = computed(() => discountOf(this.total(), this.discount()));
   /** What the guest pays. */
   readonly payable = computed(() => Math.round((this.total() - this.discountAmount()) * 100) / 100);
-  readonly change = computed(() => changeDue(this.payable(), this.cashGiven()));
+  /** The tip on top of the bill: chosen on the payment step, never part of the total. */
+  readonly tipChoice = signal<TipChoice>({ kind: 'none' });
+  readonly tipPercents = TIP_PERCENTS;
+  readonly tipCustomOpen = signal(false);
+  /** The percent chosen (5, 10...), or null when no percent button is on. */
+  readonly tipPercent = computed(() => { const c = this.tipChoice(); return c.kind === 'percent' ? c.value : null; });
+  /** The typed amount, or null. */
+  readonly tipTyped = computed(() => { const c = this.tipChoice(); return c.kind === 'amount' ? c.value : null; });
+  /** Guest paid the bill by card but gave the tip in cash. */
+  readonly tipInCash = signal(false);
+  readonly tip = computed(() => tipOf(this.payable(), this.tipChoice()));
+  /** Cash change counts a cash tip too: the guest hands over the bill and the tip together. */
+  readonly change = computed(() => changeDue(this.payable() + (this.method() === PaymentMethod.Cash ? this.tip() : 0), this.cashGiven()));
   readonly discountOpen = signal(false);
   discountKind: 'percent' | 'amount' = 'percent';
   discountValue: number | null = null;
@@ -238,14 +250,31 @@ export class SellComponent implements OnInit {
   plus(line: CartLine): void { this.setLines(changeQuantity(this.lines(), line.key, +1)); }
   minus(line: CartLine): void { this.setLines(changeQuantity(this.lines(), line.key, -1)); }
 
+  chooseTip(percent: number | null): void {
+    this.tipCustomOpen.set(false);
+    this.tipChoice.set(percent ? { kind: 'percent', value: percent } : { kind: 'none' });
+  }
+
+  setTipAmount(value: string | number | null): void {
+    const n = value === null || value === '' ? 0 : Number(value);
+    this.tipChoice.set(Number.isFinite(n) && n > 0 ? { kind: 'amount', value: n } : { kind: 'none' });
+  }
+
   clear(): void {
     this.setLines([]);
     this.step.set('cart');
   }
 
+  private resetTip(): void {
+    this.tipChoice.set({ kind: 'none' });
+    this.tipCustomOpen.set(false);
+    this.tipInCash.set(false);
+  }
+
   private setLines(lines: CartLine[]): void {
     this.lines.set(lines);
     this.discount.set(null);
+    this.resetTip();
     this.discountProblem.set(null);
     this.saleKey = null;
     this.failed.set(false);
@@ -331,7 +360,8 @@ export class SellComponent implements OnInit {
     if (!branch || !method || !this.canFinish()) return;
     this.saleKey ??= crypto.randomUUID();
     const handedOver = this.handedOver();
-    const request = toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta(), this.orderType(), this.discount());
+    const request = toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta(), this.orderType(), this.discount(),
+      this.tip(), this.tipInCash() ? PaymentMethod.Cash : null);
     this.failed.set(false);
     this.signinNeeded.set(false);
     this.discountProblem.set(null);
@@ -386,7 +416,7 @@ export class SellComponent implements OnInit {
     if (this.printer.hasPrinter()) {
       void this.printer.printOffline({
         brand: this.brand.name(), branch: this.branch()?.name ?? '', at: new Date(sale.request.soldAt),
-        number: offlineNumber(request.idempotencyKey), lines: receiptLines(lines), total,
+        number: offlineNumber(request.idempotencyKey), lines: receiptLines(lines), total: this.payable(), tip: this.tip(),
         method: request.paymentMethod, offline: true,
       }, request.paymentMethod === PaymentMethod.Cash).then((problem) => this.printProblem.set(problem));
     }
@@ -412,6 +442,7 @@ export class SellComponent implements OnInit {
 
   next(): void {
     this.discount.set(null);
+    this.resetTip();
     this.lastSale.set(null);
     this.lastQueued.set(null);
     this.printProblem.set(null);

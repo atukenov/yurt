@@ -1,7 +1,7 @@
 import { MenuItem, MenuTopping, PaymentMethod } from 'shared-models';
 import {
   addLine, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant, discountOf,
-  missingChoice, needsOptions, offlineNumber, receiptLines, toggleTopping, toRequest,
+  missingChoice, needsOptions, offlineNumber, receiptLines, tipOf, toggleTopping, toRequest,
 } from './cart';
 
 const latte: MenuItem = {
@@ -132,5 +132,26 @@ describe('receipt lines', () => {
     }]);
     expect(lines).toEqual([{ quantity: 2, name: 'Latte', extras: 'L, + Oat milk', total: 2800 }]);
     expect(offlineNumber('3f2a9c10-aaaa-bbbb')).toBe('T-3F2A9C');
+  });
+});
+
+describe('tip', () => {
+  it('is a percent of the bill or a typed amount, never negative', () => {
+    expect(tipOf(2000, { kind: 'none' })).toBe(0);
+    expect(tipOf(2000, { kind: 'percent', value: 10 })).toBe(200);
+    expect(tipOf(1999, { kind: 'percent', value: 15 })).toBe(299.85);
+    expect(tipOf(2000, { kind: 'amount', value: 350 })).toBe(350);
+    expect(tipOf(2000, { kind: 'amount', value: -5 })).toBe(0);
+    expect(tipOf(2000, { kind: 'percent', value: 250 })).toBe(2000);
+  });
+
+  it('goes into the sale request, with its own method only when it differs from the bill, and is left out without one', () => {
+    const lines = addLine([], latte, 'm', []);
+    const card = toRequest(lines, 'branch', PaymentMethod.Card, 'k', false, 5, 'TakeAway', null, 100, PaymentMethod.Cash);
+    expect(card.tip).toBe(100);
+    expect(card.tipMethod).toBe(PaymentMethod.Cash);
+    const same = toRequest(lines, 'branch', PaymentMethod.Card, 'k', false, 5, 'TakeAway', null, 100, PaymentMethod.Card);
+    expect('tipMethod' in same).toBe(false);
+    expect('tip' in toRequest(lines, 'branch', PaymentMethod.Cash, 'k', false, 5)).toBe(false);
   });
 });

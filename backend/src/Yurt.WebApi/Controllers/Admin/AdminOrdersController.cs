@@ -93,6 +93,12 @@ public class AdminOrdersController : ApiControllerBase
     public async Task<IActionResult> Cancel(Guid id, [FromBody] ManagerApprovalDto? approval, CancellationToken ct)
         => ToResult(await _orderService.VoidOrderAsync(id, approval, ct));
 
+    /// <summary>Change or remove the tip of an order (amount 0 removes it). Needs a manager PIN and a reason (own_pos).</summary>
+    [HttpPut("{id:guid}/tip")]
+    [RequireModule(Yurt.Domain.ModuleKeys.OwnPos)]
+    public async Task<IActionResult> Tip(Guid id, [FromBody] SetTipDto dto, CancellationToken ct)
+        => ToResult(await _orderService.SetTipAsync(id, dto, ct));
+
     /// <summary>Take money off an unfinished order. Needs a manager PIN and a reason (own_pos).</summary>
     [HttpPost("{id:guid}/discount")]
     public async Task<IActionResult> Discount(Guid id, [FromBody] DiscountInputDto dto, CancellationToken ct)

@@ -385,7 +385,7 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   // ── Manager PIN (own_pos): cancels, refunds and discounts ──────────────────
 
   /** The action waiting for a manager's PIN and reason; null = no dialog. */
-  approval = signal<{ kind: 'refund' | 'decline' | 'cancel' | 'discount' | 'undoPaid'; order: Order; status?: string } | null>(null);
+  approval = signal<{ kind: 'refund' | 'decline' | 'cancel' | 'discount' | 'undoPaid' | 'tip'; order: Order; status?: string } | null>(null);
   discountMode: 'percent' | 'amount' = 'percent';
   discountValue: number | null = null;
 
@@ -403,9 +403,17 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     return o.source === 'Counter' || o.paymentStatus !== 'Paid';
   }
 
-  openApproval(kind: 'cancel' | 'discount', order: Order): void {
+  /** A tip can be set, changed or removed on any order that is not cancelled. */
+  canTip(o: Order): boolean {
+    return this.modules.isEnabled('own_pos') && o.status !== OrderStatus.Declined;
+  }
+
+  tipValue: number | null = null;
+
+  openApproval(kind: 'cancel' | 'discount' | 'tip', order: Order): void {
     this.discountMode = 'percent';
     this.discountValue = null;
+    this.tipValue = order.tipAmount || null;
     this.approval.set({ kind, order });
   }
 
@@ -415,7 +423,9 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
   }
 
   approvalReady(): boolean {
-    return this.approval()?.kind !== 'discount' || this.discountReady();
+    const kind = this.approval()?.kind;
+    if (kind === 'tip') return this.tipValue !== null && this.tipValue >= 0 && this.tipValue !== (this.approval()!.order.tipAmount || 0);
+    return kind !== 'discount' || this.discountReady();
   }
 
   approve(approved: ManagerApproval): void {
@@ -428,6 +438,9 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
       case 'cancel':
         this.actionLoading.set(true);
         return this.afterApproval(this.api.voidOrder(a.order.id, approved), 'orders.cancelledToast');
+      case 'tip':
+        this.actionLoading.set(true);
+        return this.afterApproval(this.api.setOrderTip(a.order.id, { ...approved, amount: this.tipValue ?? 0 }), 'orders.tipToast');
       case 'discount':
         this.actionLoading.set(true);
         return this.afterApproval(

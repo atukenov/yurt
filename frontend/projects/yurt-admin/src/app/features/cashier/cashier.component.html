@@ -151,6 +151,21 @@
           </table>
         }
 
+        @if (r.tips) {
+          <h3 class="mb-1 mt-5 text-sm font-semibold text-slate-700">{{ 'cash.tips' | t }} · {{ r.tips | currency2 }}</h3>
+          <p class="mb-1 text-xs text-slate-500">{{ 'cash.tipsHint' | t }}</p>
+          <table class="w-full text-sm">
+            @for (t of r.tipsByStaff ?? []; track t.staffId ?? 'none') {
+              <tr class="border-t border-slate-100">
+                <td class="py-1.5">{{ t.name || ('tips.unassigned' | t) }}</td>
+                <td class="py-1.5 text-slate-500">{{ t.orders }}</td>
+                <td class="py-1.5 text-right text-slate-500">{{ 'tips.cash' | t }} {{ t.cash | currency2 }} · {{ 'tips.nonCash' | t }} {{ t.nonCash | currency2 }}</td>
+                <td class="py-1.5 text-right font-medium">{{ t.total | currency2 }}</td>
+              </tr>
+            }
+          </table>
+        }
+
         <h3 class="mb-1 mt-5 text-sm font-semibold text-slate-700">{{ 'cash.drawer' | t }}</h3>
         <table class="w-full text-sm">
           <tr>
@@ -161,6 +176,12 @@
             <td class="py-1">{{ 'cash.cashSales' | t }}</td>
             <td class="py-1 text-right">{{ r.cashSales | currency2 }}</td>
           </tr>
+          @if (r.cashTips) {
+            <tr>
+              <td class="py-1">{{ 'cash.cashTips' | t }}</td>
+              <td class="py-1 text-right">{{ r.cashTips | currency2 }}</td>
+            </tr>
+          }
           <tr>
             <td class="py-1">{{ 'cash.cashIn' | t }}</td>
             <td class="py-1 text-right">{{ r.cashIn | currency2 }}</td>

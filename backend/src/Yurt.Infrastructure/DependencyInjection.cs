@@ -184,6 +184,7 @@ public static class DependencyInjection
         services.AddScoped<StockMoveService>();
         services.AddScoped<PurchasingService>();
         services.AddScoped<ShiftService>();
+        services.AddScoped<TipService>();
         services.AddScoped<SplitPaymentService>();
 
         // Official tax receipts through a cloud cash register (own_pos; off per cafe until a provider is set)

@@ -55,6 +55,9 @@ Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in
   internet), pressing again sends the same key and the server returns the first sale. A changed cart gets a new key.
 - **Sales on this till:** today's sales from this tablet (kept on the tablet only). Sales not uploaded yet say "waiting".
 
+### Tip
+The payment step has a **Tip** row: *No tip*, 5%, 10%, 15% of what the guest pays for the bill, or *Other amount*. The tip is on top of the bill and not part of the total, so tax receipts and sales numbers stay as they were. No PIN is needed to add a tip at the till, and it works offline: the tip is kept with the sale, printed on the till's own receipt and sent with the sale later. If the bill is paid by card but the guest gave the tip in cash, tick *Guest gives the tip in cash*. With a cash bill, the change is worked out on the bill plus the tip. The tip goes to the cashier who rang the sale up. Changing or removing a tip afterwards is done in the admin app and asks for a manager PIN (see `docs/tips.md`).
+
 ### Discount and cancelling a sale
 The **Discount** button on the payment step asks a manager for their PIN and a reason, then takes a percent or an amount off. The sale is sent with the discount and the server checks the PIN; a wrong or locked PIN shows its message and the sale stays on screen. A discount needs the internet, so without it the till says so and the cashier removes the discount or waits (a plain sale still works offline). **Cancel** on a sale in "Sales on this till" asks for the same PIN and a reason, and the cashier hands the money back. See `docs/roles.md` (Manager PIN).
 

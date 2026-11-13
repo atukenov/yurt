@@ -51,6 +51,9 @@ public class CounterSaleService(
             return Result<OrderDto>.Failure("Each item's quantity must be between 1 and 999.", 400);
         if (!CounterMethods.Contains(dto.PaymentMethod))
             return Result<OrderDto>.Failure("Choose how the guest paid: cash, card, Kaspi, Halyk or Freedom.", 400);
+        if (dto.Tip is < 0) return Result<OrderDto>.Failure("A tip can't be negative.", 400);
+        if (dto.TipMethod is { } tm && !CounterMethods.Contains(tm))
+            return Result<OrderDto>.Failure("Choose how the tip was paid: cash, card, Kaspi, Halyk or Freedom.", 400);
         if (dto.EtaMinutes is < 0 or > MaxEtaMinutes)
             return Result<OrderDto>.Failure($"Ready time must be between 0 and {MaxEtaMinutes} minutes.", 400);
 
@@ -170,6 +173,16 @@ public class CounterSaleService(
             order.DiscountAmount = amount.Value;
             order.Total = order.Subtotal - amount.Value;
         }
+        // A tip is on top of the bill and not part of the total. It goes to the cashier who rang the sale up. No PIN is
+        // asked to add it at the till; changing it afterwards does.
+        if (dto.Tip is > 0)
+        {
+            var tipError = TipRules.Check(dto.Tip.Value, order.Total);
+            if (tipError is not null) return Result<OrderDto>.Failure(tipError, 400);
+            order.TipAmount = TipRules.Round(dto.Tip.Value);
+            order.TipMethod = dto.TipMethod is { } m && m != dto.PaymentMethod ? m : null;
+            order.TipForAdminId = user.UserId;
+        }
         if (dto.HandedOver)
         {
             order.Status = OrderStatus.Completed;
@@ -195,6 +208,7 @@ public class CounterSaleService(
 
         await audit.LogAsync("CounterSale", "Order", order.Id.ToString(),
             $"{order.Total:0.##} {dto.PaymentMethod}{(live ? "" : $", made offline at {soldAt:u}")}"
+            + (order.TipAmount > 0 ? $" · tip {order.TipAmount:0.##}" : "")
             + (dto.Discount is { } d ? $" · discount -{order.DiscountAmount:0.##} ({ManualDiscount.Describe(d)}): {approval?.Describe() ?? d.Reason}" : ""), ct);
 
         // Stock goes down even if it was already at zero (it stays at zero): the goods are already sold.

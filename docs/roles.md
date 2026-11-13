@@ -6,7 +6,7 @@ Every staff account has one role. Four roles exist:
 |---|---|---|
 | **Worker** | Barista, cashier | Live orders, their own cashier shift, write-offs and moves, typing in deliveries. No settings, no money numbers. |
 | **Admin** | Cafe administrator, runs the cafe day to day | Everything a Worker does, plus stock and ingredients (counts, restocking, stocktake), suppliers and purchase orders / invoices, shifts and cash counts, menu, tables, printers, branches, customers, promotions and codes, customer complaints, staff accounts of Workers. **Does not see** sales analytics, the dashboard, billing, the audit log or payroll. |
-| **CEO** | The cafe's owner (and an accountant, if the owner wants to share the login) | Everything an Admin does, plus the money side: **Analytics** and dashboard, **Profit** (monthly profit and profit by dish), **Food cost** and write-off money on the Stock page, **Subscription** (what the cafe pays Yurt), **Audit log**, and **Payroll**. Only the CEO adds or switches off **Admin** accounts and resets their passwords. |
+| **CEO** | The cafe's owner (and an accountant, if the owner wants to share the login) | Everything an Admin does, plus the money side: **Analytics** and dashboard, **Profit** (monthly profit and profit by dish), **Tips** report (per staff member and shift), **Food cost** and write-off money on the Stock page, **Subscription** (what the cafe pays Yurt), **Audit log**, and **Payroll**. Only the CEO adds or switches off **Admin** accounts and resets their passwords. |
 | **SuperAdmin** | You, the platform operator | Only the Platform screens. Never listed on a cafe's staff page. |
 
 A separate Accountant role (money reports and payroll, but no menu or orders) is not built yet; a CEO login covers it.
@@ -37,6 +37,7 @@ With the `own_pos` module on, a cashier cannot cancel a sale, give money back or
 - **Guessing:** 5 wrong PINs in a row lock that staff member's approvals for 5 minutes. Every wrong PIN is written to the audit log (`ManagerPinRejected`).
 - **First setup:** until at least one manager has a PIN, these actions are refused with a message that says so. Set the PIN before the cashiers start using the new till.
 - **API:** `GET admin/manager-pin` (is a PIN asked for, does anyone have one, do I), `PUT admin/manager-pin` `{ currentPassword, pin }` (Admin and CEO). `POST admin/orders/{id}/refund|cancel` take `{ pin, reason }`, `POST admin/orders/{id}/discount` takes `{ percent | amount, pin, reason }`, decline takes `pin` next to `reason`, payment takes `pin` and `reason` when it leaves Paid, and a counter sale takes a `discount` object. Audit actions: `ManagerPinSet`, `ManagerPinRejected`, `OrderCancelled`, `OrderDiscount`, `CounterSale` (with the discount), `OrderRefunded`, `OrderDeclined`.
+- **Tips:** changing or removing a tip after the sale (`PUT admin/orders/{id}/tip`, `{ amount, method, staffId, pin, reason }`; amount 0 removes it) asks for the PIN and a reason too. Audit actions `OrderTipChanged`, `OrderTipRemoved`. Adding a tip when the sale is rung up at the till does not. See `docs/tips.md`.
 - **Not covered yet:** stock a cancelled order already used stays used (write it off if it was made); a tax receipt already sent for a cancelled sale is not reversed automatically.
 
 ## Technical notes
