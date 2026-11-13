@@ -203,6 +203,8 @@ public static class DependencyInjection
         services.AddScoped<TableService>();
         services.AddScoped<StaffWatchService>();
         services.AddScoped<PayrollService>();
+        services.AddScoped<Yurt.Application.Features.TimeClock.StaffPinService>();
+        services.AddScoped<Yurt.Application.Features.TimeClock.TimeClockService>();
         services.AddScoped<Yurt.Application.Features.Profit.ProfitService>();
         services.AddScoped<Yurt.Application.Features.Accounting.AccountingExportService>();
         services.AddSingleton<IWatchTelegram, WatchTelegram>();

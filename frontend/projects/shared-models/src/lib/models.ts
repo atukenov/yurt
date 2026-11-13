@@ -866,6 +866,68 @@ export interface ManagerPinStatus {
   iHavePin: boolean;
 }
 
+// ── Staff PIN and time clock (own_pos) ───────────────────────────────────────
+export interface StaffPinPerson {
+  id: string;
+  username: string;
+  role: string;
+  isActive: boolean;
+  hasPin: boolean;
+}
+
+export interface PunchResult {
+  adminUserId: string;
+  username: string;
+  /** "in" or "out". */
+  action: 'in' | 'out';
+  at: string;
+  clockedInSince: string | null;
+  hoursThisShift: number | null;
+  /** The last shift was never clocked out and was closed with zero hours. */
+  forgotLast: boolean;
+}
+
+export interface OnTheClock {
+  entryId: string;
+  adminUserId: string;
+  username: string;
+  locationId: string | null;
+  clockInAt: string;
+}
+
+export interface TimeEntry {
+  id: string;
+  adminUserId: string;
+  username: string;
+  locationId: string | null;
+  clockInAt: string;
+  clockOutAt: string | null;
+  hours: number;
+  /** Clocked in right now. */
+  open: boolean;
+  /** Nobody clocked out: a manager should fix the time. */
+  forgotten: boolean;
+  editedBy: string | null;
+  editNote: string | null;
+}
+
+export interface StaffHours {
+  adminUserId: string;
+  username: string;
+  role: string;
+  hours: number;
+  days: number;
+  problems: number;
+}
+
+export interface HoursReport {
+  from: string;
+  to: string;
+  totalHours: number;
+  byStaff: StaffHours[];
+  entries: TimeEntry[];
+}
+
 export interface UpdateStatusRequest {
   status: OrderStatus;
 }
@@ -1190,6 +1252,8 @@ export interface PayrollStaff {
   role: string;
   isActive: boolean;
   monthlySalary: number;
+  /** Paid per worked hour from the time clock, on top of the salary. 0 = none. */
+  hourlyRate: number;
 }
 
 export interface PayAdjustment {
@@ -1210,6 +1274,10 @@ export interface PayrollLine {
   deductions: number;
   total: number;
   adjustments: PayAdjustment[];
+  /** Hours worked that month (time clock), the hourly rate and the pay for them. */
+  hours: number;
+  hourlyRate: number;
+  hourlyPay: number;
 }
 
 export interface PayrollSheet {
@@ -1222,6 +1290,8 @@ export interface PayrollSheet {
   totalBonuses: number;
   totalDeductions: number;
   totalToPay: number;
+  totalHourlyPay: number;
+  totalHours: number;
 }
 
 /** One dish and size over a month (profit report, CEO only). Money is after the order's discount. */

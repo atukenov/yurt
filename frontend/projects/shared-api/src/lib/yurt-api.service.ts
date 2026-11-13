@@ -49,6 +49,7 @@ import {
   DiscountRequest,
   ManagerApprovalRequest,
   ManagerPinStatus,
+  StaffPinPerson, PunchResult, OnTheClock, HoursReport, TimeEntry,
   SetTipRequest,
   TipReport,
   DiscountCode,
@@ -1188,6 +1189,60 @@ export class YurtApiService {
     return this.http.put<void>(`${this.api}/admin/manager-pin`, { currentPassword, pin });
   }
 
+  // ── Staff PIN and time clock (own_pos) ───────────────────────────────────
+  getMyStaffPin(): Observable<{ iHavePin: boolean }> {
+    return this.http.get<{ iHavePin: boolean }>(`${this.api}/admin/staff-pin`);
+  }
+
+  setMyStaffPin(currentPassword: string, pin: string): Observable<void> {
+    return this.http.put<void>(`${this.api}/admin/staff-pin`, { currentPassword, pin });
+  }
+
+  /** Who the signed-in manager may set a PIN for (Admin: workers; CEO: everybody). */
+  getStaffPinPeople(): Observable<StaffPinPerson[]> {
+    return this.http.get<StaffPinPerson[]>(`${this.api}/admin/staff-pin/people`);
+  }
+
+  setStaffPinFor(id: string, pin: string): Observable<void> {
+    return this.http.put<void>(`${this.api}/admin/staff-pin/${id}`, { pin });
+  }
+
+  clearStaffPin(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/staff-pin/${id}`);
+  }
+
+  /** The till signs in as the owner of the PIN. Same answer as a login. */
+  switchStaff(pin: string, refreshToken: string | null): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.api}/admin/staff-pin/switch`, { pin, refreshToken });
+  }
+
+  /** Clock in, or out when already in. */
+  punchClock(pin: string, locationId?: string | null): Observable<PunchResult> {
+    return this.http.post<PunchResult>(`${this.api}/admin/time-clock/punch`, { pin, locationId: locationId ?? null });
+  }
+
+  getOnTheClock(): Observable<OnTheClock[]> {
+    return this.http.get<OnTheClock[]>(`${this.api}/admin/time-clock/now`);
+  }
+
+  getHoursReport(from: string, to: string, staffId?: string | null): Observable<HoursReport> {
+    const params: Record<string, string> = { from, to };
+    if (staffId) params['staffId'] = staffId;
+    return this.http.get<HoursReport>(`${this.api}/admin/time-clock/hours`, { params });
+  }
+
+  addTimeEntry(body: { adminUserId: string; locationId?: string | null; clockInAt: string; clockOutAt: string; reason: string }): Observable<TimeEntry> {
+    return this.http.post<TimeEntry>(`${this.api}/admin/time-clock/entries`, body);
+  }
+
+  changeTimeEntry(id: string, body: { clockInAt?: string; clockOutAt?: string; reason: string }): Observable<TimeEntry> {
+    return this.http.put<TimeEntry>(`${this.api}/admin/time-clock/entries/${id}`, body);
+  }
+
+  deleteTimeEntry(id: string, reason: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/time-clock/entries/${id}`, { params: { reason } });
+  }
+
   updateOrderPayment(id: string, req: UpdatePaymentRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/orders/${id}/payment`, req);
   }
@@ -1238,8 +1293,8 @@ export class YurtApiService {
     return this.http.get<PayrollStaff[]>(`${this.api}/admin/payroll/staff`);
   }
 
-  setSalary(userId: string, monthlySalary: number): Observable<PayrollStaff> {
-    return this.http.put<PayrollStaff>(`${this.api}/admin/payroll/staff/${userId}/salary`, { monthlySalary });
+  setSalary(userId: string, monthlySalary: number, hourlyRate?: number): Observable<PayrollStaff> {
+    return this.http.put<PayrollStaff>(`${this.api}/admin/payroll/staff/${userId}/salary`, { monthlySalary, hourlyRate });
   }
 
   getPayrollMonth(month: string): Observable<PayrollSheet> {

@@ -15,6 +15,7 @@ import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillSale, TillService } from '../../core/till.service';
 import { isTooOld, outcomeOf, QueuedSale } from '../../core/outbox';
 import { OutboxService } from '../../core/outbox.service';
+import { StaffDialogComponent } from './staff-dialog.component';
 import { TillPrinterService } from '../../core/till-printer.service';
 import { PosTranslatePipe } from '../../core/translate.pipe';
 
@@ -23,7 +24,7 @@ type Step = 'cart' | 'pay' | 'done';
 /** The till: pick items, take payment, send the sale. */
 @Component({
   selector: 'pos-sell',
-  imports: [FormsModule, Currency2Pipe, LocalDatePipe, ManagerApprovalComponent, PosTranslatePipe],
+  imports: [FormsModule, Currency2Pipe, LocalDatePipe, ManagerApprovalComponent, PosTranslatePipe, StaffDialogComponent],
   templateUrl: './sell.component.html',
 })
 export class SellComponent implements OnInit {
@@ -42,7 +43,11 @@ export class SellComponent implements OnInit {
   readonly printProblem = signal<string | null>(null);
 
   readonly langs: PosLang[] = ['ru', 'kk', 'en'];
-  readonly cashier = this.auth.currentUser?.displayName ?? '';
+  /** Who is at the till now; changes when someone takes over with their staff PIN. */
+  get cashier(): string {
+    return this.auth.currentUser?.displayName ?? '';
+  }
+  readonly showStaff = signal(false);
 
   // Branch
   readonly branches = signal<Location[]>([]);

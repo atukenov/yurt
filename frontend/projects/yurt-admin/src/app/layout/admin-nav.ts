@@ -74,6 +74,7 @@ const ICON = {
   workers: ['M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'],
   lock: ['M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'],
   auditLog: ['M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+  hours: ['M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0zM4 4l3 3m13-3l-3 3'],
   tips: ['M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1M5 12a7 7 0 1114 0 7 7 0 01-14 0z'],
   profit: ['M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
   accounting: ['M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z'],
@@ -129,6 +130,7 @@ const CAFE_NAV: NavGroupDef[] = [
     items: [
       { link: '/reports', label: 'nav.reports', icon: ICON.reports, adminOnly: true },
       { link: '/analytics', label: 'nav.analytics', icon: ICON.analytics, ceoOnly: true, module: 'analytics' },
+      { link: '/hours', label: 'nav.hours', icon: ICON.hours, adminOnly: true, module: 'own_pos' },
       { link: '/tips', label: 'nav.tips', icon: ICON.tips, ceoOnly: true, module: 'own_pos' },
       { link: '/profit', label: 'nav.profit', icon: ICON.profit, ceoOnly: true, module: 'analytics' },
       { link: '/accounting', label: 'nav.accounting', icon: ICON.accounting, ceoOnly: true, module: 'analytics' },
@@ -143,6 +145,7 @@ const CAFE_NAV: NavGroupDef[] = [
       { link: '/locations', label: 'nav.locations', icon: ICON.locations, adminOnly: true },
       { link: '/workers', label: 'nav.workers', icon: ICON.workers, adminOnly: true, module: 'staff_audit' },
       { link: '/printers', label: 'nav.printers', icon: ICON.printers, adminOnly: true, module: 'own_pos' },
+      { link: '/staff-pin', label: 'nav.staffPin', icon: ICON.lock, module: 'own_pos' },
       { link: '/manager-pin', label: 'nav.managerPin', icon: ICON.lock, adminOnly: true, module: 'own_pos' },
       { link: '/payroll', label: 'nav.payroll', icon: ICON.payroll, ceoOnly: true, module: 'payroll' },
       { link: '/subscription', label: 'nav.subscription', icon: ICON.subscription, ceoOnly: true },

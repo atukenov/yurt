@@ -52,8 +52,8 @@ describe('admin sidebar', () => {
 
   it('gives plain staff the live orders, stock write-offs/moves and deliveries only, and drops empty groups', () => {
     const nav = buildAdminNav({ isAdmin: false, isCeo: false, isSuperAdmin: false, moduleEnabled: all });
-    expect(nav.map((g) => g.id)).toEqual(['pos', 'menu']);
-    expect(links(nav)).toEqual(['/orders', '/stock-moves', '/purchasing']);
+    expect(nav.map((g) => g.id)).toEqual(['pos', 'menu', 'settings']);
+    expect(links(nav)).toEqual(['/orders', '/stock-moves', '/purchasing', '/staff-pin']);
     expect(links(buildAdminNav({ isAdmin: false, isCeo: false, isSuperAdmin: false, moduleEnabled: none }))).toEqual(['/orders']);
   });
 
