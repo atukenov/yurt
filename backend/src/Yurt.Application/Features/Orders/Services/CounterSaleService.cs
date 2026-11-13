@@ -30,6 +30,8 @@ public class CounterSaleService(
     // A sale sent later than this after it was made happened while the till was offline: the till already printed its
     // receipt and opened its drawer itself, so the server does not print or open anything again.
     public static readonly TimeSpan LiveWindow = TimeSpan.FromMinutes(2);
+    /// <summary>How long after a time menu closes a dish already on the till can still be sold.</summary>
+    public static readonly TimeSpan TimeMenuGrace = TimeSpan.FromMinutes(10);
 
     public const int MaxEtaMinutes = 240;
 
@@ -93,6 +95,17 @@ public class CounterSaleService(
                 return Result<OrderDto>.Failure($"'{item.Name}' is not sold at this branch.", 400);
         }
 
+        // Time menus. Prices follow the clock at the moment of the sale (the till's own time for a sale made offline).
+        // A live sale is allowed a few minutes after a window closes, so a dish rung up at 10:59 can still be paid at 11:01.
+        var timed = await TimedMenu.LoadAsync(db, location.Id, soldAt, ct);
+        if (live)
+        {
+            var recent = await TimedMenu.LoadAsync(db, location.Id, now - TimeMenuGrace, ct);
+            foreach (var id in itemIds)
+                if (!timed.IsOnMenu(menuItems[id]) && !recent.IsOnMenu(menuItems[id]))
+                    return Result<OrderDto>.Failure($"'{menuItems[id].Name}' is not on the menu at this time.", 400);
+        }
+
         var variantIds = dto.Items.Where(i => i.VariantId.HasValue).Select(i => i.VariantId!.Value).Distinct().ToList();
         var variants = variantIds.Count > 0
             ? await db.MenuItemVariants.Where(v => variantIds.Contains(v.Id)).ToDictionaryAsync(v => v.Id, ct)
@@ -137,7 +150,7 @@ public class CounterSaleService(
                 .Select(o => new OrderItemTopping { ToppingId = o.Topping.Id, ToppingName = o.Topping.Name, Price = o.Price })
                 .ToList();
 
-            var unit = (variant?.Price ?? DishOptions.BranchPrice(item, location.Id)) + lineToppings.Sum(t => t.Price);
+            var unit = timed.PriceOf(item, variant?.Price ?? DishOptions.BranchPrice(item, location.Id), variant is not null) + lineToppings.Sum(t => t.Price);
             var orderItem = new OrderItem
             {
                 OrderId = order.Id,

@@ -92,6 +92,8 @@ export interface Location {
   twoGisUrl?: string | null;
   /** Payment methods this branch offers; missing or null = all. */
   paymentMethods?: string[] | null;
+  /** Clock of this branch for time menus (IANA name such as Asia/Almaty). */
+  timeZone?: string | null;
 }
 
 // ── Menu ──────────────────────────────────────────────────────────────────────
@@ -150,6 +152,8 @@ export interface MenuItemVariant {
   price: number;
   sortOrder: number;
   isDefault: boolean;
+  /** The usual price while a time price (happy hour...) is running. */
+  regularPrice?: number | null;
   iikoProductSizeId?: string | null;
 }
 
@@ -177,6 +181,8 @@ export interface MenuItem {
   iikoProductSizeId?: string | null;
   /** Rules for the option groups this dish offers. */
   optionRules?: OptionRule[];
+  /** The usual price while a time price (happy hour...) is running; `price` is then the price now. */
+  regularPrice?: number | null;
   /** Admin: options picked by hand for this dish (empty = the category's options). */
   toppingIds?: string[];
   /** Admin: dish prices that differ by branch. */
@@ -1896,3 +1902,34 @@ export interface ToOrderGroup {
   lines: ToOrderLine[];
   estimatedTotal?: number | null;
 }
+
+// ── Time menus (breakfast, happy hour) ────────────────────────────────────────
+
+/** A price that applies while a time menu runs: for one dish or a whole category. Set `price` or `percentOff`. */
+export interface TimePrice {
+  menuItemId?: string | null;
+  categoryId?: string | null;
+  price?: number | null;
+  percentOff?: number | null;
+}
+
+/**
+ * A time window with what it controls. `days` is a bit mask (Monday = 1 ... Sunday = 64); `start` / `end` are "HH:mm" on the
+ * branch's clock ("24:00" = end of day, an end at or before the start runs past midnight). The listed dishes and
+ * categories are on the menu only inside the window.
+ */
+export interface MenuSchedule {
+  id: string;
+  name: string;
+  days: number;
+  start: string;
+  end: string;
+  locationId?: string | null;
+  isActive: boolean;
+  categoryIds: string[];
+  itemIds: string[];
+  prices: TimePrice[];
+  runningNow?: boolean;
+}
+
+export type SaveMenuSchedule = Omit<MenuSchedule, 'id' | 'runningNow'>;

@@ -12,6 +12,9 @@ public class Location : BaseEntity, ITenantOwned
     public string ContactPhone { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
 
+    /// <summary>Clock of this branch for time-based menus (IANA name, for example Asia/Almaty). Null = Asia/Almaty.</summary>
+    public string? TimeZone { get; set; }
+
     // Link to this location in 2GIS (https://2gis.kz/… or https://go.2gis.com/…). Optional.
     public string? TwoGisUrl { get; set; }
 

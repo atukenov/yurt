@@ -374,6 +374,15 @@ public static class DemoDataSeeder
         if (shot is not null && d.Branches.Count > 1 && !await db.MenuToppingLocations.AnyAsync(ct))
             db.MenuToppingLocations.Add(new MenuToppingLocation { Topping = shot, LocationId = d.Branches[1].Id, Price = shot.Price + 0.25m });
 
+        // Time menu: happy hour on weekdays, 20% off the cold drinks (a price only; nothing leaves the menu).
+        var cold = categories.FirstOrDefault(c => c.Name.Equals("Cold Drinks", StringComparison.OrdinalIgnoreCase));
+        if (cold is not null && !await db.MenuSchedules.AnyAsync(ct))
+        {
+            var happy = new MenuSchedule { Name = "Happy hour", Days = 31, StartMinute = 16 * 60, EndMinute = 18 * 60 };
+            db.MenuSchedules.Add(happy);
+            db.MenuTimePrices.Add(new MenuTimePrice { Schedule = happy, CategoryId = cold.Id, PercentOff = 20m });
+        }
+
         await db.SaveChangesAsync(ct);
     }
 

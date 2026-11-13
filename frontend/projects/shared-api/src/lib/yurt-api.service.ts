@@ -68,6 +68,8 @@ import {
   MenuItem,
   MenuTopping,
   OptionGroupRule,
+  MenuSchedule,
+  SaveMenuSchedule,
   Order,
   StockItem,
   StockAlertPhone,
@@ -536,6 +538,27 @@ export class YurtApiService {
 
   adminUpdateTopping(id: string, data: Partial<MenuTopping>): Observable<MenuTopping> {
     return this.http.put<MenuTopping>(`${this.api}/admin/menu/toppings/${id}`, data);
+  }
+
+  adminGetSchedules(): Observable<MenuSchedule[]> {
+    return this.http.get<MenuSchedule[]>(`${this.api}/admin/menu/schedules`);
+  }
+
+  adminSaveSchedule(id: string | null, data: SaveMenuSchedule): Observable<MenuSchedule> {
+    return id
+      ? this.http.put<MenuSchedule>(`${this.api}/admin/menu/schedules/${id}`, data)
+      : this.http.post<MenuSchedule>(`${this.api}/admin/menu/schedules`, data);
+  }
+
+  adminDeleteSchedule(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/menu/schedules/${id}`);
+  }
+
+  /** When a time menu next opens or closes at a branch (ISO, UTC), or null when there are none. */
+  getMenuNextChange(locationId?: string | null): Observable<{ at: string | null }> {
+    let params = new HttpParams();
+    if (locationId) params = params.set('locationId', locationId);
+    return this.http.get<{ at: string | null }>(`${this.api}/menu/next-change`, { params });
   }
 
   adminGetOptionGroups(): Observable<OptionGroupRule[]> {

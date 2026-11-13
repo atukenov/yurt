@@ -19,6 +19,9 @@ public class MenuItem : BaseEntity, ITenantOwned
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
 
+    /// <summary>On the menu only while this schedule is running. Null = always (the stop-list still applies).</summary>
+    public Guid? ScheduleId { get; set; }
+
     // iiko nomenclature mapping (order-push feature). Null = unmapped; orders containing
     // this item fail closed (skip the iiko push) rather than guessing. ProductSizeId is
     // used only when the item has no Variants of its own.

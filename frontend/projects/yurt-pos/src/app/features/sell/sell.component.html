@@ -121,7 +121,7 @@
                   <button type="button" (click)="tap(item)" [disabled]="step() === 'pay'"
                           class="flex min-h-24 flex-col justify-between rounded-xl bg-surface p-3 text-left ring-1 ring-slate-200 active:scale-[0.98] disabled:opacity-50">
                     <span class="line-clamp-2 text-sm font-semibold text-slate-900">{{ item.name }}</span>
-                    <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}</span>
+                    <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}@if (item.regularPrice) { <s class="ml-1 text-slate-400">{{ item.regularPrice | currency2 }}</s> }</span>
                   </button>
                 } @empty {
                   <p class="col-span-full text-slate-500">{{ 'menu.empty' | t }}</p>

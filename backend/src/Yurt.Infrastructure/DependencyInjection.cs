@@ -216,6 +216,7 @@ public static class DependencyInjection
         services.AddScoped<BluetoothPrintService>();
         services.AddScoped<PictureService>();
         services.AddScoped<MenuService>();
+        services.AddScoped<MenuScheduleService>();
         services.AddScoped<Yurt.Application.Features.Menu.Import.MenuImportService>();
         services.AddScoped<OrderService>();
         services.AddScoped<ManagerApprovalService>();

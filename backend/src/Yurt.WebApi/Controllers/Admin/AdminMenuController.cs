@@ -16,11 +16,13 @@ public class AdminMenuController : ApiControllerBase
 {
     private readonly MenuService _menuService;
     private readonly MenuImportService _import;
+    private readonly MenuScheduleService _schedules;
 
-    public AdminMenuController(MenuService menuService, MenuImportService import)
+    public AdminMenuController(MenuService menuService, MenuImportService import, MenuScheduleService schedules)
     {
         _menuService = menuService;
         _import = import;
+        _schedules = schedules;
     }
 
     // ── IMPORT FROM EXCEL ────────────────────────────────────────────────────────
@@ -142,4 +144,22 @@ public class AdminMenuController : ApiControllerBase
     [HttpDelete("option-groups")]
     public async Task<IActionResult> DeleteOptionGroup([FromQuery] string key, CancellationToken ct)
         => ToResult(await _menuService.DeleteOptionGroupAsync(key, ct));
+
+    // ── TIME MENUS (breakfast, happy hour: hours, days, prices) ─────────────────
+
+    [HttpGet("schedules")]
+    public async Task<IActionResult> GetSchedules(CancellationToken ct)
+        => Ok(await _schedules.ListAsync(ct));
+
+    [HttpPost("schedules")]
+    public async Task<IActionResult> CreateSchedule([FromBody] SaveMenuScheduleDto dto, CancellationToken ct)
+        => ToResult(await _schedules.SaveAsync(null, dto, ct));
+
+    [HttpPut("schedules/{id:guid}")]
+    public async Task<IActionResult> UpdateSchedule(Guid id, [FromBody] SaveMenuScheduleDto dto, CancellationToken ct)
+        => ToResult(await _schedules.SaveAsync(id, dto, ct));
+
+    [HttpDelete("schedules/{id:guid}")]
+    public async Task<IActionResult> DeleteSchedule(Guid id, CancellationToken ct)
+        => ToResult(await _schedules.DeleteAsync(id, ct));
 }

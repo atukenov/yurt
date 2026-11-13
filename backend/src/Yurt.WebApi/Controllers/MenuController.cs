@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
+using Yurt.Application.Common.Interfaces;
+using Yurt.Application.Features.Menu.DTOs;
 using Yurt.Application.Features.Menu.Services;
 using Yurt.WebApi.Common;
 
@@ -11,8 +13,18 @@ namespace Yurt.WebApi.Controllers;
 public class MenuController : ApiControllerBase
 {
     private readonly MenuService _menuService;
+    private readonly IApplicationDbContext _db;
 
-    public MenuController(MenuService menuService) => _menuService = menuService;
+    public MenuController(MenuService menuService, IApplicationDbContext db)
+    {
+        _menuService = menuService;
+        _db = db;
+    }
+
+    /// <summary>When a time menu next opens or closes at a branch. Apps reload the menu at that moment.</summary>
+    [HttpGet("next-change")]
+    public async Task<IActionResult> NextChange([FromQuery] Guid? locationId = null, CancellationToken ct = default)
+        => Ok(new MenuNextChangeDto(await TimedMenu.NextChangeAsync(_db, locationId, DateTime.UtcNow, ct)));
 
     /// <summary>Get all menu categories, optionally filtered to those with items at a location.</summary>
     [HttpGet("categories")]

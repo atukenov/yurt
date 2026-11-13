@@ -4,7 +4,7 @@ namespace Yurt.Application.Features.Menu.DTOs;
 
 public record MenuCategoryDto(Guid Id, string Name, int SortOrder);
 
-public record MenuItemVariantDto(Guid Id, string Label, decimal Price, int SortOrder, bool IsDefault);
+public record MenuItemVariantDto(Guid Id, string Label, decimal Price, int SortOrder, bool IsDefault, decimal? RegularPrice = null);
 
 public record MenuItemDto(
     Guid Id,
@@ -25,7 +25,9 @@ public record MenuItemDto(
     string? NameRu = null,
     string? NameKk = null,
     // What the guest has to choose for this dish (only groups the dish offers).
-    List<OptionRuleDto>? OptionRules = null);
+    List<OptionRuleDto>? OptionRules = null,
+    // The usual price while a time price (happy hour...) is running; null otherwise.
+    decimal? RegularPrice = null);
 
 /// <summary>How many options of one group the guest must / may choose. Max null = no limit.</summary>
 public record OptionRuleDto(string Group, string Title, bool Required, int Min, int? Max);
@@ -150,3 +152,33 @@ public record UpdateToppingDto
     /// <summary>Null = leave the branch prices as they are.</summary>
     public List<LocationPriceDto>? LocationPrices { get; init; }
 }
+
+// ── Time menus (breakfast, happy hour...) ────────────────────────────────────
+
+/// <summary>A price that applies while the schedule runs: for one dish or a whole category. One of Price / PercentOff.</summary>
+public record TimePriceDto(Guid? MenuItemId, Guid? CategoryId, decimal? Price, decimal? PercentOff);
+
+/// <summary>
+/// A time window with what it controls. <c>Days</c> is a bit mask, Monday = 1 ... Sunday = 64. <c>Start</c> / <c>End</c> are
+/// "HH:mm" on the branch's clock ("24:00" = end of day; an end at or before the start runs past midnight).
+/// <c>CategoryIds</c> / <c>ItemIds</c> are on the menu only inside the window; <c>Prices</c> apply only inside it.
+/// </summary>
+public record AdminMenuScheduleDto(
+    Guid Id, string Name, int Days, string Start, string End, Guid? LocationId, bool IsActive,
+    List<Guid> CategoryIds, List<Guid> ItemIds, List<TimePriceDto> Prices, bool RunningNow = false);
+
+public record SaveMenuScheduleDto
+{
+    public string Name { get; init; } = string.Empty;
+    public int Days { get; init; } = 127;
+    public string Start { get; init; } = "00:00";
+    public string End { get; init; } = "24:00";
+    public Guid? LocationId { get; init; }
+    public bool IsActive { get; init; } = true;
+    public List<Guid>? CategoryIds { get; init; }
+    public List<Guid>? ItemIds { get; init; }
+    public List<TimePriceDto>? Prices { get; init; }
+}
+
+/// <summary>When a time menu next opens or closes at a branch (UTC); null when there are none. Apps reload the menu then.</summary>
+public record MenuNextChangeDto(DateTime? At);

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, DestroyRef, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthStateService, ModuleService, YurtApiService } from 'shared-api';
@@ -127,10 +127,17 @@ export class MenuListComponent implements OnInit {
 
   searchTerm = signal('');
 
+  /** Bumped when a time menu (breakfast, happy hour) opens or closes, so the menu is loaded again. */
+  private readonly menuTick = signal(0);
+  private menuTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
+    inject(DestroyRef).onDestroy(() => { if (this.menuTimer) clearTimeout(this.menuTimer); });
     effect(() => {
       const lang = this.langService.lang();
       const locationId = this.locationSvc.locationId() || undefined;
+      this.menuTick();
+      this.scheduleMenuRefresh(locationId);
       this.swr.swr(`cats:${lang}:${locationId ?? ''}`, () => this.api.getCategories(lang, locationId)).subscribe((cats) => {
         this.categories.set(cats);
         const saved = this.selectedCategoryId();
@@ -140,6 +147,20 @@ export class MenuListComponent implements OnInit {
         }
       });
       this.loadItems(lang);
+    });
+  }
+
+  /** Asks when the next time menu opens or closes and loads the menu again then, so prices and dishes never go stale. */
+  private scheduleMenuRefresh(locationId?: string): void {
+    if (this.menuTimer) clearTimeout(this.menuTimer);
+    this.api.getMenuNextChange(locationId).subscribe({
+      next: ({ at }) => {
+        if (!at) return;
+        // setTimeout cannot wait longer than about 24 days; a week is the most the server looks ahead.
+        const wait = Math.min(Math.max(new Date(at).getTime() - Date.now() + 1000, 1000), 2_000_000_000);
+        this.menuTimer = setTimeout(() => this.menuTick.update((n) => n + 1), wait);
+      },
+      error: () => {},
     });
   }
 

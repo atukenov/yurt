@@ -14,8 +14,11 @@ public class LocationService
     private readonly IAuditLogService _audit;
     private readonly IModuleGate? _modules;
 
-    public LocationService(IApplicationDbContext db, IAuditLogService audit, IModuleGate? modules = null)
+    private readonly IMenuCacheService? _menuCache;
+
+    public LocationService(IApplicationDbContext db, IAuditLogService audit, IModuleGate? modules = null, IMenuCacheService? menuCache = null)
     {
+        _menuCache = menuCache;
         _db = db;
         _audit = audit;
         _modules = modules;
@@ -74,8 +77,12 @@ public class LocationService
         if (!TryNormalizeTwoGisUrl(dto.TwoGisUrl, out var twoGisUrl))
             return Result<AdminLocationDto>.Failure(TwoGisUrlError, 422);
 
+        if (!TryNormalizeTimeZone(dto.TimeZone, out var timeZone))
+            return Result<AdminLocationDto>.Failure(TimeZoneError, 422);
+
         var loc = new Location
         {
+            TimeZone = timeZone,
             Name = dto.Name,
             Address = dto.Address,
             WorkingHours = dto.WorkingHours,
@@ -95,9 +102,17 @@ public class LocationService
         if (!TryNormalizeTwoGisUrl(dto.TwoGisUrl, out var twoGisUrl))
             return Result<AdminLocationDto>.Failure(TwoGisUrlError, 422);
 
+        if (!TryNormalizeTimeZone(dto.TimeZone, out var timeZone))
+            return Result<AdminLocationDto>.Failure(TimeZoneError, 422);
+
         var loc = await _db.Locations.FindAsync([id], ct);
         if (loc == null) return Result<AdminLocationDto>.NotFound();
 
+        if (dto.TimeZone is not null && loc.TimeZone != timeZone)
+        {
+            loc.TimeZone = timeZone;
+            if (_menuCache is not null) await _menuCache.InvalidateAllMenuAsync();
+        }
         loc.Name = dto.Name;
         loc.Address = dto.Address;
         loc.WorkingHours = dto.WorkingHours;
@@ -125,6 +140,19 @@ public class LocationService
         return Result<bool>.Success(true);
     }
 
+    private const string TimeZoneError = "Time zone must be a name such as Asia/Almaty or Europe/Moscow.";
+
+    // Empty = the default (Asia/Almaty). Otherwise the server must know the name, so a time menu can never run on a broken clock.
+    private static bool TryNormalizeTimeZone(string? raw, out string? normalized)
+    {
+        normalized = null;
+        if (string.IsNullOrWhiteSpace(raw)) return true;
+        var value = raw.Trim();
+        if (value.Length > 64 || !Yurt.Application.Features.Menu.Services.TimedMenu.IsKnownZone(value)) return false;
+        normalized = value == Yurt.Application.Features.Menu.Services.TimedMenu.DefaultZone ? null : value;
+        return true;
+    }
+
     private const string TwoGisUrlError = "2GIS link must be a valid http(s) link to 2gis (e.g. https://2gis.kz/… or https://go.2gis.com/…).";
 
     // Empty = no link. Otherwise only absolute http(s) URLs on a 2gis host are accepted, so a
@@ -145,5 +173,5 @@ public class LocationService
     }
 
     private static AdminLocationDto MapToAdminDto(Location l)
-        => new(l.Id, l.Name, l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.IikoTerminalGroupId, l.TwoGisUrl, ToNames(l.PaymentMethods));
+        => new(l.Id, l.Name, l.Address, l.WorkingHours, l.ContactPhone, l.IsActive, l.IikoTerminalGroupId, l.TwoGisUrl, ToNames(l.PaymentMethods), l.TimeZone ?? Yurt.Application.Features.Menu.Services.TimedMenu.DefaultZone);
 }
