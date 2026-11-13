@@ -165,6 +165,12 @@ export const routes: Routes = [
               import('./features/customers/customer-detail.component').then((m) => m.CustomerDetailComponent),
           },
           {
+            path: 'manager-pin',
+            canActivate: [moduleGuard('own_pos', '/orders')],
+            loadComponent: () =>
+              import('./features/manager-pin/manager-pin.component').then((m) => m.ManagerPinComponent),
+          },
+          {
             path: 'workers',
             canActivate: [moduleGuard('staff_audit', '/orders')],
             loadComponent: () =>

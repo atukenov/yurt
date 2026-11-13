@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Approvals;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Orders.Services;
 using Yurt.Application.Features.Payments.Services;
@@ -74,12 +75,26 @@ public class AdminOrdersController : ApiControllerBase
         Guid id, [FromBody] UpdatePaymentDto dto, CancellationToken ct)
         => ToResult(await _orderService.UpdatePaymentAsync(id, dto, ct));
 
-    /// <summary>Give an online (card / Apple Pay / Google Pay) payment back to the customer in full.</summary>
+    /// <summary>Give an online (card / Apple Pay / Google Pay) payment back to the customer in full. Needs a manager PIN and a reason (own_pos).</summary>
     [HttpPost("{id:guid}/refund")]
-    public async Task<IActionResult> Refund(Guid id, [FromServices] PaymentService payments, CancellationToken ct)
+    public async Task<IActionResult> Refund(
+        Guid id, [FromBody] ManagerApprovalDto? approval,
+        [FromServices] PaymentService payments, [FromServices] ManagerApprovalService approvals, CancellationToken ct)
     {
-        var result = await payments.RefundOrderAsync(id, ct);
+        var gate = await approvals.RequireAsync("Refund", approval, ct);
+        if (!gate.Succeeded) return ToResult(Result<OrderDto>.Failure(gate.Error!, gate.StatusCode));
+        var result = await payments.RefundOrderAsync(id, gate.Data?.Describe(), ct);
         if (!result.Succeeded) return ToResult(Result<OrderDto>.Failure(result.Error!, result.StatusCode));
         return ToResult(await _orderService.GetOrderForAdminAsync(id, ct));
     }
+
+    /// <summary>Cancel an order that was already taken on, or a counter sale already rung up. Needs a manager PIN and a reason (own_pos).</summary>
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> Cancel(Guid id, [FromBody] ManagerApprovalDto? approval, CancellationToken ct)
+        => ToResult(await _orderService.VoidOrderAsync(id, approval, ct));
+
+    /// <summary>Take money off an unfinished order. Needs a manager PIN and a reason (own_pos).</summary>
+    [HttpPost("{id:guid}/discount")]
+    public async Task<IActionResult> Discount(Guid id, [FromBody] DiscountInputDto dto, CancellationToken ct)
+        => ToResult(await _orderService.DiscountOrderAsync(id, dto, ct));
 }

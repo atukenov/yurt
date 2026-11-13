@@ -7,9 +7,14 @@ public record OrderItemInputDto(Guid MenuItemId, int Quantity, List<OrderItemTop
 public record OrderItemToppingInputDto(Guid ToppingId, string ToppingName, decimal Price);
 
 public record AcceptOrderDto(int EtaMinutes);
-public record DeclineOrderDto(string Reason);
+public record DeclineOrderDto(string Reason, string? Pin = null);
+
+/// <summary>
+/// Money taken off a bill by hand, with a manager's PIN and the reason. Give either an Amount or a Percent (1 to 100).
+/// </summary>
+public record DiscountInputDto(decimal? Amount = null, decimal? Percent = null, string? Pin = null, string? Reason = null);
 public record UpdateOrderStatusDto(OrderStatus Status);
-public record UpdatePaymentDto(PaymentStatus PaymentStatus);
+public record UpdatePaymentDto(PaymentStatus PaymentStatus, string? Pin = null, string? Reason = null);
 public record RateOrderDto(int Rating, string? Comment = null);
 
 public record OrderDto(
@@ -78,6 +83,7 @@ public record CreateCounterSaleDto(
     DateTime? SoldAt = null,
     bool HandedOver = false,
     int? EtaMinutes = null,
-    OrderType OrderType = OrderType.TakeAway);
+    OrderType OrderType = OrderType.TakeAway,
+    DiscountInputDto? Discount = null);
 
 public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null);

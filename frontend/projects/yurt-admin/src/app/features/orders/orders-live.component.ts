@@ -15,6 +15,8 @@ import { SplitPaymentComponent } from './split-payment.component';
 import {
   BadgeComponent,
   ButtonComponent,
+  ManagerApproval,
+  ManagerApprovalComponent,
   ToastService,
   OrderStatusColorPipe,
   Currency2Pipe,
@@ -37,6 +39,7 @@ import { AdminLangService } from '../../core/lang.service';
     FormsModule,
     BadgeComponent,
     ButtonComponent,
+    ManagerApprovalComponent,
     OrderStatusColorPipe,
     Currency2Pipe,
     AdminTranslatePipe,
@@ -301,13 +304,21 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     });
   }
 
-  declineOrder(order: Order): void {
+  /** Declining an order the guest already paid online gives money back, so it asks for a manager PIN (own_pos). */
+  startDecline(order: Order): void {
+    if (this.modules.isEnabled('own_pos') && order.paymentStatus === 'Paid') this.approval.set({ kind: 'decline', order });
+    else this.showDecline.set(true);
+  }
+
+  declineOrder(order: Order, approved?: ManagerApproval): void {
     this.actionLoading.set(true);
-    this.api.declineOrder(order.id, { reason: this.declineReason }).subscribe({
+    const reason = approved?.reason ?? this.declineReason;
+    this.api.declineOrder(order.id, { reason, pin: approved?.pin }).subscribe({
       next: (o) => {
         this.upsertOrder(o);
         this.actionLoading.set(false);
         this.showDecline.set(false);
+        this.approval.set(null);
         this.declineReason = '';
         this.toast.success(this.lang.t('orders.declinedToast'));
       },
@@ -327,37 +338,131 @@ export class OrdersLiveComponent implements OnInit, OnDestroy {
     });
   }
 
-  savePayment(order: Order): void {
+  savePayment(order: Order, approved?: ManagerApproval): void {
+    // Taking back "Paid" is how money leaves the till without a sale: it asks for a manager PIN and a reason (own_pos).
+    if (!approved && this.modules.isEnabled('own_pos') && order.paymentStatus === 'Paid' && this.paymentStatus !== 'Paid') {
+      this.approval.set({ kind: 'undoPaid', order, status: this.paymentStatus });
+      return;
+    }
     this.paymentLoading.set(true);
     this.api
       .updateOrderPayment(order.id, {
         paymentStatus: this.paymentStatus as any,
+        pin: approved?.pin,
+        reason: approved?.reason,
       })
       .subscribe({
         next: (o) => {
           this.upsertOrder(o);
+          this.approval.set(null);
           this.paymentLoading.set(false);
           this.toast.success(this.lang.t('orders.paymentUpdated'));
         },
-        error: () => this.paymentLoading.set(false),
+        error: () => { this.paymentLoading.set(false); this.paymentStatus = order.paymentStatus; },
       });
   }
 
   refundLoading = signal(false);
 
   /** Gives an online payment back to the customer's card in full (the server refuses if it was not paid online). */
-  refundOnline(order: Order): void {
-    if (!confirm(this.lang.t('orders.refundConfirm'))) return;
+  refundOnline(order: Order, approved?: ManagerApproval): void {
+    if (this.modules.isEnabled('own_pos')) {
+      if (!approved) { this.approval.set({ kind: 'refund', order }); return; }
+    } else if (!confirm(this.lang.t('orders.refundConfirm'))) return;
     this.refundLoading.set(true);
-    this.api.refundOrder(order.id).subscribe({
+    this.api.refundOrder(order.id, approved ?? { pin: '', reason: '' }).subscribe({
       next: (o) => {
         this.upsertOrder(o);
         this.paymentStatus = o.paymentStatus;
         this.refundLoading.set(false);
+        this.approval.set(null);
         this.toast.success(this.lang.t('orders.refundDone'));
       },
       error: () => this.refundLoading.set(false),
     });
+  }
+
+  // ── Manager PIN (own_pos): cancels, refunds and discounts ──────────────────
+
+  /** The action waiting for a manager's PIN and reason; null = no dialog. */
+  approval = signal<{ kind: 'refund' | 'decline' | 'cancel' | 'discount' | 'undoPaid'; order: Order; status?: string } | null>(null);
+  discountMode: 'percent' | 'amount' = 'percent';
+  discountValue: number | null = null;
+
+  /** Taken on (or a finished counter sale) and not yet cancelled. */
+  canCancel(o: Order): boolean {
+    if (!this.modules.isEnabled('own_pos')) return false;
+    return [OrderStatus.Accepted, OrderStatus.Preparing, OrderStatus.Ready].includes(o.status)
+      || (o.status === OrderStatus.Completed && o.source === 'Counter');
+  }
+
+  /** One discount per order; an order paid online can't be lowered here. */
+  canDiscount(o: Order): boolean {
+    if (!this.modules.isEnabled('own_pos')) return false;
+    if (o.status === OrderStatus.Completed || o.status === OrderStatus.Declined || o.discountAmount > 0) return false;
+    return o.source === 'Counter' || o.paymentStatus !== 'Paid';
+  }
+
+  openApproval(kind: 'cancel' | 'discount', order: Order): void {
+    this.discountMode = 'percent';
+    this.discountValue = null;
+    this.approval.set({ kind, order });
+  }
+
+  discountReady(): boolean {
+    const v = this.discountValue ?? 0;
+    return v > 0 && (this.discountMode === 'amount' || v <= 100);
+  }
+
+  approvalReady(): boolean {
+    return this.approval()?.kind !== 'discount' || this.discountReady();
+  }
+
+  approve(approved: ManagerApproval): void {
+    const a = this.approval();
+    if (!a) return;
+    switch (a.kind) {
+      case 'refund': return this.refundOnline(a.order, approved);
+      case 'decline': return this.declineOrder(a.order, approved);
+      case 'undoPaid': return this.savePayment(a.order, approved);
+      case 'cancel':
+        this.actionLoading.set(true);
+        return this.afterApproval(this.api.voidOrder(a.order.id, approved), 'orders.cancelledToast');
+      case 'discount':
+        this.actionLoading.set(true);
+        return this.afterApproval(
+          this.api.discountOrder(a.order.id, {
+            ...approved,
+            percent: this.discountMode === 'percent' ? this.discountValue : null,
+            amount: this.discountMode === 'amount' ? this.discountValue : null,
+          }),
+          'orders.discountedToast',
+        );
+    }
+  }
+
+  private afterApproval(call: ReturnType<YurtApiService['voidOrder']>, toastKey: string): void {
+    call.subscribe({
+      next: (o) => {
+        this.upsertOrder(o);
+        this.paymentStatus = o.paymentStatus;
+        this.actionLoading.set(false);
+        this.approval.set(null);
+        this.toast.success(this.lang.t(toastKey));
+      },
+      error: () => this.actionLoading.set(false),
+    });
+  }
+
+  closeApproval(): void {
+    // Leaving the "undo paid" dialog puts the payment buttons back where they were.
+    const a = this.approval();
+    if (a?.kind === 'undoPaid') this.paymentStatus = a.order.paymentStatus;
+    this.approval.set(null);
+  }
+
+  approvalTitle(): string {
+    return this.lang.t(`approval.${this.approval()?.kind ?? 'cancel'}.title`);
   }
 
   /** A split payment marks the order paid and keeps the biggest part as its main method. */

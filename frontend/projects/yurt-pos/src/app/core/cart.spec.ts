@@ -1,6 +1,6 @@
 import { MenuItem, MenuTopping, PaymentMethod } from 'shared-models';
 import {
-  addLine, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant,
+  addLine, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant, discountOf,
   missingChoice, needsOptions, offlineNumber, receiptLines, toggleTopping, toRequest,
 } from './cart';
 
@@ -102,6 +102,25 @@ describe('till cart', () => {
     });
     expect(toRequest(lines, 'branch', PaymentMethod.Card, 'key-2', false, 5).etaMinutes).toBe(5);
     expect(toRequest(lines, 'branch', PaymentMethod.Card, 'key-3', false, 5, 'DineIn').orderType).toBe('DineIn');
+  });
+});
+
+describe('discount', () => {
+  it('takes a percent or a fixed amount off, never more than the bill', () => {
+    expect(discountOf(2000, { kind: 'percent', value: 10 })).toBe(200);
+    expect(discountOf(1999, { kind: 'percent', value: 15 })).toBe(299.85);
+    expect(discountOf(2000, { kind: 'amount', value: 500 })).toBe(500);
+    expect(discountOf(2000, { kind: 'amount', value: 9000 })).toBe(2000);
+    expect(discountOf(2000, { kind: 'percent', value: 250 })).toBe(2000);
+    expect(discountOf(2000, null)).toBe(0);
+    expect(discountOf(2000, { kind: 'amount', value: 0 })).toBe(0);
+  });
+
+  it('goes into the sale request with the manager PIN and reason, and is left out without one', () => {
+    const lines = addLine([], latte, 'm', []);
+    const req = toRequest(lines, 'branch', PaymentMethod.Cash, 'k', false, 5, 'TakeAway', { kind: 'percent', value: 10, pin: '4821', reason: 'Regular' });
+    expect(req.discount).toEqual({ percent: 10, amount: null, pin: '4821', reason: 'Regular' });
+    expect('discount' in toRequest(lines, 'branch', PaymentMethod.Cash, 'k', false, 5)).toBe(false);
   });
 });
 

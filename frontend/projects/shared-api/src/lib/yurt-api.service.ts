@@ -45,6 +45,9 @@ import {
   CustomerSummary,
   DashboardData,
   DeclineOrderRequest,
+  DiscountRequest,
+  ManagerApprovalRequest,
+  ManagerPinStatus,
   DiscountCode,
   Campaign,
   MarketingOverview,
@@ -1124,8 +1127,27 @@ export class YurtApiService {
   }
 
   /** Gives an online (Stripe) payment back to the customer in full. */
-  refundOrder(id: string): Observable<Order> {
-    return this.http.post<Order>(`${this.api}/admin/orders/${id}/refund`, {});
+  refundOrder(id: string, approval: ManagerApprovalRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/admin/orders/${id}/refund`, approval);
+  }
+
+  /** Cancels an order that was taken on, or a counter sale. Needs a manager PIN and a reason (own_pos). */
+  voidOrder(id: string, approval: ManagerApprovalRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/admin/orders/${id}/cancel`, approval);
+  }
+
+  /** Takes money off an unfinished order. Needs a manager PIN and a reason (own_pos). */
+  discountOrder(id: string, req: DiscountRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/admin/orders/${id}/discount`, req);
+  }
+
+  getManagerPinStatus(): Observable<ManagerPinStatus> {
+    return this.http.get<ManagerPinStatus>(`${this.api}/admin/manager-pin`);
+  }
+
+  /** Sets or changes my own manager PIN (Admin and CEO); my password proves it is me. */
+  setManagerPin(currentPassword: string, pin: string): Observable<void> {
+    return this.http.put<void>(`${this.api}/admin/manager-pin`, { currentPassword, pin });
   }
 
   updateOrderPayment(id: string, req: UpdatePaymentRequest): Observable<Order> {

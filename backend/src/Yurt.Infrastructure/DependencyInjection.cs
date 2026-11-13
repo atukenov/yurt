@@ -17,6 +17,7 @@ using Yurt.Application.Features.Favorites.Services;
 using Yurt.Application.Features.Locations.Services;
 using Yurt.Application.Features.Menu.Services;
 using Yurt.Application.Features.Analytics.Services;
+using Yurt.Application.Features.Approvals;
 using Yurt.Application.Features.Orders.Services;
 using Yurt.Application.Features.Customers;
 using Yurt.Application.Features.GroupOrders;
@@ -216,6 +217,7 @@ public static class DependencyInjection
         services.AddScoped<MenuService>();
         services.AddScoped<Yurt.Application.Features.Menu.Import.MenuImportService>();
         services.AddScoped<OrderService>();
+        services.AddScoped<ManagerApprovalService>();
         services.AddScoped<CounterSaleService>();
         services.AddScoped<PaymentService>();
         services.AddScoped<PromotionService>();

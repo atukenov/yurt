@@ -55,6 +55,9 @@ Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in
   internet), pressing again sends the same key and the server returns the first sale. A changed cart gets a new key.
 - **Sales on this till:** today's sales from this tablet (kept on the tablet only). Sales not uploaded yet say "waiting".
 
+### Discount and cancelling a sale
+The **Discount** button on the payment step asks a manager for their PIN and a reason, then takes a percent or an amount off. The sale is sent with the discount and the server checks the PIN; a wrong or locked PIN shows its message and the sale stays on screen. A discount needs the internet, so without it the till says so and the cashier removes the discount or waits (a plain sale still works offline). **Cancel** on a sale in "Sales on this till" asks for the same PIN and a reason, and the cashier hands the money back. See `docs/roles.md` (Manager PIN).
+
 ### Without internet
 
 - **The app itself** is saved on the tablet after the first visit (`public/sw.js`, a small service worker that keeps

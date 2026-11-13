@@ -6,13 +6,13 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthStateService, BrandService, YurtApiService } from 'shared-api';
 import { Location, MenuCategory, MenuItem, MenuItemVariant, MenuTopping, Order, PaymentMethod } from 'shared-models';
-import { Currency2Pipe, LocalDatePipe } from 'shared-ui';
+import { Currency2Pipe, LocalDatePipe, ManagerApproval, ManagerApprovalComponent } from 'shared-ui';
 import {
   addLine, branchMethods, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
-  missingChoice, ruleOf, toggleTopping, toRequest,
+  discountOf, missingChoice, ruleOf, TillDiscount, toggleTopping, toRequest,
 } from '../../core/cart';
 import { PosLang, PosLangService } from '../../core/lang.service';
-import { TillService } from '../../core/till.service';
+import { TillSale, TillService } from '../../core/till.service';
 import { isTooOld, outcomeOf, QueuedSale } from '../../core/outbox';
 import { OutboxService } from '../../core/outbox.service';
 import { TillPrinterService } from '../../core/till-printer.service';
@@ -23,7 +23,7 @@ type Step = 'cart' | 'pay' | 'done';
 /** The till: pick items, take payment, send the sale. */
 @Component({
   selector: 'pos-sell',
-  imports: [FormsModule, Currency2Pipe, LocalDatePipe, PosTranslatePipe],
+  imports: [FormsModule, Currency2Pipe, LocalDatePipe, ManagerApprovalComponent, PosTranslatePipe],
   templateUrl: './sell.component.html',
 })
 export class SellComponent implements OnInit {
@@ -81,7 +81,21 @@ export class SellComponent implements OnInit {
   readonly step = signal<Step>('cart');
   readonly method = signal<PaymentMethod | null>(null);
   readonly cashGiven = signal<number | null>(null);
-  readonly change = computed(() => changeDue(this.total(), this.cashGiven()));
+  /** Money a manager took off this sale (with their PIN); null = no discount. */
+  readonly discount = signal<TillDiscount | null>(null);
+  readonly discountAmount = computed(() => discountOf(this.total(), this.discount()));
+  /** What the guest pays. */
+  readonly payable = computed(() => Math.round((this.total() - this.discountAmount()) * 100) / 100);
+  readonly change = computed(() => changeDue(this.payable(), this.cashGiven()));
+  readonly discountOpen = signal(false);
+  discountKind: 'percent' | 'amount' = 'percent';
+  discountValue: number | null = null;
+  /** Why the server refused the discount (wrong PIN, locked...) or that it needs the internet. */
+  readonly discountProblem = signal<string | null>(null);
+  /** The sale a manager is cancelling from the list of sales on this till. */
+  readonly cancelTarget = signal<TillSale | null>(null);
+  readonly cancelBusy = signal(false);
+  readonly cancelProblem = signal<string | null>(null);
   readonly handedOver = signal(false);
   readonly orderType = signal<'DineIn' | 'TakeAway'>('TakeAway');
   readonly eta = signal(5);
@@ -231,6 +245,8 @@ export class SellComponent implements OnInit {
 
   private setLines(lines: CartLine[]): void {
     this.lines.set(lines);
+    this.discount.set(null);
+    this.discountProblem.set(null);
     this.saleKey = null;
     this.failed.set(false);
   }
@@ -257,15 +273,73 @@ export class SellComponent implements OnInit {
     return m !== PaymentMethod.Cash || this.cashGiven() === null || this.change() !== null;
   }
 
+  // ── Discount (manager PIN) ─────────────────────────────────────────────────
+
+  openDiscount(): void {
+    this.discountKind = 'percent';
+    this.discountValue = null;
+    this.discountProblem.set(null);
+    this.discountOpen.set(true);
+  }
+
+  discountReady(): boolean {
+    const v = this.discountValue ?? 0;
+    return v > 0 && (this.discountKind === 'amount' ? v <= this.total() : v <= 100);
+  }
+
+  /** Keeps the PIN and reason in memory only until the sale is sent. The server checks them then. */
+  applyDiscount(approved: ManagerApproval): void {
+    if (!this.discountReady()) return;
+    this.discount.set({ kind: this.discountKind, value: this.discountValue!, pin: approved.pin, reason: approved.reason });
+    this.discountOpen.set(false);
+  }
+
+  removeDiscount(): void {
+    this.discount.set(null);
+    this.discountProblem.set(null);
+  }
+
+  // ── Cancel a sale (manager PIN) ────────────────────────────────────────────
+
+  cancelSale(approved: ManagerApproval): void {
+    const sale = this.cancelTarget();
+    if (!sale) return;
+    this.cancelBusy.set(true);
+    this.cancelProblem.set(null);
+    this.api.voidOrder(sale.id, approved).subscribe({
+      next: () => {
+        this.cancelBusy.set(false);
+        this.till.markCancelled(sale.id);
+        this.cancelTarget.set(null);
+      },
+      error: (e: unknown) => {
+        this.cancelBusy.set(false);
+        this.cancelProblem.set(this.problemText(e));
+        this.cancelTarget.set(null);
+      },
+    });
+  }
+
+  private problemText(e: unknown): string {
+    const title = e instanceof HttpErrorResponse ? (e.error?.title as string | undefined) : undefined;
+    return title || this.lang.t('disc.offline');
+  }
+
   finish(): void {
     const branch = this.till.branchId();
     const method = this.method();
     if (!branch || !method || !this.canFinish()) return;
     this.saleKey ??= crypto.randomUUID();
     const handedOver = this.handedOver();
-    const request = toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta(), this.orderType());
+    const request = toRequest(this.lines(), branch, method, this.saleKey, handedOver, this.eta(), this.orderType(), this.discount());
     this.failed.set(false);
     this.signinNeeded.set(false);
+    this.discountProblem.set(null);
+    // A discount is checked by the server with the manager's PIN, so it can't wait on the tablet: no internet, no discount.
+    if (request.discount && !this.outbox.online()) {
+      this.discountProblem.set(this.lang.t('disc.offline'));
+      return;
+    }
     // Known to be offline: keep the sale on the tablet straight away.
     if (!this.outbox.online()) {
       this.keepOffline(request);
@@ -280,12 +354,18 @@ export class SellComponent implements OnInit {
         this.lastQueued.set(null);
         this.lastSale.set(order);
         this.lines.set([]);
+        this.discount.set(null);
         this.saleKey = null;
         this.step.set('done');
       },
       error: (e: unknown) => {
         this.sending.set(false);
         const outcome = outcomeOf(e instanceof HttpErrorResponse ? e.status : 0);
+        if (request.discount && outcome !== 'signin') {
+          // Wrong PIN, locked out or no connection: say so and let the cashier fix or remove the discount.
+          this.discountProblem.set(this.problemText(e));
+          return;
+        }
         // No answer (or the server is down): the guest has paid, so the sale is kept on the tablet with the same key.
         // If the first try did reach the server, the upload gets that sale back instead of making a second one.
         if (outcome === 'retry') this.keepOffline(request);
@@ -331,6 +411,7 @@ export class SellComponent implements OnInit {
   }
 
   next(): void {
+    this.discount.set(null);
     this.lastSale.set(null);
     this.lastQueued.set(null);
     this.printProblem.set(null);

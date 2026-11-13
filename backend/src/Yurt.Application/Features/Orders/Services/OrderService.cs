@@ -3,6 +3,7 @@ using Yurt.Application.Features.Payments.Services;
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Approvals;
 using Yurt.Application.Features.DiscountCodes.Services;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Loyalty.Services;
@@ -31,8 +32,10 @@ public class OrderService
     public OrderService(
         IApplicationDbContext db, IOrdersHubService hub, IAuditLogService audit,
         DiscountCodeService discountCodes, LoyaltyService loyalty, IPosOrderSink pos,
-        IModuleGate modules, StockService? stock = null, PrintService? print = null, PaymentService? payments = null)
+        IModuleGate modules, StockService? stock = null, PrintService? print = null, PaymentService? payments = null,
+        ManagerApprovalService? approvals = null)
     {
+        _approvals = approvals;
         _payments = payments;
         _stock = stock;
         _print = print;
@@ -46,6 +49,7 @@ public class OrderService
     }
 
     private readonly PaymentService? _payments;
+    private readonly ManagerApprovalService? _approvals;
 
     public const string CustomerCancelReason = "Cancelled by customer";
 
@@ -483,6 +487,89 @@ public class OrderService
         return Result<OrderDto>.Success(MapToDto(order));
     }
 
+    /// <summary>
+    /// Staff cancel an order that was already taken on (or a counter sale already rung up): needs a manager PIN and a
+    /// reason. The order ends as Declined with the reason. Money paid online goes back to the guest's card; money paid at
+    /// the till is marked Refunded and the cashier hands it back. Stock already used stays used (write it off if it
+    /// was made). A finished app order is not cancelled this way: use Refund.
+    /// </summary>
+    public async Task<Result<OrderDto>> VoidOrderAsync(Guid orderId, ManagerApprovalDto? dto, CancellationToken ct = default)
+    {
+        var order = await LoadOrderAsync(orderId, ct);
+        if (order == null) return Result<OrderDto>.NotFound();
+
+        var open = order.Status is OrderStatus.Accepted or OrderStatus.Preparing or OrderStatus.Ready;
+        var finishedSale = order.Status == OrderStatus.Completed && order.Source == OrderSource.Counter;
+        if (!open && !finishedSale)
+            return Result<OrderDto>.Failure(
+                order.Status == OrderStatus.Completed
+                    ? "A finished app order can't be cancelled. Give the payment back with Refund instead."
+                    : "Only an order that was taken on can be cancelled. A new order is declined instead.", 422);
+
+        ManagerApproval? approval = null;
+        if (_approvals is not null)
+        {
+            var gate = await _approvals.RequireAsync("Cancel order", dto, ct);
+            if (!gate.Succeeded) return Result<OrderDto>.Failure(gate.Error!, gate.StatusCode);
+            approval = gate.Data;
+        }
+        var reason = approval?.Reason ?? dto?.Reason?.Trim();
+        if (string.IsNullOrWhiteSpace(reason)) return Result<OrderDto>.Failure("Write the reason first.", 400);
+
+        var wasPaidAtTill = order.Source == OrderSource.Counter && order.PaymentStatus == PaymentStatus.Paid;
+        order.Status = OrderStatus.Declined;
+        order.DeclineReason = reason;
+        if (wasPaidAtTill) order.PaymentStatus = PaymentStatus.Refunded;
+        order.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        await _loyalty.ReleaseHoldForOrderAsync(order, ct);
+        if (_payments is not null) await _payments.OnOrderDeclinedAsync(order, ct);
+
+        await _hub.NotifyOrderDeclinedAsync(order, ct);
+        await _audit.LogAsync("OrderCancelled", "Order", orderId.ToString(),
+            $"{(approval?.Describe() ?? reason)}{(wasPaidAtTill ? $" · {order.Total:0.##} to hand back" : "")}", ct);
+        return Result<OrderDto>.Success(MapToDto(order));
+    }
+
+    /// <summary>
+    /// Takes money off an order that is not finished: needs a manager PIN and a reason. One discount per order (a promo
+    /// code counts), and not on an order the guest already paid online (that would be a partial refund).
+    /// </summary>
+    public async Task<Result<OrderDto>> DiscountOrderAsync(Guid orderId, DiscountInputDto dto, CancellationToken ct = default)
+    {
+        var order = await LoadOrderAsync(orderId, ct);
+        if (order == null) return Result<OrderDto>.NotFound();
+
+        if (order.Status is OrderStatus.Completed or OrderStatus.Declined)
+            return Result<OrderDto>.Failure("A finished or cancelled order can't get a discount.", 422);
+        if (order.DiscountAmount > 0)
+            return Result<OrderDto>.Failure("This order already has a discount.", 422);
+        if (order.Source != OrderSource.Counter && order.PaymentStatus == PaymentStatus.Paid)
+            return Result<OrderDto>.Failure("The guest already paid online, so the price can't be lowered here.", 422);
+
+        var amount = ManualDiscount.Compute(order.Total, dto);
+        if (amount.Error is not null) return Result<OrderDto>.Failure(amount.Error, 400);
+
+        ManagerApproval? approval = null;
+        if (_approvals is not null)
+        {
+            var gate = await _approvals.RequireAsync("Discount", new ManagerApprovalDto(dto.Pin, dto.Reason), ct);
+            if (!gate.Succeeded) return Result<OrderDto>.Failure(gate.Error!, gate.StatusCode);
+            approval = gate.Data;
+        }
+
+        order.DiscountAmount = amount.Value;
+        order.Total -= amount.Value;
+        order.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        await _hub.NotifyOrderUpdatedAsync(order, ct);
+        await _audit.LogAsync("OrderDiscount", "Order", orderId.ToString(),
+            $"-{amount.Value:0.##} ({ManualDiscount.Describe(dto)}) · {approval?.Describe() ?? dto.Reason}", ct);
+        return Result<OrderDto>.Success(MapToDto(order));
+    }
+
     public async Task<Result<OrderDto>> DeclineOrderAsync(
         Guid orderId, DeclineOrderDto dto, CancellationToken ct = default)
     {
@@ -491,6 +578,15 @@ public class OrderService
 
         if (order.Status != OrderStatus.Created)
             return Result<OrderDto>.Failure("Order cannot be declined in its current status.", 422);
+
+        // Declining an order the guest already paid online gives the money back, so it needs a manager like a refund does.
+        ManagerApproval? approval = null;
+        if (order.PaymentStatus == PaymentStatus.Paid && _approvals is not null)
+        {
+            var gate = await _approvals.RequireAsync("Decline paid order", new ManagerApprovalDto(dto.Pin, dto.Reason), ct);
+            if (!gate.Succeeded) return Result<OrderDto>.Failure(gate.Error!, gate.StatusCode);
+            approval = gate.Data;
+        }
 
         order.Status = OrderStatus.Declined;
         order.DeclineReason = dto.Reason;
@@ -504,7 +600,7 @@ public class OrderService
         if (_payments is not null) await _payments.OnOrderDeclinedAsync(order, ct);
 
         await _hub.NotifyOrderDeclinedAsync(order, ct);
-        await _audit.LogAsync("OrderDeclined", "Order", orderId.ToString(), dto.Reason, ct);
+        await _audit.LogAsync("OrderDeclined", "Order", orderId.ToString(), approval?.Describe() ?? dto.Reason, ct);
         return Result<OrderDto>.Success(MapToDto(order));
     }
 
@@ -553,6 +649,15 @@ public class OrderService
         var order = await LoadOrderAsync(orderId, ct);
         if (order == null) return Result<OrderDto>.NotFound();
 
+        // Taking back "Paid" (to Unpaid or Refunded) is how money leaves the till without a sale, so it needs a manager.
+        ManagerApproval? approval = null;
+        if (order.PaymentStatus == PaymentStatus.Paid && dto.PaymentStatus != PaymentStatus.Paid && _approvals is not null)
+        {
+            var gate = await _approvals.RequireAsync("Undo payment", new ManagerApprovalDto(dto.Pin, dto.Reason), ct);
+            if (!gate.Succeeded) return Result<OrderDto>.Failure(gate.Error!, gate.StatusCode);
+            approval = gate.Data;
+        }
+
         var cashTaken = order.PaymentStatus != PaymentStatus.Paid && dto.PaymentStatus == PaymentStatus.Paid
             && order.PaymentMethod == PaymentMethod.Cash;
         order.PaymentStatus = dto.PaymentStatus;
@@ -561,7 +666,7 @@ public class OrderService
 
         await _hub.NotifyPaymentUpdatedAsync(order, ct);
         await _audit.LogAsync("OrderPaymentUpdated", "Order", orderId.ToString(),
-            $"{dto.PaymentStatus}", ct);
+            approval is null ? $"{dto.PaymentStatus}" : $"{dto.PaymentStatus} · {approval.Describe()}", ct);
 
         // Cash taken at the till opens the cash drawer on the branch's receipt printer (own_pos). Fails open.
         if (cashTaken && _print is not null && await _modules.IsEnabledAsync(ModuleKeys.OwnPos, ct))

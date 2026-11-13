@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.Approvals;
 using Yurt.Application.Features.Menu.Services;
 using Yurt.Application.Features.Orders.DTOs;
 using Yurt.Application.Features.Printing;
@@ -19,7 +20,7 @@ namespace Yurt.Application.Features.Orders.Services;
 /// </summary>
 public class CounterSaleService(
     IApplicationDbContext db, IOrdersHubService hub, IAuditLogService audit, ICurrentUserService user,
-    StockService? stock = null, PrintService? print = null)
+    StockService? stock = null, PrintService? print = null, ManagerApprovalService? approvals = null)
 {
     // A sale made on the till while it was offline keeps its own time, at most this long ago. Older sales are refused
     // so a forgotten tablet cannot drop last month's sales into today's numbers unseen.
@@ -153,6 +154,22 @@ public class CounterSaleService(
 
         order.Subtotal = order.Items.Sum(i => i.LineTotal);
         order.Total = order.Subtotal;
+        // A discount from the till needs a manager's PIN and a reason. It is checked here, after the retry check above, so
+        // resending a sale that already went through never asks twice.
+        ManagerApproval? approval = null;
+        if (dto.Discount is { } discount)
+        {
+            var amount = ManualDiscount.Compute(order.Subtotal, discount);
+            if (amount.Error is not null) return Result<OrderDto>.Failure(amount.Error, 400);
+            if (approvals is not null)
+            {
+                var gate = await approvals.RequireAsync("Discount", new ManagerApprovalDto(discount.Pin, discount.Reason), ct);
+                if (!gate.Succeeded) return Result<OrderDto>.Failure(gate.Error!, gate.StatusCode);
+                approval = gate.Data;
+            }
+            order.DiscountAmount = amount.Value;
+            order.Total = order.Subtotal - amount.Value;
+        }
         if (dto.HandedOver)
         {
             order.Status = OrderStatus.Completed;
@@ -177,7 +194,8 @@ public class CounterSaleService(
         order.Location = location;
 
         await audit.LogAsync("CounterSale", "Order", order.Id.ToString(),
-            $"{order.Total:0.##} {dto.PaymentMethod}{(live ? "" : $", made offline at {soldAt:u}")}", ct);
+            $"{order.Total:0.##} {dto.PaymentMethod}{(live ? "" : $", made offline at {soldAt:u}")}"
+            + (dto.Discount is { } d ? $" · discount -{order.DiscountAmount:0.##} ({ManualDiscount.Describe(d)}): {approval?.Describe() ?? d.Reason}" : ""), ct);
 
         // Stock goes down even if it was already at zero (it stays at zero): the goods are already sold.
         if (stock is not null) await stock.ConsumeForOrderAsync(order, ct);
