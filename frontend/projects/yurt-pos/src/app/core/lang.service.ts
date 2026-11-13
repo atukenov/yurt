@@ -6,6 +6,7 @@ const T: Record<PosLang, Record<string, string>> = {
   en: {
     'cart.orderType': 'Here or to go', 'cart.here': 'Here', 'cart.toGo': 'To go',
     'app.name': '{cafe} POS',
+    'guest.welcome': 'Welcome!', 'guest.promos': 'Offers', 'guest.yourOrder': 'Your order', 'guest.total': 'Total', 'guest.discount': 'Discount', 'guest.tip': 'Tip', 'guest.toPay': 'To pay', 'guest.payWait': 'Please wait: the cashier is taking your payment', 'guest.payCash': 'Please pay in cash', 'guest.payCard': 'Please tap or insert your card', 'guest.payQr': 'Please pay in your banking app', 'guest.change': 'Change', 'guest.cashGiven': 'Cash given', 'guest.thanks': 'Thank you!', 'guest.number': 'Your order number', 'guest.open': 'Guest screen',
     'login.title': 'Cashier sign-in', 'login.username': 'Username', 'login.password': 'Password', 'login.submit': 'Sign in',
     'login.invalid': 'Wrong username or password.', 'login.changePassword': 'Change your password in the admin app first, then sign in here.',
     'login.hint': 'Use the same login as in the admin app.',
@@ -66,6 +67,7 @@ const T: Record<PosLang, Record<string, string>> = {
   ru: {
     'cart.orderType': 'Здесь или с собой', 'cart.here': 'Здесь', 'cart.toGo': 'С собой',
     'app.name': '{cafe} POS',
+    'guest.welcome': 'Добро пожаловать!', 'guest.promos': 'Акции', 'guest.yourOrder': 'Ваш заказ', 'guest.total': 'Итого', 'guest.discount': 'Скидка', 'guest.tip': 'Чаевые', 'guest.toPay': 'К оплате', 'guest.payWait': 'Подождите, кассир принимает оплату', 'guest.payCash': 'Пожалуйста, оплатите наличными', 'guest.payCard': 'Приложите или вставьте карту', 'guest.payQr': 'Оплатите в приложении банка', 'guest.change': 'Сдача', 'guest.cashGiven': 'Внесено наличными', 'guest.thanks': 'Спасибо!', 'guest.number': 'Номер вашего заказа', 'guest.open': 'Экран для гостя',
     'login.title': 'Вход для кассира', 'login.username': 'Логин', 'login.password': 'Пароль', 'login.submit': 'Войти',
     'login.invalid': 'Неверный логин или пароль.', 'login.changePassword': 'Сначала смените пароль в админ-панели, потом войдите здесь.',
     'login.hint': 'Тот же логин, что и в админ-панели.',
@@ -127,6 +129,7 @@ const T: Record<PosLang, Record<string, string>> = {
   kk: {
     'cart.orderType': 'Осында немесе алып кету', 'cart.here': 'Осында', 'cart.toGo': 'Алып кету',
     'app.name': '{cafe} POS',
+    'guest.welcome': 'Қош келдіңіз!', 'guest.promos': 'Акциялар', 'guest.yourOrder': 'Сіздің тапсырысыңыз', 'guest.total': 'Барлығы', 'guest.discount': 'Жеңілдік', 'guest.tip': 'Шайпұл', 'guest.toPay': 'Төлеуге', 'guest.payWait': 'Күтіңіз, кассир төлемді қабылдап жатыр', 'guest.payCash': 'Қолма-қол ақшамен төлеңіз', 'guest.payCard': 'Картаны жақындатыңыз немесе салыңыз', 'guest.payQr': 'Банк қосымшасында төлеңіз', 'guest.change': 'Қайтарым', 'guest.cashGiven': 'Берілген қолма-қол ақша', 'guest.thanks': 'Рахмет!', 'guest.number': 'Тапсырыс нөміріңіз', 'guest.open': 'Қонақ экраны',
     'login.title': 'Кассирдің кіруі', 'login.username': 'Логин', 'login.password': 'Құпиясөз', 'login.submit': 'Кіру',
     'login.invalid': 'Логин немесе құпиясөз қате.', 'login.changePassword': 'Алдымен әкімші қолданбасында құпиясөзді ауыстырыңыз, содан кейін осында кіріңіз.',
     'login.hint': 'Әкімші қолданбасындағы логинмен кіріңіз.',
