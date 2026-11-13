@@ -76,7 +76,7 @@ export class KioskComponent implements OnInit {
   /** Why the order was not accepted (a translation of the server's reason when it gave one). */
   readonly problem = signal<string | null>(null);
   readonly order = signal<Order | null>(null);
-  readonly number = computed(() => { const o = this.order(); return o ? orderNumber(o.id) : ''; });
+  readonly number = computed(() => { const o = this.order(); return o ? orderNumber(o) : ''; });
   /** One key per order, kept for every retry, so a lost answer never makes a second order. A changed cart gets a new key. */
   private orderKey: string | null = null;
 

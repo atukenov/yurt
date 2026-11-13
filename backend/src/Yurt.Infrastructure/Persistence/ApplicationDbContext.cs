@@ -35,6 +35,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<OrderItemTopping> OrderItemToppings => Set<OrderItemTopping>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderDayCounter> OrderDayCounters => Set<OrderDayCounter>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<PaymentWebhookLog> PaymentWebhookLogs => Set<PaymentWebhookLog>();

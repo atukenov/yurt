@@ -8,6 +8,8 @@ export interface TillSale {
   method: string;
   at: string;
   handedOver: boolean;
+  /** The short number of the sale (1, 2, 3 ... each day); empty for an old entry. */
+  number?: string;
   /** Saved on this tablet, not on the server yet (id is the sale's key until then). */
   pending?: boolean;
   /** A manager cancelled it; the money was handed back. */
@@ -53,7 +55,7 @@ export class TillService {
 
   remember(order: Order, handedOver: boolean): void {
     if (this.sales().some((s) => s.id === order.id)) return; // a resent sale came back as the first one
-    const sale: TillSale = { id: order.id, total: order.total, method: order.paymentMethod ?? '', at: order.createdAt, handedOver };
+    const sale: TillSale = { id: order.id, total: order.total, method: order.paymentMethod ?? '', at: order.createdAt, handedOver, number: order.number };
     this.save([sale, ...this.sales()]);
   }
 
@@ -65,7 +67,7 @@ export class TillService {
 
   /** The server has the sale now: show its real number. */
   markUploaded(key: string, order: Order): void {
-    this.save(this.sales().map((s) => (s.id === key ? { ...s, id: order.id, pending: false } : s)));
+    this.save(this.sales().map((s) => (s.id === key ? { ...s, id: order.id, number: order.number, pending: false } : s)));
   }
 
   markCancelled(id: string): void {

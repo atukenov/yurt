@@ -167,7 +167,7 @@
             <div class="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
               <p class="text-4xl" aria-hidden="true">✓</p>
               @if (lastSale(); as sale) {
-                <p class="text-xl font-bold text-slate-900">{{ 'done.title' | t: { no: shortNo(sale.id) } }}</p>
+                <p class="text-xl font-bold text-slate-900">{{ 'done.title' | t: { no: shortNo(sale) } }}</p>
                 <p class="text-2xl font-bold text-slate-900">{{ sale.total | currency2 }}</p>
                 @if (sale.tipAmount) {
                   <p class="text-sm text-slate-700">{{ 'tip.line' | t }} +{{ sale.tipAmount | currency2 }}</p>
@@ -453,7 +453,7 @@
             @if (s.pending) {
               <span class="rounded bg-amber-100 px-1.5 text-xs text-amber-900">{{ 'sales.pending' | t }}</span>
             } @else {
-              <span class="font-mono text-slate-700">#{{ shortNo(s.id) }}</span>
+              <span class="font-mono text-slate-700">#{{ shortNo(s) }}</span>
             }
             <span class="text-slate-600">{{ 'pay.' + s.method | t }}</span>
             <span class="font-semibold text-slate-900">{{ s.total | currency2 }}</span>

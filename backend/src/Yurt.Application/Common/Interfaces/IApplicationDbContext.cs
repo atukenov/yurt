@@ -23,6 +23,8 @@ public interface IApplicationDbContext
     DbSet<OrderItemTopping> OrderItemToppings { get; }
     DbSet<Favorite> Favorites { get; }
     DbSet<Order> Orders { get; }
+    DbSet<OrderDayCounter> OrderDayCounters { get; }
+    Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
     DbSet<OrderItem> OrderItems { get; }
     DbSet<Payment> Payments { get; }
     DbSet<PaymentWebhookLog> PaymentWebhookLogs { get; }

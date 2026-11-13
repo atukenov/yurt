@@ -791,6 +791,10 @@ export interface Order {
   tipAmount?: number;
   /** How the tip was paid; empty = the same way as the bill. */
   tipMethod?: PaymentMethod | null;
+  /** The short number guests and staff say out loud: 1, 2, 3 ... again from 1 each day at the branch. Old orders: the end of the id. */
+  number?: string;
+  /** The day's number as an integer (not set on an old order, or on a sale made offline, whose number is "T-…"). */
+  dailyNumber?: number | null;
   total: number;
   discountCode?: string;
   items: OrderItem[];
