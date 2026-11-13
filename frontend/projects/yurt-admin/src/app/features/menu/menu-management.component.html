@@ -189,6 +189,16 @@
       </div>
     }
 
+    @if (activeTab() === 'items') {
+      <div class="px-6 pt-3 flex flex-wrap gap-2" role="group" [attr.aria-label]="'label.status' | t">
+        @for (f of [['all','menu.filterAll'],['hidden','menu.filterHidden'],['noPhoto','menu.filterNoPhoto'],['noPrice','menu.filterNoPrice']]; track f[0]) {
+          <button type="button" (click)="statusFilter.set($any(f[0]))" [attr.aria-pressed]="statusFilter() === f[0]"
+            [class]="statusFilter() === f[0] ? 'bg-brand-500 text-on-brand' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            class="text-xs font-medium px-3 py-1.5 rounded-full transition-colors">{{ f[1] | t }}</button>
+        }
+      </div>
+    }
+
     <!-- Items table -->
     @if (activeTab() === 'items') {
       @if (loading()) {
@@ -240,7 +250,25 @@
                     </div>
                   }
                 </td>
-                <td class="px-6 py-3 font-medium text-slate-800">{{ localizedItemName(item) }}</td>
+                <td class="px-6 py-3 font-medium text-slate-800">
+                  <div class="flex items-center gap-3">
+                    @if (item.imageUrl) {
+                      <img [src]="item.imageUrl" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0" />
+                    } @else {
+                      <span aria-hidden="true" class="w-10 h-10 rounded-lg bg-slate-100 shrink-0"></span>
+                    }
+                    <div class="min-w-0">
+                      <p>{{ localizedItemName(item) }}</p>
+                      @if (item.variants?.length || item.toppingIds?.length) {
+                        <p class="text-xs font-normal text-slate-500">
+                          @if (item.variants?.length) { {{ 'menu.sizesCount' | t: { n: item.variants!.length } }} }
+                          @if (item.variants?.length && item.toppingIds?.length) { · }
+                          @if (item.toppingIds?.length) { {{ 'menu.optionsCount' | t: { n: item.toppingIds!.length } }} }
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </td>
                 <td class="px-6 py-3 text-slate-500">{{ categoryName(item.categoryId) }}</td>
                 <td class="px-6 py-3 text-right font-semibold text-brand-ink">
                   @if (item.variants && item.variants.length > 0) {
@@ -250,13 +278,14 @@
                   }
                 </td>
                 <td class="px-6 py-3 text-center">
-                  <span
-                    [class]="
-                      item.isAvailable ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                    "
-                    class="text-xs px-2 py-0.5 rounded-full"
-                    >{{ item.isAvailable ? ('label.yes' | t) : ('label.no' | t) }}</span
-                  >
+                  <button type="button" role="switch" [attr.aria-checked]="item.isAvailable"
+                    [attr.aria-label]="'menu.toggleAvail' | t: { name: localizedItemName(item) }"
+                    (click)="toggleAvailable(item)"
+                    [class]="item.isAvailable ? 'bg-green-500' : 'bg-slate-300'"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors">
+                    <span [class]="item.isAvailable ? 'translate-x-6' : 'translate-x-1'"
+                      class="inline-block h-4 w-4 rounded-full bg-white transition-transform"></span>
+                  </button>
                 </td>
                 <td class="px-6 py-3 text-right">
                   <div class="flex justify-end gap-2">

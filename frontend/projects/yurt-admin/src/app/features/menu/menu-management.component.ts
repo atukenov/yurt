@@ -133,6 +133,7 @@ export class MenuManagementComponent implements OnInit {
   });
 
   itemSearch = signal('');
+  statusFilter = signal<'all' | 'hidden' | 'noPhoto' | 'noPrice'>('all');
   toppingSearch = signal('');
 
   filteredItems = computed(() => {
@@ -143,8 +144,34 @@ export class MenuManagementComponent implements OnInit {
       i.name.toLowerCase().includes(q) ||
       (i.nameRu ?? '').toLowerCase().includes(q) ||
       (i.nameKk ?? '').toLowerCase().includes(q));
+    const f = this.statusFilter();
+    if (f === 'hidden') list = list.filter((i) => !i.isAvailable);
+    else if (f === 'noPhoto') list = list.filter((i) => !i.imageUrl);
+    else if (f === 'noPrice') list = list.filter((i) => !i.price && !(i.variants?.length));
     return list;
   });
+
+  /** Flip a dish's availability right in the list, without opening the editor. */
+  toggleAvailable(item: MenuItem): void {
+    const next = !item.isAvailable;
+    this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, isAvailable: next } : i)));
+    // The server replaces the whole dish on save, so send everything the list already knows.
+    const payload = {
+      name: item.name, nameRu: item.nameRu, nameKk: item.nameKk,
+      description: item.description || undefined, descriptionRu: item.descriptionRu, descriptionKk: item.descriptionKk,
+      price: item.price, categoryId: item.categoryId, imageUrl: item.imageUrl,
+      isAvailable: next, isNew: item.isNew, barcode: item.barcode ?? null, soldByWeight: item.soldByWeight ?? false,
+      locationIds: item.locationIds ?? [], toppingIds: item.toppingIds ?? [],
+      locationPrices: item.locationPrices ?? [],
+      variants: item.variants?.length ? item.variants : undefined,
+      iikoProductId: item.iikoProductId ?? undefined, iikoProductSizeId: item.iikoProductSizeId ?? undefined,
+      nutrition: item.nutrition ?? undefined,
+    } as Partial<MenuItem>;
+    this.api.adminUpdateMenuItem(item.id, payload).subscribe({
+      next: (saved) => this.items.update((list) => list.map((i) => (i.id === saved.id ? saved : i))),
+      error: () => this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, isAvailable: !next } : i))),
+    });
+  }
 
   filteredToppings = computed(() => {
     const q = this.toppingSearch().toLowerCase().trim();
