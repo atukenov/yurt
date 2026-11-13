@@ -1044,3 +1044,34 @@ public class CafeExpenseConfiguration : IEntityTypeConfiguration<CafeExpense>
         builder.HasIndex(e => e.Month);
     }
 }
+
+public class CardTerminalConfiguration : IEntityTypeConfiguration<CardTerminal>
+{
+    public void Configure(EntityTypeBuilder<CardTerminal> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
+        builder.Property(e => e.Provider).HasMaxLength(20).IsRequired();
+        builder.Property(e => e.Host).HasMaxLength(100).IsRequired();
+        builder.HasOne(e => e.Location).WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class CardTerminalPaymentConfiguration : IEntityTypeConfiguration<CardTerminalPayment>
+{
+    public void Configure(EntityTypeBuilder<CardTerminalPayment> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Amount).HasPrecision(18, 2);
+        builder.Property(e => e.ApprovalCode).HasMaxLength(20);
+        builder.Property(e => e.TransactionRef).HasMaxLength(40);
+        builder.Property(e => e.CardLast4).HasMaxLength(4);
+        builder.Property(e => e.Error).HasMaxLength(200);
+        builder.Property(e => e.CreatedBy).HasMaxLength(50);
+        // Payments are money records: deleting a terminal or branch must not silently delete them.
+        builder.HasOne(e => e.Terminal).WithMany().HasForeignKey(e => e.TerminalId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(e => new { e.TerminalId, e.Status });
+        builder.HasIndex(e => new { e.LocationId, e.Status });
+        builder.HasIndex(e => e.OrderId);
+    }
+}

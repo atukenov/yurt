@@ -54,6 +54,7 @@ public class YurtWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
             {
                 ["ConnectionStrings:DefaultConnection"]       = _pg.GetConnectionString(),
                 ["Jwt:Secret"]                               = JwtSecret,
+                ["CardTerminals:AllowSimulator"]             = "true",
                 ["Jwt:Issuer"]                               = "YurtTest",
                 ["Jwt:Audience"]                             = "YurtTest",
                 ["Jwt:AccessTokenMinutes"]                   = "60",

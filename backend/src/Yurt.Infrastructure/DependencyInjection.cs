@@ -214,6 +214,11 @@ public static class DependencyInjection
         services.AddScoped<PrinterService>();
         services.AddScoped<PrintService>();
         services.AddScoped<PrintAgentService>();
+        services.AddScoped<PrintAgentService>();
+        // Bank card terminals: off until a branch gets a terminal row. The simulator approves fake cards, so the service
+        // ignores it unless CardTerminals:AllowSimulator is true (docker-compose sets it; live servers do not).
+        services.AddSingleton<ICardTerminalAdapter, Yurt.Infrastructure.CardTerminals.SimulatorCardTerminal>();
+        services.AddScoped<Yurt.Application.Features.CardTerminals.CardTerminalService>();
         services.AddScoped<BluetoothPrintService>();
         services.AddScoped<PictureService>();
         services.AddScoped<MenuService>();
