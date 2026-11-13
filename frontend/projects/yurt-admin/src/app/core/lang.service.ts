@@ -67,13 +67,14 @@ const T: Record<AdminLang, Record<string, string>> = {
 
     // Menu management
     'menu.title': 'Menu Management', 'menu.categories': 'Categories', 'menu.allItems': 'All Items',
-    'menu.addCategory': '+ Add Category', 'menu.items': 'Items', 'menu.toppings': 'Toppings',
+    'menu.addCategory': '+ Add Category', 'menu.items': 'Items', 'menu.toppings': 'Options',
     'menu.addItem': '+ Add Item', 'menu.addTopping': '+ Add Topping',
     'menu.addMenuItemTitle': 'Add Menu Item', 'menu.editMenuItemTitle': 'Edit Menu Item',
     'menu.addCategoryTitle': 'Add Category', 'menu.editCategoryTitle': 'Edit Category',
     'menu.addToppingTitle': 'Add Topping', 'menu.editToppingTitle': 'Edit Topping',
     'menu.noItems': 'No items in this category', 'menu.noToppings': 'No toppings yet',
     'menu.tab.basics': 'Basics', 'menu.tab.sizes': 'Sizes & options', 'menu.tab.branches': 'Branches', 'menu.tab.details': 'Details',
+    'menu.noGroup': 'No group',
     'menu.filterAll': 'All', 'menu.filterHidden': 'Unavailable', 'menu.filterNoPhoto': 'No photo', 'menu.filterNoPrice': 'No price', 'menu.sizesCount': '{n} sizes', 'menu.optionsCount': '{n} options', 'menu.toggleAvail': 'Available: {name}',
     'menu.searchItems': 'Search items…', 'menu.searchToppings': 'Search toppings…',
     'menu.nameLabel': 'Name', 'menu.categoryName': 'Category name',
@@ -730,13 +731,14 @@ const T: Record<AdminLang, Record<string, string>> = {
 
     // Menu management
     'menu.title': 'Управление меню', 'menu.categories': 'Категории', 'menu.allItems': 'Все блюда',
-    'menu.addCategory': '+ Добавить категорию', 'menu.items': 'Блюда', 'menu.toppings': 'Топпинги',
+    'menu.addCategory': '+ Добавить категорию', 'menu.items': 'Блюда', 'menu.toppings': 'Опции',
     'menu.addItem': '+ Добавить блюдо', 'menu.addTopping': '+ Добавить топпинг',
     'menu.addMenuItemTitle': 'Добавить блюдо', 'menu.editMenuItemTitle': 'Изменить блюдо',
     'menu.addCategoryTitle': 'Добавить категорию', 'menu.editCategoryTitle': 'Изменить категорию',
     'menu.addToppingTitle': 'Добавить топпинг', 'menu.editToppingTitle': 'Изменить топпинг',
     'menu.noItems': 'Нет блюд в этой категории', 'menu.noToppings': 'Нет топпингов',
     'menu.tab.basics': 'Основное', 'menu.tab.sizes': 'Размеры и опции', 'menu.tab.branches': 'Филиалы', 'menu.tab.details': 'Подробнее',
+    'menu.noGroup': 'Без группы',
     'menu.filterAll': 'Все', 'menu.filterHidden': 'Недоступные', 'menu.filterNoPhoto': 'Без фото', 'menu.filterNoPrice': 'Без цены', 'menu.sizesCount': 'Размеров: {n}', 'menu.optionsCount': 'Опций: {n}', 'menu.toggleAvail': 'Доступно: {name}',
     'menu.searchItems': 'Поиск блюд…', 'menu.searchToppings': 'Поиск топпингов…',
     'menu.nameLabel': 'Название', 'menu.categoryName': 'Название категории',
@@ -1404,13 +1406,14 @@ const T: Record<AdminLang, Record<string, string>> = {
 
     // Menu management
     'menu.title': 'Мәзір басқару', 'menu.categories': 'Санаттар', 'menu.allItems': 'Барлық тауарлар',
-    'menu.addCategory': '+ Санат қосу', 'menu.items': 'Тауарлар', 'menu.toppings': 'Топпингтер',
+    'menu.addCategory': '+ Санат қосу', 'menu.items': 'Тауарлар', 'menu.toppings': 'Опциялар',
     'menu.addItem': '+ Тауар қосу', 'menu.addTopping': '+ Топпинг қосу',
     'menu.addMenuItemTitle': 'Тауар қосу', 'menu.editMenuItemTitle': 'Тауарды өзгерту',
     'menu.addCategoryTitle': 'Санат қосу', 'menu.editCategoryTitle': 'Санатты өзгерту',
     'menu.addToppingTitle': 'Топпинг қосу', 'menu.editToppingTitle': 'Топпингті өзгерту',
     'menu.noItems': 'Бұл санатта тауар жоқ', 'menu.noToppings': 'Топпингтер жоқ',
     'menu.tab.basics': 'Негізгі', 'menu.tab.sizes': 'Өлшемдер мен опциялар', 'menu.tab.branches': 'Филиалдар', 'menu.tab.details': 'Толығырақ',
+    'menu.noGroup': 'Топсыз',
     'menu.filterAll': 'Барлығы', 'menu.filterHidden': 'Қолжетімсіз', 'menu.filterNoPhoto': 'Фотосыз', 'menu.filterNoPrice': 'Бағасыз', 'menu.sizesCount': 'Өлшем: {n}', 'menu.optionsCount': 'Опция: {n}', 'menu.toggleAvail': 'Қолжетімді: {name}',
     'menu.searchItems': 'Тауар іздеу…', 'menu.searchToppings': 'Топпинг іздеу…',
     'menu.nameLabel': 'Атауы', 'menu.categoryName': 'Санат атауы',

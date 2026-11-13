@@ -189,6 +189,32 @@ export class MenuManagementComponent implements OnInit {
       (t.group ?? '').toLowerCase().includes(q));
   });
 
+  /** Option groups for the Options view: one card per group (rules + options), plus a card for options without a group. */
+  openRules = signal('');
+  optionCards = computed(() => {
+    const list = this.filteredToppings();
+    const rules = new Map(this.ruleRows().map((r) => [r.key, r]));
+    const keys = new Set<string>([...rules.keys(), ...list.map((t) => t.group ?? '').filter((g) => !!g)]);
+    const searching = this.toppingSearch().trim() !== '';
+    const cards = [...keys].sort().map((key) => ({
+      key, rule: rules.get(key) ?? null, toppings: list.filter((t) => (t.group ?? '') === key),
+    })).filter((c) => !searching || c.toppings.length);
+    const ungrouped = list.filter((t) => !t.group);
+    if (ungrouped.length) {
+      cards.push({ key: '', rule: null, toppings: ungrouped });
+    }
+    return cards;
+  });
+
+  /** One line saying how guests may choose from a group, e.g. "Required · pick 1". */
+  ruleSummary(rule: RuleRow | null): string {
+    const t = (k: string) => this.langService.t(k);
+    if (!rule || !rule.saved) return t('menu.ruleDefault');
+    const max = rule.maxSelect ? `${t('menu.ruleMax')} ${rule.maxSelect}` : '';
+    return [rule.required ? t('menu.ruleRequired') : '', rule.minSelect ? `${t('menu.ruleMin')} ${rule.minSelect}` : '', max]
+      .filter(Boolean).join(' · ');
+  }
+
   ngOnInit(): void {
     this.loadAll();
   }
@@ -608,7 +634,7 @@ export class MenuManagementComponent implements OnInit {
     this.showCatDialog.set(true);
   }
 
-  openToppingDialog(topping?: MenuTopping): void {
+  openToppingDialog(topping?: MenuTopping, group = ''): void {
     this.toppingForm.set({
       id: topping?.id,
       name: topping?.name ?? '',
@@ -617,7 +643,7 @@ export class MenuManagementComponent implements OnInit {
       price: topping?.price ?? 0,
       isAvailable: topping?.isAvailable ?? true,
       categoryIds: topping?.categoryIds ? [...topping.categoryIds] : [],
-      group: topping?.group ?? '',
+      group: topping?.group ?? group,
       locationPrices: Object.fromEntries((topping?.locationPrices ?? []).map((p) => [p.locationId, p.price])),
     });
     this.showToppingDialog.set(true);
