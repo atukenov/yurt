@@ -56,7 +56,7 @@ Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in
 - **Sales on this till:** today's sales from this tablet (kept on the tablet only). Sales not uploaded yet say "waiting".
 
 ### Staff PIN
-The **Staff PIN** button in the top bar takes a PIN: *Take over the till* signs the till in as that person (the sale on screen stays), *Clock in / out* starts or ends their working hours, and the dialog lists who is on the clock. Needs the internet. See `docs/time-clock.md`.
+The **Staff PIN** button in the top bar takes a PIN: *Take over the till* signs the till in as that person (the sale on screen stays), *Clock in / out* starts or ends their working hours, Needs the internet. See `docs/time-clock.md`.
 
 ### Tip
 A **combo** (set up in Admin → Combos, see `docs/combos.md`) shows in the menu like a dish with what is inside on its tile. Tapping it adds it to the sale at its set price, with no sizes or add-ons; the dishes inside are taken off the stock, also for a sale made offline.

@@ -150,6 +150,24 @@ public class TimeClockTests(YurtWebAppFactory factory)
     }
 
     [Fact]
+    public async Task EveryRole_CanClockInAndOutFromTheirOwnLogin_WithoutAPin()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        foreach (var (name, role) in new[] { ($"bar-{id}", AdminRole.Worker), ($"adm-{id}", AdminRole.Admin), ($"ceo-{id}", AdminRole.Ceo) })
+        {
+            var c = await ClientAsync(name, "Passw0rd@123", role);
+            Assert.False((await c.GetFromJsonAsync<JsonElement>(Clock + "/me")).GetProperty("clockedIn").GetBoolean());
+            var inRes = await (await c.PostAsJsonAsync(Clock + "/me/toggle", new { })).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("in", inRes.GetProperty("action").GetString());
+            Assert.True((await c.GetFromJsonAsync<JsonElement>(Clock + "/me")).GetProperty("clockedIn").GetBoolean());
+            var outRes = await (await c.PostAsJsonAsync(Clock + "/me/toggle", new { })).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("out", outRes.GetProperty("action").GetString());
+        }
+        var op = await ClientAsync($"op-{id}", "OperatorPass@12345", AdminRole.SuperAdmin);
+        Assert.Equal(HttpStatusCode.NotFound, (await op.PostAsJsonAsync(Clock + "/me/toggle", new { })).StatusCode);
+    }
+
+    [Fact]
     public async Task ForgottenClockOut_IsClosedWithZeroHours_AndAManagerCanFixIt()
     {
         var id = Guid.NewGuid().ToString("N")[..8];

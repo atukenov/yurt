@@ -12,9 +12,11 @@ Module: `own_pos`. Built for the cashiers at the Yurt POS till, who share one ta
 1. **Take over the till:** the cashier types their PIN; the till signs in as them (a new login, the previous refresh token is revoked). The sale in progress stays on screen, so a guest does not wait. Sales, tips and the audit log now carry the new name (`StaffSwitched` in the audit log, written under the person who handed over).
    - Only **Workers and Admins** can be switched to. The **CEO** signs in with the password. An account that still has to choose a new password must sign in with its password once.
 2. **Clock in / out:** the same PIN toggles the person's working time: first press clocks in, next press clocks out. It works for anybody with a PIN, including the CEO, and does not change who is signed in at the till.
-3. The dialog lists who is on the clock now.
 
 Both actions need the internet because the server checks the PIN. A sale made offline is not blocked: the cashier keeps selling as the person who is signed in and clocks in when the internet is back.
+
+## Clock in from the admin app (everyone)
+Baristas, kitchen staff, Admins and the CEO do not need the till. Every signed-in staff member (not the platform operator) gets a **Clock in / Clock out** button at the bottom of the admin sidebar, which also shows "since 09:12" while clocked in. No PIN: the login is the proof. Works on a phone, so a barista can clock in at the door. `GET admin/time-clock/me`, `POST admin/time-clock/me/toggle`.
 
 ## Worked hours
 - Entries are in admin app → *Reports → Worked hours* (Admin and CEO): hours per person for a period, every entry, who changed it and why.
@@ -37,7 +39,8 @@ Both actions need the internet because the server checks the PIN. A sale made of
 | `PUT / DELETE admin/staff-pin/{id}` | Admin (workers), CEO | `{ pin }` / remove |
 | `POST admin/staff-pin/switch` | any staff | `{ pin, refreshToken? }` → same answer as a login |
 | `POST admin/time-clock/punch` | any staff | `{ pin, locationId? }` → `{ action: "in" \| "out", ... }` |
-| `GET admin/time-clock/now` | any staff | who is on the clock |
+| `GET admin/time-clock/me`, `POST admin/time-clock/me/toggle` | any staff | am I clocked in / clock myself in or out, no PIN |
+| `GET admin/time-clock/now` | any staff | who is on the clock (API only, no screen) |
 | `GET admin/time-clock/hours?from&to&staffId` | Admin, CEO | report (dates `yyyy-MM-dd`, at most 93 days) |
 | `POST / PUT / DELETE admin/time-clock/entries` | Admin, CEO | add, fix, remove; `reason` required |
 | `PUT admin/payroll/staff/{id}/salary` | CEO | `{ monthlySalary, hourlyRate? }` |
@@ -46,6 +49,6 @@ Both actions need the internet because the server checks the PIN. A sale made of
 `seed-demo` gives every demo staff member a staff PIN (`2001`, `2002`, ... in the order of the staff list) and two weeks of clocked shifts.
 
 ## Not built yet
-- Clocking in from the admin app without a PIN, or by QR/NFC card.
+- Clocking in by QR/NFC card, or only from the cafe's network/location.
 - Overtime and night-rate rules, breaks, a planned schedule against actual hours.
 - Attributing a sale made offline to the cashier who rang it up (it goes with whoever is signed in when it uploads).

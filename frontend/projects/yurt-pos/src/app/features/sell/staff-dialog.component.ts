@@ -1,9 +1,7 @@
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthStateService, YurtApiService } from 'shared-api';
-import { OnTheClock } from 'shared-models';
-import { LocalDatePipe } from 'shared-ui';
 import { PosLangService } from '../../core/lang.service';
 import { PosTranslatePipe } from '../../core/translate.pipe';
 
@@ -13,7 +11,7 @@ import { PosTranslatePipe } from '../../core/translate.pipe';
  */
 @Component({
   selector: 'pos-staff-dialog',
-  imports: [FormsModule, LocalDatePipe, PosTranslatePipe],
+  imports: [FormsModule, PosTranslatePipe],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" (click)="closed.emit()">
       <div class="w-full max-w-sm space-y-4 rounded-2xl bg-surface p-5" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
@@ -44,21 +42,11 @@ import { PosTranslatePipe } from '../../core/translate.pipe';
             {{ 'staff.clock' | t }}
           </button>
         </div>
-
-        <div>
-          <h3 class="text-sm font-semibold text-slate-700">{{ 'staff.onClock' | t }}</h3>
-          @if (!onClock().length) {
-            <p class="text-sm text-slate-500">{{ 'staff.nobody' | t }}</p>
-          }
-          @for (p of onClock(); track p.entryId) {
-            <p class="text-sm text-slate-700">{{ p.username }} · {{ 'staff.since' | t }} {{ p.clockInAt | ldate: 'time24' }}</p>
-          }
-        </div>
       </div>
     </div>
   `,
 })
-export class StaffDialogComponent implements OnInit {
+export class StaffDialogComponent {
   private api = inject(YurtApiService);
   private auth = inject(AuthStateService);
   private lang = inject(PosLangService);
@@ -73,18 +61,9 @@ export class StaffDialogComponent implements OnInit {
   readonly busy = signal(false);
   readonly message = signal('');
   readonly messageIsError = signal(false);
-  readonly onClock = signal<OnTheClock[]>([]);
-
-  ngOnInit(): void {
-    this.loadOnClock();
-  }
 
   valid(): boolean {
     return /^[0-9]{4,6}$/.test(this.pin);
-  }
-
-  private loadOnClock(): void {
-    this.api.getOnTheClock().subscribe({ next: (l) => this.onClock.set(l), error: () => {} });
   }
 
   switchTo(): void {
@@ -116,7 +95,6 @@ export class StaffDialogComponent implements OnInit {
           ? this.lang.t('staff.clockedIn', { name: r.username, time })
           : this.lang.t('staff.clockedOut', { name: r.username, time, hours: (r.hoursThisShift ?? 0).toFixed(1) });
         this.show(r.forgotLast ? `${text} ${this.lang.t('staff.forgot')}` : text, false);
-        this.loadOnClock();
       },
       error: (e: HttpErrorResponse) => this.fail(e),
     });

@@ -8,6 +8,8 @@ using Yurt.WebApi.Common;
 
 namespace Yurt.WebApi.Controllers.Admin;
 
+public record ToggleMineDto(Guid? LocationId);
+
 /// <summary>Clock-in and clock-out with the staff PIN, and worked hours (own_pos). See docs/roles.md.</summary>
 [ApiController]
 [ApiVersion("1.0")]
@@ -19,6 +21,15 @@ public class AdminTimeClockController(TimeClockService clock) : ApiControllerBas
     /// <summary>Clock in, or clock out if already in. The PIN says who.</summary>
     [HttpPost("punch")]
     public async Task<IActionResult> Punch([FromBody] PunchDto dto, CancellationToken ct) => ToResult(await clock.PunchAsync(dto, ct));
+
+    /// <summary>Am I clocked in? Every staff role, from the admin app.</summary>
+    [HttpGet("me")]
+    public async Task<IActionResult> Mine(CancellationToken ct) => Ok(await clock.MineAsync(ct));
+
+    /// <summary>Clock myself in, or out when already in. No PIN: the login is the proof.</summary>
+    [HttpPost("me/toggle")]
+    public async Task<IActionResult> ToggleMine([FromBody] ToggleMineDto? dto, CancellationToken ct)
+        => ToResult(await clock.ToggleMineAsync(dto?.LocationId, ct));
 
     /// <summary>Who is clocked in right now.</summary>
     [HttpGet("now")]

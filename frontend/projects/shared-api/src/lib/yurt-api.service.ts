@@ -1221,6 +1221,16 @@ export class YurtApiService {
     return this.http.post<PunchResult>(`${this.api}/admin/time-clock/punch`, { pin, locationId: locationId ?? null });
   }
 
+  /** Am I clocked in? (every staff role) */
+  getMyClock(): Observable<{ clockedIn: boolean; since: string | null }> {
+    return this.http.get<{ clockedIn: boolean; since: string | null }>(`${this.api}/admin/time-clock/me`);
+  }
+
+  /** Clock myself in, or out when already in. No PIN. */
+  toggleMyClock(): Observable<PunchResult> {
+    return this.http.post<PunchResult>(`${this.api}/admin/time-clock/me/toggle`, {});
+  }
+
   getOnTheClock(): Observable<OnTheClock[]> {
     return this.http.get<OnTheClock[]>(`${this.api}/admin/time-clock/now`);
   }

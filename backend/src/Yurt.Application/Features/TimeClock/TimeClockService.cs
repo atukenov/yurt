@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Domain.Entities;
+using Yurt.Domain.Enums;
 
 namespace Yurt.Application.Features.TimeClock;
 
 public record PunchDto(string? Pin, Guid? LocationId);
 public record PunchResultDto(Guid AdminUserId, string Username, string Action, DateTime At, DateTime? ClockedInSince, decimal? HoursThisShift, bool ForgotLast);
+public record MyClockDto(bool ClockedIn, DateTime? Since);
 public record OnTheClockDto(Guid EntryId, Guid AdminUserId, string Username, Guid? LocationId, DateTime ClockInAt);
 
 public record TimeEntryDto(
@@ -40,7 +42,31 @@ public class TimeClockService(IApplicationDbContext db, StaffPinService pins, IC
     {
         var found = await pins.FindByPinAsync(dto.Pin, "clock", ct);
         if (!found.Succeeded) return Result<PunchResultDto>.Failure(found.Error!, found.StatusCode);
-        var who = found.Data!;
+        return await ToggleAsync(found.Data!, dto.LocationId, ct);
+    }
+
+    /// <summary>Am I clocked in? (The signed-in person, no PIN: every role clocks from the admin app.)</summary>
+    public async Task<MyClockDto> MineAsync(CancellationToken ct = default)
+    {
+        var me = user.UserId ?? Guid.Empty;
+        var since = DateTime.UtcNow - LongestShift;
+        var open = await db.TimeEntries.AsNoTracking().Where(e => e.AdminUserId == me && e.ClockOutAt == null && e.ClockInAt > since)
+            .OrderByDescending(e => e.ClockInAt).FirstOrDefaultAsync(ct);
+        return new MyClockDto(open != null, open?.ClockInAt);
+    }
+
+    /// <summary>Clock in or out as the signed-in person, from the admin app on a phone or at the office computer.</summary>
+    public async Task<Result<PunchResultDto>> ToggleMineAsync(Guid? locationId, CancellationToken ct = default)
+    {
+        if (user.UserId is not { } meId) return Result<PunchResultDto>.Failure("Sign in first.", 401);
+        var me = await db.AdminUsers.FirstOrDefaultAsync(u => u.Id == meId && u.IsActive && u.Role != AdminRole.SuperAdmin, ct);
+        if (me is null) return Result<PunchResultDto>.Failure("Account not found.", 404);
+        return await ToggleAsync(me, locationId, ct);
+    }
+
+    private async Task<Result<PunchResultDto>> ToggleAsync(AdminUser who, Guid? locationId, CancellationToken ct)
+    {
+        var dto = new PunchDto(null, locationId);
         var now = DateTime.UtcNow;
 
         var open = await db.TimeEntries.Where(e => e.AdminUserId == who.Id && e.ClockOutAt == null).OrderByDescending(e => e.ClockInAt).ToListAsync(ct);
