@@ -1324,6 +1324,17 @@ namespace Yurt.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Allergens")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int?>("Calories")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("Carbs")
+                        .HasPrecision(7, 1)
+                        .HasColumnType("numeric(7,1)");
+
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
 
@@ -1342,6 +1353,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<string>("DescriptionRu")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<decimal?>("Fat")
+                        .HasPrecision(7, 1)
+                        .HasColumnType("numeric(7,1)");
 
                     b.Property<Guid?>("IikoProductId")
                         .HasColumnType("uuid");
@@ -1379,6 +1394,10 @@ namespace Yurt.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<decimal?>("Protein")
+                        .HasPrecision(7, 1)
+                        .HasColumnType("numeric(7,1)");
+
                     b.Property<Guid?>("ScheduleId")
                         .HasColumnType("uuid");
 
@@ -1392,6 +1411,9 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("WeightGrams")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
