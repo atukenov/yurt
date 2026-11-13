@@ -24,6 +24,14 @@ Baristas, kitchen staff, Admins and the CEO do not need the till. Every signed-i
 - **Fixing:** a manager sets the real clock-in/out, adds a missed shift or removes an entry. A **reason is required** and goes into the audit log (`TimeEntryChanged`, `TimeEntryAdded`, `TimeEntryRemoved`). A shift can't be longer than 16 hours or in the future.
 - Days and months are cafe time (Asia/Almaty), like the profit reports; a shift belongs to the day and month it **started** in.
 
+## Camera check (with Yurt Watch)
+When the cafe has both `own_pos` and `staff_watch`, *Reports → Worked hours* has a **Camera check** box for one branch and day. It compares what the Yurt Watch camera sees at the **station zones** with who is clocked in at that branch, minute by minute, and lists stretches where they disagree:
+- **Someone worked and nobody was clocked in** (people at a station for 10+ minutes, zero clocked in): a forgotten clock-in, or someone covering without clocking.
+- **More people at the stations than clocked in** (15+ minutes).
+- **Clocked in but nobody seen at a station** (60+ minutes): only a hint, because people are also in the kitchen or the storeroom.
+
+The camera counts people and **never names them** (no faces, see the Yurt Watch notes), so this says "a person worked from 09:12 to 09:58 with nobody clocked in", not who. Matching a name to a person is up to the manager, who fixes the entry on the same page. Only minutes where the box sent at least 20 s of pictures count, so a camera that was off proves nothing. Clock-ins from the admin app have no branch: they count for the branch with cameras only when the cafe has just one such branch. It is a hint for the manager, not an alert and not a reason to change anyone's pay by itself. `GET admin/time-clock/camera-check?locationId&day` (Admin, CEO).
+
 ## Hours in payroll (module `payroll`)
 - On *Payroll* the CEO can set an **hourly rate** next to the monthly salary. Leave 0 for no hourly pay.
 - A month's sheet shows the person's hours and `hours × rate` in an extra column. **To pay = salary + hourly pay + bonuses − deductions.** The monthly profit report picks the wages up through the same total.
@@ -50,5 +58,7 @@ Baristas, kitchen staff, Admins and the CEO do not need the till. Every signed-i
 
 ## Not built yet
 - Clocking in by QR/NFC card, or only from the cafe's network/location.
+- Clocking in by face (needs written consent of every person and a check of the personal-data rules first).
+- Camera check per person (needs identifying people) and Telegram alerts for the camera check.
 - Overtime and night-rate rules, breaks, a planned schedule against actual hours.
 - Attributing a sale made offline to the cashier who rang it up (it goes with whoever is signed in when it uploads).

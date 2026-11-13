@@ -202,6 +202,7 @@ public static class DependencyInjection
         services.AddScoped<StationService>();
         services.AddScoped<TableService>();
         services.AddScoped<StaffWatchService>();
+        services.AddScoped<ClockCrossCheckService>();
         services.AddScoped<PayrollService>();
         services.AddScoped<Yurt.Application.Features.TimeClock.StaffPinService>();
         services.AddScoped<Yurt.Application.Features.TimeClock.TimeClockService>();

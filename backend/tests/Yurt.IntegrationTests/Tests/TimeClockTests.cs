@@ -251,3 +251,63 @@ public class TimeClockTests(YurtWebAppFactory factory)
         await ceo.PostAsync($"/api/v1/admin/payroll/months/{month}/reopen", null);
     }
 }
+
+/// <summary>Camera (Yurt Watch) against the time clock: people at the stations with nobody clocked in.</summary>
+[Collection("Integration")]
+public class ClockCameraCheckTests(YurtWebAppFactory factory)
+{
+    [Fact]
+    public async Task CameraCheck_FindsWorkWithNobodyClockedIn_AndStaysQuietWhenTheyAgree()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var admin = factory.CreateClient();
+        ApiHelpers.Authorize(admin, await ApiHelpers.CreateAdminTokenAsync(factory.Services, admin, $"adm-{id}", "Admin@12345", role: AdminRole.Admin));
+        var worker = factory.CreateClient();
+        ApiHelpers.Authorize(worker, await ApiHelpers.CreateAdminTokenAsync(factory.Services, worker, $"wk-{id}", "Worker@12345", role: AdminRole.Worker));
+        Guid workerId, loc;
+
+        // 2020-03-02 in Almaty (UTC+5): the camera sees one person at the till from 09:00 to 12:00 local.
+        var day = new DateTime(2020, 3, 2, 4, 0, 0, DateTimeKind.Utc); // 09:00 local
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<Yurt.Infrastructure.Persistence.ApplicationDbContext>();
+            var l = new Yurt.Domain.Entities.Location { Name = $"Cam {id}", Address = "a", WorkingHours = "08:00-22:00" };
+            db.Locations.Add(l);
+            await db.SaveChangesAsync();
+            loc = l.Id;
+            db.WatchCameras.Add(new Yurt.Domain.Entities.WatchCamera
+            {
+                LocationId = loc, Name = "counter",
+                ZonesJson = "[{\"name\":\"till\",\"kind\":\"station\",\"points\":[[0,0],[50,0],[50,50]]}]",
+            });
+            for (var i = 0; i < 180; i++)
+                db.WatchMinutes.Add(new Yurt.Domain.Entities.WatchMinute { LocationId = loc, Minute = day.AddMinutes(i), Zone = "till", Seconds = 60, Occupied = 60, PeopleSum = 60, PeopleMax = 1 });
+            await db.SaveChangesAsync();
+            workerId = await db.AdminUsers.IgnoreQueryFilters().Where(u => u.Username == $"wk-{id}").Select(u => u.Id).SingleAsync();
+        }
+
+        // Nobody clocked in: 3 hours of work with nobody on the clock.
+        var url = $"/api/v1/admin/time-clock/camera-check?locationId={loc}&day=2020-03-02";
+        Assert.Equal(HttpStatusCode.Forbidden, (await worker.GetAsync(url)).StatusCode);
+        var none = await admin.GetFromJsonAsync<JsonElement>(url);
+        Assert.Equal(180, none.GetProperty("cameraMinutes").GetInt32());
+        var f = Assert.Single(none.GetProperty("findings").EnumerateArray());
+        Assert.Equal("working_not_clocked", f.GetProperty("kind").GetString());
+        Assert.Equal(180, f.GetProperty("minutes").GetInt32());
+
+        // The worker is added for 09:00-12:00 at this branch: camera and clock agree.
+        Assert.Equal(HttpStatusCode.Created, (await admin.PostAsJsonAsync("/api/v1/admin/time-clock/entries",
+            new { adminUserId = workerId, locationId = loc, clockInAt = day, clockOutAt = day.AddHours(3), reason = "test" })).StatusCode);
+        var agree = await admin.GetFromJsonAsync<JsonElement>(url);
+        Assert.Equal(0, agree.GetProperty("findings").GetArrayLength());
+
+        // A branch with no cameras has nothing to compare.
+        await using var scope2 = factory.Services.CreateAsyncScope();
+        var db2 = scope2.ServiceProvider.GetRequiredService<Yurt.Infrastructure.Persistence.ApplicationDbContext>();
+        var bare = new Yurt.Domain.Entities.Location { Name = $"Bare {id}", Address = "a", WorkingHours = "08:00-22:00" };
+        db2.Locations.Add(bare);
+        await db2.SaveChangesAsync();
+        var noCam = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/admin/time-clock/camera-check?locationId={bare.Id}&day=2020-03-02");
+        Assert.False(noCam.GetProperty("hasCameras").GetBoolean());
+    }
+}

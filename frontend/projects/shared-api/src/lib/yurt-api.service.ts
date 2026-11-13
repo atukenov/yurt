@@ -49,7 +49,7 @@ import {
   DiscountRequest,
   ManagerApprovalRequest,
   ManagerPinStatus,
-  StaffPinPerson, PunchResult, OnTheClock, HoursReport, TimeEntry,
+  StaffPinPerson, ClockCrossCheck, PunchResult, OnTheClock, HoursReport, TimeEntry,
   SetTipRequest,
   TipReport,
   DiscountCode,
@@ -1229,6 +1229,11 @@ export class YurtApiService {
   /** Clock myself in, or out when already in. No PIN. */
   toggleMyClock(): Observable<PunchResult> {
     return this.http.post<PunchResult>(`${this.api}/admin/time-clock/me/toggle`, {});
+  }
+
+  /** Camera (Yurt Watch) against the time clock for one branch and day. */
+  getClockCameraCheck(locationId: string, day: string): Observable<ClockCrossCheck> {
+    return this.http.get<ClockCrossCheck>(`${this.api}/admin/time-clock/camera-check`, { params: { locationId, day } });
   }
 
   getOnTheClock(): Observable<OnTheClock[]> {

@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService } from 'shared-api';
-import { HoursReport, StaffHours, TimeEntry } from 'shared-models';
+import { ModuleService, YurtApiService } from 'shared-api';
+import { ClockCrossCheck, HoursReport, Location, StaffHours, TimeEntry } from 'shared-models';
 import { LocalDatePipe, LocalNumberPipe, ToastService } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -104,6 +104,44 @@ import { dayText, monthStart } from '../tips/tips.component';
           }
         </section>
 
+        @if (cameraOn) {
+          <section class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5">
+            <h2 class="font-semibold text-slate-800">{{ 'hours.camera' | t }}</h2>
+            <p class="text-xs text-slate-500 mb-3">{{ 'hours.cameraHint' | t }}</p>
+            <div class="flex flex-wrap items-center gap-3 mb-3">
+              <input type="date" [ngModel]="cameraDay()" (ngModelChange)="cameraDay.set($event); loadCamera()" [attr.aria-label]="'hours.cameraDay' | t"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 text-sm" />
+              @if (locations().length > 1) {
+                <select [ngModel]="cameraBranch()" (ngModelChange)="cameraBranch.set($event); loadCamera()" [attr.aria-label]="'tips.branch' | t"
+                  class="px-3 py-1.5 rounded-xl border border-slate-200 text-sm">
+                  @for (l of locations(); track l.id) { <option [value]="l.id">{{ l.name }}</option> }
+                </select>
+              }
+            </div>
+            @if (camera(); as c) {
+              @if (!c.hasCameras) {
+                <p class="text-sm text-slate-500">{{ 'hours.cameraNone' | t }}</p>
+              } @else if (!c.cameraMinutes) {
+                <p class="text-sm text-slate-500">{{ 'hours.cameraNoData' | t }}</p>
+              } @else if (!c.findings.length) {
+                <p class="text-sm text-green-700">{{ 'hours.cameraOk' | t }}</p>
+              } @else {
+                @for (f of c.findings; track f.from + f.kind) {
+                  <div class="border-b border-slate-50 py-2 text-sm">
+                    <p class="font-medium" [class]="f.kind === 'clocked_not_seen' ? 'text-slate-700' : 'text-tone-red'">
+                      {{ ('hours.cam.' + f.kind) | t }}
+                    </p>
+                    <p class="text-slate-600">
+                      {{ f.from | ldate: 'time24' }}–{{ f.to | ldate: 'time24' }} · {{ f.minutes }} {{ 'hours.min' | t }}
+                      · {{ 'hours.camSeen' | t }} {{ f.maxSeen }}, {{ 'hours.camClocked' | t }} {{ f.maxClocked }}
+                    </p>
+                  </div>
+                }
+              }
+            }
+          </section>
+        }
+
         <section class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5">
           <h2 class="font-semibold text-slate-800 mb-3">{{ 'hours.add' | t }}</h2>
           <form class="grid gap-3 md:grid-cols-5" (ngSubmit)="add()">
@@ -126,8 +164,16 @@ import { dayText, monthStart } from '../tips/tips.component';
 })
 export class HoursComponent implements OnInit {
   private api = inject(YurtApiService);
+  private modules = inject(ModuleService);
   private toast = inject(ToastService);
   private lang = inject(AdminLangService);
+
+  /** Camera check: only when Yurt Watch is on. */
+  readonly cameraOn = this.modules.isEnabled('staff_watch');
+  locations = signal<Location[]>([]);
+  cameraBranch = signal('');
+  cameraDay = signal(dayText(new Date()));
+  camera = signal<ClockCrossCheck | null>(null);
 
   from = signal(monthStart(new Date()));
   to = signal(dayText(new Date()));
@@ -149,6 +195,22 @@ export class HoursComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    if (this.cameraOn) {
+      this.api.getAdminLocations().subscribe({
+        next: (l) => {
+          this.locations.set(l);
+          if (l.length) this.cameraBranch.set(l[0].id);
+          this.loadCamera();
+        },
+        error: () => {},
+      });
+    }
+  }
+
+  loadCamera(): void {
+    if (!this.cameraBranch() || !this.cameraDay()) return;
+    this.camera.set(null);
+    this.api.getClockCameraCheck(this.cameraBranch(), this.cameraDay()).subscribe({ next: (c) => this.camera.set(c), error: () => {} });
   }
 
   load(): void {

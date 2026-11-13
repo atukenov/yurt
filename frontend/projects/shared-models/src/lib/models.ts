@@ -928,6 +928,25 @@ export interface HoursReport {
   entries: TimeEntry[];
 }
 
+/** A stretch where the camera and the time clock disagree. Times are the cafe's local time. */
+export interface ClockCrossFinding {
+  /** working_not_clocked | more_seen_than_clocked | clocked_not_seen */
+  kind: string;
+  from: string;
+  to: string;
+  minutes: number;
+  maxSeen: number;
+  maxClocked: number;
+}
+
+export interface ClockCrossCheck {
+  locationId: string;
+  day: string;
+  hasCameras: boolean;
+  cameraMinutes: number;
+  findings: ClockCrossFinding[];
+}
+
 export interface UpdateStatusRequest {
   status: OrderStatus;
 }

@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.StaffWatch;
 using Yurt.Application.Features.TimeClock;
 using Yurt.Domain;
 using Yurt.WebApi.Common;
@@ -16,7 +17,7 @@ public record ToggleMineDto(Guid? LocationId);
 [Route("api/v{version:apiVersion}/admin/time-clock")]
 [Authorize(Policy = "AdminOnly")]
 [RequireModule(ModuleKeys.OwnPos)]
-public class AdminTimeClockController(TimeClockService clock) : ApiControllerBase
+public class AdminTimeClockController(TimeClockService clock, ClockCrossCheckService crossCheck) : ApiControllerBase
 {
     /// <summary>Clock in, or clock out if already in. The PIN says who.</summary>
     [HttpPost("punch")]
@@ -40,6 +41,13 @@ public class AdminTimeClockController(TimeClockService clock) : ApiControllerBas
     [Authorize(Policy = "AdminRoleAdmin")]
     public async Task<IActionResult> Hours([FromQuery] string? from, [FromQuery] string? to, [FromQuery] Guid? staffId, CancellationToken ct)
         => ToResult(await clock.ReportAsync(from, to, staffId, ct));
+
+    /// <summary>Camera vs time clock for one branch and day (needs staff_watch too): stretches where the camera saw people
+    /// working with nobody clocked in, more people than clocked in, or people clocked in and never seen.</summary>
+    [HttpGet("camera-check")]
+    [Authorize(Policy = "AdminRoleAdmin")]
+    public async Task<IActionResult> CameraCheck([FromQuery] Guid locationId, [FromQuery] string? day, CancellationToken ct)
+        => ToResult(await crossCheck.CheckAsync(locationId, day, ct));
 
     /// <summary>Add a forgotten entry by hand. A reason is required and goes into the audit log.</summary>
     [HttpPost("entries")]
