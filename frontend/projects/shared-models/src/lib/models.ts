@@ -1249,6 +1249,38 @@ export interface ItemProfitReport {
   items: ItemProfit[];
 }
 
+export type MenuClass = 'star' | 'plowhorse' | 'puzzle' | 'dog';
+export type MenuAction = 'keep' | 'push' | 'fix' | 'drop';
+
+/** One dish (all sizes together) in the menu analysis. */
+export interface MenuAnalysisItem {
+  menuItemId: string;
+  name: string;
+  sold: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+  profitPerItem: number;
+  soldShare: number;
+  profitShare: number;
+  class: MenuClass;
+  action: MenuAction;
+  abc: 'A' | 'B' | 'C';
+  /** Plowhorses: how much more each portion would need to earn to reach the menu's average. */
+  raisePriceBy?: number | null;
+  estimated: boolean;
+  missingPrice: boolean;
+}
+
+export interface MenuAnalysis {
+  month: string;
+  locationId?: string | null;
+  popularFrom: number;
+  averageProfitPerItem: number;
+  items: MenuAnalysisItem[];
+  noRecipe: { menuItemId: string; name: string; sold: number; revenue: number }[];
+}
+
 export type CafeExpenseCategory = 'rent' | 'utilities' | 'marketing' | 'repairs' | 'taxes' | 'other';
 
 export interface CafeExpense {

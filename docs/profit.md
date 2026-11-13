@@ -40,7 +40,28 @@ topping, × the ingredients' cost per unit) in `OrderItems.UnitCost`. Later pric
 Orders accepted before this was added have no saved cost: the reports price them at **today's** costs and say how many.
 An ingredient with no cost per unit counts as 0 and the dish is flagged.
 
-Both tabs download as Excel in the language the admin app is shown in.
+## Menu analysis tab
 
-API (all under `/api/v1/admin/profit`): `GET items?month=&locationId=`, `GET items/export`, `GET month?month=&locationId=`,
+Which dishes to keep, push, fix or drop. All sizes of a dish are counted together; dishes without a recipe are left out
+(listed under the table) because their profit is unknown.
+
+Two lines split the menu:
+
+- **Popular**: the dish sold at least 70% of an even share of all portions (portions ÷ number of dishes × 0.7).
+- **Earns well**: profit per portion is at or above what a portion earns on average over the whole menu.
+
+| Group | Popular | Earns well | What to do |
+|---|---|---|---|
+| Star | yes | yes | Keep as is |
+| Puzzle | no | yes | **Push**: put it first, tell the staff to suggest it |
+| Plowhorse | yes | no | **Fix**: raise the price or cut the recipe cost (the table says how much more a portion must earn to reach the average) |
+| Dog | no | no | **Drop**, or rethink it |
+
+**ABC** is on top of that: A dishes bring the first 80% of the month's profit, B the next 15%, C the last 5% and anything
+that loses money. Click a group card to show only its dishes. It uses the same sales, discounts and costs as *By dish*
+(refunded orders are left out), for the month and branch chosen at the top.
+
+The three tabs download as Excel in the language the admin app is shown in.
+
+API (all under `/api/v1/admin/profit`): `GET items?month=&locationId=`, `GET items/export`, `GET menu-analysis?month=&locationId=`, `GET menu-analysis/export`, `GET month?month=&locationId=`,
 `GET month/export`, `GET|POST expenses`, `PUT|DELETE expenses/{id}`, `POST expenses/copy-previous`.

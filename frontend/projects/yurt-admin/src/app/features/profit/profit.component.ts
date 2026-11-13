@@ -8,6 +8,9 @@ import {
   ItemProfit,
   ItemProfitReport,
   Location,
+  MenuAnalysis,
+  MenuAnalysisItem,
+  MenuClass,
   ProfitMonth,
 } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -31,6 +34,20 @@ export function sortItems(items: ItemProfit[], by: ItemSort): ItemProfit[] {
     // Food cost: lowest first (cheapest to make for its price); everything else: highest first.
     return by === 'foodCost' ? x - y : y - x;
   });
+}
+
+export const MENU_CLASSES: MenuClass[] = ['star', 'puzzle', 'plowhorse', 'dog'];
+
+/** The dishes of one menu group, or all of them. Order is kept (most profit first). */
+export function filterMenu(items: MenuAnalysisItem[], group: MenuClass | 'all'): MenuAnalysisItem[] {
+  return group === 'all' ? items : items.filter((i) => i.class === group);
+}
+
+/** How many dishes are in each menu group. */
+export function countByClass(items: MenuAnalysisItem[]): Record<MenuClass, number> {
+  const counts: Record<MenuClass, number> = { star: 0, puzzle: 0, plowhorse: 0, dog: 0 };
+  for (const i of items) counts[i.class]++;
+  return counts;
 }
 
 /** Change against last month in percent, or null when last month was 0. */
@@ -309,6 +326,76 @@ export function changePercent(now: number, before: number): number | null {
           }
         </section>
       }
+      @if (tab() === 'menu') {
+        <section class="bg-surface rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5">
+          @if (!menu()) {
+            <div class="h-48 bg-slate-100 rounded-2xl animate-pulse"></div>
+          } @else if (!menu()!.items.length) {
+            <p class="text-slate-500 text-sm py-6 text-center">{{ 'profit.noSales' | t }}</p>
+          } @else {
+            <p class="text-sm text-slate-600 mb-3">
+              {{ 'menuAnalysis.rule' | t: { sold: menu()!.popularFrom, perItem: (menu()!.averageProfitPerItem | currency2) } }}
+            </p>
+            <div class="grid gap-3 grid-cols-2 lg:grid-cols-4 mb-4">
+              @for (c of menuClasses; track c) {
+                <button type="button" (click)="menuGroup.set(menuGroup() === c ? 'all' : c)" [attr.aria-pressed]="menuGroup() === c"
+                  [class]="'text-left rounded-xl p-3 border-2 ' + (menuGroup() === c ? 'border-brand-500 ' : 'border-transparent ') + groupTone(c)">
+                  <p class="text-xs font-semibold uppercase tracking-wide">{{ 'menuAnalysis.class.' + c | t }}</p>
+                  <p class="text-2xl font-bold">{{ menuCounts()[c] }}</p>
+                  <p class="text-xs">{{ 'menuAnalysis.action.' + c | t }}</p>
+                </button>
+              }
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wide">
+                    <th class="text-left px-3 py-2">{{ 'profit.dish' | t }}</th>
+                    <th class="text-right px-3 py-2">{{ 'profit.sold' | t }}</th>
+                    <th class="text-right px-3 py-2">{{ 'profit.profit' | t }}</th>
+                    <th class="text-right px-3 py-2">{{ 'profit.perItem' | t }}</th>
+                    <th class="text-center px-3 py-2">{{ 'menuAnalysis.abc' | t }}</th>
+                    <th class="text-left px-3 py-2">{{ 'menuAnalysis.group' | t }}</th>
+                    <th class="text-left px-3 py-2">{{ 'menuAnalysis.todo' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (i of shownMenu(); track i.menuItemId) {
+                    <tr class="border-b border-slate-50 align-top">
+                      <td class="px-3 py-2">
+                        <p class="font-medium text-slate-800">{{ i.name }}</p>
+                        @if (i.missingPrice) { <p class="text-xs text-amber-700">{{ 'profit.missingPrice' | t }}</p> }
+                        @if (i.estimated) { <p class="text-xs text-slate-500">{{ 'menuAnalysis.estimated' | t }}</p> }
+                      </td>
+                      <td class="px-3 py-2 text-right">{{ i.sold | lnumber }} <span class="text-xs text-slate-500">({{ i.soldShare | lnumber: '1.0-1' }}%)</span></td>
+                      <td class="px-3 py-2 text-right font-semibold" [class.text-tone-red]="i.profit < 0">
+                        {{ i.profit | currency2 }} <span class="text-xs font-normal text-slate-500">({{ i.profitShare | lnumber: '1.0-1' }}%)</span>
+                      </td>
+                      <td class="px-3 py-2 text-right">{{ i.profitPerItem | currency2 }}</td>
+                      <td class="px-3 py-2 text-center font-semibold">{{ i.abc }}</td>
+                      <td class="px-3 py-2">
+                        <span [class]="'inline-block px-2 py-0.5 rounded-full text-xs font-semibold ' + groupTone(i.class)">{{ 'menuAnalysis.class.' + i.class | t }}</span>
+                      </td>
+                      <td class="px-3 py-2">
+                        <p class="font-medium">{{ 'menuAnalysis.do.' + i.action | t }}</p>
+                        @if (i.raisePriceBy != null) {
+                          <p class="text-xs text-slate-500">{{ 'menuAnalysis.raise' | t: { amount: (i.raisePriceBy | currency2) } }}</p>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (menu()!.noRecipe.length) {
+              <p class="mt-3 text-xs text-slate-600">
+                {{ 'menuAnalysis.noRecipe' | t }} {{ noRecipeNames() }}
+              </p>
+            }
+            <p class="mt-3 text-xs text-slate-500">{{ 'menuAnalysis.note' | t }}</p>
+          }
+        </section>
+      }
     </div>
   `,
 })
@@ -317,10 +404,11 @@ export class ProfitComponent implements OnInit {
   private toast = inject(ToastService);
   private lang = inject(AdminLangService);
 
-  readonly tabs = ['month', 'items'] as const;
+  readonly tabs = ['month', 'items', 'menu'] as const;
+  readonly menuClasses = MENU_CLASSES;
   readonly categories = EXPENSE_CATEGORIES;
 
-  tab = signal<'month' | 'items'>('month');
+  tab = signal<'month' | 'items' | 'menu'>('month');
   month = signal(currentMonth());
   locationId = signal('');
   locations = signal<Location[]>([]);
@@ -328,6 +416,11 @@ export class ProfitComponent implements OnInit {
   expenses = signal<CafeExpense[]>([]);
   items = signal<ItemProfitReport | null>(null);
   sort = signal<ItemSort>('profit');
+  menu = signal<MenuAnalysis | null>(null);
+  menuGroup = signal<MenuClass | 'all'>('all');
+  shownMenu = computed(() => filterMenu(this.menu()?.items ?? [], this.menuGroup()));
+  menuCounts = computed(() => countByClass(this.menu()?.items ?? []));
+  noRecipeNames = computed(() => (this.menu()?.noRecipe ?? []).map((d) => d.name).join(', '));
   busy = signal(false);
   sortedItems = computed(() => sortItems(this.items()?.items ?? [], this.sort()));
 
@@ -336,6 +429,11 @@ export class ProfitComponent implements OnInit {
   formName = '';
   formAmount: number | null = null;
   formLocation = '';
+
+  groupTone(c: MenuClass): string {
+    return c === 'star' ? 'bg-green-50 text-green-800' : c === 'puzzle' ? 'bg-blue-50 text-blue-800'
+      : c === 'plowhorse' ? 'bg-amber-50 text-amber-800' : 'bg-red-50 text-tone-red';
+  }
 
   readonly change = changePercent;
   readonly abs = Math.abs;
@@ -360,18 +458,20 @@ export class ProfitComponent implements OnInit {
     const loc = this.locationId() || null;
     this.report.set(null);
     this.items.set(null);
+    this.menu.set(null);
     this.api.getProfitMonth(this.month(), loc).subscribe({ next: (r) => this.report.set(r) });
+    this.api.getMenuAnalysis(this.month(), loc).subscribe({ next: (r) => this.menu.set(r) });
     this.api.getProfitItems(this.month(), loc).subscribe({ next: (r) => this.items.set(r) });
     this.api.getCafeExpenses(this.month()).subscribe({ next: (e) => this.expenses.set(e) });
   }
 
   download(): void {
-    const kind = this.tab() === 'month' ? 'month' : 'items';
+    const kind = this.tab() === 'month' ? 'month' : this.tab() === 'menu' ? 'menu-analysis' : 'items';
     const lang = this.lang.lang();
     this.api.exportProfit(kind, this.month(), this.locationId() || null, lang).subscribe((blob) => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${kind === 'month' ? 'profit' : 'profit-by-dish'}-${this.month()}.xlsx`;
+      a.download = `${kind === 'month' ? 'profit' : kind === 'menu-analysis' ? 'menu-analysis' : 'profit-by-dish'}-${this.month()}.xlsx`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     });
