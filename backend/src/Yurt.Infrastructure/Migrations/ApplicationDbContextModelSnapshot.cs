@@ -1889,6 +1889,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1897,6 +1900,9 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Property<Guid?>("CustomerUserId")
                         .HasColumnType("uuid");
+
+                    b.Property<int?>("DailyNumber")
+                        .HasColumnType("integer");
 
                     b.Property<string>("DeclineReason")
                         .HasMaxLength(500)
@@ -1953,6 +1959,10 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Property<decimal?>("LoyaltyPointsSpent")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("OfflineNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("OrderType")
                         .IsRequired()
@@ -2049,7 +2059,35 @@ namespace Yurt.Infrastructure.Migrations
                         .HasDatabaseName("IX_Orders_LocationId_IdempotencyKey_Counter")
                         .HasFilter("\"IdempotencyKey\" IS NOT NULL AND \"CustomerUserId\" IS NULL");
 
+                    b.HasIndex("LocationId", "BusinessDate", "DailyNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Orders_LocationId_BusinessDate_DailyNumber")
+                        .HasFilter("\"DailyNumber\" IS NOT NULL");
+
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderDayCounter", b =>
+                {
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("LastNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.HasKey("LocationId", "Day");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("OrderDayCounters");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItem", b =>
@@ -4798,6 +4836,21 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("DiscountCode");
 
                     b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderDayCounter", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItem", b =>

@@ -59,7 +59,12 @@ public record OrderDto(
     OrderType OrderType = OrderType.TakeAway,
     // A tip on top of the bill (own_pos). Not part of Total. TipMethod null = paid the same way as the bill.
     decimal TipAmount = 0,
-    PaymentMethod? TipMethod = null);
+    PaymentMethod? TipMethod = null,
+    // The short number guests and staff say out loud (1, 2, 3 ... again from 1 each day at the branch). For a sale made
+    // offline it is the number on the till's own receipt ("T-3FA9C1"); for an order from before day numbers, the end of its id.
+    string Number = "",
+    // The day's number as a plain integer (null on an old order or an offline sale's T- number).
+    int? DailyNumber = null);
 
 public record OrderItemDto(
     Guid Id,

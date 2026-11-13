@@ -12,6 +12,7 @@ import {
   discountOf, missingChoice, ruleOf, TillDiscount, TIP_PERCENTS, TipChoice, tipOf, toggleTopping, toRequest,
 } from '../../core/cart';
 import { weighedPrice } from 'shared-api';
+import { orderNumber } from '../../core/kiosk';
 import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillSale, TillService } from '../../core/till.service';
 import { isTooOld, outcomeOf, QueuedSale } from '../../core/outbox';
@@ -170,7 +171,7 @@ export class SellComponent implements OnInit {
         step: this.step(), lang: this.lang.lang(), lines: this.lines(), total: this.total(), discount: this.discountAmount(),
         payable: this.payable(), tip: this.tip(), method: this.method(), cashGiven: this.cashGiven(), change: this.change(),
         orderType: this.orderType(), paid: done ? (sale?.total ?? queued?.total ?? 0) : 0,
-        saleNo: done ? (sale ? this.shortNo(sale.id) : queued ? offlineNumber(queued.request.idempotencyKey) : null) : null,
+        saleNo: done ? (sale ? this.shortNo(sale) : queued ? offlineNumber(queued.request.idempotencyKey) : null) : null,
         saved: done && !sale && !!queued,
       }));
     });
@@ -593,8 +594,8 @@ export class SellComponent implements OnInit {
     this.step.set('cart');
   }
 
-  shortNo(id: string): string {
-    return id.slice(-6).toUpperCase();
+  shortNo(sale: { id: string; number?: string | null }): string {
+    return orderNumber(sale);
   }
 
   setCash(value: string | number | null): void {

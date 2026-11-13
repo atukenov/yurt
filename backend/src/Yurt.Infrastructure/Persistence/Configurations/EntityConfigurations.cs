@@ -157,6 +157,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasFilter("\"IdempotencyKey\" IS NOT NULL AND \"CustomerUserId\" IS NULL");
         // Kept on purpose: the filtered index above is no use for ordinary branch queries.
         builder.HasIndex(e => e.LocationId);
+        // One number per branch per day: a second order can never get the same short number.
+        builder.HasIndex(e => new { e.LocationId, e.BusinessDate, e.DailyNumber })
+            .IsUnique()
+            .HasDatabaseName("IX_Orders_LocationId_BusinessDate_DailyNumber")
+            .HasFilter("\"DailyNumber\" IS NOT NULL");
+        builder.Property(e => e.OfflineNumber).HasMaxLength(16);
         builder.Property(e => e.Source).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderSource.App);
         builder.Property(e => e.OrderType).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderType.TakeAway);
         builder.Property(e => e.Subtotal).HasPrecision(10, 2);
@@ -1066,5 +1072,14 @@ public class CafeExpenseConfiguration : IEntityTypeConfiguration<CafeExpense>
         builder.HasOne(e => e.Location).WithMany()
             .HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(e => e.Month);
+    }
+}
+
+public class OrderDayCounterConfiguration : IEntityTypeConfiguration<OrderDayCounter>
+{
+    public void Configure(EntityTypeBuilder<OrderDayCounter> builder)
+    {
+        builder.HasKey(e => new { e.LocationId, e.Day });
+        builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
     }
 }

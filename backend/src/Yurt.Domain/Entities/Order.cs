@@ -24,6 +24,15 @@ public class Order : BaseEntity, ITenantOwned
     public Guid? DiningTableId { get; set; }
     public string? TableLabel { get; set; }
 
+    // The short number guests and staff say out loud: 1, 2, 3 ... starting again at 1 every day at each branch (the
+    // branch's own midnight). The real identity of the order is still Id. Null on an order that predates this.
+    public int? DailyNumber { get; set; }
+    // The branch's calendar day DailyNumber belongs to. Together with the branch it is unique.
+    public DateOnly? BusinessDate { get; set; }
+    // A sale made on a till while it was offline: the number its own printed receipt carries ("T-3FA9C1"). The till
+    // cannot know the day's counter without the internet, so the guest keeps being called by that number.
+    public string? OfflineNumber { get; set; }
+
     public OrderStatus Status { get; set; } = OrderStatus.Created;
     public string? DeclineReason { get; set; }
     public int? EtaMinutes { get; set; }

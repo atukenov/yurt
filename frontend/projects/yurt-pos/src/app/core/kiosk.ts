@@ -58,9 +58,12 @@ export function toKioskRequest(
   };
 }
 
-/** The number the guest carries to the counter and hears called: the last 6 characters of the order id, like the app and the TV screen. */
-export function orderNumber(orderId: string): string {
-  return orderId.slice(-6).toUpperCase();
+/**
+ * The number the guest carries to the counter and hears called, like the app and the TV screen: the day's number from
+ * the server (1, 2, 3 ... again from 1 each day), or for an old order the last 6 characters of the id.
+ */
+export function orderNumber(order: { id: string; number?: string | null }): string {
+  return order.number || order.id.slice(-6).toUpperCase();
 }
 
 /** The allergens of a dish, as codes, never empty strings. */

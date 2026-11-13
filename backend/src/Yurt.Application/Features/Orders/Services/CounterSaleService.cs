@@ -260,6 +260,10 @@ public class CounterSaleService(
         // Keep what the ingredients cost today, for the profit report (prices change later).
         // (An order waiting for payment gets its cost snapshot when the cashier accepts it.)
         if (!kiosk) await new IngredientCostCalculator(db).SnapshotAsync(order, ct);
+        // A sale made offline keeps the number its own receipt already carries; the day's number is still given, so the
+        // admin lists stay in order.
+        if (!live) order.OfflineNumber = OrderNumbers.OfflineNumberOf(key);
+        await OrderNumbers.AssignAsync(db, order, location, ct);
         db.Orders.Add(order);
         try
         {

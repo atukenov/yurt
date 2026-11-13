@@ -1,4 +1,5 @@
 using System.Globalization;
+using Yurt.Application.Features.Orders.Services;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
@@ -39,6 +40,9 @@ public static class PrintLayouts
     public static string ShortId(Guid orderId) => orderId.ToString("N")[..8].ToUpperInvariant();
 
     /// <summary>The number the guest sees in the app and on the screens: the last 6 characters of the order id.</summary>
+    public static string GuestNumber(Order order) => OrderNumbers.Display(order);
+
+    /// <summary>The number of an old order, from its id.</summary>
     public static string GuestNumber(Guid orderId) => orderId.ToString()[^6..].ToUpperInvariant();
 
     /// <summary>
@@ -49,7 +53,7 @@ public static class PrintLayouts
     {
         var w = Words.GetValueOrDefault(printer.Language) ?? Words["ru"];
         var p = new EscPos(printer.LineWidth, printer.CodeTable);
-        p.Center().Big(true).Bold(true).Line($"#{GuestNumber(order.Id)}", p.Width / 2).Big(false).Bold(false);
+        p.Center().Big(true).Bold(true).Line($"#{GuestNumber(order)}", p.Width / 2).Big(false).Bold(false);
         // Staff carry a table order over instead of calling the guest, so the table stands out.
         if (!string.IsNullOrWhiteSpace(order.TableLabel)) p.Big(true).Bold(true).Line($"{w["table"]} {order.TableLabel}", p.Width / 2).Big(false).Bold(false);
         p.Bold(true).Line(OrderTypeName(order, w)).Bold(false);
@@ -90,7 +94,7 @@ public static class PrintLayouts
         p.Center().Bold(true).Big(true).Line(brandName, p.Width / 2).Big(false).Bold(false);
         p.Line(order.Location?.Name ?? "");
         p.Line(Local(order.CompletedAt ?? order.CreatedAt).ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture));
-        p.Line($"#{ShortId(order.Id)}");
+        p.Line($"#{GuestNumber(order)} · {ShortId(order.Id)}");
         if (!string.IsNullOrWhiteSpace(order.TableLabel)) p.Bold(true).Line($"{w["table"]} {order.TableLabel}").Bold(false);
         p.Line(OrderTypeName(order, w));
         p.Left().Rule();
@@ -163,7 +167,7 @@ public static class PrintLayouts
             for (var q = 0; q < Math.Max(1, item.Quantity); q++)
             {
                 n++;
-                p.Center().Big(true).Bold(true).Line($"#{GuestNumber(order.Id)}", p.Width / 2).Big(false).Bold(false);
+                p.Center().Big(true).Bold(true).Line($"#{GuestNumber(order)}", p.Width / 2).Big(false).Bold(false);
                 p.Bold(true).Line($"{OrderTypeName(order, w)}  {n}/{total}").Bold(false);
                 p.Bold(true).Line(item.MenuItemName).Bold(false);
                 var extras = Extras(item);

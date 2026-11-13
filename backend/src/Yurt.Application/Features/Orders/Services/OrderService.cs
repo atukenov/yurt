@@ -277,6 +277,7 @@ public class OrderService
             return Result<OrderDto>.Failure(
                 "Select a payment method, or apply enough bonus points to cover the full total.", 400);
 
+        await OrderNumbers.AssignAsync(_db, order, location, ct);
         _db.Orders.Add(order);
         await _db.SaveChangesAsync(ct);
 
@@ -802,6 +803,8 @@ public class OrderService
             Source: o.Source,
             OrderType: o.OrderType,
             TipAmount: o.TipAmount,
-            TipMethod: o.TipMethod);
+            TipMethod: o.TipMethod,
+            Number: OrderNumbers.Display(o),
+            DailyNumber: o.DailyNumber);
     }
 }

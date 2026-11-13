@@ -71,8 +71,10 @@ describe('kiosk order', () => {
   });
 
   it('shows the order number the same way the app and the TV do', () => {
-    expect(orderNumber('3f2a9c10-aaaa-bbbb-cccc-0123456789ab')).toBe('6789AB');
-    expect(orderNumber('3f2a9c10-aaaa-bbbb-cccc-0123456789ab')).toHaveLength(6);
+    expect(orderNumber({ id: '3f2a9c10-aaaa-bbbb-cccc-0123456789ab', number: '42' })).toBe('42');
+    expect(orderNumber({ id: '3f2a9c10-aaaa-bbbb-cccc-0123456789ab', number: 'T-3FA9C1' })).toBe('T-3FA9C1');
+    // An order from before day numbers still reads as it did.
+    expect(orderNumber({ id: '3f2a9c10-aaaa-bbbb-cccc-0123456789ab' })).toBe('6789AB');
   });
 
   it('reads the allergens of a dish', () => {

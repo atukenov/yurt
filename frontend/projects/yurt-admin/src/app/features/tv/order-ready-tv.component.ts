@@ -147,7 +147,7 @@ export class OrderReadyTvComponent implements OnInit, OnDestroy {
   }
 
   number(order: Order): string {
-    return order.id.slice(-6).toUpperCase();
+    return order.number || order.id.slice(-6).toUpperCase();
   }
 
   toggleFullscreen(): void {

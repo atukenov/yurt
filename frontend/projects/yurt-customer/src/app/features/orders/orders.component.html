@@ -34,7 +34,7 @@
           <div class="flex items-start justify-between mb-2">
             <div>
               <p class="font-bold text-stone-800 text-sm">
-                {{ 'orders.orderNo' | t: { no: order.id.slice(-6).toUpperCase() } }}
+                {{ 'orders.orderNo' | t: { no: order.number || order.id.slice(-6).toUpperCase() } }}
               </p>
               <p class="text-xs text-stone-400 mt-0.5">
                 {{ order.createdAt | ldate: 'shortDateTime' }}

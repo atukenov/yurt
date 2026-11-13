@@ -13,7 +13,7 @@
 
     @if (order(); as o) {
       <h1 style="font-size:15px;font-weight:700;color:var(--ink-900)">
-        {{ 'order.details' | t }} #{{ o.id.slice(-6).toUpperCase() }}
+        {{ 'order.details' | t }} #{{ o.number || o.id.slice(-6).toUpperCase() }}
       </h1>
       @if (isActive(o.status)) {
         <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
@@ -372,7 +372,7 @@
             <p class="font-bold text-stone-800 text-lg">{{ brand.name() }}</p>
             <p class="text-stone-500 text-xs">{{ r.locationName }}</p>
             <p class="text-stone-500 text-xs mt-1">{{ r.createdAt | ldate: 'longDateTime' }}</p>
-            <p class="text-stone-500 text-xs mt-0.5">{{ 'orders.orderNo' | t: { no: r.id.slice(-6).toUpperCase() } }}</p>
+            <p class="text-stone-500 text-xs mt-0.5">{{ 'orders.orderNo' | t: { no: r.number || r.id.slice(-6).toUpperCase() } }}</p>
           </div>
           <div class="border-t border-dashed border-stone-200"></div>
           <div class="space-y-3">

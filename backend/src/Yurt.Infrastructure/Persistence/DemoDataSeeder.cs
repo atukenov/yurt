@@ -1153,6 +1153,22 @@ public static class DemoDataSeeder
                 o.ReadyStations.Add(new OrderStationReady { StationId = bar.Id, CreatedAt = d.Now.AddMinutes(-2) });
         }
 
+        // Day numbers, like the app gives them: 1, 2, 3 ... again from 1 each day at each branch.
+        var counters = (await db.OrderDayCounters.ToListAsync(ct)).ToDictionary(c => (c.LocationId, c.Day));
+        foreach (var o in all.Select(a => a.Order).OrderBy(o => o.CreatedAt))
+        {
+            var day = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(o.CreatedAt, DateTimeKind.Utc), CafeTime));
+            if (!counters.TryGetValue((o.LocationId, day), out var counter))
+            {
+                counter = new OrderDayCounter { LocationId = o.LocationId, Day = day };
+                counters[(o.LocationId, day)] = counter;
+            }
+            counter.LastNumber++;
+            o.BusinessDate = day;
+            o.DailyNumber = counter.LastNumber;
+        }
+        db.OrderDayCounters.AddRange(counters.Values.Where(c => db.Entry(c).State == EntityState.Detached));
+
         foreach (var batch in all.Chunk(250))
         {
             foreach (var sale in batch)

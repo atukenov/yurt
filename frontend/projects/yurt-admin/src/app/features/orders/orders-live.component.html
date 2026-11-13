@@ -90,7 +90,7 @@
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-semibold text-slate-800 truncate">
-                  {{ 'orders.orderNo' | t: { no: order.id.slice(-6).toUpperCase() } }}
+                  {{ 'orders.orderNo' | t: { no: order.number || order.id.slice(-6).toUpperCase() } }}
                 </p>
                 <p class="text-xs font-medium text-slate-700 truncate mt-0.5">
                   {{ order.customerName || ((order.source === 'Kiosk' ? 'orders.kioskGuest' : 'orders.walkIn') | t) }}
@@ -141,7 +141,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-xl font-bold text-slate-800">
-              {{ 'orders.orderNo' | t: { no: o.id.slice(-6).toUpperCase() } }}
+              {{ 'orders.orderNo' | t: { no: o.number || o.id.slice(-6).toUpperCase() } }}
             </h2>
             <p class="text-slate-800 text-sm font-semibold">{{ o.customerName || ((o.source === 'Kiosk' ? 'orders.kioskGuest' : 'orders.walkIn') | t) }}</p>
             @if (o.tableLabel) {
