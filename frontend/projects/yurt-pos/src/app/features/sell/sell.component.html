@@ -29,6 +29,11 @@
         @if (scale.connected()) { ⚖ {{ scale.usable() ? kgText(scale.usable()!.grams) : ('scale.waiting' | t) }} } @else { {{ 'scale.connect' | t }} }
       </button>
     }
+    @if (branch() && modules.isEnabled('kiosk')) {
+      <button type="button" (click)="openKiosk()" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+        {{ 'top.kiosk' | t }}
+      </button>
+    }
     @if (branch()) {
       <button type="button" (click)="showPrinter.set(true)" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
         {{ (printer.hasPrinter() ? 'printer.on' : 'printer.title') | t }}

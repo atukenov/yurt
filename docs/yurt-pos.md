@@ -55,6 +55,9 @@ Later, only for cafes with 2+ tills: a small in-cafe box that keeps the tills in
   internet), pressing again sends the same key and the server returns the first sale. A changed cart gets a new key.
 - **Sales on this till:** today's sales from this tablet (kept on the tablet only). Sales not uploaded yet say "waiting".
 
+### Guest kiosk
+With the `kiosk` module on, a **Guest kiosk** button hands the tablet to guests as a self-order screen. See `docs/self-order-kiosk.md`.
+
 ### Barcode scanner and scales
 Scan a pack to add the dish, weigh dishes sold by weight, or read a label from a shop scale, also offline. See `docs/barcodes-and-scales.md`.
 

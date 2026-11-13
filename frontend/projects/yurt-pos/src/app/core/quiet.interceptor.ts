@@ -7,6 +7,6 @@ import { SKIP_ERROR_TOAST } from 'shared-api';
  * would only scare the cashier while the till keeps working.
  */
 export const quietInterceptor: HttpInterceptorFn = (req, next) => {
-  const quiet = req.method === 'GET' || req.url.endsWith('/admin/counter-sales');
+  const quiet = req.method === 'GET' || req.url.endsWith('/admin/counter-sales') || req.url.endsWith('/admin/kiosk-orders');
   return next(quiet ? req.clone({ context: req.context.set(SKIP_ERROR_TOAST, true) }) : req);
 };

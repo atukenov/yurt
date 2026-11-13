@@ -1,7 +1,7 @@
 /** How the Platform screen groups the modules, in display order. Every module key belongs to exactly one group. */
 export const MODULE_GROUPS: { key: string; modules: string[] }[] = [
   { key: 'basics', modules: ['core', 'branding', 'verification', 'multi_location'] },
-  { key: 'ordering', modules: ['online_payments', 'table_ordering', 'group_orders'] },
+  { key: 'ordering', modules: ['online_payments', 'table_ordering', 'kiosk', 'group_orders'] },
   { key: 'customers', modules: ['loyalty', 'marketing', 'engagement', 'push'] },
   { key: 'running', modules: ['own_pos', 'staff_audit', 'staff_watch', 'payroll', 'analytics'] },
   { key: 'connections', modules: ['iiko_sync'] },

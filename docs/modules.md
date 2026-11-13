@@ -114,6 +114,12 @@ How a gate is built:
 - **Existing data:** tables and the table names on past orders stay and show again when the module is back on. Deleting a table keeps its orders' table name.
 - **Depends on:** nothing.
 
+### `kiosk` (self-order kiosk)
+- **Covers:** `POST /api/v1/admin/kiosk-orders` and the **Guest kiosk** button and `/kiosk` screen of the Yurt POS app. Full description in `docs/self-order-kiosk.md`.
+- **How it works:** a tablet signed in with a staff login shows a locked, fullscreen ordering screen (here or to go, menu with option rules and allergens, order number, resets after a minute without a touch). The order waits unpaid like an unpaid cash order from the app; the cashier takes the money, marks it paid and accepts it.
+- **When off:** the endpoint returns `403 module_disabled` and the button is hidden. Orders already made stay.
+- **Depends on:** `own_pos` (the screen lives in the POS app and uses its stock and printing). It is off for new cafes like every other module.
+
 ### `staff_watch` (cafe cameras: visitors, staffed stations, phone, not moving)
 - **Covers:** the Staff watch page in the admin app (`/api/v1/admin/watch/*`) and the camera box API (`/api/v1/watch-agent/*`, signed in with the `X-Watch-Key` header, no user login).
 - **How it works:** a small computer in the cafe runs `watch/watch.py run` with `[yurt] api` and `key` in its `config.toml`. It reads the cafe's own cameras (RTSP), finds people and phones with RF-DETR Nano (made on the box once) or YOLOX-Tiny through ONNX Runtime (`device`: cpu, intel/OpenVINO, nvidia/CUDA), follows people across door lines with ByteTrack + supervision, and sends only per-minute numbers per zone: seconds watched, seconds someone was there, people, phone in hand, not moving, entered and left through a door line. Every 60 s it fetches zones, shift plan and alert settings from Yurt (that fetch is also its sign of life: offline after 3 missed minutes) and sends the minutes; alerts go out at once, and the "right now" state (`POST watch-agent/live`, one `WatchLive` row per branch, pushed as SignalR `WatchLive` to managers who called `SubscribeToWatch`) only when it changes, at most every 10 s. Camera addresses and passwords stay in the box.

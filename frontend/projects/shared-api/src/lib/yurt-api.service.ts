@@ -31,6 +31,7 @@ import {
   AuthResponse,
   CreateOrderRequest,
   CreateCounterSaleRequest,
+  CreateKioskOrderRequest,
   CreatePaymentRequest,
   PaymentConfig,
   PaymentSettings,
@@ -610,6 +611,11 @@ export class YurtApiService {
   /** Rings up a paid counter sale (Yurt POS). Resending the same idempotencyKey returns the first sale. */
   createCounterSale(request: CreateCounterSaleRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/counter-sales`, request);
+  }
+
+  /** Sends a self-order kiosk order (module kiosk). It waits unpaid for the cashier. Resending the same idempotencyKey returns the first order. */
+  createKioskOrder(request: CreateKioskOrderRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/admin/kiosk-orders`, request);
   }
 
   getActiveOrders(): Observable<Order[]> {
