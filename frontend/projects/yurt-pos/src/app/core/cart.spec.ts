@@ -1,7 +1,7 @@
 import { MenuItem, MenuTopping, PaymentMethod } from 'shared-models';
 import {
   addLine, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant, discountOf,
-  missingChoice, needsOptions, offlineNumber, receiptLines, tipOf, toggleTopping, toRequest,
+  comboSummary, missingChoice, needsOptions, offlineNumber, receiptLines, tipOf, toggleTopping, toRequest,
 } from './cart';
 
 const latte: MenuItem = {
@@ -153,5 +153,27 @@ describe('tip', () => {
     const same = toRequest(lines, 'branch', PaymentMethod.Card, 'k', false, 5, 'TakeAway', null, 100, PaymentMethod.Card);
     expect('tipMethod' in same).toBe(false);
     expect('tip' in toRequest(lines, 'branch', PaymentMethod.Cash, 'k', false, 5)).toBe(false);
+  });
+});
+
+describe('combos on the till', () => {
+  const combo: MenuItem = {
+    id: 'combo', categoryId: 'coffee', categoryName: 'Coffee', name: 'Coffee & bun', description: '', price: 1200,
+    isAvailable: true, isNew: false, isCombo: true,
+    comboItems: [
+      { itemId: 'latte', name: 'Latte', quantity: 1 },
+      { itemId: 'bun', name: 'Bun', quantity: 2 },
+    ],
+  };
+
+  it('says what is inside on one line', () => {
+    expect(comboSummary(combo)).toBe('Latte + 2 × Bun');
+    expect(comboSummary(water)).toBe('');
+  });
+
+  it('is added straight away at its set price, with no size or add-ons', () => {
+    expect(needsOptions(combo)).toBe(false);
+    const lines = addLine([], combo, null, [], 2);
+    expect(cartTotal(lines)).toBe(2400);
   });
 });

@@ -187,6 +187,86 @@ export interface MenuItem {
   toppingIds?: string[];
   /** Admin: dish prices that differ by branch. */
   locationPrices?: LocationPrice[];
+  /** A combo: a set price for the dishes in `comboItems`. */
+  isCombo?: boolean;
+  comboItems?: ComboItem[];
+}
+
+/** A dish inside a combo, as the guest and the till see it. */
+export interface ComboItem {
+  itemId: string;
+  name: string;
+  variantLabel?: string | null;
+  quantity: number;
+}
+
+/** Admin: one dish inside a combo. `regularPrice` = one piece bought separately. */
+export interface ComboPart {
+  itemId: string;
+  itemName: string;
+  variantId: string | null;
+  variantLabel: string | null;
+  quantity: number;
+  regularPrice: number;
+}
+
+/** Admin: a combo with what it holds and what guests save. `blocked` = off the guest menu now (a dish inside is out). */
+export interface Combo {
+  id: string;
+  name: string;
+  nameRu: string | null;
+  nameKk: string | null;
+  description: string;
+  descriptionRu: string | null;
+  descriptionKk: string | null;
+  categoryId: string;
+  categoryName: string;
+  price: number;
+  isAvailable: boolean;
+  imageUrl: string | null;
+  locationIds: string[];
+  parts: ComboPart[];
+  regularTotal: number;
+  saving: number;
+  blocked: boolean;
+  timesSold: number;
+}
+
+export interface SaveCombo {
+  name: string;
+  nameRu?: string | null;
+  nameKk?: string | null;
+  description?: string | null;
+  descriptionRu?: string | null;
+  descriptionKk?: string | null;
+  categoryId: string;
+  price: number;
+  isAvailable: boolean;
+  imageUrl?: string | null;
+  /** Empty = every branch. */
+  locationIds: string[];
+  parts: { itemId: string; variantId: string | null; quantity: number }[];
+}
+
+export interface ComboReportItem {
+  comboId: string;
+  name: string;
+  sold: number;
+  revenue: number;
+  regularValue: number;
+  saved: number;
+  cost: number | null;
+  profit: number | null;
+}
+
+export interface ComboReport {
+  month: string;
+  locationId: string | null;
+  totals: {
+    sold: number; revenue: number; regularValue: number; saved: number;
+    cost: number | null; profit: number | null; shareOfSales: number; ordersWithCombo: number;
+  };
+  items: ComboReportItem[];
 }
 
 // ── iiko reference lookups (admin mapping UI) ──────────────────────────────────
@@ -299,6 +379,8 @@ export interface OrderItem {
   toppings: OrderItemTopping[];
   notes?: string;
   variantLabel?: string;
+  /** For a combo: the dishes that were in it (per one combo). */
+  comboParts?: { name: string; variantLabel?: string | null; quantity: number }[] | null;
 }
 
 /** One menu item of a branch with its stock count (own_pos). `quantity` is null when the item is not counted. */

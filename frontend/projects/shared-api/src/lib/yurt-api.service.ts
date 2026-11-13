@@ -20,6 +20,7 @@ import {
   Cafe,
   CafeSecretStatus, CafeAdmin, PayrollStaff, PayAdjustment, PayrollSheet,
   ItemProfitReport, ProfitMonth, CafeExpense, SaveCafeExpense,
+  Combo, SaveCombo, ComboReport,
   CreateCafeRequest,
   MenuImportResult,
   BrandConfig,
@@ -1261,6 +1262,31 @@ export class YurtApiService {
 
   reopenPayrollMonth(month: string): Observable<PayrollSheet> {
     return this.http.post<PayrollSheet>(`${this.api}/admin/payroll/months/${month}/reopen`, {});
+  }
+
+  // ── Combos ─────────────────────────────────────────────────────────────────
+  getCombos(): Observable<Combo[]> {
+    return this.http.get<Combo[]>(`${this.api}/admin/combos`);
+  }
+
+  createCombo(body: SaveCombo): Observable<Combo> {
+    return this.http.post<Combo>(`${this.api}/admin/combos`, body);
+  }
+
+  updateCombo(id: string, body: SaveCombo): Observable<Combo> {
+    return this.http.put<Combo>(`${this.api}/admin/combos/${id}`, body);
+  }
+
+  /** `true` = gone for good, `false` = only switched off because old orders still show it. */
+  deleteCombo(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.api}/admin/combos/${id}`);
+  }
+
+  /** What combos sold in a month (yyyy-MM). CEO only. */
+  getComboReport(month: string, locationId?: string | null): Observable<ComboReport> {
+    return this.http.get<ComboReport>(`${this.api}/admin/combos/report`, {
+      params: { month, ...(locationId ? { locationId } : {}) },
+    });
   }
 
   // ── Profit (CEO only) ──────────────────────────────────────────────────────

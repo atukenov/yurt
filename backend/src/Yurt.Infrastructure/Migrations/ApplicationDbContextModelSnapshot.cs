@@ -358,6 +358,49 @@ namespace Yurt.Infrastructure.Migrations
                     b.ToTable("CashMovements");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.ComboPart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ComboId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VariantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComboId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("ComboParts");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.CustomerDeviceToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1306,6 +1349,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsCombo")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsNew")
                         .HasColumnType("boolean");
 
@@ -2019,6 +2065,57 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderItemComboPart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("OrderItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("RegularPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VariantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("VariantLabel")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("OrderItemComboParts");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItemTopping", b =>
@@ -4014,6 +4111,31 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("Shift");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.ComboPart", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.MenuItem", "Combo")
+                        .WithMany("ComboParts")
+                        .HasForeignKey("ComboId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.MenuItem", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Combo");
+
+                    b.Navigation("Item");
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.CustomerDeviceToken", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.CustomerUser", "Customer")
@@ -4585,6 +4707,23 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("MenuItem");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderItemComboPart", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.OrderItem", "OrderItem")
+                        .WithMany("ComboParts")
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OrderItem");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItemTopping", b =>
@@ -5190,6 +5329,8 @@ namespace Yurt.Infrastructure.Migrations
 
             modelBuilder.Entity("Yurt.Domain.Entities.MenuItem", b =>
                 {
+                    b.Navigation("ComboParts");
+
                     b.Navigation("Favorites");
 
                     b.Navigation("MenuItemLocations");
@@ -5222,6 +5363,8 @@ namespace Yurt.Infrastructure.Migrations
 
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItem", b =>
                 {
+                    b.Navigation("ComboParts");
+
                     b.Navigation("Toppings");
                 });
 

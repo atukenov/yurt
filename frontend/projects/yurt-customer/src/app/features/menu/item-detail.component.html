@@ -107,6 +107,20 @@
           <div style="margin-bottom:18px"></div>
         }
 
+        <!-- ── What is in a combo ────────────────────────────────────────── -->
+        @if (i.isCombo && i.comboItems?.length) {
+          <div style="background:var(--ink-100);border-radius:16px;padding:12px 14px;margin-bottom:22px">
+            <p style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-500);margin-bottom:6px">
+              {{ 'menu.comboIncludes' | t }}
+            </p>
+            @for (c of i.comboItems; track c.itemId + (c.variantLabel ?? '')) {
+              <p style="font-size:14px;font-weight:600;color:var(--ink-800)">
+                {{ c.quantity }} × {{ c.name }}@if (c.variantLabel) {<span style="font-weight:400;color:var(--ink-500)"> · {{ c.variantLabel }}</span>}
+              </p>
+            }
+          </div>
+        }
+
         <!-- ── Size segmented control ────────────────────────────────────── -->
         @if (i.variants && i.variants.length > 0) {
           <div style="background:var(--ink-100);border-radius:16px;padding:4px;display:flex;gap:0;margin-bottom:22px">

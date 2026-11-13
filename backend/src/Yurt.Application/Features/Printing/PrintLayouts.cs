@@ -66,6 +66,9 @@ public static class PrintLayouts
             p.Bold(true).Line($"{item.Quantity} x {item.MenuItemName}").Bold(false);
             var extras = Extras(item);
             if (extras.Length > 0) p.Line("  " + extras);
+            // A combo: the kitchen sees what is inside it.
+            foreach (var part in item.ComboParts.OrderBy(c => c.CreatedAt))
+                p.Line($"  - {part.Quantity * item.Quantity} x {part.ItemName}{(string.IsNullOrWhiteSpace(part.VariantLabel) ? "" : " " + part.VariantLabel)}");
             if (!string.IsNullOrWhiteSpace(item.Notes)) p.Bold(true).Line("! " + item.Notes).Bold(false);
             p.Rule();
         }

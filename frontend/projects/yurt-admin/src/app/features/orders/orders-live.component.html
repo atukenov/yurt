@@ -431,6 +431,11 @@
                     + {{ item.toppings.map((t) => t.toppingName).join(', ') }}
                   </p>
                 }
+                @if (item.comboParts?.length) {
+                  <p class="text-slate-500 text-xs mt-0.5">
+                    {{ item.comboParts!.map((c) => c.quantity * item.quantity + ' × ' + c.name + (c.variantLabel ? ' ' + c.variantLabel : '')).join(', ') }}
+                  </p>
+                }
                 @if (item.notes) {
                   <p class="text-slate-500 text-xs mt-0.5 italic">📝 {{ item.notes }}</p>
                 }

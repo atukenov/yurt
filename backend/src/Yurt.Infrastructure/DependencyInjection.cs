@@ -181,6 +181,7 @@ public static class DependencyInjection
         services.AddScoped<StockAlertPushService>();
         services.AddScoped<StockService>();
         services.AddScoped<IngredientService>();
+        services.AddScoped<Yurt.Application.Features.Combos.ComboService>();
         services.AddScoped<StockMoveService>();
         services.AddScoped<PurchasingService>();
         services.AddScoped<ShiftService>();

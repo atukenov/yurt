@@ -70,7 +70,11 @@ public record OrderItemDto(
     decimal LineTotal,
     List<OrderItemToppingDto> Toppings,
     string? Notes = null,
-    string? VariantLabel = null);
+    string? VariantLabel = null,
+    // For a combo: the dishes that were in it (per one combo). Null for a plain dish.
+    List<OrderItemComboPartDto>? ComboParts = null);
+
+public record OrderItemComboPartDto(string Name, string? VariantLabel, int Quantity);
 
 public record OrderItemToppingDto(Guid ToppingId, string ToppingName, decimal Price);
 

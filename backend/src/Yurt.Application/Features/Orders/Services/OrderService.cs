@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Approvals;
+using Yurt.Application.Features.Combos;
 using Yurt.Application.Features.DiscountCodes.Services;
 using Yurt.Application.Features.Fiscal;
 using Yurt.Application.Features.Loyalty.Services;
@@ -140,16 +141,24 @@ public class OrderService
             if (!timed.IsOnMenu(item))
                 return Result<OrderDto>.Failure($"'{item.Name}' is not on the menu at this time.", 400);
 
+        // A combo can be ordered only while every dish inside it is available at this branch.
+        var combos = await ComboSales.LoadAsync(_db, menuItems, ct);
+        foreach (var combo in menuItems.Where(m => m.IsCombo))
+            if (combos.Problem(combo, dto.LocationId) is { } comboProblem)
+                return Result<OrderDto>.Failure(comboProblem, 400);
+
         if (_stock is not null)
         {
-            var wanted = dto.Items.GroupBy(i => i.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+            var lines = dto.Items
+                .Select(i => new StockLine(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings?.Select(t => t.ToppingId).ToList() ?? [],
+                    combos.LinePartsOf(i.MenuItemId)))
+                .ToList();
+            // A combo takes stock off the dishes inside it.
+            var wanted = StockLine.Expand(lines).GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
             var shortage = await _stock.FindShortageAsync(
                 dto.LocationId, wanted, menuItems.ToDictionary(m => m.Id, m => m.Name), ct);
             if (shortage != null) return Result<OrderDto>.Failure(shortage, 400);
 
-            var lines = dto.Items
-                .Select(i => new StockLine(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings?.Select(t => t.ToppingId).ToList() ?? []))
-                .ToList();
             shortage = await _stock.FindIngredientShortageAsync(
                 dto.LocationId, lines, menuItems.ToDictionary(m => m.Id, m => m.Name), ct);
             if (shortage != null) return Result<OrderDto>.Failure(shortage, 400);
@@ -199,7 +208,7 @@ public class OrderService
         {
             var chosen = chosenOptions[index];
             var menuItem = menuItems.First(m => m.Id == i.MenuItemId);
-            var variant = i.VariantId.HasValue ? variants.FirstOrDefault(v => v.Id == i.VariantId.Value && v.MenuItemId == i.MenuItemId) : null;
+            var variant = i.VariantId.HasValue && !menuItem.IsCombo ? variants.FirstOrDefault(v => v.Id == i.VariantId.Value && v.MenuItemId == i.MenuItemId) : null;
             var basePrice = timed.PriceOf(menuItem, variant?.Price ?? DishOptions.BranchPrice(menuItem, dto.LocationId), variant is not null);
             var toppingTotal = chosen.Sum(o => o.Price);
             var lineTotal = (basePrice + toppingTotal) * i.Quantity;
@@ -215,6 +224,11 @@ public class OrderService
                 VariantLabel = variant?.Label,
                 Notes = i.Notes
             };
+            if (menuItem.IsCombo)
+            {
+                orderItem.ComboParts = combos.Snapshot(menuItem, dto.LocationId);
+                foreach (var part in orderItem.ComboParts) part.OrderItemId = orderItem.Id;
+            }
             if (chosen.Count > 0)
                 orderItem.Toppings = chosen.Select(o => new OrderItemTopping
                 {
@@ -767,7 +781,9 @@ public class OrderService
             o.Items.Select(i => new OrderItemDto(
                 i.Id, i.MenuItemId, i.MenuItemName, i.Quantity, i.UnitPrice, i.LineTotal,
                 i.Toppings.Select(t => new OrderItemToppingDto(t.ToppingId, t.ToppingName, t.Price)).ToList(),
-                i.Notes, i.VariantLabel
+                i.Notes, i.VariantLabel,
+                i.ComboParts.Count == 0 ? null : i.ComboParts.OrderBy(c => c.CreatedAt)
+                    .Select(c => new OrderItemComboPartDto(c.ItemName, c.VariantLabel, c.Quantity)).ToList()
             )).ToList(),
             o.LoyaltyPointsSpent,
             o.LoyaltyPointsEarned,
