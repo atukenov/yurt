@@ -256,12 +256,14 @@ export class MenuManagementComponent implements OnInit {
     const pct = Number(this.bulkPercent());
     const n = this.selectedItems().length;
     if (!pct || !n) return;
-    const ok = await this.confirmSvc.confirm(
-      this.langService.t('menu.bulkPriceTitle'),
-      this.langService.t('menu.bulkPriceAsk', { count: n, percent: pct }));
-    if (!ok) return;
     const k = 1 + pct / 100;
     const r = (v: number) => Math.max(0, Math.round(v * k * 100) / 100);
+    const first = this.selectedItems()[0];
+    const ok = await this.confirmSvc.confirm(
+      this.langService.t('menu.bulkPriceTitle'),
+      this.langService.t('menu.bulkPriceAsk', { count: n, percent: pct, name: this.localizedItemName(first), from: first.price, to: r(first.price) }),
+      this.langService.t('menu.bulkApply'));
+    if (!ok) return;
     await this.bulkApply((i) => ({
       price: r(i.price),
       variants: i.variants?.map((v) => ({ ...v, price: r(v.price) })),
