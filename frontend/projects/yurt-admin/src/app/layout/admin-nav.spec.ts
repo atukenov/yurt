@@ -36,7 +36,7 @@ describe('admin sidebar', () => {
 
   it('hides the screens of modules that are off', () => {
     const nav = buildAdminNav({ isAdmin: true, isCeo: false, isSuperAdmin: false, moduleEnabled: none });
-    expect(links(nav)).toEqual(['/orders', '/menu', '/customers', '/reports', '/locations']);
+    expect(links(nav)).toEqual(['/orders', '/menu', '/time-menus', '/customers', '/reports', '/locations']);
   });
 
   it('shows only the screens of the modules that are on', () => {
