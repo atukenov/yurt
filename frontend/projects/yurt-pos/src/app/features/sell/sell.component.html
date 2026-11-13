@@ -121,6 +121,9 @@
                   <button type="button" (click)="tap(item)" [disabled]="step() === 'pay'"
                           class="flex min-h-24 flex-col justify-between rounded-xl bg-surface p-3 text-left ring-1 ring-slate-200 active:scale-[0.98] disabled:opacity-50">
                     <span class="line-clamp-2 text-sm font-semibold text-slate-900">{{ item.name }}</span>
+                    @if (item.isCombo && item.comboItems?.length) {
+                      <span class="mt-1 line-clamp-2 text-xs text-slate-500">{{ 'menu.combo' | t }}: {{ comboSummary(item) }}</span>
+                    }
                     <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}</span>
                   </button>
                 } @empty {

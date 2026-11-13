@@ -367,6 +367,24 @@ public static class DemoDataSeeder
                 new MenuOptionGroup { Key = "milk", Title = "Milk", TitleRu = "Молоко", TitleKk = "Сүт", Required = true, MinSelect = 1, MaxSelect = 1 },
                 new MenuOptionGroup { Key = "syrup", Title = "Syrup", TitleRu = "Сироп", TitleKk = "Сироп", MinSelect = 0, MaxSelect = 2 });
         }
+        // A combo: cappuccino and a croissant for less than the two bought separately.
+        var cappuccino = items.FirstOrDefault(i => i.Name == "Cappuccino");
+        var croissant = items.FirstOrDefault(i => i.Name == "Butter Croissant");
+        if (cappuccino is not null && croissant is not null && !await db.MenuItems.AnyAsync(i => i.IsCombo, ct))
+        {
+            var combo = new MenuItem
+            {
+                IsCombo = true, Category = categories.First(c => c.Name == "Coffee"), Name = "Coffee & Croissant",
+                NameRu = "Кофе и круассан", NameKk = "Кофе және круассан",
+                Description = "A cappuccino and a butter croissant at a set price.",
+                DescriptionRu = "Капучино и масляный круассан по специальной цене.",
+                Price = Math.Round((cappuccino.Price + croissant.Price) * 0.85m, 2), IsAvailable = true, SortOrder = 90,
+            };
+            db.MenuItems.Add(combo);
+            db.ComboParts.AddRange(
+                new ComboPart { Combo = combo, Item = cappuccino, Quantity = 1, SortOrder = 0 },
+                new ComboPart { Combo = combo, Item = croissant, Quantity = 1, SortOrder = 1 });
+        }
         var egg = toppings.FirstOrDefault(t => t.Name == "Poached Egg");
         if (toast is not null && egg is not null && !await db.MenuItemToppings.AnyAsync(ct))
             db.MenuItemToppings.Add(new MenuItemTopping { MenuItem = toast, Topping = egg });
@@ -861,6 +879,7 @@ public static class DemoDataSeeder
         var codes = await db.DiscountCodes.Where(c => c.Code == "WELCOME10" || c.Code == "MORNING1").ToListAsync(ct);
         var printers = await db.Printers.Where(p => p.Kind == Printer.KitchenKind).ToListAsync(ct);
         var weights = items.Select(i => (double)(Items.FirstOrDefault(x => x.Name == i.Name)?.Popularity ?? 4)).ToArray();
+        var comboParts = (await db.ComboParts.Include(p => p.Item).ToListAsync(ct)).ToLookup(p => p.ComboId);
 
         MenuItem PickItem(Guid locationId)
         {
@@ -909,7 +928,7 @@ public static class DemoDataSeeder
                     : d.Chance(0.5) ? item.Variants.FirstOrDefault(v => v.IsDefault) ?? item.Variants.First()
                     : d.Pick(item.Variants.ToList());
                 var pool = toppingsByCategory.GetValueOrDefault(item.CategoryId) ?? [];
-                var tops = pool.Count > 0 && d.Chance(0.3) ? pool.OrderBy(_ => d.Rng.Next()).Take(d.Rng.Next(1, 3)).ToList() : [];
+                var tops = pool.Count > 0 && !item.IsCombo && d.Chance(0.3) ? pool.OrderBy(_ => d.Rng.Next()).Take(d.Rng.Next(1, 3)).ToList() : [];
                 lines.Add(new Line(item, variant, tops, d.Chance(0.85) ? 1 : 2));
             }
 
@@ -922,7 +941,10 @@ public static class DemoDataSeeder
             {
                 var basePrice = l.Variant?.Price ?? l.Item.Price;
                 var toppingTotal = l.Toppings.Sum(t => t.Price);
-                decimal? cost = recipeCost.TryGetValue(l.Item.Id, out var c) ? Math.Round(c + l.Toppings.Sum(t => toppingCost.GetValueOrDefault(t.Id)), 4) : null;
+                var parts = comboParts[l.Item.Id].ToList();
+                decimal? cost = parts.Count > 0
+                    ? Math.Round(parts.Sum(p => p.Quantity * recipeCost.GetValueOrDefault(p.ItemId)), 4)
+                    : recipeCost.TryGetValue(l.Item.Id, out var c) ? Math.Round(c + l.Toppings.Sum(t => toppingCost.GetValueOrDefault(t.Id)), 4) : null;
                 var oi = new OrderItem
                 {
                     MenuItemId = l.Item.Id, MenuItemName = l.Item.Name, VariantId = l.Variant?.Id, VariantLabel = l.Variant?.Label,
@@ -931,6 +953,11 @@ public static class DemoDataSeeder
                 };
                 foreach (var t in l.Toppings)
                     oi.Toppings.Add(new OrderItemTopping { ToppingId = t.Id, ToppingName = t.Name, Price = t.Price, CreatedAt = createdAt });
+                foreach (var p in parts)
+                    oi.ComboParts.Add(new OrderItemComboPart
+                    {
+                        ItemId = p.ItemId, ItemName = p.Item.Name, Quantity = p.Quantity, RegularPrice = p.Item.Price, CreatedAt = createdAt,
+                    });
                 order.Items.Add(oi);
             }
             order.Subtotal = order.Items.Sum(i => i.LineTotal);

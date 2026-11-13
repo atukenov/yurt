@@ -229,6 +229,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(e => e.MenuItem).WithMany(m => m.OrderItems)
             .HasForeignKey(e => e.MenuItemId).OnDelete(DeleteBehavior.Restrict);
+        // What a combo line contained is read with the line (kitchen ticket, stock, order screens).
+        builder.Navigation(e => e.ComboParts).AutoInclude();
     }
 }
 
@@ -293,6 +295,35 @@ public class MenuItemToppingConfiguration : IEntityTypeConfiguration<MenuItemTop
             .HasForeignKey(e => e.MenuItemId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(e => e.Topping).WithMany()
             .HasForeignKey(e => e.ToppingId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class ComboPartConfiguration : IEntityTypeConfiguration<ComboPart>
+{
+    public void Configure(EntityTypeBuilder<ComboPart> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasOne(e => e.Combo).WithMany(m => m.ComboParts)
+            .HasForeignKey(e => e.ComboId).OnDelete(DeleteBehavior.Cascade);
+        // A dish that sits inside a combo cannot be deleted until the combo drops it.
+        builder.HasOne(e => e.Item).WithMany()
+            .HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(e => e.ComboId);
+        builder.HasIndex(e => e.ItemId);
+    }
+}
+
+public class OrderItemComboPartConfiguration : IEntityTypeConfiguration<OrderItemComboPart>
+{
+    public void Configure(EntityTypeBuilder<OrderItemComboPart> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.ItemName).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.VariantLabel).HasMaxLength(100);
+        builder.Property(e => e.RegularPrice).HasPrecision(10, 2);
+        builder.HasOne(e => e.OrderItem).WithMany(oi => oi.ComboParts)
+            .HasForeignKey(e => e.OrderItemId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(e => e.OrderItemId);
     }
 }
 

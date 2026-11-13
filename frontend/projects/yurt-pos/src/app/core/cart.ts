@@ -34,6 +34,11 @@ export function defaultVariant(item: MenuItem) {
   return variants.find((v) => v.isDefault) ?? variants[0] ?? null;
 }
 
+/** What is in a combo as one line: "Cappuccino + 2 × Croissant". Empty for a plain dish. */
+export function comboSummary(item: MenuItem): string {
+  return (item.comboItems ?? []).map((c) => (c.quantity > 1 ? `${c.quantity} × ` : '') + c.name).join(' + ');
+}
+
 /** Whether tapping the item needs a choice first (sizes or add-ons). */
 export function needsOptions(item: MenuItem): boolean {
   return (item.variants?.length ?? 0) > 1 || (item.availableToppings?.some((t) => t.isAvailable) ?? false);

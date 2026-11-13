@@ -27,6 +27,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<MenuToppingCategory> MenuToppingCategories => Set<MenuToppingCategory>();
     public DbSet<MenuOptionGroup> MenuOptionGroups => Set<MenuOptionGroup>();
     public DbSet<MenuItemTopping> MenuItemToppings => Set<MenuItemTopping>();
+    public DbSet<ComboPart> ComboParts => Set<ComboPart>();
+    public DbSet<OrderItemComboPart> OrderItemComboParts => Set<OrderItemComboPart>();
     public DbSet<MenuToppingLocation> MenuToppingLocations => Set<MenuToppingLocation>();
     public DbSet<OrderItemTopping> OrderItemToppings => Set<OrderItemTopping>();
     public DbSet<Favorite> Favorites => Set<Favorite>();

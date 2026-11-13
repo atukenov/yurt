@@ -22,4 +22,6 @@ public class OrderItem : BaseEntity, ITenantOwned
     public Order Order { get; set; } = null!;
     public MenuItem MenuItem { get; set; } = null!;
     public ICollection<OrderItemTopping> Toppings { get; set; } = new List<OrderItemTopping>();
+    // What a combo line contained when it was sold. Empty for a plain dish.
+    public ICollection<OrderItemComboPart> ComboParts { get; set; } = new List<OrderItemComboPart>();
 }
