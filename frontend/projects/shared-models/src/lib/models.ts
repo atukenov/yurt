@@ -190,6 +190,25 @@ export interface MenuItem {
   /** A combo: a set price for the dishes in `comboItems`. */
   isCombo?: boolean;
   comboItems?: ComboItem[];
+  /** Allergens and nutrition per serving; null/absent when nothing is filled in. */
+  nutrition?: Nutrition | null;
+}
+
+/** The 14 EU allergens, as the server stores them. The apps translate `allergen.<code>`. */
+export const ALLERGEN_CODES = [
+  'gluten', 'crustaceans', 'eggs', 'fish', 'peanuts', 'soy', 'milk', 'nuts',
+  'celery', 'mustard', 'sesame', 'sulphites', 'lupin', 'molluscs',
+] as const;
+export type AllergenCode = (typeof ALLERGEN_CODES)[number];
+
+/** Nutrition per serving (every number optional) and the allergens the dish contains. */
+export interface Nutrition {
+  calories?: number | null;
+  protein?: number | null;
+  fat?: number | null;
+  carbs?: number | null;
+  weightGrams?: number | null;
+  allergens?: string[] | null;
 }
 
 /** A dish inside a combo, as the guest and the till see it. */

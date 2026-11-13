@@ -111,6 +111,10 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(e => e.DescriptionKk).HasMaxLength(1000);
         builder.Property(e => e.Price).HasPrecision(10, 2);
         builder.Property(e => e.ImageUrl).HasMaxLength(500);
+        builder.Property(e => e.Allergens).HasMaxLength(200);
+        builder.Property(e => e.Protein).HasPrecision(7, 1);
+        builder.Property(e => e.Fat).HasPrecision(7, 1);
+        builder.Property(e => e.Carbs).HasPrecision(7, 1);
         builder.HasOne<MenuSchedule>().WithMany().HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(e => e.Category).WithMany(c => c.Items)
             .HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Restrict);

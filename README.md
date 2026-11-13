@@ -192,6 +192,7 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/forecast.md](docs/forecast.md) — sales forecast and daily prep plan
 - [docs/option-rules.md](docs/option-rules.md) — required choices (milk), min / max, options per dish, prices per branch
 - [docs/time-menus.md](docs/time-menus.md) — breakfast / happy hour: dishes and prices by hours and days, per branch clock
+- [docs/allergens-nutrition.md](docs/allergens-nutrition.md) — allergens and calories on dishes, shown to guests on the menu and QR menu
 - [docs/combos.md](docs/combos.md) — dishes sold together at a set price: stock per dish, stop-list, kitchen ticket, CEO report
 - [docs/profit.md](docs/profit.md) — monthly profit and profit by dish (CEO only)
 - [docs/accounting-export.md](docs/accounting-export.md) — Excel and 1C files for the cafe's accountant (CEO only)

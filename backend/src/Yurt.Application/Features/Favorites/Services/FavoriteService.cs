@@ -32,7 +32,8 @@ public class FavoriteService
             f.MenuItem.ImageUrl,
             NameEn: f.MenuItem.Name,
             NameRu: f.MenuItem.NameRu,
-            NameKk: f.MenuItem.NameKk)).ToList();
+            NameKk: f.MenuItem.NameKk,
+            Nutrition: Menu.Nutrition.ToDto(f.MenuItem))).ToList();
     }
 
     public async Task<Result<bool>> AddFavoriteAsync(

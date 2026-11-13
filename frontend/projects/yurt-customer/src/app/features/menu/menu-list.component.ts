@@ -79,6 +79,11 @@ export class MenuListComponent implements OnInit {
     this.failedImageIds.update((s) => new Set([...s, id]));
   }
 
+  /** The dish's allergens as one line in the app language, e.g. "Gluten, Milk". */
+  allergenNames(item: MenuItem): string {
+    return (item.nutrition?.allergens ?? []).map((a) => this.langService.t('allergen.' + a)).join(', ');
+  }
+
   isNew(item: MenuItem): boolean {
     return item.isNew;
   }
