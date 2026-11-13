@@ -110,6 +110,12 @@ export const routes: Routes = [
               import('./features/purchasing/purchasing.component').then((m) => m.PurchasingComponent),
           },
           {
+            // Sales forecast and prep plan: item counts and ingredient amounts, no money, open to every staff role.
+            path: 'forecast',
+            canActivate: [moduleGuard('own_pos', '/orders')],
+            loadComponent: () => import('./features/forecast/forecast.component').then((m) => m.ForecastComponent),
+          },
+          {
             path: 'stock',
             canActivate: [moduleGuard('own_pos', '/orders')],
             loadComponent: () =>
