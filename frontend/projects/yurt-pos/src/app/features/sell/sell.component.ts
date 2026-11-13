@@ -15,6 +15,8 @@ import { weighedPrice } from 'shared-api';
 import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillSale, TillService } from '../../core/till.service';
 import { isTooOld, outcomeOf, QueuedSale } from '../../core/outbox';
+import { GuestDisplayService } from '../../core/guest-display.service';
+import { guestView } from '../../core/guest-display';
 import { OutboxService } from '../../core/outbox.service';
 import { StaffDialogComponent } from './staff-dialog.component';
 import { TillPrinterService } from '../../core/till-printer.service';
@@ -40,6 +42,7 @@ export class SellComponent implements OnInit {
   readonly outbox = inject(OutboxService);
   readonly printer = inject(TillPrinterService);
   readonly scale = inject(ScaleService);
+  private guestDisplay = inject(GuestDisplayService);
   readonly baudRates = BAUD_RATES;
   readonly kgText = kgText;
   readonly comboSummary = comboSummary;
@@ -157,6 +160,24 @@ export class SellComponent implements OnInit {
   constructor() {
     this.destroyRef.onDestroy(() => { if (this.menuTimer) clearTimeout(this.menuTimer); });
     void this.scale.reconnect();
+    // The guest screen (a second window on the customer monitor) shows what is being rung up.
+    effect(() => {
+      const done = this.step() === 'done';
+      const sale = this.lastSale();
+      const queued = this.lastQueued();
+      this.guestDisplay.publish(guestView({
+        step: this.step(), lang: this.lang.lang(), lines: this.lines(), total: this.total(), discount: this.discountAmount(),
+        payable: this.payable(), tip: this.tip(), method: this.method(), cashGiven: this.cashGiven(), change: this.change(),
+        orderType: this.orderType(), paid: done ? (sale?.total ?? queued?.total ?? 0) : 0,
+        saleNo: done ? (sale ? this.shortNo(sale.id) : queued ? offlineNumber(queued.request.idempotencyKey) : null) : null,
+        saved: done && !sale && !!queued,
+      }));
+    });
+    // Closing the till leaves the guest screen on its welcome picture, not on the last order.
+    this.destroyRef.onDestroy(() => this.guestDisplay.publish(guestView({
+      step: 'cart', lang: this.lang.lang(), lines: [], total: 0, discount: 0, payable: 0, tip: 0, method: null,
+      cashGiven: null, change: null, orderType: 'TakeAway', paid: 0, saleNo: null, saved: false,
+    })));
     // The menu comes in the till's language, for its branch.
     effect(() => {
       const branch = this.till.branchId();

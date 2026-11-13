@@ -34,6 +34,7 @@
         {{ (printer.hasPrinter() ? 'printer.on' : 'printer.title') | t }}
       </button>
     }
+    <a href="/guest" target="yurt-pos-guest" class="rounded-lg px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">{{ 'guest.open' | t }}</a>
     <div class="flex rounded-lg ring-1 ring-slate-200">
       @for (l of langs; track l) {
         <button type="button" (click)="lang.setLang(l)" [attr.aria-pressed]="lang.lang() === l"
