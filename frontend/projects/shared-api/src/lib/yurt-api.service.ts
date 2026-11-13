@@ -739,8 +739,13 @@ export class YurtApiService {
     return this.http.get<Ingredient[]>(`${this.api}/admin/ingredients`, { params: { locationId } });
   }
 
-  createIngredient(body: { name: string; unit: string }): Observable<Ingredient> {
+  createIngredient(body: { name: string; unit: string; barcode?: string | null }): Observable<Ingredient> {
     return this.http.post<Ingredient>(`${this.api}/admin/ingredients`, body);
+  }
+
+  /** Renames an ingredient or changes its unit and barcode. An empty barcode removes it. */
+  updateIngredient(id: string, body: { name: string; unit: string; barcode?: string | null }): Observable<Ingredient> {
+    return this.http.put<Ingredient>(`${this.api}/admin/ingredients/${id}`, body);
   }
 
   deleteIngredient(id: string): Observable<boolean> {

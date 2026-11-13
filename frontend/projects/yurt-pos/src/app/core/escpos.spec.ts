@@ -74,4 +74,9 @@ describe('till printing (ESC/POS)', () => {
     expect(has(receiptBytes({ ...printer, cashDrawer: false }, sale, true), [0x1b, 0x70])).toBe(false);
     expect(text(receiptBytes(printer, { ...sale, offline: false }))).not.toContain('Фискальный');
   });
+
+  it('prints the weight of a weighed item instead of the quantity', () => {
+    const weighed = { ...sale, lines: [{ quantity: 1, weightGrams: 350, name: 'Cheese', extras: '', total: 35 }] };
+    expect(text(receiptBytes(printer, weighed))).toContain('0.350 kg Cheese');
+  });
 });

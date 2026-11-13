@@ -1,22 +1,24 @@
-import { Component, computed, DestroyRef, effect, inject, OnInit, signal, untracked } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, inject, OnInit, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { AuthStateService, BrandService, YurtApiService } from 'shared-api';
+import { AuthStateService, BrandService, findScanned, ScanCollector, YurtApiService } from 'shared-api';
 import { Location, MenuCategory, MenuItem, MenuItemVariant, MenuTopping, Order, PaymentMethod } from 'shared-models';
 import { Currency2Pipe, LocalDatePipe, ManagerApproval, ManagerApprovalComponent } from 'shared-ui';
 import {
-  addLine, branchMethods, comboSummary, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
+  addLine, addWeighedLine, kgText, branchMethods, comboSummary, cartCount, offlineNumber, receiptLines, cartTotal, CartLine, changeDue, changeQuantity, defaultVariant, needsOptions,
   discountOf, missingChoice, ruleOf, TillDiscount, TIP_PERCENTS, TipChoice, tipOf, toggleTopping, toRequest,
 } from '../../core/cart';
+import { weighedPrice } from 'shared-api';
 import { PosLang, PosLangService } from '../../core/lang.service';
 import { TillSale, TillService } from '../../core/till.service';
 import { isTooOld, outcomeOf, QueuedSale } from '../../core/outbox';
 import { OutboxService } from '../../core/outbox.service';
 import { StaffDialogComponent } from './staff-dialog.component';
 import { TillPrinterService } from '../../core/till-printer.service';
+import { BAUD_RATES, ScaleService } from '../../core/scale.service';
 import { PosTranslatePipe } from '../../core/translate.pipe';
 
 type Step = 'cart' | 'pay' | 'done';
@@ -37,6 +39,9 @@ export class SellComponent implements OnInit {
   readonly till = inject(TillService);
   readonly outbox = inject(OutboxService);
   readonly printer = inject(TillPrinterService);
+  readonly scale = inject(ScaleService);
+  readonly baudRates = BAUD_RATES;
+  readonly kgText = kgText;
   readonly comboSummary = comboSummary;
   readonly showPrinter = signal(false);
   /** Why the receipt of a sale kept on the tablet did not print (null = printed, or no printer connected). */
@@ -66,7 +71,8 @@ export class SellComponent implements OnInit {
   readonly shown = computed(() => {
     const q = this.search().trim().toLowerCase();
     const cat = this.category();
-    return this.items().filter((i) => (q ? i.name.toLowerCase().includes(q) : !cat || i.categoryId === cat));
+    // A barcode typed or scanned into the search box finds its dish too.
+    return this.items().filter((i) => (q ? i.name.toLowerCase().includes(q) || (!!i.barcode && i.barcode.toLowerCase().includes(q)) : !cat || i.categoryId === cat));
   });
 
   // Choosing a size and add-ons
@@ -78,6 +84,27 @@ export class SellComponent implements OnInit {
     if (!item) return 0;
     const v = item.variants?.find((x) => x.id === this.pickVariant());
     return (v?.price ?? item.price) + this.pickToppings().reduce((s, t) => s + t.price, 0);
+  });
+
+  // Weighing an item sold by weight
+  readonly weighing = signal<MenuItem | null>(null);
+  /** The weight typed in grams (a cashier without a scale); empty = none yet. */
+  readonly weighGrams = signal<string>('');
+  /** What the scanner last did, shown for a few seconds ("Unknown barcode 4600..."). */
+  readonly scanNote = signal<string | null>(null);
+  private scanNoteTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly scanner = new ScanCollector();
+  /** The weight on the way in: the scale's if it is steady, else the typed one. */
+  readonly weighValue = computed<number | null>(() => {
+    const live = this.scale.usable();
+    if (live && this.weighGrams() === '') return live.grams;
+    const typed = Math.round(Number(this.weighGrams()));
+    return Number.isFinite(typed) && typed > 0 && typed <= 50_000 ? typed : null;
+  });
+  readonly weighPrice = computed(() => {
+    const item = this.weighing();
+    const grams = this.weighValue();
+    return item && grams ? weighedPrice(item.price, grams) : 0;
   });
 
   // The sale
@@ -129,6 +156,7 @@ export class SellComponent implements OnInit {
 
   constructor() {
     this.destroyRef.onDestroy(() => { if (this.menuTimer) clearTimeout(this.menuTimer); });
+    void this.scale.reconnect();
     // The menu comes in the till's language, for its branch.
     effect(() => {
       const branch = this.till.branchId();
@@ -219,6 +247,10 @@ export class SellComponent implements OnInit {
     if (this.step() === 'pay') return;
     // Tapping an item after a sale starts the next guest's sale.
     if (this.step() === 'done') this.next();
+    if (item.soldByWeight) {
+      this.openWeigh(item);
+      return;
+    }
     if (needsOptions(item)) {
       this.picking.set(item);
       this.pickVariant.set(defaultVariant(item)?.id ?? null);
@@ -226,6 +258,67 @@ export class SellComponent implements OnInit {
       return;
     }
     this.setLines(addLine(this.lines(), item, defaultVariant(item)?.id ?? null, []));
+  }
+
+  // ── Scanner and scale ──────────────────────────────────────────────────────
+
+  /** A barcode scanner types like a very fast keyboard and ends with Enter; a person typing is far slower. */
+  @HostListener('document:keydown', ['$event'])
+  onKey(e: KeyboardEvent): void {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const el = e.target as HTMLElement | null;
+    const inField = !!el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName);
+    const inSearch = !!el && el.dataset?.['scan'] === 'search';
+    // Other fields (cash given, PINs, amounts) keep what is typed into them.
+    if (inField && !inSearch) return;
+    if (this.step() === 'pay' || this.picking() || this.weighing() || this.showStaff() || this.showSales() || this.showPrinter()) return;
+    const code = this.scanner.feed(e.key, e.timeStamp);
+    if (code === null) return;
+    e.preventDefault();
+    if (inSearch) this.search.set('');
+    this.onScan(code);
+  }
+
+  /** A scanned code: add the dish, or open the weighing for one sold by weight. */
+  onScan(code: string): void {
+    const found = findScanned(this.items(), code);
+    if (found.kind === 'unknown') {
+      this.note(this.lang.t('scan.unknown', { code }));
+      return;
+    }
+    if (this.step() === 'done') this.next();
+    if (found.kind === 'item') {
+      this.tap(found.item);
+      return;
+    }
+    // A label from the shop scale already holds the weight.
+    if (found.grams) this.setLines(addWeighedLine(this.lines(), found.item, found.grams, crypto.randomUUID()));
+    else this.openWeigh(found.item);
+  }
+
+  private note(text: string): void {
+    this.scanNote.set(text);
+    if (this.scanNoteTimer) clearTimeout(this.scanNoteTimer);
+    this.scanNoteTimer = setTimeout(() => this.scanNote.set(null), 4000);
+  }
+
+  openWeigh(item: MenuItem): void {
+    this.weighGrams.set('');
+    this.weighing.set(item);
+  }
+
+  /** Takes the typed weight, or the scale's if the cashier typed nothing. */
+  confirmWeigh(): void {
+    const item = this.weighing();
+    const grams = this.weighValue();
+    if (!item || !grams) return;
+    this.setLines(addWeighedLine(this.lines(), item, grams, crypto.randomUUID()));
+    this.weighing.set(null);
+  }
+
+  async toggleScale(): Promise<void> {
+    if (this.scale.connected()) await this.scale.disconnect();
+    else await this.scale.connect();
   }
 
   toppingsOf(item: MenuItem): MenuTopping[] {

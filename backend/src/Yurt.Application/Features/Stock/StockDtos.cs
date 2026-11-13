@@ -10,12 +10,12 @@ public record SetStockDto(int? Quantity, int? LowStockAt);
 /// <summary>An ingredient with its count in one branch. <c>Quantity</c> is null when the branch does not count it.</summary>
 public record IngredientDto(
     Guid Id, string Name, string Unit, decimal? Quantity, decimal? LowStockAt, bool IsLow, bool IsOut, int UsedInItems,
-    decimal? CostPerUnit = null);
+    decimal? CostPerUnit = null, string? Barcode = null);
 
 /// <summary>A null cost means "not known".</summary>
 public record SetIngredientCostDto(decimal? CostPerUnit);
 
-public record SaveIngredientDto(string Name, string? Unit);
+public record SaveIngredientDto(string Name, string? Unit, string? Barcode = null);
 
 public record SetIngredientStockDto(decimal? Quantity, decimal? LowStockAt);
 

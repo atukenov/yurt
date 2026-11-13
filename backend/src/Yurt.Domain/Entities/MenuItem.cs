@@ -34,6 +34,15 @@ public class MenuItem : BaseEntity, ITenantOwned
     // follow the parts. A combo offers no add-ons or sizes of its own.
     public bool IsCombo { get; set; }
 
+    /// <summary>The number printed on the pack or the shelf label (EAN-13, EAN-8, UPC or the cafe's own). Unique per cafe.</summary>
+    public string? Barcode { get; set; }
+
+    /// <summary>
+    /// Sold by weight: <see cref="Price"/> is the price of 1 kg and the till weighs each sale. Sold at the till only,
+    /// with no sizes or add-ons. A recipe is then the amount used per 1 kg.
+    /// </summary>
+    public bool SoldByWeight { get; set; }
+
     // iiko nomenclature mapping (order-push feature). Null = unmapped; orders containing
     // this item fail closed (skip the iiko push) rather than guessing. ProductSizeId is
     // used only when the item has no Variants of its own.

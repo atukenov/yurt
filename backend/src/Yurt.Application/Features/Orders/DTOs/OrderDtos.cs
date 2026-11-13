@@ -72,7 +72,9 @@ public record OrderItemDto(
     string? Notes = null,
     string? VariantLabel = null,
     // For a combo: the dishes that were in it (per one combo). Null for a plain dish.
-    List<OrderItemComboPartDto>? ComboParts = null);
+    List<OrderItemComboPartDto>? ComboParts = null,
+    // For a weighed item: the weight in grams (Quantity is 1 and UnitPrice the price of this weight).
+    int? WeightGrams = null);
 
 public record OrderItemComboPartDto(string Name, string? VariantLabel, int Quantity);
 
@@ -97,4 +99,5 @@ public record CreateCounterSaleDto(
     decimal? Tip = null,
     PaymentMethod? TipMethod = null);
 
-public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null);
+/// <summary>One line of a counter sale. A dish sold by weight needs <c>WeightGrams</c> (and Quantity 1); no other dish takes it.</summary>
+public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null, int? WeightGrams = null);

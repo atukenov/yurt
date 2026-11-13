@@ -31,6 +31,9 @@ public record MenuItemDto(
     // A combo: a set price for the dishes listed in ComboItems.
     bool IsCombo = false,
     List<ComboItemDto>? ComboItems = null,
+    // The number on the pack, scanned at the till; and a dish sold by weight (Price is then per kg, till only).
+    string? Barcode = null,
+    bool SoldByWeight = false,
     // Allergens and nutrition per serving; null when nothing is filled in.
     NutritionDto? Nutrition = null);
 
@@ -78,6 +81,8 @@ public record AdminMenuItemDto(
     // Options picked by hand for this dish (empty = the category's options) and prices that differ by branch.
     List<Guid>? ToppingIds = null,
     List<LocationPriceDto>? LocationPrices = null,
+    string? Barcode = null,
+    bool SoldByWeight = false,
     NutritionDto? Nutrition = null);
 
 public record AdminMenuToppingDto(
@@ -119,6 +124,8 @@ public record CreateMenuItemDto(
     bool IsNew = false,
     List<Guid>? ToppingIds = null,
     List<LocationPriceDto>? LocationPrices = null,
+    string? Barcode = null,
+    bool SoldByWeight = false,
     NutritionDto? Nutrition = null);
 
 public record UpdateMenuItemDto(
@@ -139,6 +146,8 @@ public record UpdateMenuItemDto(
     bool IsNew = false,
     List<Guid>? ToppingIds = null,
     List<LocationPriceDto>? LocationPrices = null,
+    string? Barcode = null,
+    bool SoldByWeight = false,
     NutritionDto? Nutrition = null);
 
 public record CreateToppingDto

@@ -23,7 +23,7 @@ public class IngredientCostCalculator(IApplicationDbContext db)
             var flat = new List<StockLine>();
             foreach (var l in lines)
             {
-                flat.Add(new StockLine(l.MenuItemId, l.VariantId, l.Quantity, l.ToppingIds));
+                flat.Add(new StockLine(l.MenuItemId, l.VariantId, l.Quantity, l.ToppingIds, null, l.WeightGrams));
                 foreach (var p in l.Parts ?? []) flat.Add(new StockLine(p.ItemId, p.VariantId, p.Quantity, []));
             }
             var costs = await ForLinesAsync(flat, ct);
@@ -64,7 +64,7 @@ public class IngredientCostCalculator(IApplicationDbContext db)
                 continue;
             }
             var tops = line.ToppingIds.SelectMany(t => uses.Where(u => u.ToppingId == t)).ToList();
-            var cost = own.Sum(r => r.Quantity * (r.CostPerUnit ?? 0m)) + tops.Sum(u => u.Quantity * (u.CostPerUnit ?? 0m));
+            var cost = (own.Sum(r => r.Quantity * (r.CostPerUnit ?? 0m)) + tops.Sum(u => u.Quantity * (u.CostPerUnit ?? 0m))) * line.Scale;
             var missing = own.Any(r => r.CostPerUnit is null) || tops.Any(u => u.CostPerUnit is null);
             result.Add(new PortionCost(Math.Round(cost, 4), missing));
         }

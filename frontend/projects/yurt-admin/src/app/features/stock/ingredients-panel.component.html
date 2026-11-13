@@ -17,6 +17,18 @@
       class="mt-1 block w-24 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
     />
   </label>
+  <label class="text-sm text-slate-600">
+    {{ 'ing.barcode' | t }}
+    <input
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      [(ngModel)]="newBarcode"
+      maxlength="64"
+      (keydown.enter)="add()"
+      class="mt-1 block w-44 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+    />
+  </label>
   <button
     type="button"
     (click)="add()"
@@ -31,6 +43,17 @@
   <div class="mb-4 rounded-2xl border border-slate-200 bg-surface p-3">
     <p class="mb-2 text-sm font-semibold text-slate-700">{{ 'ing.delivery' | t }}</p>
     <div class="flex flex-wrap items-end gap-2">
+      <label class="text-sm text-slate-600">
+        {{ 'ing.scan' | t }}
+        <input
+          #scan
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          (keydown.enter)="scanPack(scan.value); scan.value = ''; $event.preventDefault()"
+          class="mt-1 block w-44 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
+        />
+      </label>
       <label class="text-sm text-slate-600">
         {{ 'ing.name' | t }}
         <select
@@ -72,6 +95,16 @@
           class="mt-1 block w-44 rounded-lg border border-slate-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-brand-400"
         />
       </label>
+      @if (unknownScan(); as code) {
+        <button
+          type="button"
+          (click)="linkScan()"
+          [disabled]="!deliveryId"
+          class="rounded-lg px-3 py-1.5 text-sm font-semibold text-brand-700 ring-1 ring-brand-300 hover:bg-slate-50 disabled:opacity-40"
+        >
+          {{ 'ing.linkBarcode' | t: { code: code } }}
+        </button>
+      }
       <button
         type="button"
         (click)="addDelivery()"
@@ -104,6 +137,18 @@
             <p class="text-xs text-slate-500">
               {{ row.unit }} · {{ 'ing.usedIn' | t }} {{ row.usedInItems }}
             </p>
+            <input
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="64"
+              [value]="row.barcode ?? ''"
+              (change)="saveBarcode(row, $any($event.target).value)"
+              (keydown.enter)="$event.preventDefault(); $any($event.target).blur()"
+              [placeholder]="'ing.barcode' | t"
+              [attr.aria-label]="('ing.barcode' | t) + ' ' + row.name"
+              class="mt-1 w-40 rounded-lg border border-slate-200 px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-brand-400"
+            />
           </td>
           <td class="px-4 py-2">
             <input

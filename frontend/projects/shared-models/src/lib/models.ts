@@ -190,6 +190,10 @@ export interface MenuItem {
   /** A combo: a set price for the dishes in `comboItems`. */
   isCombo?: boolean;
   comboItems?: ComboItem[];
+  /** The number on the pack, scanned at the till. For a dish sold by weight: the scale's item number (PLU). */
+  barcode?: string | null;
+  /** Sold by weight at the till: `price` is the price of 1 kg. */
+  soldByWeight?: boolean;
   /** Allergens and nutrition per serving; null/absent when nothing is filled in. */
   nutrition?: Nutrition | null;
 }
@@ -400,6 +404,8 @@ export interface OrderItem {
   variantLabel?: string;
   /** For a combo: the dishes that were in it (per one combo). */
   comboParts?: { name: string; variantLabel?: string | null; quantity: number }[] | null;
+  /** For an item sold by weight: the weight in grams (quantity is then 1). */
+  weightGrams?: number | null;
 }
 
 /** One menu item of a branch with its stock count (own_pos). `quantity` is null when the item is not counted. */
@@ -425,6 +431,8 @@ export interface Ingredient {
   usedInItems: number;
   /** What one unit costs the cafe (e.g. 1 g of beans). Null when not known. */
   costPerUnit?: number | null;
+  /** The number on the supplier's pack, scanned when a delivery arrives. */
+  barcode?: string | null;
 }
 
 /** How much of an ingredient one portion uses. A null `variantId` means every size. */
@@ -806,7 +814,7 @@ export interface Order {
 /** A paid sale rung up at the counter for a walk-in guest (Yurt POS). Prices come from the server's menu. */
 export interface CreateCounterSaleRequest {
   locationId: string;
-  items: { menuItemId: string; quantity: number; variantId?: string | null; toppingIds?: string[]; notes?: string | null }[];
+  items: { menuItemId: string; quantity: number; variantId?: string | null; toppingIds?: string[]; notes?: string | null; weightGrams?: number | null }[];
   paymentMethod: PaymentMethod;
   /** Made by the till once per sale and sent again on every retry, so a sale is never counted twice. */
   idempotencyKey: string;

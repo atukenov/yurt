@@ -34,6 +34,8 @@ interface MenuItemForm {
   imageUrl: string;
   isAvailable: boolean;
   isNew: boolean;
+  barcode: string;
+  soldByWeight: boolean;
   locationIds: string[];
   toppingIds: string[];
   locationPrices: Record<string, number | null>;
@@ -114,7 +116,7 @@ export class MenuManagementComponent implements OnInit {
   itemForm = signal<MenuItemForm>({
     name: '', nameRu: '', nameKk: '',
     description: '', descriptionRu: '', descriptionKk: '',
-    price: 0, categoryId: '', imageUrl: '', isAvailable: true, isNew: false, locationIds: [], toppingIds: [], locationPrices: {}, variants: [],
+    price: 0, categoryId: '', imageUrl: '', isAvailable: true, isNew: false, barcode: '', soldByWeight: false, locationIds: [], toppingIds: [], locationPrices: {}, variants: [],
     calories: null, protein: null, fat: null, carbs: null, weightGrams: null, allergens: [],
     iikoProductId: '', iikoProductSizeId: '',
   });
@@ -273,6 +275,8 @@ export class MenuManagementComponent implements OnInit {
       imageUrl: item?.imageUrl ?? '',
       isAvailable: item?.isAvailable ?? true,
       isNew: item?.isNew ?? false,
+      barcode: item?.barcode ?? '',
+      soldByWeight: item?.soldByWeight ?? false,
       locationIds: item?.locationIds ? [...item.locationIds] : [],
       toppingIds: item?.toppingIds ? [...item.toppingIds] : [],
       locationPrices: Object.fromEntries((item?.locationPrices ?? []).map((p) => [p.locationId, p.price])),
@@ -449,6 +453,10 @@ export class MenuManagementComponent implements OnInit {
       this.toast.error(this.langService.t('menu.priceOrSizes'));
       return;
     }
+    if (f.soldByWeight && f.variants.length > 0) {
+      this.toast.error(this.langService.t('menu.weightNoSizes'));
+      return;
+    }
     if (f.variants.some((v) => !v.label || !v.price)) {
       this.toast.error(this.langService.t('menu.sizeIncomplete'));
       return;
@@ -466,6 +474,8 @@ export class MenuManagementComponent implements OnInit {
       imageUrl: f.imageUrl || undefined,
       isAvailable: f.isAvailable,
       isNew: f.isNew,
+      barcode: f.barcode.trim() || null,
+      soldByWeight: f.soldByWeight,
       locationIds: f.locationIds,
       toppingIds: f.toppingIds,
       locationPrices: this.priceList(f.locationPrices),

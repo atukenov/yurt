@@ -1,6 +1,6 @@
 import { Component, inject, Input, OnChanges, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { YurtApiService } from 'shared-api';
+import { cleanBarcode, YurtApiService } from 'shared-api';
 import { Ingredient } from 'shared-models';
 import { ToastService } from 'shared-ui';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -34,6 +34,7 @@ export class IngredientsPanelComponent implements OnChanges {
   loading = signal(true);
   newName = '';
   newUnit = 'g';
+  newBarcode = '';
 
   /** The "delivery arrived" form. */
   deliveryId = '';
@@ -65,9 +66,10 @@ export class IngredientsPanelComponent implements OnChanges {
   add(): void {
     const name = this.newName.trim();
     if (!name) return;
-    this.api.createIngredient({ name, unit: this.newUnit.trim() || 'pcs' }).subscribe({
+    this.api.createIngredient({ name, unit: this.newUnit.trim() || 'pcs', barcode: cleanBarcode(this.newBarcode) || null }).subscribe({
       next: () => {
         this.newName = '';
+        this.newBarcode = '';
         this.load();
       },
       error: () => this.toast.error(this.lang.t('common.addFailed')),
@@ -126,6 +128,46 @@ export class IngredientsPanelComponent implements OnChanges {
           this.toast.error(this.lang.t('common.saveFailed'));
         },
       });
+  }
+
+  /** The last pack scanned (or typed) in the delivery form, when no ingredient has its barcode yet. */
+  unknownScan = signal<string | null>(null);
+
+  /** A pack was scanned: pick its ingredient. A code nobody has can be linked to the ingredient picked next. */
+  scanPack(raw: string): void {
+    const code = cleanBarcode(raw);
+    if (!code) return;
+    const found = this.rows().find((r) => r.barcode && cleanBarcode(r.barcode) === code);
+    if (found) {
+      this.unknownScan.set(null);
+      this.deliveryId = found.id;
+      return;
+    }
+    this.unknownScan.set(code);
+    this.toast.error(this.lang.t('ing.scanUnknown', { code }));
+  }
+
+  /** Gives the picked ingredient the barcode that was just scanned. */
+  linkScan(): void {
+    const code = this.unknownScan();
+    const row = this.deliveryRow;
+    if (!code || !row) return;
+    this.saveBarcode(row, code, () => this.unknownScan.set(null));
+  }
+
+  /** Saves a barcode typed or scanned into an ingredient's row. Empty removes it. */
+  saveBarcode(row: IngredientRow, value: string, done?: () => void): void {
+    const barcode = cleanBarcode(value);
+    if (barcode === (row.barcode ?? '')) return;
+    this.api.updateIngredient(row.id, { name: row.name, unit: row.unit, barcode: barcode || null }).subscribe({
+      next: () => {
+        row.barcode = barcode || null;
+        this.rows.update((list) => [...list]);
+        this.toast.success(this.lang.t('ing.barcodeSaved'));
+        done?.();
+      },
+      error: () => this.toast.error(this.lang.t('common.saveFailed')),
+    });
   }
 
   get deliveryRow(): IngredientRow | undefined {
