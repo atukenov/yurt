@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ModuleService, YurtApiService } from 'shared-api';
-import { MenuItem, MenuCategory, MenuTopping, OptionGroupRule, Location, MenuItemVariant, IikoNomenclatureProduct } from 'shared-models';
+import { ALLERGEN_CODES, MenuItem, MenuCategory, MenuTopping, OptionGroupRule, Location, MenuItemVariant, IikoNomenclatureProduct } from 'shared-models';
 import { ButtonComponent, ToastService, Currency2Pipe } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
@@ -42,6 +42,12 @@ interface MenuItemForm {
   variants: VariantRow[];
   iikoProductId: string;
   iikoProductSizeId: string;
+  calories: number | null;
+  protein: number | null;
+  fat: number | null;
+  carbs: number | null;
+  weightGrams: number | null;
+  allergens: string[];
 }
 
 interface ToppingForm {
@@ -111,6 +117,7 @@ export class MenuManagementComponent implements OnInit {
     name: '', nameRu: '', nameKk: '',
     description: '', descriptionRu: '', descriptionKk: '',
     price: 0, categoryId: '', imageUrl: '', isAvailable: true, isNew: false, barcode: '', soldByWeight: false, locationIds: [], toppingIds: [], locationPrices: {}, variants: [],
+    calories: null, protein: null, fat: null, carbs: null, weightGrams: null, allergens: [],
     iikoProductId: '', iikoProductSizeId: '',
   });
 
@@ -282,6 +289,12 @@ export class MenuManagementComponent implements OnInit {
         : [],
       iikoProductId: item?.iikoProductId ?? '',
       iikoProductSizeId: item?.iikoProductSizeId ?? '',
+      calories: item?.nutrition?.calories ?? null,
+      protein: item?.nutrition?.protein ?? null,
+      fat: item?.nutrition?.fat ?? null,
+      carbs: item?.nutrition?.carbs ?? null,
+      weightGrams: item?.nutrition?.weightGrams ?? null,
+      allergens: [...(item?.nutrition?.allergens ?? [])],
     });
     this.showItemDialog.set(true);
   }
@@ -410,6 +423,22 @@ export class MenuManagementComponent implements OnInit {
     });
   }
 
+  readonly allergenCodes = ALLERGEN_CODES;
+  readonly nutritionFields: { key: 'calories' | 'protein' | 'fat' | 'carbs' | 'weightGrams'; label: string; step: number }[] = [
+    { key: 'calories', label: 'menu.calories', step: 1 },
+    { key: 'protein', label: 'menu.protein', step: 0.1 },
+    { key: 'fat', label: 'menu.fat', step: 0.1 },
+    { key: 'carbs', label: 'menu.carbs', step: 0.1 },
+    { key: 'weightGrams', label: 'menu.weight', step: 1 },
+  ];
+
+  /** Tick or untick one allergen of the dish being edited. */
+  toggleAllergen(code: string, on: boolean): void {
+    this.itemForm.update((f) => ({
+      ...f, allergens: on ? [...new Set([...f.allergens, code])] : f.allergens.filter((a) => a !== code),
+    }));
+  }
+
   patchItemForm(field: keyof MenuItemForm, value: unknown): void {
     this.itemForm.update((f) => ({ ...f, [field]: value }));
   }
@@ -459,6 +488,10 @@ export class MenuManagementComponent implements OnInit {
         : undefined,
       iikoProductId: f.iikoProductId || undefined,
       iikoProductSizeId: f.iikoProductSizeId || undefined,
+      nutrition: {
+        calories: f.calories, protein: f.protein, fat: f.fat, carbs: f.carbs, weightGrams: f.weightGrams,
+        allergens: f.allergens,
+      },
     };
     const obs = f.id ? this.api.adminUpdateMenuItem(f.id, payload) : this.api.adminCreateMenuItem(payload);
     obs.subscribe({

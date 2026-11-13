@@ -4,7 +4,7 @@ Every staff account has one role. Four roles exist:
 
 | Role | Who | Sees and does |
 |---|---|---|
-| **Worker** | Barista, cashier | Live orders, their own cashier shift, write-offs and moves, typing in deliveries. No settings, no money numbers. |
+| **Worker** | Barista, cashier | Live orders, their own cashier shift, write-offs and moves, typing in deliveries, the daily forecast and prep plan (item counts, no money). No settings, no money numbers. |
 | **Admin** | Cafe administrator, runs the cafe day to day | Everything a Worker does, plus stock and ingredients (counts, restocking, stocktake), suppliers and purchase orders / invoices, shifts and cash counts, menu, tables, printers, branches, customers, promotions and codes, customer complaints, staff accounts of Workers. **Does not see** sales analytics, the dashboard, billing, the audit log or payroll. |
 | **CEO** | The cafe's owner (and an accountant, if the owner wants to share the login) | Everything an Admin does, plus the money side: **Analytics** and dashboard, **Profit** (monthly profit and profit by dish), **Tips** report (per staff member and shift), the **Combo sales** report (what guests saved, profit per combo), **Food cost** and write-off money on the Stock page, **Subscription** (what the cafe pays Yurt), **Audit log**, and **Payroll**. Only the CEO adds or switches off **Admin** accounts and resets their passwords. |
 | **SuperAdmin** | You, the platform operator | Only the Platform screens. Never listed on a cafe's staff page. |

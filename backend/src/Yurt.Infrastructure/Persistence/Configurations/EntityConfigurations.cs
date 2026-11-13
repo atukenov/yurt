@@ -113,6 +113,10 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(e => e.ImageUrl).HasMaxLength(500);
         builder.Property(e => e.Barcode).HasMaxLength(64);
         builder.HasIndex(e => new { e.TenantId, e.Barcode }).IsUnique().HasFilter("\"Barcode\" IS NOT NULL");
+        builder.Property(e => e.Allergens).HasMaxLength(200);
+        builder.Property(e => e.Protein).HasPrecision(7, 1);
+        builder.Property(e => e.Fat).HasPrecision(7, 1);
+        builder.Property(e => e.Carbs).HasPrecision(7, 1);
         builder.HasOne<MenuSchedule>().WithMany().HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(e => e.Category).WithMany(c => c.Items)
             .HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Restrict);

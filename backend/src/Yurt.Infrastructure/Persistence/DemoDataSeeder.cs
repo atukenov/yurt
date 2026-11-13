@@ -76,6 +76,23 @@ public static class DemoDataSeeder
         new("Food & Pastries", "Banana Bread", "Банановый хлеб", "Банан наны", "Moist, house-baked banana bread with walnut crunch.", "Домашний банановый хлеб с грецким орехом.", 4.00m, 6, "photo-1588195538326-c5b1e9f80a1b"),
     ];
 
+    // Allergens and nutrition per serving for the demo dishes (name -> kcal, protein, fat, carbs, grams, allergens).
+    private static readonly Dictionary<string, (int Kcal, decimal P, decimal F, decimal C, int G, string Allergens)> DemoNutrition =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Espresso"] = (3, 0.1m, 0m, 0.5m, 30, ""),
+            ["Americano"] = (5, 0.3m, 0m, 1m, 250, ""),
+            ["Cappuccino"] = (120, 6m, 6m, 9m, 200, "milk"),
+            ["Flat White"] = (130, 7m, 7m, 9m, 160, "milk"),
+            ["Latte"] = (190, 10m, 9m, 15m, 300, "milk"),
+            ["Mocha"] = (290, 9m, 12m, 36m, 300, "milk,soy"),
+            ["Iced Latte"] = (150, 8m, 7m, 12m, 350, "milk"),
+            ["Matcha Latte"] = (160, 4m, 6m, 22m, 350, "gluten"),
+            ["Butter Croissant"] = (310, 6m, 17m, 34m, 80, "gluten,milk,eggs"),
+            ["Avocado Toast"] = (360, 9m, 20m, 36m, 200, "gluten,sesame"),
+            ["Banana Bread"] = (340, 5m, 14m, 49m, 110, "gluten,eggs,milk,nuts"),
+        };
+
     private static readonly DemoTopping[] Toppings =
     [
         new("Extra Espresso Shot", "Доп. шот эспрессо", 0.75m, null, ["Coffee", "Cold Drinks"]),
@@ -329,6 +346,11 @@ public static class DemoDataSeeder
             row.NameRu ??= i.Ru;
             row.NameKk ??= i.Kk;
             row.DescriptionRu ??= i.DescriptionRu;
+            if (row.Calories is null && row.Allergens is null && DemoNutrition.TryGetValue(i.Name, out var nut))
+            {
+                row.Calories = nut.Kcal; row.Protein = nut.P; row.Fat = nut.F; row.Carbs = nut.C; row.WeightGrams = nut.G;
+                row.Allergens = string.IsNullOrEmpty(nut.Allergens) ? null : nut.Allergens;
+            }
             if (i.Sizes && row.Variants.Count == 0)
             {
                 db.MenuItemVariants.AddRange(

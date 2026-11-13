@@ -194,6 +194,25 @@ export interface MenuItem {
   barcode?: string | null;
   /** Sold by weight at the till: `price` is the price of 1 kg. */
   soldByWeight?: boolean;
+  /** Allergens and nutrition per serving; null/absent when nothing is filled in. */
+  nutrition?: Nutrition | null;
+}
+
+/** The 14 EU allergens, as the server stores them. The apps translate `allergen.<code>`. */
+export const ALLERGEN_CODES = [
+  'gluten', 'crustaceans', 'eggs', 'fish', 'peanuts', 'soy', 'milk', 'nuts',
+  'celery', 'mustard', 'sesame', 'sulphites', 'lupin', 'molluscs',
+] as const;
+export type AllergenCode = (typeof ALLERGEN_CODES)[number];
+
+/** Nutrition per serving (every number optional) and the allergens the dish contains. */
+export interface Nutrition {
+  calories?: number | null;
+  protein?: number | null;
+  fat?: number | null;
+  carbs?: number | null;
+  weightGrams?: number | null;
+  allergens?: string[] | null;
 }
 
 /** A dish inside a combo, as the guest and the till see it. */
@@ -2144,3 +2163,49 @@ export interface MenuSchedule {
 }
 
 export type SaveMenuSchedule = Omit<MenuSchedule, 'id' | 'runningNow'>;
+
+// ── Sales forecast and prep plan (own_pos) ─────────────────────────────────────
+
+/** One dish and size expected on the day, and how many to have ready in each part of the day. */
+export interface ForecastDish {
+  menuItemId: string;
+  variantId?: string | null;
+  name: string;
+  size?: string | null;
+  expected: number;
+  morning: number;
+  lunch: number;
+  afternoon: number;
+  evening: number;
+  usualPerDay: number;
+  daysSold: number;
+}
+
+/** What the day's dishes use of an ingredient, next to what the branch has now (`inStock` null = not counted). */
+export interface ForecastIngredient {
+  ingredientId: string;
+  name: string;
+  unit: string;
+  needed: number;
+  inStock?: number | null;
+  missing: number;
+}
+
+export type ForecastConfidence = 'none' | 'low' | 'medium' | 'high';
+
+export interface Forecast {
+  date: string;
+  weekday: number;
+  locationId: string;
+  daysUsed: number;
+  confidence: ForecastConfidence;
+  adjustPercent: number;
+  bufferPercent: number;
+  totalItems: number;
+  /** Expected items for each hour of the day (index 0-23, the cafe's local time). */
+  hourly: number[];
+  peakHour?: number | null;
+  dishes: ForecastDish[];
+  ingredients: ForecastIngredient[];
+  history: { date: string; items: number }[];
+}

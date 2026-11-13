@@ -84,6 +84,7 @@ import {
   SavePurchase,
   PostPurchaseResult,
   ToOrderGroup,
+  Forecast,
   StocktakeResult,
   WriteOffSummary,
   WriteOffReason,
@@ -912,6 +913,13 @@ export class YurtApiService {
 
   setOrderUpTo(ingredientId: string, locationId: string, orderUpTo: number | null): Observable<boolean> {
     return this.http.put<boolean>(`${this.api}/admin/purchasing/order-up-to/${ingredientId}/${locationId}`, { orderUpTo });
+  }
+
+  /** Sales forecast and prep plan of a branch for a day (`yyyy-MM-dd`, default today). */
+  getForecast(locationId: string, date: string, adjust = 0, buffer = 10): Observable<Forecast> {
+    return this.http.get<Forecast>(`${this.api}/admin/forecast`, {
+      params: { locationId, date, adjust, buffer },
+    });
   }
 
   // ── Tables with QR codes (table_ordering) ─────────────────────────────────

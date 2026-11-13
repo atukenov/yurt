@@ -33,7 +33,12 @@ public record MenuItemDto(
     List<ComboItemDto>? ComboItems = null,
     // The number on the pack, scanned at the till; and a dish sold by weight (Price is then per kg, till only).
     string? Barcode = null,
-    bool SoldByWeight = false);
+    bool SoldByWeight = false,
+    // Allergens and nutrition per serving; null when nothing is filled in.
+    NutritionDto? Nutrition = null);
+
+/// <summary>Allergen codes (see Nutrition.AllergenCodes) and nutrition per serving. Every number is optional.</summary>
+public record NutritionDto(int? Calories, decimal? Protein, decimal? Fat, decimal? Carbs, int? WeightGrams, List<string>? Allergens);
 
 /// <summary>A dish inside a combo, for the guest: name, size (if one is set) and how many.</summary>
 public record ComboItemDto(Guid ItemId, string Name, string? VariantLabel, int Quantity);
@@ -77,7 +82,8 @@ public record AdminMenuItemDto(
     List<Guid>? ToppingIds = null,
     List<LocationPriceDto>? LocationPrices = null,
     string? Barcode = null,
-    bool SoldByWeight = false);
+    bool SoldByWeight = false,
+    NutritionDto? Nutrition = null);
 
 public record AdminMenuToppingDto(
     Guid Id,
@@ -119,7 +125,8 @@ public record CreateMenuItemDto(
     List<Guid>? ToppingIds = null,
     List<LocationPriceDto>? LocationPrices = null,
     string? Barcode = null,
-    bool SoldByWeight = false);
+    bool SoldByWeight = false,
+    NutritionDto? Nutrition = null);
 
 public record UpdateMenuItemDto(
     Guid CategoryId,
@@ -140,7 +147,8 @@ public record UpdateMenuItemDto(
     List<Guid>? ToppingIds = null,
     List<LocationPriceDto>? LocationPrices = null,
     string? Barcode = null,
-    bool SoldByWeight = false);
+    bool SoldByWeight = false,
+    NutritionDto? Nutrition = null);
 
 public record CreateToppingDto
 {

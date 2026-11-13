@@ -305,6 +305,7 @@ public class MenuService
             Barcode = barcode,
             SoldByWeight = weighed
         };
+        Nutrition.Apply(item, dto.Nutrition);
         _db.MenuItems.Add(item);
 
         var newLinks = (dto.LocationIds?.Distinct() ?? [])
@@ -371,6 +372,8 @@ public class MenuService
         item.ImageUrl = dto.ImageUrl;
         item.IikoProductId = dto.IikoProductId;
         item.IikoProductSizeId = dto.IikoProductSizeId;
+        // Not sent (older admin app) = leave as it was.
+        if (dto.Nutrition is not null) Nutrition.Apply(item, dto.Nutrition);
         item.UpdatedAt = DateTime.UtcNow;
 
         // Branch prices not sent are kept as they were.
@@ -675,7 +678,7 @@ public class MenuService
                LocalizationHelper.Localize(i.Description, i.DescriptionRu, i.DescriptionKk, lang),
                price, i.IsAvailable, i.IsNew, i.ImageUrl, i.CreatedAt, locationIds, toppings, variants,
                i.Name, i.NameRu, i.NameKk, rules is { Count: > 0 } ? rules : null, Was(usualPrice, price), i.IsCombo, comboItems,
-               i.Barcode, i.SoldByWeight);
+               i.Barcode, i.SoldByWeight, Nutrition.ToDto(i));
     }
 
     /// <summary>Checks the barcode (clean, not on another dish) and the by-weight switch (no sizes, not a combo).</summary>
@@ -705,6 +708,6 @@ public class MenuService
                i.IikoProductId, i.IikoProductSizeId,
                i.ToppingLinks?.Select(l => l.ToppingId).ToList() ?? [],
                i.MenuItemLocations?.Where(l => l.Price != null).Select(l => new LocationPriceDto(l.LocationId, l.Price!.Value)).ToList() ?? [],
-               i.Barcode, i.SoldByWeight);
+               i.Barcode, i.SoldByWeight, Nutrition.ToDto(i));
     }
 }
