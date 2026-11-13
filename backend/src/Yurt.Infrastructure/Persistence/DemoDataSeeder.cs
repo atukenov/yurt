@@ -847,6 +847,45 @@ public static class DemoDataSeeder
                 db.PrintAgents.Add(new PrintAgent { LocationId = branch.Id, KeyHash = Sha256($"demo-agent-{Guid.NewGuid()}"), LastSeenAt = d.Now.AddMinutes(-3) });
         }
         await db.SaveChangesAsync(ct);
+        await CardTerminalsAsync(d, ct);
+    }
+
+    // ── bank card terminals ──
+
+    private static async Task CardTerminalsAsync(Demo d, CancellationToken ct)
+    {
+        var db = d.Db;
+        for (var b = 0; b < d.Branches.Count; b++)
+        {
+            var branch = d.Branches[b];
+            if (await db.CardTerminals.AnyAsync(t => t.LocationId == branch.Id, ct)) continue;
+            // A made-up address behind the agent, so nothing ever tries to reach it. Only a short history is added.
+            var terminal = new CardTerminal
+            {
+                LocationId = branch.Id, Name = "Card terminal (demo)", Provider = "halyk", Host = $"192.168.{b + 1}.60", Port = 8080, ViaAgent = true
+            };
+            db.CardTerminals.Add(terminal);
+            if (b != 0) continue;
+            var sale = new CardTerminalPayment
+            {
+                TerminalId = terminal.Id, LocationId = branch.Id, Kind = CardTerminalPaymentKind.Sale, Amount = 2300,
+                Status = CardTerminalPaymentStatus.Approved, ApprovalCode = "A1B2C3", TransactionRef = "DEMO0001", CardLast4 = "4242",
+                SentAt = d.Now.AddHours(-5), CompletedAt = d.Now.AddHours(-5)
+            };
+            db.CardTerminalPayments.AddRange(sale,
+                new CardTerminalPayment
+                {
+                    TerminalId = terminal.Id, LocationId = branch.Id, Kind = CardTerminalPaymentKind.Sale, Amount = 1500,
+                    Status = CardTerminalPaymentStatus.Declined, Error = "Card declined", SentAt = d.Now.AddHours(-4), CompletedAt = d.Now.AddHours(-4)
+                },
+                new CardTerminalPayment
+                {
+                    TerminalId = terminal.Id, LocationId = branch.Id, Kind = CardTerminalPaymentKind.Refund, OriginalPaymentId = sale.Id, Amount = 2300,
+                    Status = CardTerminalPaymentStatus.Approved, ApprovalCode = "D4E5F6", TransactionRef = "DEMO0002", CardLast4 = "4242",
+                    SentAt = d.Now.AddHours(-3), CompletedAt = d.Now.AddHours(-3)
+                });
+        }
+        await db.SaveChangesAsync(ct);
     }
 
     // ── orders, payments, shifts ──

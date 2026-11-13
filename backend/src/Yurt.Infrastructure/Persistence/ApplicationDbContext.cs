@@ -58,6 +58,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Printer> Printers => Set<Printer>();
     public DbSet<PrintJob> PrintJobs => Set<PrintJob>();
     public DbSet<PrintAgent> PrintAgents => Set<PrintAgent>();
+    public DbSet<CardTerminal> CardTerminals => Set<CardTerminal>();
+    public DbSet<CardTerminalPayment> CardTerminalPayments => Set<CardTerminalPayment>();
     public DbSet<WatchBox> WatchBoxes => Set<WatchBox>();
     public DbSet<WatchCamera> WatchCameras => Set<WatchCamera>();
     public DbSet<WatchSettings> WatchSettings => Set<WatchSettings>();

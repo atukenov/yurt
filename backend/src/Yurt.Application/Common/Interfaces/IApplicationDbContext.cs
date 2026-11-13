@@ -46,6 +46,8 @@ public interface IApplicationDbContext
     DbSet<Printer> Printers { get; }
     DbSet<PrintJob> PrintJobs { get; }
     DbSet<PrintAgent> PrintAgents { get; }
+    DbSet<CardTerminal> CardTerminals { get; }
+    DbSet<CardTerminalPayment> CardTerminalPayments { get; }
     DbSet<WatchBox> WatchBoxes { get; }
     DbSet<WatchCamera> WatchCameras { get; }
     DbSet<WatchSettings> WatchSettings { get; }
