@@ -6,6 +6,7 @@ import { Location, MenuCategory, MenuItem, MenuSchedule, SaveMenuSchedule, TimeP
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
+import { MenuSectionsComponent } from '../../shared/menu-sections/menu-sections.component';
 
 /** One price row in the editor. `target` is `c:<categoryId>` or `i:<dishId>`. */
 interface PriceRow {
@@ -45,9 +46,10 @@ export const endForServer = (end: string, start: string): string => (end === '00
 @Component({
   selector: 'app-time-menus',
   standalone: true,
-  imports: [FormsModule, AdminTranslatePipe],
+  imports: [FormsModule, AdminTranslatePipe, MenuSectionsComponent],
   template: `
     <div class="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
+      <app-menu-sections />
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 class="text-2xl font-bold text-slate-800">{{ 'timeMenus.title' | t }}</h1>

@@ -108,8 +108,6 @@ const CAFE_NAV: NavGroupDef[] = [
     label: 'nav.group.menu',
     items: [
       { link: '/menu', label: 'nav.menu', icon: ICON.menu, adminOnly: true },
-      { link: '/time-menus', label: 'nav.timeMenus', icon: ICON.timeMenus, adminOnly: true },
-      { link: '/combos', label: 'nav.combos', icon: ICON.combos, adminOnly: true },
       { link: '/stock', label: 'nav.stock', icon: ICON.stock, adminOnly: true, module: 'own_pos', badge: 'stock' },
       // Staff type in deliveries too; supplier details and payments stay with admins on the page itself.
       { link: '/purchasing', label: 'nav.purchasing', icon: ICON.purchasing, module: 'own_pos' },

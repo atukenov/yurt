@@ -10,6 +10,7 @@ import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
+import { MenuSectionsComponent } from '../../shared/menu-sections/menu-sections.component';
 import { MenuImportComponent } from './menu-import.component';
 
 interface VariantRow {
@@ -85,7 +86,7 @@ interface CatInput {
 @Component({
   selector: 'app-menu-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe, MenuImportComponent, PictureUploadComponent],
+  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe, MenuImportComponent, PictureUploadComponent, MenuSectionsComponent],
   templateUrl: './menu-management.component.html',
   styleUrl: './menu-management.component.css',
 })
