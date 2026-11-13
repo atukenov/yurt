@@ -762,7 +762,7 @@ export interface StockAlertPhone {
 }
 
 /** Where an order came from: the guest's app, or a cashier at the counter (Yurt POS). */
-export type OrderSource = 'App' | 'Counter';
+export type OrderSource = 'App' | 'Counter' | 'Kiosk';
 /** Eat in the cafe (DineIn) or take away (TakeAway, the default). */
 export type OrderType = 'DineIn' | 'TakeAway';
 
@@ -831,6 +831,15 @@ export interface CreateCounterSaleRequest {
   tip?: number | null;
   /** How the tip was paid when it differs from the bill (for example cash on a card sale). */
   tipMethod?: PaymentMethod | null;
+}
+
+/** An order a guest made on the self-order kiosk (module kiosk). It waits unpaid until the cashier takes the payment. */
+export interface CreateKioskOrderRequest {
+  locationId: string;
+  items: { menuItemId: string; quantity: number; variantId?: string | null; toppingIds?: string[] }[];
+  /** Made once per order and sent again on every retry, so an order is never made twice. */
+  idempotencyKey: string;
+  orderType?: OrderType;
 }
 
 export enum IikoOrderSyncStatus {

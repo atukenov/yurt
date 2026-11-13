@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { AuthStateService, BrandService, findScanned, ScanCollector, YurtApiService } from 'shared-api';
+import { AuthStateService, BrandService, findScanned, ModuleService, ScanCollector, YurtApiService } from 'shared-api';
 import { Location, MenuCategory, MenuItem, MenuItemVariant, MenuTopping, Order, PaymentMethod } from 'shared-models';
 import { Currency2Pipe, LocalDatePipe, ManagerApproval, ManagerApprovalComponent } from 'shared-ui';
 import {
@@ -33,6 +33,7 @@ export class SellComponent implements OnInit {
   private api = inject(YurtApiService);
   private auth = inject(AuthStateService);
   private router = inject(Router);
+  readonly modules = inject(ModuleService);
   private destroyRef = inject(DestroyRef);
   readonly brand = inject(BrandService);
   readonly lang = inject(PosLangService);
@@ -578,6 +579,11 @@ export class SellComponent implements OnInit {
   setCash(value: string | number | null): void {
     const n = value === null || value === '' ? null : Number(value);
     this.cashGiven.set(n === null || Number.isNaN(n) ? null : n);
+  }
+
+  /** Hands the tablet to guests: the self-order kiosk (module kiosk). Staff leave it with a PIN. */
+  openKiosk(): void {
+    this.router.navigateByUrl('/kiosk');
   }
 
   signOut(): void {

@@ -97,6 +97,13 @@ public class PlatformServiceTests
     }
 
     [Fact]
+    public void Dependencies_KioskNeedsOwnPos()
+    {
+        Assert.True(ModuleDependencies.GetWarnings(new HashSet<string> { ModuleKeys.Core, ModuleKeys.Kiosk }).ContainsKey(ModuleKeys.Kiosk));
+        Assert.Empty(ModuleDependencies.GetWarnings(new HashSet<string> { ModuleKeys.Core, ModuleKeys.Kiosk, ModuleKeys.OwnPos }));
+    }
+
+    [Fact]
     public async Task Maintenance_MessageTooLong_Rejected()
     {
         var (svc, _, _, _, _) = Build();

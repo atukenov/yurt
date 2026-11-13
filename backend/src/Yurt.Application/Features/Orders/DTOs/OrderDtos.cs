@@ -53,7 +53,7 @@ public record OrderDto(
     DateTime? PickupAt = null,
     // The table the guest ordered to by its QR code (table_ordering); null = pick up at the counter.
     string? TableLabel = null,
-    // Where the order came from: "App" (the guest's app) or "Counter" (rung up by a cashier for a walk-in guest).
+    // Where the order came from: "App" (the guest's app), "Counter" (rung up by a cashier for a walk-in guest) or "Kiosk" (self-order tablet).
     OrderSource Source = OrderSource.App,
     // Here or to go.
     OrderType OrderType = OrderType.TakeAway,
@@ -98,6 +98,16 @@ public record CreateCounterSaleDto(
     DiscountInputDto? Discount = null,
     decimal? Tip = null,
     PaymentMethod? TipMethod = null);
+
+/// <summary>
+/// An order a guest made on the self-order kiosk (module kiosk). The kiosk is a tablet signed in with a staff login; the
+/// guest has no account and pays at the counter, so the order waits like an unpaid cash order from the app.
+/// </summary>
+public record CreateKioskOrderDto(
+    Guid LocationId,
+    List<CounterSaleItemDto> Items,
+    string IdempotencyKey,
+    OrderType OrderType = OrderType.TakeAway);
 
 /// <summary>One line of a counter sale. A dish sold by weight needs <c>WeightGrams</c> (and Quantity 1); no other dish takes it.</summary>
 public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null, int? WeightGrams = null);
