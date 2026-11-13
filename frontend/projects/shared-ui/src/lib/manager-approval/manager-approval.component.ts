@@ -18,9 +18,9 @@ export interface ManagerApproval {
   standalone: true,
   imports: [FormsModule, ButtonComponent],
   template: `
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="closed.emit()">
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto" (keydown.escape)="closed.emit()">
       <form
-        class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 m-auto max-h-full overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-labelledby="manager-approval-title"
