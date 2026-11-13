@@ -15,7 +15,7 @@ import { AdminTranslatePipe } from '../../core/translate.pipe';
   standalone: true,
   imports: [FormsModule, ButtonComponent, AdminTranslatePipe],
   template: `
-    <div class="max-w-md">
+    <div class="p-4 md:p-6 max-w-md mx-auto">
       <h1 class="text-2xl font-bold text-slate-800">{{ 'managerPin.title' | t }}</h1>
       <p class="text-sm text-slate-500 mt-1">{{ 'managerPin.intro' | t }}</p>
 
