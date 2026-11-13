@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -157,26 +158,115 @@ export class MenuManagementComponent implements OnInit {
     return list;
   });
 
-  /** Flip a dish's availability right in the list, without opening the editor. */
-  toggleAvailable(item: MenuItem): void {
-    const next = !item.isAvailable;
-    this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, isAvailable: next } : i)));
-    // The server replaces the whole dish on save, so send everything the list already knows.
-    const payload = {
+  /** The server replaces the whole dish on save, so send everything the list already knows. */
+  private fullPayload(item: MenuItem, over: Partial<MenuItem>): Partial<MenuItem> {
+    return {
       name: item.name, nameRu: item.nameRu, nameKk: item.nameKk,
       description: item.description || undefined, descriptionRu: item.descriptionRu, descriptionKk: item.descriptionKk,
       price: item.price, categoryId: item.categoryId, imageUrl: item.imageUrl,
-      isAvailable: next, isNew: item.isNew, barcode: item.barcode ?? null, soldByWeight: item.soldByWeight ?? false,
+      isAvailable: item.isAvailable, isNew: item.isNew, barcode: item.barcode ?? null, soldByWeight: item.soldByWeight ?? false,
       locationIds: item.locationIds ?? [], toppingIds: item.toppingIds ?? [],
       locationPrices: item.locationPrices ?? [],
       variants: item.variants?.length ? item.variants : undefined,
       iikoProductId: item.iikoProductId ?? undefined, iikoProductSizeId: item.iikoProductSizeId ?? undefined,
       nutrition: item.nutrition ?? undefined,
+      ...over,
     } as Partial<MenuItem>;
-    this.api.adminUpdateMenuItem(item.id, payload).subscribe({
+  }
+
+  /** Flip a dish's availability right in the list, without opening the editor. */
+  toggleAvailable(item: MenuItem): void {
+    const next = !item.isAvailable;
+    this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, isAvailable: next } : i)));
+    this.api.adminUpdateMenuItem(item.id, this.fullPayload(item, { isAvailable: next })).subscribe({
       next: (saved) => this.items.update((list) => list.map((i) => (i.id === saved.id ? saved : i))),
       error: () => this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, isAvailable: !next } : i))),
     });
+  }
+
+  // ── Bulk edit: tick dishes, then hide/show, move, or change prices for all of them ──
+  selectedIds = signal<string[]>([]);
+  bulkCategoryId = signal('');
+  bulkPercent = signal<number | null>(null);
+  bulkBusy = signal(false);
+
+  selectedItems = computed(() => {
+    const ids = new Set(this.selectedIds());
+    return this.items().filter((i) => ids.has(i.id) && !i.isCombo);
+  });
+
+  allVisibleSelected = computed(() => {
+    const vis = this.filteredItems().filter((i) => !i.isCombo);
+    const ids = new Set(this.selectedIds());
+    return vis.length > 0 && vis.every((i) => ids.has(i.id));
+  });
+
+  isSelected(id: string): boolean { return this.selectedIds().includes(id); }
+
+  toggleSelected(id: string): void {
+    this.selectedIds.update((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  }
+
+  toggleSelectAll(): void {
+    if (this.allVisibleSelected()) {
+      const vis = new Set(this.filteredItems().map((i) => i.id));
+      this.selectedIds.update((ids) => ids.filter((id) => !vis.has(id)));
+    } else {
+      const ids = new Set(this.selectedIds());
+      for (const i of this.filteredItems()) if (!i.isCombo) ids.add(i.id);
+      this.selectedIds.set([...ids]);
+    }
+  }
+
+  clearSelection(): void { this.selectedIds.set([]); }
+
+  /** Save the same kind of change on every ticked dish, one after another; failed ones stay ticked. */
+  private async bulkApply(change: (i: MenuItem) => Partial<MenuItem>): Promise<void> {
+    const targets = this.selectedItems();
+    if (!targets.length || this.bulkBusy()) return;
+    this.bulkBusy.set(true);
+    let failed = 0;
+    const left: string[] = [];
+    for (const item of targets) {
+      try {
+        const saved = await firstValueFrom(this.api.adminUpdateMenuItem(item.id, this.fullPayload(item, change(item))));
+        this.items.update((list) => list.map((i) => (i.id === saved.id ? saved : i)));
+      } catch {
+        failed++;
+        left.push(item.id);
+      }
+    }
+    this.selectedIds.set(left);
+    this.bulkBusy.set(false);
+    if (failed) this.toast.error(this.langService.t('menu.bulkFailed', { count: failed }));
+    else this.toast.success(this.langService.t('menu.bulkDone', { count: targets.length }));
+  }
+
+  bulkSetAvailable(on: boolean): Promise<void> { return this.bulkApply(() => ({ isAvailable: on })); }
+
+  async bulkMove(): Promise<void> {
+    const cat = this.bulkCategoryId();
+    if (!cat) return;
+    await this.bulkApply(() => ({ categoryId: cat }));
+    this.bulkCategoryId.set('');
+  }
+
+  async bulkChangePrice(): Promise<void> {
+    const pct = Number(this.bulkPercent());
+    const n = this.selectedItems().length;
+    if (!pct || !n) return;
+    const ok = await this.confirmSvc.confirm(
+      this.langService.t('menu.bulkPriceTitle'),
+      this.langService.t('menu.bulkPriceAsk', { count: n, percent: pct }));
+    if (!ok) return;
+    const k = 1 + pct / 100;
+    const r = (v: number) => Math.max(0, Math.round(v * k * 100) / 100);
+    await this.bulkApply((i) => ({
+      price: r(i.price),
+      variants: i.variants?.map((v) => ({ ...v, price: r(v.price) })),
+      locationPrices: i.locationPrices?.map((p) => ({ ...p, price: r(p.price) })),
+    }));
+    this.bulkPercent.set(null);
   }
 
   filteredToppings = computed(() => {

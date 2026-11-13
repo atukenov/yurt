@@ -209,9 +209,38 @@
         } @else if (!selectedCategoryId()) {
           <p class="px-6 pt-3 text-xs text-slate-500">{{ 'menu.reorderPickCategory' | t }}</p>
         }
+        @if (selectedItems().length) {
+          <div class="sticky top-[72px] z-10 mx-4 md:mx-6 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-800 text-white px-4 py-2.5 text-sm" role="region" [attr.aria-label]="'menu.bulkBar' | t">
+            <span class="font-semibold mr-2">{{ 'menu.bulkSelected' | t: { count: selectedItems().length } }}</span>
+            <button type="button" [disabled]="bulkBusy()" (click)="bulkSetAvailable(true)" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50">{{ 'menu.bulkShow' | t }}</button>
+            <button type="button" [disabled]="bulkBusy()" (click)="bulkSetAvailable(false)" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50">{{ 'menu.bulkHide' | t }}</button>
+            <select [ngModel]="bulkCategoryId()" (ngModelChange)="bulkCategoryId.set($event)" [attr.aria-label]="'menu.bulkMove' | t"
+              class="px-2 py-1 rounded-lg bg-white/10 text-white text-sm">
+              <option value="" class="text-slate-800">{{ 'menu.bulkMove' | t }}…</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id" class="text-slate-800">{{ localizedCatName(cat) }}</option>
+              }
+            </select>
+            @if (bulkCategoryId()) {
+              <button type="button" [disabled]="bulkBusy()" (click)="bulkMove()" class="px-3 py-1 rounded-lg bg-brand-500 text-on-brand disabled:opacity-50">{{ 'menu.bulkApply' | t }}</button>
+            }
+            <input type="number" [ngModel]="bulkPercent()" (ngModelChange)="bulkPercent.set($event)" step="1"
+              [attr.aria-label]="'menu.bulkPercent' | t" [placeholder]="'menu.bulkPercent' | t"
+              class="w-28 px-2 py-1 rounded-lg bg-white/10 text-white placeholder-white/60 text-sm" />
+            @if (bulkPercent()) {
+              <button type="button" [disabled]="bulkBusy()" (click)="bulkChangePrice()" class="px-3 py-1 rounded-lg bg-brand-500 text-on-brand disabled:opacity-50">{{ 'menu.bulkApply' | t }}</button>
+            }
+            <button type="button" (click)="clearSelection()" class="ml-auto px-3 py-1 rounded-lg hover:bg-white/10">{{ 'action.cancel' | t }}</button>
+          </div>
+        }
         <table class="w-full text-sm">
           <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
             <tr>
+              <th class="w-10 px-2 py-3">
+                <input type="checkbox" [checked]="allVisibleSelected()" (change)="toggleSelectAll()"
+                  [attr.aria-label]="'menu.selectAll' | t"
+                  class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
+              </th>
               <th class="w-10 px-2 py-3"></th>
               <th class="text-left px-6 py-3">{{ 'label.name' | t }}</th>
               <th class="text-left px-6 py-3">{{ 'label.category' | t }}</th>
@@ -229,6 +258,13 @@
           >
             @for (item of filteredItems(); track item.id; let i = $index) {
               <tr cdkDrag [cdkDragDisabled]="!itemsReorderable()" class="hover:bg-slate-50 transition-colors">
+                <td class="px-2 py-3">
+                  @if (!item.isCombo) {
+                    <input type="checkbox" [checked]="isSelected(item.id)" (change)="toggleSelected(item.id)"
+                      [attr.aria-label]="localizedItemName(item)"
+                      class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
+                  }
+                </td>
                 <td class="px-2 py-3">
                   @if (itemsReorderable()) {
                     <div class="flex items-center gap-0.5">
