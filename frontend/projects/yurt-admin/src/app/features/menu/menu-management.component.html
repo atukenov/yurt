@@ -225,12 +225,11 @@
             @if (bulkCategoryId()) {
               <button type="button" [disabled]="bulkBusy()" (click)="bulkMove()" class="px-3 py-1 rounded-lg bg-brand-500 text-on-brand disabled:opacity-50">{{ 'menu.bulkApply' | t }}</button>
             }
-            <input type="number" [ngModel]="bulkPercent()" (ngModelChange)="bulkPercent.set($event)" step="1"
+            <input type="number" [ngModel]="bulkPercent()" (ngModelChange)="bulkPercent.set($event)" (keydown.enter)="bulkChangePrice()" step="1"
               [attr.aria-label]="'menu.bulkPercent' | t" [placeholder]="'menu.bulkPercent' | t"
               class="w-28 px-2 py-1 rounded-lg bg-white/10 text-white placeholder-white/60 text-sm" />
-            @if (bulkPercent()) {
-              <button type="button" [disabled]="bulkBusy()" (click)="bulkChangePrice()" class="px-3 py-1 rounded-lg bg-brand-500 text-on-brand disabled:opacity-50">{{ 'menu.bulkApply' | t }}</button>
-            }
+            <button type="button" [disabled]="bulkBusy() || !bulkPercent()" (click)="bulkChangePrice()"
+              class="px-3 py-1 rounded-lg bg-brand-500 text-on-brand disabled:opacity-40">{{ 'menu.bulkChangePrice' | t }}</button>
             <button type="button" (click)="clearSelection()" class="ml-auto px-3 py-1 rounded-lg hover:bg-white/10">{{ 'action.cancel' | t }}</button>
           </div>
         }
