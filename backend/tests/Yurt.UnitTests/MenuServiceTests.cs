@@ -24,6 +24,8 @@ public class MenuServiceTests
         var itemSet = (items ?? []).ToList().BuildMockDbSet();
         db.MenuCategories.Returns(catSet);
         db.MenuItems.Returns(itemSet);
+        var scheduleSet = new List<MenuSchedule>().BuildMockDbSet();
+        db.MenuSchedules.Returns(scheduleSet);
 
         return (new MenuService(db, audit, cache), db);
     }

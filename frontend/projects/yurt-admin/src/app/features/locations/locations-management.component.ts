@@ -24,9 +24,17 @@ interface LocationForm {
   isActive: boolean;
   iikoTerminalGroupId: string;
   twoGisUrl: string;
+  /** Clock for time menus (IANA name). */
+  timeZone: string;
   /** Payment methods the branch offers; empty = all. */
   paymentMethods: string[];
 }
+
+/** Clocks a branch can use for time menus (IANA names). */
+export const TIME_ZONES = [
+  'Asia/Almaty', 'Asia/Aqtobe', 'Asia/Oral', 'Asia/Tashkent', 'Asia/Bishkek', 'Asia/Tbilisi', 'Asia/Baku', 'Europe/Moscow',
+  'Europe/Kyiv', 'Europe/Istanbul', 'Europe/London', 'Europe/Berlin', 'Asia/Dubai', 'America/New_York',
+];
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -54,6 +62,7 @@ function parseSlots(wh: string): WorkingSlot[] {
 })
 export class LocationsManagementComponent implements OnInit {
   private api = inject(YurtApiService);
+  readonly timeZones = TIME_ZONES;
   readonly modules = inject(ModuleService);
   private toast = inject(ToastService);
   private lang = inject(AdminLangService);
@@ -72,6 +81,7 @@ export class LocationsManagementComponent implements OnInit {
     isActive: true,
     iikoTerminalGroupId: '',
     twoGisUrl: '',
+    timeZone: 'Asia/Almaty',
     paymentMethods: [],
   });
 
@@ -101,6 +111,7 @@ export class LocationsManagementComponent implements OnInit {
       isActive: loc?.isActive ?? true,
       iikoTerminalGroupId: loc?.iikoTerminalGroupId ?? '',
       twoGisUrl: loc?.twoGisUrl ?? '',
+      timeZone: loc?.timeZone ?? 'Asia/Almaty',
       paymentMethods: loc?.paymentMethods ?? [],
     });
     this.showDialog.set(true);
@@ -170,6 +181,7 @@ export class LocationsManagementComponent implements OnInit {
       isActive: f.isActive,
       iikoTerminalGroupId: f.iikoTerminalGroupId || null,
       twoGisUrl: f.twoGisUrl.trim() || null,
+      timeZone: f.timeZone,
       paymentMethods: f.paymentMethods,
     };
     const obs = f.id

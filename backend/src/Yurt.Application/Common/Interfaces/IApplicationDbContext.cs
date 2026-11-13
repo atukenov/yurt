@@ -14,6 +14,8 @@ public interface IApplicationDbContext
     DbSet<MenuTopping> MenuToppings { get; }
     DbSet<MenuToppingCategory> MenuToppingCategories { get; }
     DbSet<MenuOptionGroup> MenuOptionGroups { get; }
+    DbSet<MenuSchedule> MenuSchedules { get; }
+    DbSet<MenuTimePrice> MenuTimePrices { get; }
     DbSet<MenuItemTopping> MenuItemToppings { get; }
     DbSet<ComboPart> ComboParts { get; }
     DbSet<OrderItemComboPart> OrderItemComboParts { get; }

@@ -29,18 +29,25 @@ public class MenuService
     public async Task<List<MenuCategoryDto>> GetCategoriesAsync(
         string lang = "ru", Guid? locationId = null, CancellationToken ct = default)
     {
-        var cacheKey = $"cats:{lang}:{locationId}";
+        // Time menus: a dish or category tied to a schedule shows only while it runs, so the cache is per running set.
+        var timed = await TimedMenu.LoadAsync(_db, locationId, DateTime.UtcNow, ct);
+        var cacheKey = $"cats:{lang}:{locationId}:{timed.Signature}";
         var cached = await _menuCache.GetAsync<List<MenuCategoryDto>>(cacheKey);
         if (cached is not null) return cached;
 
         var query = _db.MenuCategories.AsQueryable();
+        var hidden = timed.HiddenScheduleIds();
 
-        if (locationId.HasValue)
+        if (hidden.Count > 0)
+            query = query.Where(c => c.ScheduleId == null || !hidden.Contains(c.ScheduleId.Value));
+
+        if (locationId.HasValue || hidden.Count > 0)
         {
             var soldOut = await SoldOutAsync(locationId, ct);
             query = query.Where(c => c.Items.Any(i =>
                 i.IsAvailable && !soldOut.Contains(i.Id) &&
-                (!i.MenuItemLocations.Any() || i.MenuItemLocations.Any(l => l.LocationId == locationId.Value))));
+                (i.ScheduleId == null || !hidden.Contains(i.ScheduleId.Value)) &&
+                (locationId == null || !i.MenuItemLocations.Any() || i.MenuItemLocations.Any(l => l.LocationId == locationId.Value))));
         }
 
         var result = await query
@@ -58,9 +65,10 @@ public class MenuService
     public async Task<List<MenuItemDto>> GetItemsAsync(
         Guid? categoryId, string? search, string lang = "ru", Guid? locationId = null, CancellationToken ct = default)
     {
+        var timed = await TimedMenu.LoadAsync(_db, locationId, DateTime.UtcNow, ct);
         // Only cache unfilitered/unasearched browsing — search results are not cached
         var cacheKey = string.IsNullOrWhiteSpace(search)
-            ? $"items:{lang}:{categoryId}:{locationId}"
+            ? $"items:{lang}:{categoryId}:{locationId}:{timed.Signature}"
             : null;
 
         if (cacheKey is not null)
@@ -98,16 +106,16 @@ public class MenuService
                 i.MenuItemLocations.Any(l => l.LocationId == locationId.Value)));
         }
 
-        var items = await query
+        var items = (await query
             .OrderBy(i => i.Category.SortOrder).ThenBy(i => i.SortOrder).ThenBy(i => i.Name)
-            .ToListAsync(ct);
+            .ToListAsync(ct)).Where(timed.IsOnMenu).ToList();
 
         // A combo is off the menu while a dish inside it is on the stop-list or not sold at this branch.
         var combos = await ComboSales.LoadAsync(_db, items, ct);
         items = items.Where(i => !i.IsCombo || combos.Problem(i, locationId) is null).ToList();
 
         var options = await DishOptionsForGuestAsync(items, lang, locationId, ct);
-        var result = items.Select(i => MapItemToDto(i, lang, options.Toppings[i.Id], options.Rules[i.Id], locationId, combos)).ToList();
+        var result = items.Select(i => MapItemToDto(i, lang, options.Toppings[i.Id], options.Rules[i.Id], locationId, combos, timed)).ToList();
 
         if (cacheKey is not null) await _menuCache.SetAsync(cacheKey, result);
         return result;
@@ -127,9 +135,13 @@ public class MenuService
             !item.MenuItemLocations.Any(l => l.LocationId == locationId.Value))
             return Result<MenuItemDto>.Failure("This item is not available at your selected location.", 403);
 
+        var timed = await TimedMenu.LoadAsync(_db, locationId, DateTime.UtcNow, ct);
+        if (!timed.IsOnMenu(item))
+            return Result<MenuItemDto>.Failure("This item is not on the menu at this time.", 403);
+
         var combos = await ComboSales.LoadAsync(_db, [item], ct);
         var options = await DishOptionsForGuestAsync([item], lang, locationId, ct);
-        return Result<MenuItemDto>.Success(MapItemToDto(item, lang, options.Toppings[item.Id], options.Rules[item.Id], locationId, combos));
+        return Result<MenuItemDto>.Success(MapItemToDto(item, lang, options.Toppings[item.Id], options.Rules[item.Id], locationId, combos, timed));
     }
 
     public async Task<List<MenuToppingDto>> GetToppingsAsync(
@@ -625,7 +637,7 @@ public class MenuService
 
     private static MenuItemDto MapItemToDto(
         MenuItem i, string lang, List<MenuToppingDto>? toppings = null, List<OptionRuleDto>? rules = null, Guid? locationId = null,
-        ComboSales? combos = null)
+        ComboSales? combos = null, TimedMenu? timed = null)
     {
         var comboItems = i.IsCombo && combos is not null
             ? combos.PartsOf(i.Id).Select(p => new ComboItemDto(
@@ -634,17 +646,25 @@ public class MenuService
                 p.Quantity)).ToList()
             : null;
         var locationIds = i.MenuItemLocations?.Select(l => l.LocationId).ToList();
+        // A time price shows as the price now; the usual price comes along so the app can show it crossed out.
+        decimal? Was(decimal usual, decimal now) => now < usual ? usual : null;
         var variants = i.Variants?.Count > 0
             ? i.Variants.OrderBy(v => v.SortOrder)
-                .Select(v => new MenuItemVariantDto(v.Id,
-                    LocalizationHelper.Localize(v.Label, v.LabelRu, v.LabelKk, lang),
-                    v.Price, v.SortOrder, v.IsDefault)).ToList()
+                .Select(v =>
+                {
+                    var now = timed?.PriceOf(i, v.Price, sized: true) ?? v.Price;
+                    return new MenuItemVariantDto(v.Id,
+                        LocalizationHelper.Localize(v.Label, v.LabelRu, v.LabelKk, lang),
+                        now, v.SortOrder, v.IsDefault, Was(v.Price, now));
+                }).ToList()
             : null;
+        var usualPrice = DishOptions.BranchPrice(i, locationId);
+        var price = timed?.PriceOf(i, usualPrice) ?? usualPrice;
         return new(i.Id, i.CategoryId, i.Category?.Name ?? "",
                LocalizationHelper.Localize(i.Name, i.NameRu, i.NameKk, lang),
                LocalizationHelper.Localize(i.Description, i.DescriptionRu, i.DescriptionKk, lang),
-               DishOptions.BranchPrice(i, locationId), i.IsAvailable, i.IsNew, i.ImageUrl, i.CreatedAt, locationIds, toppings, variants,
-               i.Name, i.NameRu, i.NameKk, rules is { Count: > 0 } ? rules : null, i.IsCombo, comboItems);
+               price, i.IsAvailable, i.IsNew, i.ImageUrl, i.CreatedAt, locationIds, toppings, variants,
+               i.Name, i.NameRu, i.NameKk, rules is { Count: > 0 } ? rules : null, Was(usualPrice, price), i.IsCombo, comboItems);
     }
 
     private static AdminMenuItemDto MapAdminItemToDto(MenuItem i, List<MenuToppingDto>? toppings = null)

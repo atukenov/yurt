@@ -21,7 +21,8 @@ public record AdminLocationDto(
     bool IsActive,
     Guid? IikoTerminalGroupId = null,
     string? TwoGisUrl = null,
-    List<string>? PaymentMethods = null);
+    List<string>? PaymentMethods = null,
+    string? TimeZone = null);
 
 public record CreateLocationDto
 {
@@ -33,6 +34,8 @@ public record CreateLocationDto
     public string? TwoGisUrl { get; init; }
     /// <summary>Methods this branch offers; null or empty = all.</summary>
     public List<string>? PaymentMethods { get; init; }
+    /// <summary>Branch clock for time menus (IANA name such as Asia/Almaty). Empty = Asia/Almaty.</summary>
+    public string? TimeZone { get; init; }
 }
 
 public record UpdateLocationDto
@@ -46,4 +49,6 @@ public record UpdateLocationDto
     public string? TwoGisUrl { get; init; }
     /// <summary>Methods this branch offers; null or empty = all.</summary>
     public List<string>? PaymentMethods { get; init; }
+    /// <summary>Branch clock for time menus. Absent = leave as is; empty = Asia/Almaty.</summary>
+    public string? TimeZone { get; init; }
 }

@@ -61,6 +61,7 @@ const ICON = {
   purchasing: ['M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z'],
   stockMoves: ['M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'],
   menu: ['M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
+  timeMenus: ['M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
   locations: [
     'M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z',
     'M15 11a3 3 0 11-6 0 3 3 0 016 0z',
@@ -105,6 +106,7 @@ const CAFE_NAV: NavGroupDef[] = [
     label: 'nav.group.menu',
     items: [
       { link: '/menu', label: 'nav.menu', icon: ICON.menu, adminOnly: true },
+      { link: '/time-menus', label: 'nav.timeMenus', icon: ICON.timeMenus, adminOnly: true },
       { link: '/combos', label: 'nav.combos', icon: ICON.combos, adminOnly: true },
       { link: '/stock', label: 'nav.stock', icon: ICON.stock, adminOnly: true, module: 'own_pos', badge: 'stock' },
       // Staff type in deliveries too; supplier details and payments stay with admins on the page itself.

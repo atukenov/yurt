@@ -123,6 +123,7 @@ export class SellComponent implements OnInit {
   private saleKey: string | null = null;
 
   constructor() {
+    this.destroyRef.onDestroy(() => { if (this.menuTimer) clearTimeout(this.menuTimer); });
     // The menu comes in the till's language, for its branch.
     effect(() => {
       const branch = this.till.branchId();
@@ -152,10 +153,26 @@ export class SellComponent implements OnInit {
     this.branchesLoaded.set(true);
   }
 
-  loadMenu(): void {
+  /** Time menus (breakfast, happy hour): load the menu again when one opens or closes, so the till follows the clock. */
+  private menuTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private scheduleMenuRefresh(branch: string): void {
+    if (this.menuTimer) clearTimeout(this.menuTimer);
+    this.api.getMenuNextChange(branch).subscribe({
+      next: ({ at }) => {
+        if (!at) return;
+        const wait = Math.min(Math.max(new Date(at).getTime() - Date.now() + 1000, 1000), 2_000_000_000);
+        this.menuTimer = setTimeout(() => this.loadMenu(true), wait);
+      },
+      error: () => undefined,
+    });
+  }
+
+  loadMenu(quiet = false): void {
     const branch = this.till.branchId();
     if (!branch) return;
-    this.menuState.set('loading');
+    // A reload by the clock keeps the menu on screen; a cashier in the middle of a sale is not interrupted.
+    if (!quiet) this.menuState.set('loading');
     forkJoin({
       categories: this.api.getCategories(this.lang.lang(), branch),
       items: this.api.getMenuItems(undefined, undefined, this.lang.lang(), branch),
@@ -163,12 +180,16 @@ export class SellComponent implements OnInit {
       next: ({ categories, items }) => {
         this.till.saveMenu(branch, this.lang.lang(), categories, items);
         this.showMenu(categories, items, null);
+        this.scheduleMenuRefresh(branch);
       },
       error: () => {
         // No internet: sell from the menu this tablet saved last time.
         const saved = this.till.savedMenu(branch, this.lang.lang());
         if (saved) this.showMenu(saved.categories, saved.items, saved.savedAt);
-        else this.menuState.set('failed');
+        else if (!quiet) this.menuState.set('failed');
+        // Try again in a minute: the internet may be back, and the clock may have moved a time menu on.
+        if (this.menuTimer) clearTimeout(this.menuTimer);
+        this.menuTimer = setTimeout(() => this.loadMenu(true), 60_000);
       },
     });
   }

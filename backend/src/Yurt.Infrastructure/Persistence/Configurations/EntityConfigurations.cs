@@ -55,6 +55,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(e => e.TwoGisUrl).HasMaxLength(1000);
         builder.Property(e => e.PaymentMethods).HasMaxLength(200);
         builder.Property(e => e.FiscalRegisterNumber).HasMaxLength(50);
+        builder.Property(e => e.TimeZone).HasMaxLength(64);
     }
 }
 
@@ -68,6 +69,8 @@ public class MenuCategoryConfiguration : IEntityTypeConfiguration<MenuCategory>
         builder.Property(e => e.NameKk).HasMaxLength(100);
         // Deleting a station only un-routes its categories.
         builder.HasOne<Station>().WithMany().HasForeignKey(e => e.StationId).OnDelete(DeleteBehavior.SetNull);
+        // Deleting a schedule puts its categories back on the menu all day.
+        builder.HasOne<MenuSchedule>().WithMany().HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.SetNull);
     }
 }
 
@@ -107,6 +110,7 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(e => e.DescriptionKk).HasMaxLength(1000);
         builder.Property(e => e.Price).HasPrecision(10, 2);
         builder.Property(e => e.ImageUrl).HasMaxLength(500);
+        builder.HasOne<MenuSchedule>().WithMany().HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(e => e.Category).WithMany(c => c.Items)
             .HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Restrict);
     }
@@ -283,6 +287,29 @@ public class MenuOptionGroupConfiguration : IEntityTypeConfiguration<MenuOptionG
         builder.Property(e => e.TitleRu).HasMaxLength(100);
         builder.Property(e => e.TitleKk).HasMaxLength(100);
         builder.HasIndex(e => new { e.TenantId, e.Key }).IsUnique();
+    }
+}
+
+public class MenuScheduleConfiguration : IEntityTypeConfiguration<MenuSchedule>
+{
+    public void Configure(EntityTypeBuilder<MenuSchedule> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Name).HasMaxLength(100).IsRequired();
+        builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class MenuTimePriceConfiguration : IEntityTypeConfiguration<MenuTimePrice>
+{
+    public void Configure(EntityTypeBuilder<MenuTimePrice> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Price).HasPrecision(10, 2);
+        builder.Property(e => e.PercentOff).HasPrecision(5, 2);
+        builder.HasOne(e => e.Schedule).WithMany(s => s.Prices).HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<MenuItem>().WithMany().HasForeignKey(e => e.MenuItemId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<MenuCategory>().WithMany().HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 

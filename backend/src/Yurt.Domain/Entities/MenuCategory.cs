@@ -11,6 +11,9 @@ public class MenuCategory : BaseEntity, ITenantOwned
     public string? NameKk { get; set; }
     public int SortOrder { get; set; }
 
+    /// <summary>The whole category is on the menu only while this schedule is running. Null = always.</summary>
+    public Guid? ScheduleId { get; set; }
+
     /// <summary>Where items of this category are made (own_pos). Null means every station shows them.</summary>
     public Guid? StationId { get; set; }
 

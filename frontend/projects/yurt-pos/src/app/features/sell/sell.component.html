@@ -124,7 +124,7 @@
                     @if (item.isCombo && item.comboItems?.length) {
                       <span class="mt-1 line-clamp-2 text-xs text-slate-500">{{ 'menu.combo' | t }}: {{ comboSummary(item) }}</span>
                     }
-                    <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}</span>
+                    <span class="mt-2 text-sm text-slate-600">{{ item.price | currency2 }}@if (item.regularPrice) { <s class="ml-1 text-slate-400">{{ item.regularPrice | currency2 }}</s> }</span>
                   </button>
                 } @empty {
                   <p class="col-span-full text-slate-500">{{ 'menu.empty' | t }}</p>

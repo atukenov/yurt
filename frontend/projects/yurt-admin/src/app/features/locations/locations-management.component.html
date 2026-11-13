@@ -105,6 +105,25 @@
           />
         </div>
 
+        <!-- Branch clock (time menus) -->
+        <div>
+          <label for="location-tz" class="block text-xs font-medium text-slate-600 mb-1">{{ 'locations.timeZone' | t }}</label>
+          <select
+            id="location-tz"
+            [ngModel]="form().timeZone"
+            (ngModelChange)="patch('timeZone', $event)"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none bg-white"
+          >
+            @for (z of timeZones; track z) {
+              <option [value]="z">{{ z }}</option>
+            }
+            @if (!timeZones.includes(form().timeZone)) {
+              <option [value]="form().timeZone">{{ form().timeZone }}</option>
+            }
+          </select>
+          <p class="text-xs text-slate-500 mt-1">{{ 'locations.timeZoneHint' | t }}</p>
+        </div>
+
         @if (modules.isEnabled('engagement')) {
         <!-- 2GIS link -->
         <div>

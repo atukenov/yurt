@@ -19,6 +19,9 @@ public class MenuItem : BaseEntity, ITenantOwned
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
 
+    /// <summary>On the menu only while this schedule is running. Null = always (the stop-list still applies).</summary>
+    public Guid? ScheduleId { get; set; }
+
     // A combo: a set price for several dishes sold together (coffee + pastry). Its parts are in ComboParts; stock and cost
     // follow the parts. A combo offers no add-ons or sizes of its own.
     public bool IsCombo { get; set; }

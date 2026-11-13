@@ -135,6 +135,12 @@ public class OrderService
             if (item.MenuItemLocations.Any() && !item.MenuItemLocations.Any(l => l.LocationId == dto.LocationId))
                 return Result<OrderDto>.Failure($"'{item.Name}' is not available at this location.", 400);
 
+        // Time menus: breakfast, happy hour... A dish tied to a schedule can be ordered only while it runs.
+        var timed = await TimedMenu.LoadAsync(_db, dto.LocationId, DateTime.UtcNow, ct);
+        foreach (var item in menuItems)
+            if (!timed.IsOnMenu(item))
+                return Result<OrderDto>.Failure($"'{item.Name}' is not on the menu at this time.", 400);
+
         // A combo can be ordered only while every dish inside it is available at this branch.
         var combos = await ComboSales.LoadAsync(_db, menuItems, ct);
         foreach (var combo in menuItems.Where(m => m.IsCombo))
@@ -203,7 +209,7 @@ public class OrderService
             var chosen = chosenOptions[index];
             var menuItem = menuItems.First(m => m.Id == i.MenuItemId);
             var variant = i.VariantId.HasValue && !menuItem.IsCombo ? variants.FirstOrDefault(v => v.Id == i.VariantId.Value && v.MenuItemId == i.MenuItemId) : null;
-            var basePrice = variant?.Price ?? DishOptions.BranchPrice(menuItem, dto.LocationId);
+            var basePrice = timed.PriceOf(menuItem, variant?.Price ?? DishOptions.BranchPrice(menuItem, dto.LocationId), variant is not null);
             var toppingTotal = chosen.Sum(o => o.Price);
             var lineTotal = (basePrice + toppingTotal) * i.Quantity;
             var orderItem = new OrderItem
