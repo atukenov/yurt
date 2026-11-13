@@ -189,6 +189,7 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/print-agent.md](docs/print-agent.md), [docs/bluetooth-printers.md](docs/bluetooth-printers.md), [docs/tablet-app.md](docs/tablet-app.md) — printers and hardware
 - [docs/modules.md](docs/modules.md) — what each paid module covers
 - [docs/stock-pack.md](docs/stock-pack.md), [docs/purchasing.md](docs/purchasing.md) — stock costs, write-offs, suppliers and deliveries
+- [docs/forecast.md](docs/forecast.md) — sales forecast and daily prep plan
 - [docs/option-rules.md](docs/option-rules.md) — required choices (milk), min / max, options per dish, prices per branch
 - [docs/time-menus.md](docs/time-menus.md) — breakfast / happy hour: dishes and prices by hours and days, per branch clock
 - [docs/combos.md](docs/combos.md) — dishes sold together at a set price: stock per dish, stop-list, kitchen ticket, CEO report
