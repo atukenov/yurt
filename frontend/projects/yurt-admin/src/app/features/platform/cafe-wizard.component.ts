@@ -105,7 +105,7 @@ export class CafeWizardComponent implements OnDestroy {
     this.busy.set(true);
     this.api.createCafe({
       slug: f.slug.trim(), name: f.name.trim(), domain: f.domain.trim() || null,
-      adminUsername: f.adminUsername.trim(), adminPassword: f.adminPassword,
+      adminUsername: f.adminUsername.trim().toLowerCase(), adminPassword: f.adminPassword,
     }).subscribe({
       next: (cafe) => {
         this.cafe.set(cafe);
@@ -185,7 +185,7 @@ export class CafeWizardComponent implements OnDestroy {
       t('wiz.si.cafe', cafe?.name ?? ''),
       // Without its own web address the cafe is reached by its key (the cafe's own app, or the X-Tenant header).
       cafe?.domain ? t('wiz.si.address', cafe.domain) : t('wiz.si.key', cafe?.slug ?? ''),
-      t('wiz.si.user', this.form.adminUsername.trim()),
+      t('wiz.si.user', this.form.adminUsername.trim().toLowerCase()),
       t('wiz.si.pass', this.form.adminPassword),
       this.lang.t('wiz.si.note'),
     ].join('\n');

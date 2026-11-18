@@ -343,7 +343,7 @@ export class PlatformComponent implements OnInit {
     this.creatingCafe.set(true);
     this.api.createCafe({
       slug: c.slug.trim(), name: c.name.trim(), domain: c.domain.trim() || null,
-      adminUsername: c.adminUsername.trim(), adminPassword: c.adminPassword,
+      adminUsername: c.adminUsername.trim().toLowerCase(), adminPassword: c.adminPassword,
     }).subscribe({
       next: (cafe) => {
         this.cafes.update((l) => [...l, cafe].sort((a, b) => a.name.localeCompare(b.name)));

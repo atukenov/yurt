@@ -47,6 +47,19 @@ public class WorkerServiceTests
     }
 
     [Fact]
+    public async Task CreateWorkerAsync_TrimsAndLowercasesUsername_AndSeesCapitalisedDuplicate()
+    {
+        var (svc, db) = Build([new AdminUser { Username = "Taken", Role = AdminRole.Worker }]);
+
+        var dup = await svc.CreateWorkerAsync(new CreateWorkerDto { Username = " tAKEN ", Password = "pw" }, AdminRole.Admin);
+        Assert.Equal(409, dup.StatusCode);
+
+        var ok = await svc.CreateWorkerAsync(new CreateWorkerDto { Username = "  NewHire ", Password = "pw" }, AdminRole.Admin);
+        Assert.True(ok.Succeeded);
+        db.AdminUsers.Received(1).Add(Arg.Is<AdminUser>(u => u.Username == "newhire"));
+    }
+
+    [Fact]
     public async Task CreateWorkerAsync_NewUsername_HashesPasswordAndSaves()
     {
         var (svc, db) = Build();

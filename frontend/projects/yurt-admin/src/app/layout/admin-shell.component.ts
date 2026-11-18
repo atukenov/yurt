@@ -7,7 +7,6 @@ import {
   AuthStateService,
   BrandService,
   ModuleService,
-  ThemeService,
   YurtApiService,
 } from 'shared-api';
 import { LocalDatePipe, ToastService } from 'shared-ui';
@@ -31,8 +30,6 @@ export class AdminShellComponent implements OnDestroy {
   readonly modules = inject(ModuleService);
   readonly brand = inject(BrandService);
   readonly langService = inject(AdminLangService);
-  readonly theme = inject(ThemeService);
-  readonly themeModes = ['light', 'dark', 'system'] as const;
   private router = inject(Router);
   private toast = inject(ToastService);
   private api = inject(YurtApiService);

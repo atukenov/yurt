@@ -128,6 +128,11 @@ import {
   SubscriptionInfo,
 } from 'shared-models';
 
+/** Usernames are always stored and matched trimmed and in lower case; the server enforces it, the forms just do it first. */
+export function normalizeUsername(username: string): string {
+  return (username ?? '').trim().toLowerCase();
+}
+
 @Injectable({ providedIn: 'root' })
 export class YurtApiService {
   private readonly http = inject(HttpClient);
@@ -403,7 +408,7 @@ export class YurtApiService {
 
   adminLogin(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.api}/admin/auth/login`, {
-      username,
+      username: normalizeUsername(username),
       password,
     });
   }
@@ -1440,14 +1445,14 @@ export class YurtApiService {
   }
 
   createWorker(data: { username: string; password: string; role?: "Worker" | "Admin" }): Observable<WorkerAccount> {
-    return this.http.post<WorkerAccount>(`${this.api}/admin/workers`, data);
+    return this.http.post<WorkerAccount>(`${this.api}/admin/workers`, { ...data, username: normalizeUsername(data.username) });
   }
 
   updateWorker(
     id: string,
     data: { username: string; isActive: boolean },
   ): Observable<WorkerAccount> {
-    return this.http.put<WorkerAccount>(`${this.api}/admin/workers/${id}`, data);
+    return this.http.put<WorkerAccount>(`${this.api}/admin/workers/${id}`, { ...data, username: normalizeUsername(data.username) });
   }
 
   setWorkerActive(id: string, isActive: boolean): Observable<WorkerAccount> {

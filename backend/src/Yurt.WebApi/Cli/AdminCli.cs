@@ -73,11 +73,11 @@ public static class AdminCli
             return 2;
         }
 
-        var username = args[1].Trim();
+        var username = args[1].Trim().ToLowerInvariant();
 
         // IgnoreQueryFilters so a locked-out admin or super admin in any cafe can be found.
         var admin = await db.AdminUsers.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(u => u.Username == username);
+            .FirstOrDefaultAsync(u => u.Username.ToLower() == username);
         if (admin is null)
         {
             Console.Error.WriteLine($"No admin found with username '{username}'. Run 'list-admins' to see them.");
@@ -118,8 +118,8 @@ public static class AdminCli
             return 2;
         }
 
-        var username = args[1].Trim();
-        var admin = await db.AdminUsers.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Username == username);
+        var username = args[1].Trim().ToLowerInvariant();
+        var admin = await db.AdminUsers.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Username.ToLower() == username);
         if (admin is null || admin.Role is not (Yurt.Domain.Enums.AdminRole.Ceo or Yurt.Domain.Enums.AdminRole.Admin))
         {
             Console.Error.WriteLine($"No Admin or CEO account '{username}'. Run 'list-admins' to see them.");

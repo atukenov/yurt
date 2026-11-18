@@ -61,6 +61,11 @@ export const routes: Routes = [
           import('./features/profile/profile.component').then((m) => m.ProfileComponent),
       },
       {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then((m) => m.SettingsComponent),
+      },
+      {
         path: 'achievements',
         canActivate: [authGuard, moduleGuard('engagement', '/news')],
         loadComponent: () =>

@@ -224,7 +224,7 @@ public static class DbSeeder
 
         db.AdminUsers.Add(new AdminUser
         {
-            Username = username.Trim(),
+            Username = username.Trim().ToLowerInvariant(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             Role = AdminRole.Admin,
             IsActive = true,
@@ -258,8 +258,8 @@ public static class DbSeeder
             logger.LogWarning("SEED_CEO_PASSWORD must be at least 8 characters. Skipping CEO seed.");
             return;
         }
-        username = username.Trim();
-        if (await db.AdminUsers.IgnoreQueryFilters().AnyAsync(u => u.Username == username))
+        username = username.Trim().ToLowerInvariant();
+        if (await db.AdminUsers.IgnoreQueryFilters().AnyAsync(u => u.Username.ToLower() == username))
         {
             logger.LogWarning("SEED_CEO_USERNAME '{Username}' is already used by another account. Skipping CEO seed.", username);
             return;
@@ -325,8 +325,8 @@ public static class DbSeeder
             logger.LogWarning("SEED_SUPERADMIN_PASSWORD must be at least 12 characters. Skipping super admin seed.");
             return;
         }
-        username = username.Trim();
-        if (await db.AdminUsers.AnyAsync(u => u.Username == username))
+        username = username.Trim().ToLowerInvariant();
+        if (await db.AdminUsers.AnyAsync(u => u.Username.ToLower() == username))
         {
             logger.LogWarning("SEED_SUPERADMIN_USERNAME '{Username}' is already used by another admin account. Skipping super admin seed.", username);
             return;
