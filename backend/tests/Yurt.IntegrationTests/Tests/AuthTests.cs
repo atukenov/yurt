@@ -177,6 +177,32 @@ public class AuthTests(YurtWebAppFactory factory)
     }
 
     [Fact]
+    public async Task AdminLogin_IgnoresCaseAndSpaces_IncludingOldAccountsWithCapitals()
+    {
+        var client = factory.CreateClient();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db     = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+            var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+            // An account made before usernames were lower-cased.
+            db.AdminUsers.Add(new AdminUser
+            {
+                Username = "OldCapsWorker", PasswordHash = hasher.Hash("Worker@123"),
+                Role = AdminRole.Worker, IsActive = true, MustChangePassword = false
+            });
+            await db.SaveChangesAsync();
+        }
+
+        foreach (var typed in new[] { "OldCapsWorker", "oldcapsworker", "  OLDCAPSWORKER " })
+        {
+            var resp = await client.PostAsJsonAsync("/api/v1/admin/auth/login", new { username = typed, password = "Worker@123" });
+            Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        }
+        var wrong = await client.PostAsJsonAsync("/api/v1/admin/auth/login", new { username = "OLDCAPSWORKER", password = "nope" });
+        Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+    }
+
+    [Fact]
     public async Task WorkerToken_AdminRoleAdminEndpoint_Returns403()
     {
         var client = factory.CreateClient();

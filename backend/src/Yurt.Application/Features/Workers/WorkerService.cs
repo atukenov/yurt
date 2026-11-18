@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Yurt.Application.Common.Helpers;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Domain.Entities;
@@ -49,12 +50,15 @@ public class WorkerService
         if (!CanManage(caller, role))
             return Result<WorkerDto>.Failure("Only the CEO can add an admin.", 403);
 
-        if (await _db.AdminUsers.AnyAsync(u => u.Username == dto.Username, ct))
+        var username = UsernameNormalizer.Normalize(dto.Username);
+        if (username.Length == 0)
+            return Result<WorkerDto>.Failure("Username is required.", 400);
+        if (await _db.AdminUsers.AnyAsync(u => u.Username.ToLower() == username, ct))
             return Result<WorkerDto>.Failure("Username already taken.", 409);
 
         var worker = new AdminUser
         {
-            Username = dto.Username,
+            Username = username,
             PasswordHash = _hasher.Hash(dto.Password),
             Role = role,
             IsActive = true
@@ -73,11 +77,13 @@ public class WorkerService
         if (worker == null) return Result<WorkerDto>.NotFound();
         if (!CanManage(caller, worker.Role)) return Result<WorkerDto>.Failure(NotAllowed, 403);
 
-        if (worker.Username != dto.Username &&
-            await _db.AdminUsers.AnyAsync(u => u.Username == dto.Username, ct))
+        var username = UsernameNormalizer.Normalize(dto.Username);
+        if (username.Length == 0)
+            return Result<WorkerDto>.Failure("Username is required.", 400);
+        if (await _db.AdminUsers.AnyAsync(u => u.Id != worker.Id && u.Username.ToLower() == username, ct))
             return Result<WorkerDto>.Failure("Username already taken.", 409);
 
-        worker.Username = dto.Username;
+        worker.Username = username;
         worker.IsActive = dto.IsActive;
         worker.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);

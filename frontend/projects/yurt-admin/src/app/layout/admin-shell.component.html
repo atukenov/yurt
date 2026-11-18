@@ -99,35 +99,15 @@
     <div class="border-t border-slate-100 flex-shrink-0"
          [class]="rail() ? 'px-2 py-3 flex flex-col items-center gap-2' : 'px-4 py-4'">
       @if (!rail()) {
-        <!-- Language switcher -->
-        <div class="flex gap-1 mb-3" role="group" [attr.aria-label]="'nav.language' | t">
-          @for (l of ['ru', 'en', 'kk']; track l) {
-            <button
-              (click)="langService.setLang(l)"
-              [attr.aria-pressed]="langService.lang() === l"
-              [class]="langService.lang() === l
-                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-50 text-brand-ink'
-                : 'flex-1 py-1 text-xs rounded-lg text-slate-500 hover:bg-slate-100 transition-colors'"
-            >
-              {{ l.toUpperCase() }}
-            </button>
-          }
-        </div>
-
-        <!-- Theme switcher -->
-        <div class="flex gap-1 mb-3" role="group" [attr.aria-label]="'theme.label' | t">
-          @for (m of themeModes; track m) {
-            <button
-              (click)="theme.set(m)"
-              [attr.aria-pressed]="theme.mode() === m"
-              [class]="theme.mode() === m
-                ? 'flex-1 py-1 text-xs font-semibold rounded-lg bg-brand-50 text-brand-ink'
-                : 'flex-1 py-1 text-xs rounded-lg text-slate-500 hover:bg-slate-100 transition-colors'"
-            >
-              {{ 'theme.' + m | t }}
-            </button>
-          }
-        </div>
+        <!-- Settings: language and appearance live there -->
+        <a routerLink="/settings" routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
+           class="flex items-center gap-2 mb-3 px-2 py-1.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          {{ 'nav.settings' | t }}
+        </a>
 
         <!-- User row -->
         <div class="flex items-center gap-2 mb-3">
@@ -154,7 +134,13 @@
           {{ 'nav.signOut' | t }}
         </button>
       } @else {
-        <!-- Collapsed: avatar only with logout on click -->
+        <!-- Collapsed: settings, then avatar only with logout on click -->
+        <a routerLink="/settings" [title]="'nav.settings' | t" [attr.aria-label]="'nav.settings' | t"
+           class="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+        </a>
         <div
           class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center text-sm font-bold text-brand-ink cursor-pointer"
           role="button"

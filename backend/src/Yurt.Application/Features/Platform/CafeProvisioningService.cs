@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using Yurt.Application.Common.Helpers;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Domain;
@@ -46,7 +47,7 @@ public class CafeProvisioningService
         var slug = (dto.Slug ?? string.Empty).Trim().ToLowerInvariant();
         var name = (dto.Name ?? string.Empty).Trim();
         var domain = string.IsNullOrWhiteSpace(dto.Domain) ? null : dto.Domain.Trim().ToLowerInvariant();
-        var username = (dto.AdminUsername ?? string.Empty).Trim();
+        var username = UsernameNormalizer.Normalize(dto.AdminUsername);
         var password = dto.AdminPassword ?? string.Empty;
 
         if (!SlugPattern.IsMatch(slug))

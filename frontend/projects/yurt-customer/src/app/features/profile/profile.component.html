@@ -169,37 +169,23 @@
     </a>
   </div>
 
-  <!-- ── Language switcher ───────────────────────────────────────────────────── -->
-  <p class="section-label" style="margin:18px 20px 8px">{{ 'profile.language' | t }}</p>
-  <div style="margin:0 16px;display:flex;gap:8px">
-    @for (l of langs; track l.code) {
-      <button (click)="langService.setLang(l.code)"
-        class="active:scale-[0.97] transition-all"
-        style="flex:1;padding:11px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s"
-        [style.background]="langService.lang() === l.code ? 'var(--brand-500)' : 'var(--ink-100)'"
-        [style.color]="langService.lang() === l.code ? 'var(--brand-on-primary)' : 'var(--ink-600)'"
-        [style.box-shadow]="langService.lang() === l.code ? '0 2px 8px rgba(217,175,0,.3)' : 'none'">
-        {{ l.code === 'ru' ? 'Русский' : l.code === 'kk' ? 'Қазақша' : 'English' }}
-      </button>
-    }
-  </div>
-
-  <!-- ── Theme switcher ──────────────────────────────────────────────────────── -->
-  <p class="section-label" style="margin:18px 20px 8px">{{ 'profile.theme' | t }}</p>
-  <div style="margin:0 16px;display:flex;gap:8px">
-    @for (m of themeModes; track m) {
-      <button (click)="theme.set(m)"
-        class="active:scale-[0.97] transition-all"
-        style="flex:1;padding:11px;border-radius:14px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s"
-        [style.background]="theme.mode() === m ? 'var(--brand-500)' : 'var(--ink-100)'"
-        [style.color]="theme.mode() === m ? 'var(--brand-on-primary)' : 'var(--ink-600)'">
-        {{ ('profile.theme.' + m) | t }}
-      </button>
-    }
-  </div>
-
   <!-- ── Settings card ───────────────────────────────────────────────────────── -->
   <div style="margin:14px 16px 0;background:var(--surface-card);border:1px solid var(--ink-200);border-radius:20px;overflow:hidden">
+
+    <!-- Language and appearance live on their own settings page -->
+    <a routerLink="/settings" class="active:bg-stone-50 transition-colors"
+      style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;border-bottom:1px solid var(--ink-100)">
+      <svg width="17" height="17" fill="none" stroke="var(--ink-500)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+      </svg>
+      <span style="flex:1">
+        <span style="display:block;font-size:14px;font-weight:700;color:var(--ink-900)">{{ 'profile.settings' | t }}</span>
+        <span style="display:block;font-size:11px;font-weight:600;color:var(--ink-500);margin-top:2px">{{ 'profile.settingsHint' | t }}</span>
+      </span>
+      <svg width="16" height="16" fill="none" stroke="var(--ink-300)" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
 
     <!-- Change PIN -->
     <div style="border-bottom:1px solid var(--ink-100)">

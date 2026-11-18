@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Yurt.Application.Common.Helpers;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
 using Yurt.Application.Features.Platform;
@@ -271,10 +272,18 @@ public class AuthService
     {
         // Usernames are unique across all cafes, so one admin panel address serves every cafe: the login finds the
         // admin's own cafe and signs in there, whatever cafe the address belongs to.
-        var admin = await _db.AdminUsers.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(u => u.Username == dto.Username && u.IsActive, ct);
+        // The username is trimmed and compared in lower case; accounts made before that rule may still have capitals.
+        // Two old accounts differing only by case are told apart by the password, the exact spelling tried first.
+        var typed = (dto.Username ?? string.Empty).Trim();
+        var name = UsernameNormalizer.Normalize(typed);
+        var candidates = await _db.AdminUsers.IgnoreQueryFilters()
+            .Where(u => u.Username.ToLower() == name && u.IsActive)
+            .ToListAsync(ct);
+        var admin = candidates
+            .OrderByDescending(u => u.Username == typed)
+            .FirstOrDefault(u => _passwordHasher.Verify(dto.Password, u.PasswordHash));
 
-        if (admin == null || !_passwordHasher.Verify(dto.Password, admin.PasswordHash))
+        if (admin == null)
             return Result<AuthResponseDto>.Failure("Invalid credentials.", 401);
 
         string? cafe = null;

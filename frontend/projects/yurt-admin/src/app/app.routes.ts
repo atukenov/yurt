@@ -29,6 +29,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layout/admin-shell.component').then((m) => m.AdminShellComponent),
     children: [
+      {
+        // Language and appearance: open to everyone who signs in, the platform operator included.
+        path: 'settings',
+        loadComponent: () => import('./features/settings/settings.component').then((m) => m.SettingsComponent),
+      },
       { path: 'app-releases', redirectTo: 'platform/app-releases', pathMatch: 'full' },
       {
         path: 'platform',
