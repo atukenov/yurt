@@ -104,6 +104,25 @@ How a gate is built:
 - **Dark mode logo:** shown instead of the logo while the app is in dark mode; empty means the normal logo is used.
 - **Depends on:** nothing.
 
+## Where newer features live
+
+Features without a module of their own ride on an existing one. When a module is off, they go with it.
+
+| Feature | Gated by | Guide |
+|---|---|---|
+| Yurt POS app, counter sales, offline mode, tips, barcode scanner and scales | `own_pos` | `yurt-pos.md`, `tips.md`, `barcodes-and-scales.md` |
+| Guest screen at the till, order-ready TV, cup labels, here / to go | `own_pos` | `guest-screen.md`, `order-ready-tv-and-labels.md` |
+| Self-order kiosk | `kiosk` (needs `own_pos`) | `self-order-kiosk.md` |
+| Manager PIN, staff PIN, clock-in, Worked hours | `own_pos` | `roles.md`, `time-clock.md` |
+| Sales forecast and prep plan | `own_pos` | `forecast.md` |
+| Suppliers, delivery invoices, stock costs and write-offs | `own_pos` | `purchasing.md`, `stock-pack.md` |
+| Daily order numbers (restart at 1 each day per branch) | always on | `daily-order-numbers.md` |
+| Option rules, time menus, allergens and calories, menu screens | always on (menu is core) | `option-rules.md`, `time-menus.md`, `allergens-nutrition.md` |
+| Combos (money report) | `own_pos` for stock, `analytics` for the report | `combos.md` |
+| Profit, menu analysis, accounting export | `analytics` (CEO only) | `profit.md`, `accounting-export.md` |
+| Guest groups and automatic messages | `marketing` | `guest-messages.md` |
+| Payroll and hourly pay | `payroll` (CEO only) | `time-clock.md`, `roles.md` |
+
 ### `table_ordering` (order by QR at the table)
 - **Covers:** the Tables page in the admin app (`/api/v1/admin/tables`: add tables to a branch, rename, new QR code, delete) and the public `GET /api/v1/tables/{code}` the customer app calls after a scan.
 - **How it works:** each table has a random 10-character code. Its QR code opens `<customer app>/t/<code>`, which picks the branch and remembers the table on the phone for 4 hours (or until the guest picks another branch or presses "Pick up instead"). The cart shows "To table 5", and `POST /orders` takes a `tableCode`. The order keeps the table name (`tableLabel`), shown on live orders, the kitchen screen, printed tickets and receipts, and the guest's order screen (no 2GIS route for a table order).
@@ -138,7 +157,7 @@ How a gate is built:
 - **Depends on:** nothing.
 
 ### `own_pos` (self-developed POS, shipped one feature at a time)
-Gated so far: the **Kitchen** screen, **Cashier**, **Stock** and **Printers**. Other `own_pos` features are added here as they ship.
+Gated so far: the **Kitchen** screen, **Cashier**, **Stock**, **Printers**, the **Yurt POS** app and everything in the table above marked `own_pos`. Other `own_pos` features are added here as they ship.
 - **Kitchen screen:** admin route `/kitchen` and menu entry. A tablet page per branch with three columns (New, Preparing, Ready) of the accepted orders, oldest first, with items, toppings, notes and the wait time (red when past the promised minutes). One big button per card moves it on (Start, Ready, Handed over). It uses the same order API and live events as Live Orders, so no backend gate is needed and nothing changes for customers.
 - **When off:** the route redirects to Orders and the menu entry is hidden. Live Orders keeps working.
 - **Depends on:** nothing. It works next to iiko; orders still go to iiko as before while the cafe uses it.
