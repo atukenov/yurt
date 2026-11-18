@@ -30,3 +30,12 @@
   border-radius: 0.5rem;
   padding: 2px;
 }
+
+/* Phones: a wide table scrolls sideways inside the page instead of being cut off. */
+@media (max-width: 767px) {
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}

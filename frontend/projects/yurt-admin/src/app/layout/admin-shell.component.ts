@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnDestroy, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, signal, untracked } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -43,6 +43,12 @@ export class AdminShellComponent implements OnDestroy {
   private alertTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
+    this.phoneQuery.addEventListener('change', this.onPhoneChange);
+    // A tap on a menu entry closes the drawer.
+    effect(() => {
+      this.url();
+      untracked(() => this.drawerOpen.set(false));
+    });
     effect(() => {
       if (this.alertTimer) {
         clearInterval(this.alertTimer);
@@ -64,6 +70,7 @@ export class AdminShellComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.phoneQuery.removeEventListener('change', this.onPhoneChange);
     if (this.alertTimer) clearInterval(this.alertTimer);
     this.bluetooth.stop();
   }
@@ -136,7 +143,22 @@ export class AdminShellComponent implements OnDestroy {
     }
   }
 
-  collapsed = signal(localStorage.getItem(SIDEBAR_KEY) === '1' || window.innerWidth < 768);
+  collapsed = signal(localStorage.getItem(SIDEBAR_KEY) === '1');
+
+  /** Phones: the menu is a drawer opened from a top bar instead of a rail that eats the width. */
+  private readonly phoneQuery = window.matchMedia('(max-width: 767px)');
+  mobile = signal(this.phoneQuery.matches);
+  drawerOpen = signal(false);
+  /** The narrow icon-only sidebar of desktop; never on a phone, where the drawer always shows labels. */
+  rail = computed(() => this.collapsed() && !this.mobile());
+
+  private readonly onPhoneChange = (e: MediaQueryListEvent): void => {
+    this.mobile.set(e.matches);
+    if (!e.matches) this.drawerOpen.set(false);
+  };
+
+  openDrawer(): void { this.drawerOpen.set(true); }
+  closeDrawer(): void { this.drawerOpen.set(false); }
 
   toggleSidebar(): void {
     const next = !this.collapsed();

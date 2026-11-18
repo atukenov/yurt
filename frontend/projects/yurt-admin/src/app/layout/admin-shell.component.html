@@ -1,13 +1,20 @@
 <div class="min-h-screen flex bg-slate-50">
   <!-- Sidebar -->
+  @if (mobile() && drawerOpen()) {
+    <div class="fixed inset-0 z-30 bg-black/50" (click)="closeDrawer()" aria-hidden="true"></div>
+  }
   <aside
-    [class]="collapsed() ? 'w-16' : 'w-64'"
+    [class]="mobile()
+      ? 'fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] shadow-xl transition-transform duration-200 ' + (drawerOpen() ? 'translate-x-0' : '-translate-x-full')
+      : (rail() ? 'w-16' : 'w-64')"
+    [attr.inert]="mobile() && !drawerOpen() ? '' : null"
+    (keydown.escape)="closeDrawer()"
     class="bg-surface border-r border-slate-200 flex flex-col shadow-sm shrink-0 transition-[width] duration-200 ease-in-out overflow-hidden"
   >
     <!-- Logo + toggle -->
     <div class="border-b border-slate-100 flex items-center shrink-0"
-         [class]="collapsed() ? 'px-0 py-4 justify-center' : 'px-4 py-4 justify-between'">
-      @if (!collapsed()) {
+         [class]="rail() ? 'px-0 py-4 justify-center' : 'px-4 py-4 justify-between'">
+      @if (!rail()) {
         <div class="flex items-center gap-2 min-w-0">
           <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" [class.logo-for-dark]="brand.darkLogoShowing()" class="brand-logo w-8 h-8 object-contain shrink-0" />
           <div class="min-w-0">
@@ -20,13 +27,13 @@
       }
 
       <button
-        (click)="toggleSidebar()"
-        [class]="collapsed() ? 'absolute left-2 top-14.5' : ''"
+        (click)="mobile() ? closeDrawer() : toggleSidebar()"
+        [class]="rail() ? 'absolute left-2 top-14.5' : ''"
         class="w-6 h-6 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
-        [title]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-        [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        [title]="rail() ? 'Expand sidebar' : 'Collapse sidebar'"
+        [attr.aria-label]="rail() ? 'Expand sidebar' : 'Collapse sidebar'"
       >
-        <svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="collapsed()"
+        <svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="rail()"
              fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -37,7 +44,7 @@
     <nav class="flex-1 px-2 py-3 overflow-y-auto" [attr.aria-label]="'nav.main' | t">
       @for (group of navGroups(); track group.id; let first = $first) {
         <div [class.mt-3]="!first">
-          @if (collapsed()) {
+          @if (rail()) {
             @if (!first) { <div class="mx-2 mb-3 border-t border-slate-100" aria-hidden="true"></div> }
           } @else {
             <button
@@ -54,7 +61,7 @@
               </svg>
             </button>
           }
-          <ul [id]="'nav-group-' + group.id" class="space-y-0.5" [class.mt-1]="!collapsed()" [hidden]="!collapsed() && !groupOpen(group)">
+          <ul [id]="'nav-group-' + group.id" class="space-y-0.5" [class.mt-1]="!rail()" [hidden]="!rail() && !groupOpen(group)">
             @for (item of group.items; track item.link) {
               <li>
                 <a
@@ -62,9 +69,9 @@
                   routerLinkActive="bg-brand-50 text-brand-ink font-semibold"
                   [routerLinkActiveOptions]="{ exact: !!item.exact }"
                   ariaCurrentWhenActive="page"
-                  [title]="collapsed() ? (item.label | t) : ''"
+                  [title]="rail() ? (item.label | t) : ''"
                   [attr.aria-label]="item.label | t"
-                  [class]="collapsed() ? 'justify-center px-0' : 'px-3'"
+                  [class]="rail() ? 'justify-center px-0' : 'px-3'"
                   class="flex items-center gap-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors text-sm"
                 >
                   <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -72,7 +79,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="d" />
                     }
                   </svg>
-                  @if (!collapsed()) { <span class="truncate">{{ item.label | t }}</span> }
+                  @if (!rail()) { <span class="truncate">{{ item.label | t }}</span> }
                   @if (item.badge === 'stock' && stockAlerts() > 0) {
                     <span
                       class="ml-auto rounded-full bg-red-500 px-1.5 text-xs font-bold leading-5 text-white"
@@ -90,8 +97,8 @@
 
     <!-- Footer -->
     <div class="border-t border-slate-100 flex-shrink-0"
-         [class]="collapsed() ? 'px-2 py-3 flex flex-col items-center gap-2' : 'px-4 py-4'">
-      @if (!collapsed()) {
+         [class]="rail() ? 'px-2 py-3 flex flex-col items-center gap-2' : 'px-4 py-4'">
+      @if (!rail()) {
         <!-- Language switcher -->
         <div class="flex gap-1 mb-3" role="group" [attr.aria-label]="'nav.language' | t">
           @for (l of ['ru', 'en', 'kk']; track l) {
@@ -166,6 +173,18 @@
 
   <!-- Main content -->
   <main class="flex-1 overflow-hidden flex flex-col min-w-0">
+    @if (mobile()) {
+      <header class="shrink-0 h-14 flex items-center gap-3 px-3 bg-surface border-b border-slate-200">
+        <button type="button" (click)="openDrawer()" [attr.aria-label]="'nav.main' | t" aria-haspopup="dialog" [attr.aria-expanded]="drawerOpen()"
+          class="w-10 h-10 -ml-1 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <img [src]="brand.logo() ?? 'logo.png'" [alt]="brand.name()" [class.logo-for-dark]="brand.darkLogoShowing()" class="brand-logo w-7 h-7 object-contain shrink-0" />
+        <span class="font-semibold text-slate-800 truncate">{{ brand.name() }}</span>
+      </header>
+    }
     @if (modules.orderingPaused()) {
       <div role="alert" class="shrink-0 bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-800">
         <span class="font-semibold">{{ 'access.bannerTitle' | t }}</span>
