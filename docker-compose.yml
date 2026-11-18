@@ -53,6 +53,8 @@ services:
       # Fill the local cafe with made-up demo data (orders, customers, stock, staff, payroll...). Only adds what is
       # missing, so restarts add nothing. Set to "false" for an empty cafe. Never set this on a real server.
       SEED_DEMO_DATA: ${YURT_DEMO_DATA:-true}
+      # Lets you add a pretend card terminal (approves fake cards) to try the terminal flow. Never set this on a real server.
+      CardTerminals__AllowSimulator: "true"
     ports:
       - "8080:8080"
     healthcheck:
