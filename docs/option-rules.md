@@ -5,14 +5,14 @@ customer app, the admin app and Yurt POS follow it.
 
 ## What you can set (Admin → Menu)
 
-- **Rules for choices** (Menu → the add-ons tab, panel below the list). Options with the same *group* (milk, syrup...) form one
+- **Rules for choices** (Menu → Dishes → **Options** tab: each group is a card, press **Rules** on it). Options with the same *group* (milk, syrup...) form one
   choice. For each group you can say:
   - **Required**: the guest must choose from this group before adding the dish (for example milk).
   - **At least / at most**: how many options of the group may be picked. Empty "at most" means no limit.
   - A title for guests in English, Russian and Kazakh.
   - A group with no rule keeps the old behaviour: at most one, may be none. "Reset" returns a group to that.
   - Tip for a required group: add a free option such as "Regular milk", so the guest is never forced to pay extra.
-- **Options for this dish** (dish form). Tick the options this dish offers. Leave all unticked and the dish offers the
+- **Options for this dish** (dish editor → **Sizes & options** tab). Tick the options this dish offers. Leave all unticked and the dish offers the
   options of its category, as before. A dish with ticks offers only those.
 - **Prices by branch**. In the dish form and in the option form, a price typed for a branch replaces the usual price
   at that branch only. Leave a branch empty to use the usual price. Sizes (variants) keep their own prices at every

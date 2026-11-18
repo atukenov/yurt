@@ -3,7 +3,7 @@
 A combo is several dishes sold together at one set price, for example a cappuccino and a croissant. The guest app and
 Yurt POS list a combo like any dish; the cafe sets it up on its own screen.
 
-## What you can set (Admin → Combos)
+## What you can set (Admin → Menu → Combos)
 
 - **Name** (and Russian / Kazakh names), **description**, **category** and **price**. The combo sits in the category you
   choose, so it shows among the coffee, or in a "Combos" category of its own.
@@ -36,7 +36,7 @@ app or the till. The combo price is the same at every branch.
 
 ## Reports (CEO only)
 
-Admin → Combos has a **Combo sales** block for the CEO: for a month and (optionally) a branch, per combo: how many were
+Admin → Menu → Combos has a **Combo sales** block for the CEO: for a month and (optionally) a branch, per combo: how many were
 sold, sales after discounts, what the same dishes would have cost separately, **what guests saved**, ingredient cost and
 profit, plus the combos' share of all sales. Combos also appear in Profit by dish and in the accounting export as a
 dish of their own. API: `GET /admin/combos/report?month=2026-11&locationId=`, CEO only, module `analytics`.

@@ -14,7 +14,7 @@ sell: without them the cashier taps items and types a weight.
 
 ## Setting up the menu (admin app)
 
-1. **Menu → edit a dish → Barcode.** Click in the field and scan the pack, or type the number. A barcode belongs to one
+1. **Menu → edit a dish → Details tab → Barcode.** Click in the field and scan the pack, or type the number. A barcode belongs to one
    dish in a cafe. Letters, digits and `- . _` only.
 2. **Sold by weight.** Tick it for a dish sold by weight (cheese, sweets, coffee beans). The **price is for 1 kg**. Such a
    dish has no sizes, can't be a combo, and is sold at the till only: the guest apps hide it and the server refuses an

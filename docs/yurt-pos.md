@@ -65,7 +65,7 @@ Scan a pack to add the dish, weigh dishes sold by weight, or read a label from a
 The **Staff PIN** button in the top bar takes a PIN: *Take over the till* signs the till in as that person (the sale on screen stays), *Clock in / out* starts or ends their working hours, Needs the internet. See `docs/time-clock.md`.
 
 ### Tip
-A **combo** (set up in Admin → Combos, see `docs/combos.md`) shows in the menu like a dish with what is inside on its tile. Tapping it adds it to the sale at its set price, with no sizes or add-ons; the dishes inside are taken off the stock, also for a sale made offline.
+A **combo** (set up in Admin → Menu → Combos, see `docs/combos.md`) shows in the menu like a dish with what is inside on its tile. Tapping it adds it to the sale at its set price, with no sizes or add-ons; the dishes inside are taken off the stock, also for a sale made offline.
 
 The payment step has a **Tip** row: *No tip*, 5%, 10%, 15% of what the guest pays for the bill, or *Other amount*. The tip is on top of the bill and not part of the total, so tax receipts and sales numbers stay as they were. No PIN is needed to add a tip at the till, and it works offline: the tip is kept with the sale, printed on the till's own receipt and sent with the sale later. If the bill is paid by card but the guest gave the tip in cash, tick *Guest gives the tip in cash*. With a cash bill, the change is worked out on the bill plus the tip. The tip goes to the cashier who rang the sale up. Changing or removing a tip afterwards is done in the admin app and asks for a manager PIN (see `docs/tips.md`).
 

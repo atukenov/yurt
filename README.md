@@ -66,7 +66,7 @@ brand. The platform operator adds new cafés, switches paid modules on or off pe
 | Kitchen and cashier | Kitchen screen, cashier / point-of-sale screen with cash drawer, shift and Z reports. |
 | Printers | Network and Bluetooth printers, a print agent for the café PC, kitchen tickets and receipt reprints. |
 | Tax receipts (KZ) | Cloud cash register through Webkassa or ReKassa (off by default, not yet verified with a live account). |
-| Menu | Categories, items, toppings, translations, picture upload, import from Excel / CSV. |
+| Menu | Categories, dishes (photo, sizes, options, branch prices), option groups with rules, bulk edit, combos and time menus under one entry, translations, picture upload, import from Excel / CSV. |
 | Stock | Ingredients, recipes, restocking history; suppliers, delivery invoices and a "what to order" list ([docs/purchasing.md](docs/purchasing.md)). |
 | Branches and tables | Working hours, temporary closing, tables with printable QR codes. |
 | Marketing | Promotions and discount codes. |
@@ -191,6 +191,7 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/stock-pack.md](docs/stock-pack.md), [docs/purchasing.md](docs/purchasing.md) — stock costs, write-offs, suppliers and deliveries
 - [docs/forecast.md](docs/forecast.md) — sales forecast and daily prep plan
 - [docs/option-rules.md](docs/option-rules.md) — required choices (milk), min / max, options per dish, prices per branch
+- [docs/menu-management.md](docs/menu-management.md) — the admin Menu section: dishes list, editor tabs, options, bulk edit
 - [docs/time-menus.md](docs/time-menus.md) — breakfast / happy hour: dishes and prices by hours and days, per branch clock
 - [docs/allergens-nutrition.md](docs/allergens-nutrition.md) — allergens and calories on dishes, shown to guests on the menu and QR menu
 - [docs/combos.md](docs/combos.md) — dishes sold together at a set price: stock per dish, stop-list, kitchen ticket, CEO report
