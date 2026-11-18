@@ -52,3 +52,7 @@ The second tab of the Dishes screen (it was called "Toppings"). Every option gro
 - `.../shared/menu-sections/menu-sections.component.ts`: the Dishes / Combos / Time menus bar.
 - `.../layout/admin-nav.ts`: sidebar data (one `/menu` entry).
 - Tests: `menu/menu-bulk.spec.ts` (bulk price change), `layout/admin-nav.spec.ts`; run with `npx ng test yurt-admin --watch=false`.
+
+## On a phone
+
+On screens narrower than 768 px the admin app shows a top bar with a menu button. The button opens the side menu as a drawer, and the drawer closes when you pick a page. Live orders show the list first; tap an order to see it and use "Back" to return. Tables scroll sideways instead of being cut off, and the menu toolbar wraps onto two lines.

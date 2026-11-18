@@ -20,7 +20,7 @@
             }
           </select>
         }
-        <div class="flex bg-surface rounded-xl border border-slate-200 p-1 shadow-sm" role="group" [attr.aria-label]="'analytics.period' | t">
+        <div class="flex max-w-full overflow-x-auto bg-surface rounded-xl border border-slate-200 p-1 shadow-sm" role="group" [attr.aria-label]="'analytics.period' | t">
           @for (p of periods; track p.value) {
             <button
               (click)="setPeriod(p.value)"

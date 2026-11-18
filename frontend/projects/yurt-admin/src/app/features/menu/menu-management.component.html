@@ -1,4 +1,4 @@
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-[calc(100dvh-3.5rem)] md:h-screen overflow-hidden">
   <!-- Mobile category drawer overlay -->
   @if (mobileCatOpen()) {
     <div class="fixed inset-0 bg-black/40 z-40 md:hidden" (click)="mobileCatOpen.set(false)"></div>
@@ -96,7 +96,7 @@
     <div class="px-4 md:px-6 pt-4"><app-menu-sections /></div>
     <!-- Tab bar + action button -->
     <div
-      class="px-4 md:px-6 py-4 sticky top-0 bg-surface border-b border-slate-100 flex items-center justify-between z-10 gap-2"
+      class="px-4 md:px-3 md:px-6 py-3 md:py-4 sticky top-0 bg-surface border-b border-slate-100 flex flex-wrap items-center justify-between z-10 gap-2"
     >
       <button
         (click)="mobileCatOpen.set(true)"
@@ -242,11 +242,11 @@
                   class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
               </th>
               <th class="w-10 px-2 py-3"></th>
-              <th class="text-left px-6 py-3">{{ 'label.name' | t }}</th>
-              <th class="text-left px-6 py-3">{{ 'label.category' | t }}</th>
-              <th class="text-right px-6 py-3">{{ 'label.price' | t }}</th>
-              <th class="text-center px-6 py-3">{{ 'label.available' | t }}</th>
-              <th class="px-6 py-3"></th>
+              <th class="text-left px-3 md:px-6 py-3">{{ 'label.name' | t }}</th>
+              <th class="hidden sm:table-cell text-left px-3 md:px-6 py-3">{{ 'label.category' | t }}</th>
+              <th class="text-right px-3 md:px-6 py-3">{{ 'label.price' | t }}</th>
+              <th class="text-center px-3 md:px-6 py-3">{{ 'label.available' | t }}</th>
+              <th class="px-3 md:px-6 py-3"></th>
             </tr>
           </thead>
           <tbody
@@ -286,7 +286,7 @@
                     </div>
                   }
                 </td>
-                <td class="px-6 py-3 font-medium text-slate-800">
+                <td class="px-3 md:px-6 py-3 font-medium text-slate-800">
                   <div class="flex items-center gap-3">
                     @if (item.imageUrl) {
                       <img [src]="item.imageUrl" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0" />
@@ -305,15 +305,15 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-3 text-slate-500">{{ categoryName(item.categoryId) }}</td>
-                <td class="px-6 py-3 text-right font-semibold text-brand-ink">
+                <td class="hidden sm:table-cell px-3 md:px-6 py-3 text-slate-500">{{ categoryName(item.categoryId) }}</td>
+                <td class="px-3 md:px-6 py-3 text-right font-semibold text-brand-ink">
                   @if (item.variants && item.variants.length > 0) {
                     {{ 'common.fromPrice' | t: { price: ((item.variants | slice:0:1)[0].price | currency2) } }}
                   } @else {
                     {{ item.price | currency2 }}
                   }
                 </td>
-                <td class="px-6 py-3 text-center">
+                <td class="px-3 md:px-6 py-3 text-center">
                   <button type="button" role="switch" [attr.aria-checked]="item.isAvailable"
                     [attr.aria-label]="'menu.toggleAvail' | t: { name: localizedItemName(item) }"
                     (click)="toggleAvailable(item)"
@@ -323,7 +323,7 @@
                       class="inline-block h-4 w-4 rounded-full bg-white transition-transform"></span>
                   </button>
                 </td>
-                <td class="px-6 py-3 text-right">
+                <td class="px-3 md:px-6 py-3 text-right">
                   <div class="flex justify-end gap-2">
                     <button
                       (click)="openItemDialog(item)"
