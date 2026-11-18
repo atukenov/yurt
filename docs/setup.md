@@ -1,142 +1,91 @@
 # Yurt Project Setup
 
-This document describes how to install dependencies and run the full project locally.
+How to run the whole project on your own computer. The short way is `./scripts/dev.sh`; the long way (your own .NET
+SDK) is below. Server settings for a real deployment are in [live-server-setup.md](live-server-setup.md) and
+[runbook.md](runbook.md).
 
-## 1. Prerequisites
+## 1. The short way (recommended)
 
-Install these tools first:
+Needs Docker (with the compose plugin) and Node.js 20+. The .NET SDK is not needed, the API builds in Docker.
 
-- `.NET 8 SDK` or newer
-  - Verify: `dotnet --version`
-- `SQL Server` or `LocalDB`
-  - LocalDB is a good development option if you have Visual Studio installed
-- `Node.js 18+`
-  - Verify: `node --version`
-  - `npm --version`
-- `Angular CLI 21`
-  - Install: `npm install -g @angular/cli@21`
-
-## 2. Backend setup
-
-### 2.1 Configure the database
-
-Open `backend/src/Yurt.WebApi/appsettings.json` and set a valid connection string under `ConnectionStrings.DefaultConnection`.
-
-Recommended development values:
-
-- LocalDB:
-  ```json
-  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=YurtDb;Trusted_Connection=True;TrustServerCertificate=True;"
-  ```
-- SQL Server Express:
-  ```json
-  "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=YurtDb;Trusted_Connection=True;TrustServerCertificate=True;"
-  ```
-- Docker SQL Server:
-  ```json
-  "DefaultConnection": "Server=localhost;Database=YurtDb;User Id=sa;Password=YourStrongPassword123;TrustServerCertificate=True;"
-  ```
-
-### 2.2 Set the JWT secret
-
-In the same file, replace the placeholder secret:
-
-```json
-"Secret": "CHANGE_THIS_TO_A_STRONG_SECRET_KEY_AT_LEAST_32_CHARS"
+```bash
+./scripts/dev.sh          # PostgreSQL + API + customer app + admin panel + Yurt POS
+./scripts/dev.sh stop     # stop everything
+./scripts/dev.sh reset    # stop and delete the local database
+./scripts/dev.sh phone    # let a phone on the same Wi-Fi open the customer app
+YURT_DEMO_DATA=false ./scripts/dev.sh   # start with an empty cafe instead of demo data
 ```
 
-Use a strong random value with at least 32 characters.
+| What | URL |
+|---|---|
+| Customer app | http://localhost:4200 |
+| Admin panel | http://localhost:4300 |
+| Yurt POS (till) | http://localhost:4400 |
+| API + Swagger | http://localhost:8080, http://localhost:8080/swagger |
 
-### 2.3 Restore and apply migrations
+Local logins (each must choose a new password at the first sign-in): café owner `ceo` / `ceo12345`, café admin
+`admin` / `admin12345`, platform operator `superadmin` / `superadmin12345`. The demo data adds more staff and
+customers, see [demo-data.md](demo-data.md).
 
-From the repository root:
+## 2. The long way (own .NET SDK)
+
+### 2.1 Prerequisites
+
+- .NET 10 SDK (`dotnet --version`)
+- PostgreSQL 16 (for example `docker compose up -d postgres`)
+- Node.js 20+ and `npm`
+- Angular CLI 21 is optional, `npx ng ...` works without installing it
+
+### 2.2 Environment variables
+
+Set these instead of editing `appsettings.json`:
+
+```bash
+export ConnectionStrings__DefaultConnection="Host=localhost;Port=5432;Database=YurtDb;Username=postgres;Password=postgres"
+export Jwt__Secret="any-random-string-of-at-least-32-characters"
+export SEED_ADMIN_USERNAME=admin SEED_ADMIN_PASSWORD=admin12345
+export SEED_CEO_USERNAME=ceo SEED_CEO_PASSWORD=ceo12345                    # see roles.md
+export SEED_SUPERADMIN_USERNAME=superadmin SEED_SUPERADMIN_PASSWORD=superadmin12345
+export SEED_DEMO_DATA=true                                                 # optional, see demo-data.md
+```
+
+### 2.3 Run the API
+
+Migrations run by themselves at start-up, so there is no separate `dotnet ef` step.
 
 ```bash
 cd backend
-
-dotnet restore
-
-dotnet ef database update --project src/Yurt.Infrastructure --startup-project src/Yurt.WebApi
-```
-
-If `dotnet ef` is not installed, run:
-
-```bash
-dotnet tool install --global dotnet-ef
-```
-
-### 2.4 Run the API
-
-Start the backend from `backend`:
-
-```bash
 dotnet run --project src/Yurt.WebApi
 ```
 
-The API should start on `http://localhost:5000` and Swagger will be available at `http://localhost:5000/swagger` when running in Development mode.
+Swagger is at the API address followed by `/swagger` in Development mode.
 
-## 3. Frontend setup
-
-### 3.1 Install dependencies
-
-From the repository root:
+### 2.4 Run the apps
 
 ```bash
 cd frontend
 npm install
+npx ng serve yurt-customer --port 4200
+npx ng serve yurt-admin --port 4300
+npx ng serve yurt-pos --configuration local --port 4400
 ```
 
-### 3.2 Run the customer app
+## 3. Useful commands
 
 ```bash
 cd frontend
-ng serve yurt-customer --port 4200
+npx ng build yurt-customer --configuration production
+npx ng build yurt-admin --configuration production
+npx ng build yurt-pos --configuration production
+npx ng test shared-ui --watch=false         # frontend unit tests (CI does not run these)
+node --test scripts/*.test.mjs              # script and translation checks
+
+cd ../backend
+dotnet test                                 # integration tests need Docker
 ```
 
-Open: `http://localhost:4200`
+## 4. Notes
 
-### 3.3 Run the admin app
-
-```bash
-cd frontend
-ng serve yurt-admin --port 4300
-```
-
-Open: `http://localhost:4300`
-
-## 4. Useful commands
-
-### Backend
-
-```bash
-cd backend
-
-dotnet restore
-
-dotnet ef database update --project src/Yurt.Infrastructure --startup-project src/Yurt.WebApi
-dotnet run --project src/Yurt.WebApi
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-ng serve yurt-customer --port 4200
-ng serve yurt-admin --port 4300
-```
-
-### Build production artifacts
-
-```bash
-cd frontend
-ng build yurt-customer --configuration production
-ng build yurt-admin --configuration production
-```
-
-## 5. Notes
-
-- The backend allows origins `http://localhost:4200` and `http://localhost:4300` by default.
-- If you deploy to a remote host, update `AllowedOrigins` in `backend/src/Yurt.WebApi/appsettings.json`.
-- If the backend is hosted remotely, point the frontend to the deployed API URL.
-- If `dotnet --version` fails, install the .NET 8 SDK before continuing.
+- The backend allows the local app addresses by default. For a real host, set `AllowedOrigins__0..n`.
+- A new database migration must be additive only, see [runbook.md](runbook.md#migration-rules).
+- After the first sign-in as Admin or CEO, set your manager PIN under *Settings → Manager PIN* (see [roles.md](roles.md)).

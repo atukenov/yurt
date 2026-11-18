@@ -9,9 +9,9 @@ backend API, admin web app, customer mobile app (Capacitor), and optional deskto
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| .NET SDK | 8+ | Backend build & publish |
-| SQL Server or PostgreSQL | Any | Production database |
-| Node.js | 18+ | Frontend build |
+| .NET SDK | 10 | Backend build & publish (or use the `dockerfile`) |
+| PostgreSQL | 16 | Production database (SQL Server is no longer supported) |
+| Node.js | 20+ | Frontend build |
 | Angular CLI | 21 | `ng build` commands |
 | Java JDK | 17+ | Android Gradle builds |
 | Android Studio | Latest stable | Android APK / AAB |
@@ -26,7 +26,9 @@ backend API, admin web app, customer mobile app (Capacitor), and optional deskto
 Edit `backend/src/Yurt.WebApi/appsettings.json` or (preferred) set environment variables on the host using ASP.NET Core's double-underscore convention:
 
 ```
-ConnectionStrings__DefaultConnection=Server=prod-sql;Database=YurtDb;User Id=appuser;Password=StrongPass!;TrustServerCertificate=True;
+ConnectionStrings__DefaultConnection=Host=prod-db;Port=5432;Database=YurtDb;Username=appuser;Password=StrongPass!
+# or DATABASE_URL=postgresql://user:pass@host:5432/db (Railway's format)
+Secrets__MasterKey=<openssl rand -base64 32>   # encrypts per-cafe keys, see live-server-setup.md
 Jwt__Secret=VeryStrongProductionJwtSecretHere
 AllowedOrigins__0=https://admin.your-domain.com
 AllowedOrigins__1=capacitor://localhost
@@ -52,6 +54,8 @@ Minimum required values in `appsettings.json` if not using env vars:
 ```
 
 ### 2.2 Apply database migrations
+
+Migrations also run by themselves when the API starts, so this step is only needed to apply them ahead of a deploy.
 
 ```bash
 cd backend
@@ -419,7 +423,7 @@ must be listed or one platform will get CORS errors while the other works fine:
 ## 6. Production checklist
 
 - [ ] `Jwt:Secret` is strong (32+ chars) and not in source control
-- [ ] Production DB connection string is set and migrations applied
+- [ ] Production DB connection string is set and migrations applied (they run at start-up)
 - [ ] `apiUrl` updated in both Angular environment files before building
 - [ ] Deployed frontend origins added to backend `AllowedOrigins`
 - [ ] `capacitor://localhost` (iOS) and `https://localhost` (Android) both added to `AllowedOrigins`
@@ -429,3 +433,4 @@ must be listed or one platform will get CORS errors while the other works fine:
 - [ ] Android release APK / AAB signed and distributed
 - [ ] HTTPS enabled on backend and admin web host
 - [ ] API, admin app, and mobile app smoke-tested against production backend
+- [ ] The steps in `live-server-setup.md` and the first-day steps in `runbook.md` are done (master key, CEO login, manager PIN, modules)

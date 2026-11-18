@@ -216,7 +216,7 @@ Steps:
 ## Next steps (2026-10-30)
 Phases 1 to 6 are built. What is left is mostly going live and things only the owner can do
 (server secrets, test accounts, hardware, store accounts). Next build steps, in order:
-1. **Go-live checklist screen** in `/platform`: per cafe, what is set and what is missing (master key, Stripe, Firebase,
+1. ~~**Go-live checklist screen**~~ _(done, see `docs/go-live.md`)_ in `/platform`: per cafe, what is set and what is missing (master key, Stripe, Firebase,
    WhatsApp, tax register, alerts, domain, brand, menu, branches, billing), with a link to the guide for each.
 2. **Local online payments** (Freedom Pay first, Kaspi later) as a second per-cafe provider next to Stripe, because
    Stripe does not accept businesses registered in Kazakhstan. Off by default and unverified until a test account.
