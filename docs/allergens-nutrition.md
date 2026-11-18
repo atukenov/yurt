@@ -21,7 +21,7 @@ The migration `NutritionAllergens` only adds nullable columns, so it is safe to 
 
 ## Admin
 
-Menu → edit a dish → box **Allergens and nutrition**: five number fields and a tick box per allergen. Leave a
+Menu → edit a dish → **Details** tab → box **Allergens and nutrition**: five number fields and a tick box per allergen. Leave a
 number empty if you do not know it. Saving an older admin build that does not send the box keeps what is stored.
 Roles: same as editing the menu (Admin, CEO); nothing here is money.
 
