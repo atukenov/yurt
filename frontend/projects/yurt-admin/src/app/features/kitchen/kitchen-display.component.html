@@ -161,7 +161,7 @@
               <div class="flex items-start justify-between gap-2">
                 <div>
                   <p class="text-lg font-bold text-slate-800">#{{ shortId(order) }}</p>
-                  <p class="text-sm text-slate-500">{{ order.customerName || ('orders.walkIn' | t) }}</p>
+                  <p class="text-sm text-slate-500">{{ order.customerName || ((order.source === 'Kiosk' ? 'orders.kioskGuest' : 'orders.walkIn') | t) }}</p>
                   <p class="text-base font-bold" [class]="order.orderType === 'DineIn' ? 'text-brand-ink' : 'text-slate-600'">
                     {{ (order.orderType === 'DineIn' ? 'order.here' : 'order.toGo') | t }}
                   </p>

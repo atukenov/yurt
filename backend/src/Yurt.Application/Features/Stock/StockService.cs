@@ -8,8 +8,18 @@ namespace Yurt.Application.Features.Stock;
 
 /// <summary>One ordered item as the stock checks see it: which dish, which size, how many, and the toppings on each.</summary>
 public record StockLine(
-    Guid MenuItemId, Guid? VariantId, int Quantity, IReadOnlyList<Guid> ToppingIds, IReadOnlyList<ComboLinePart>? Parts = null)
+    Guid MenuItemId, Guid? VariantId, int Quantity, IReadOnlyList<Guid> ToppingIds, IReadOnlyList<ComboLinePart>? Parts = null,
+    int? WeightGrams = null)
 {
+    /// <summary>
+    /// How many "recipe portions" the line is. A normal line is 1 (the quantity counts the portions). A weighed line is
+    /// its weight in kg, because the recipe of a dish sold by weight says what 1 kg uses.
+    /// </summary>
+    public decimal Scale => WeightGrams is { } g ? g / 1000m : 1m;
+
+    /// <summary>Dish counts (portions left) do not apply to a weighed line; its ingredients are counted instead.</summary>
+    public bool IsWeighed => WeightGrams is not null;
+
     /// <summary>
     /// The lines with every combo opened up: each combo line is followed by one line per dish inside it (quantity times
     /// the combo's), so counts, recipes and costs follow the dishes that are really made.
@@ -29,7 +39,8 @@ public record StockLine(
     /// <summary>The line of an ordered item, with what a combo contained when it was sold.</summary>
     public static StockLine Of(OrderItem i)
         => new(i.MenuItemId, i.VariantId, i.Quantity, i.Toppings.Select(t => t.ToppingId).ToList(),
-            i.ComboParts.Count == 0 ? null : i.ComboParts.Select(p => new ComboLinePart(p.ItemId, p.VariantId, p.Quantity)).ToList());
+            i.ComboParts.Count == 0 ? null : i.ComboParts.Select(p => new ComboLinePart(p.ItemId, p.VariantId, p.Quantity)).ToList(),
+            i.WeightGrams);
 }
 
 /// <summary>One dish inside a combo line: which dish, which size, and how many per combo.</summary>
@@ -270,11 +281,11 @@ public class StockService(
         foreach (var line in lines)
         {
             foreach (var r in recipes.Where(r => Uses(r, line)))
-                needs[r.IngredientId] = needs.GetValueOrDefault(r.IngredientId) + r.Quantity * line.Quantity;
+                needs[r.IngredientId] = needs.GetValueOrDefault(r.IngredientId) + r.Quantity * line.Quantity * line.Scale;
             // Each topping on the item is used once per portion ordered.
             foreach (var topping in line.ToppingIds)
                 foreach (var u in toppingUses.Where(u => u.ToppingId == topping))
-                    needs[u.IngredientId] = needs.GetValueOrDefault(u.IngredientId) + u.Quantity * line.Quantity;
+                    needs[u.IngredientId] = needs.GetValueOrDefault(u.IngredientId) + u.Quantity * line.Quantity * line.Scale;
         }
         return needs;
     }
@@ -317,7 +328,7 @@ public class StockService(
 
         var shorts = new List<StockShortDto>();
         var lines = StockLine.Expand(order.Items.Select(StockLine.Of));
-        var dishes = lines.GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
+        var dishes = lines.Where(l => !l.IsWeighed).GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
         var dishIds = dishes.Keys.ToList();
         var dishCounts = await db.MenuItemStocks
             .Where(s => s.LocationId == order.LocationId && dishIds.Contains(s.MenuItemId))
@@ -350,7 +361,7 @@ public class StockService(
         var touched = false;
         // A combo takes stock off the dishes inside it (as they were when it was sold).
         var orderLines = StockLine.Expand(order.Items.Select(StockLine.Of));
-        var dishes = orderLines.GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
+        var dishes = orderLines.Where(l => !l.IsWeighed).GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
         var dishIds = dishes.Keys.ToList();
         var dishesBefore = await db.MenuItemStocks.AsNoTracking()
             .Where(s => s.LocationId == order.LocationId && dishIds.Contains(s.MenuItemId))

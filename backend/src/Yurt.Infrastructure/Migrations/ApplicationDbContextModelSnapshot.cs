@@ -54,6 +54,13 @@ namespace Yurt.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("StaffPinHash")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("StaffPinSetAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("TenantId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
@@ -1026,6 +1033,10 @@ namespace Yurt.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<decimal?>("CostPerUnit")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
@@ -1054,6 +1065,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Barcode")
+                        .IsUnique()
+                        .HasFilter("\"Barcode\" IS NOT NULL");
 
                     b.HasIndex("TenantId", "Name")
                         .IsUnique();
@@ -1448,6 +1463,21 @@ namespace Yurt.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Allergens")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Barcode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int?>("Calories")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("Carbs")
+                        .HasPrecision(7, 1)
+                        .HasColumnType("numeric(7,1)");
+
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
 
@@ -1466,6 +1496,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<string>("DescriptionRu")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<decimal?>("Fat")
+                        .HasPrecision(7, 1)
+                        .HasColumnType("numeric(7,1)");
 
                     b.Property<Guid?>("IikoProductId")
                         .HasColumnType("uuid");
@@ -1503,8 +1537,15 @@ namespace Yurt.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<decimal?>("Protein")
+                        .HasPrecision(7, 1)
+                        .HasColumnType("numeric(7,1)");
+
                     b.Property<Guid?>("ScheduleId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("SoldByWeight")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
@@ -1517,6 +1558,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("WeightGrams")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -1524,6 +1568,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Barcode")
+                        .IsUnique()
+                        .HasFilter("\"Barcode\" IS NOT NULL");
 
                     b.ToTable("MenuItems");
                 });
@@ -1972,6 +2020,9 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1980,6 +2031,9 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Property<Guid?>("CustomerUserId")
                         .HasColumnType("uuid");
+
+                    b.Property<int?>("DailyNumber")
+                        .HasColumnType("integer");
 
                     b.Property<string>("DeclineReason")
                         .HasMaxLength(500)
@@ -2036,6 +2090,10 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Property<decimal?>("LoyaltyPointsSpent")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("OfflineNumber")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("OrderType")
                         .IsRequired()
@@ -2132,7 +2190,35 @@ namespace Yurt.Infrastructure.Migrations
                         .HasDatabaseName("IX_Orders_LocationId_IdempotencyKey_Counter")
                         .HasFilter("\"IdempotencyKey\" IS NOT NULL AND \"CustomerUserId\" IS NULL");
 
+                    b.HasIndex("LocationId", "BusinessDate", "DailyNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Orders_LocationId_BusinessDate_DailyNumber")
+                        .HasFilter("\"DailyNumber\" IS NOT NULL");
+
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderDayCounter", b =>
+                {
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("LastNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.HasKey("LocationId", "Day");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("OrderDayCounters");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItem", b =>
@@ -2186,6 +2272,9 @@ namespace Yurt.Infrastructure.Migrations
 
                     b.Property<string>("VariantLabel")
                         .HasColumnType("text");
+
+                    b.Property<int?>("WeightGrams")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -2550,6 +2639,18 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<decimal>("Deductions")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("HourlyPay")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("HourlyRate")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("Hours")
+                        .HasPrecision(9, 2)
+                        .HasColumnType("numeric(9,2)");
 
                     b.Property<Guid>("PayrollMonthId")
                         .HasColumnType("uuid");
@@ -3336,6 +3437,10 @@ namespace Yurt.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal>("HourlyRate")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
                     b.Property<decimal>("MonthlySalary")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
@@ -3689,6 +3794,55 @@ namespace Yurt.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("TenantSecrets");
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.TimeEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ClockInAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ClockOutAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EditNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("EditedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("Forgotten")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("LocationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("22222222-0000-0000-0000-000000000001"));
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("AdminUserId", "ClockInAt");
+
+                    b.ToTable("TimeEntries");
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.ToppingUse", b =>
@@ -4849,6 +5003,21 @@ namespace Yurt.Infrastructure.Migrations
                     b.Navigation("Location");
                 });
 
+            modelBuilder.Entity("Yurt.Domain.Entities.OrderDayCounter", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Yurt.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.MenuItem", "MenuItem")
@@ -5271,6 +5440,15 @@ namespace Yurt.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Yurt.Domain.Entities.TenantSecret", b =>
+                {
+                    b.HasOne("Yurt.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Yurt.Domain.Entities.TimeEntry", b =>
                 {
                     b.HasOne("Yurt.Domain.Entities.Tenant", null)
                         .WithMany()

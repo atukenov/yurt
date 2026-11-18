@@ -35,6 +35,19 @@ public class AdminProfitController(ProfitService profit) : ApiControllerBase
         return File(ProfitSpreadsheet.Items(result.Data!, l), Xlsx, $"profit-by-dish-{month}.xlsx");
     }
 
+    /// <summary>Menu analysis: stars, plowhorses, puzzles and dogs, ABC class, keep / push / fix / drop.</summary>
+    [HttpGet("menu-analysis")]
+    public async Task<IActionResult> MenuAnalysis([FromQuery] string month, [FromQuery] Guid? locationId, CancellationToken ct)
+        => ToResult(await profit.MenuAnalysisAsync(month, locationId, ct));
+
+    [HttpGet("menu-analysis/export")]
+    public async Task<IActionResult> MenuAnalysisExport([FromQuery] string month, [FromQuery] Guid? locationId, [FromQuery] string? lang, CancellationToken ct)
+    {
+        var result = await profit.MenuAnalysisAsync(month, locationId, ct);
+        if (!result.Succeeded) return ToResult(result);
+        return File(ProfitSpreadsheet.MenuAnalysis(result.Data!, ProfitSpreadsheet.Lang(lang)), Xlsx, $"menu-analysis-{month}.xlsx");
+    }
+
     /// <summary>The month's profit with last month next to it.</summary>
     [HttpGet("month")]
     [Authorize(Policy = "CeoPayroll")]

@@ -14,7 +14,8 @@ Short, practical procedures for running the platform. Production currently runs 
 | What | URL |
 |---|---|
 | Customer app | http://localhost:4200 |
-| Admin panel | http://localhost:4300 (`admin` / `admin12345`, you must change it at first login) |
+| Admin panel | http://localhost:4300 (owner `ceo` / `ceo12345`, admin `admin` / `admin12345`, operator `superadmin` / `superadmin12345`; each must change the password at first login) |
+| Yurt POS (till) | http://localhost:4400 (staff login, see [yurt-pos.md](yurt-pos.md)) |
 | API + Swagger | http://localhost:8080, http://localhost:8080/swagger |
 
 The local cafe is filled with demo data (staff `demo.manager` / `demo12345`, customers `+77015550001` / PIN `1234`),
@@ -76,6 +77,18 @@ database: `pg_restore --no-owner -d "<scratch-url>" yurt-....dump`.
    app builds must keep working against the new backend; use the forced-update minimum version only for
    breaking changes.
 7. Run the smoke test against production.
+
+## After a release: what staff must do once
+
+Migrations and new screens arrive by themselves. These things do not, so check them after a release that brings the feature:
+
+- **Manager PIN** (cancels, refunds, discounts, tip changes at the till, while `own_pos` is on): every Admin and the CEO sets their own under *Settings → Manager PIN* in the admin app (4 to 6 digits). Until a manager has one, cashiers cannot cancel or refund a paid sale. See `roles.md`.
+- **Staff PIN** (switch the till, clock in at the till): each person gets one under *Settings → Staff PIN* (`time-clock.md`).
+- **New modules** are off for cafes opened from Platform, and for any cafe that already has licence rows. Switch them on in Platform → Modules and set the monthly price (`modules.md`, `billing.md`). `kiosk` also needs `own_pos`; `payroll` is CEO only.
+- **Yurt POS app** is a third web app; it needs its own hosting project and its address in `AllowedOrigins` (`yurt-pos.md`, "Putting it online").
+- **Printers and screens**: cup label printers, the order-ready TV (`/tv`) and the guest screen are set up per branch (`order-ready-tv-and-labels.md`, `guest-screen.md`).
+- **Order numbers** now restart at 1 every day per branch (`daily-order-numbers.md`); tell the kitchen once.
+- **CEO login**: if the cafe has none yet, set `SEED_CEO_USERNAME` / `SEED_CEO_PASSWORD` or promote an Admin (see Platform operator below).
 
 ## Rollback
 

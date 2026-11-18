@@ -13,6 +13,8 @@ public static class ModuleDependencies
     {
         // The loyalty wallet lives in the POS today (iiko); own_pos replaces it (docs/MODULARIZATION_TODO.md, Phase 6).
         [ModuleKeys.Loyalty] = [ModuleKeys.IikoSync, ModuleKeys.OwnPos],
+        // The kiosk screen lives in the POS app and its orders use the till's stock, printing and cashier screens.
+        [ModuleKeys.Kiosk] = [ModuleKeys.OwnPos],
     };
 
     /// <summary>Warnings per module key, given the set of enabled modules.</summary>

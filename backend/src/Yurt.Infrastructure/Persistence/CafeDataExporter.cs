@@ -38,7 +38,7 @@ public class CafeDataExporter : ICafeDataExporter
     /// <summary>Columns never exported: password and key hashes and encrypted values.</summary>
     public static readonly IReadOnlySet<string> SkippedColumns = new HashSet<string>(StringComparer.Ordinal)
     {
-        "PasswordHash", "PinHash", "ManagerPinHash", "CodeHash", "KeyHash", "Ciphertext",
+        "PasswordHash", "PinHash", "ManagerPinHash", "StaffPinHash", "CodeHash", "KeyHash", "Ciphertext",
     };
 
     private static readonly MethodInfo WriteTableMethod =

@@ -31,6 +31,43 @@ public static class ProfitSpreadsheet
         return SpreadsheetWriter.Write(T(lang, "Profit by dish", "Прибыль по блюдам", "Тағам бойынша пайда"), rows);
     }
 
+    public static byte[] MenuAnalysis(MenuAnalysisDto report, string lang)
+    {
+        string Group(string c) => c switch
+        {
+            MenuClasses.Star => T(lang, "Star", "Звезда", "Жұлдыз"),
+            MenuClasses.Plowhorse => T(lang, "Plowhorse", "Рабочая лошадка", "Жұмыс аты"),
+            MenuClasses.Puzzle => T(lang, "Puzzle", "Загадка", "Жұмбақ"),
+            _ => T(lang, "Dog", "Собака", "Нашар тағам"),
+        };
+        string Act(string a) => a switch
+        {
+            MenuActions.Keep => T(lang, "Keep", "Оставить", "Қалдыру"),
+            MenuActions.Push => T(lang, "Push", "Продвигать", "Жылжыту"),
+            MenuActions.Fix => T(lang, "Fix price or recipe", "Поправить цену или рецепт", "Бағаны не рецептті түзету"),
+            _ => T(lang, "Drop", "Убрать", "Алып тастау"),
+        };
+        var rows = new List<IReadOnlyList<object?>>
+        {
+            new object?[]
+            {
+                T(lang, "Dish", "Блюдо", "Тағам"), T(lang, "Sold", "Продано", "Сатылды"), T(lang, "Money taken", "Выручка", "Түсім"),
+                T(lang, "Ingredients cost", "Себестоимость", "Өзіндік құны"), T(lang, "Profit", "Прибыль", "Пайда"),
+                T(lang, "Profit per item", "Прибыль за штуку", "Бір данадан пайда"),
+                T(lang, "Share of portions %", "Доля порций %", "Порция үлесі %"), T(lang, "Share of profit %", "Доля прибыли %", "Пайда үлесі %"),
+                T(lang, "Group", "Группа", "Топ"), T(lang, "What to do", "Что делать", "Не істеу керек"), "ABC",
+                T(lang, "Raise price by", "Поднять цену на", "Бағаны көтеру"),
+            },
+        };
+        foreach (var i in report.Items)
+            rows.Add(new object?[]
+            {
+                i.Name, i.Sold, i.Revenue, i.Cost, i.Profit, i.ProfitPerItem, i.SoldShare, i.ProfitShare,
+                Group(i.Class), Act(i.Action), i.Abc, i.RaisePriceBy,
+            });
+        return SpreadsheetWriter.Write(T(lang, "Menu analysis", "Анализ меню", "Мәзір талдауы"), rows);
+    }
+
     public static byte[] Month(ProfitMonthDto m, string lang)
     {
         var rows = new List<IReadOnlyList<object?>>

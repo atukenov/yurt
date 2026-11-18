@@ -2,16 +2,17 @@ using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Yurt.Application.Common.Interfaces;
 using Yurt.Application.Common.Models;
+using Yurt.Application.Features.TimeClock;
 using Yurt.Domain.Entities;
 using Yurt.Domain.Enums;
 
 namespace Yurt.Application.Features.Payroll;
 
 /// <summary>
-/// Monthly pay for the cafe's staff (module <c>payroll</c>): a fixed salary per person, bonuses and deductions the CEO adds
-/// for a month, and a pay sheet per month that the CEO closes once everyone is paid. Nothing here works from hours worked.
+/// Monthly pay for the cafe's staff (module <c>payroll</c>): a fixed salary per person, optionally an hourly rate paid on the hours worked (time clock), bonuses and deductions the CEO adds
+/// for a month, and a pay sheet per month that the CEO closes once everyone is paid. Hours only count when a person has an hourly rate.
 /// </summary>
-public class PayrollService(IApplicationDbContext db, ICurrentUserService user, IAuditLogService audit)
+public class PayrollService(IApplicationDbContext db, ICurrentUserService user, IAuditLogService audit, TimeClockService clock)
 {
     private string Who => user.Username ?? "unknown";
 
@@ -23,33 +24,38 @@ public class PayrollService(IApplicationDbContext db, ICurrentUserService user, 
 
     public async Task<List<PayrollStaffDto>> GetStaffAsync(CancellationToken ct = default)
     {
-        var salaries = await db.StaffSalaries.AsNoTracking().ToDictionaryAsync(s => s.AdminUserId, s => s.MonthlySalary, ct);
+        var salaries = await db.StaffSalaries.AsNoTracking().ToDictionaryAsync(s => s.AdminUserId, ct);
         var people = await Staff.AsNoTracking().OrderBy(u => u.Username).ToListAsync(ct);
         return people
-            .Select(u => new PayrollStaffDto(u.Id, u.Username, u.Role.ToString(), u.IsActive, salaries.GetValueOrDefault(u.Id)))
+            .Select(u => new PayrollStaffDto(u.Id, u.Username, u.Role.ToString(), u.IsActive,
+                salaries.GetValueOrDefault(u.Id)?.MonthlySalary ?? 0, salaries.GetValueOrDefault(u.Id)?.HourlyRate ?? 0))
             .ToList();
     }
 
-    public async Task<Result<PayrollStaffDto>> SetSalaryAsync(Guid adminUserId, decimal monthlySalary, CancellationToken ct = default)
+    public async Task<Result<PayrollStaffDto>> SetSalaryAsync(Guid adminUserId, decimal monthlySalary, decimal? hourlyRate = null, CancellationToken ct = default)
     {
         if (monthlySalary < 0 || monthlySalary > 100_000_000)
             return Result<PayrollStaffDto>.Failure("Salary must be between 0 and 100 000 000.", 422);
+        if (hourlyRate is < 0 or > 1_000_000)
+            return Result<PayrollStaffDto>.Failure("The hourly rate must be between 0 and 1 000 000.", 422);
         var person = await Staff.FirstOrDefaultAsync(u => u.Id == adminUserId, ct);
         if (person is null) return Result<PayrollStaffDto>.NotFound("Staff member not found.");
 
         var row = await db.StaffSalaries.FirstOrDefaultAsync(s => s.AdminUserId == adminUserId, ct);
         if (row is null)
-            db.StaffSalaries.Add(row = new StaffSalary { AdminUserId = adminUserId, MonthlySalary = monthlySalary });
+            db.StaffSalaries.Add(row = new StaffSalary { AdminUserId = adminUserId, MonthlySalary = monthlySalary, HourlyRate = hourlyRate ?? 0 });
         else
         {
             row.MonthlySalary = monthlySalary;
+            if (hourlyRate is { } rate) row.HourlyRate = rate;
             row.UpdatedAt = DateTime.UtcNow;
         }
         await db.SaveChangesAsync(ct);
 
         await audit.LogAsync("SalarySet", "AdminUser", adminUserId.ToString(),
-            $"{person.Username}: {monthlySalary.ToString("0.##", CultureInfo.InvariantCulture)}", ct);
-        return Result<PayrollStaffDto>.Success(new PayrollStaffDto(person.Id, person.Username, person.Role.ToString(), person.IsActive, monthlySalary));
+            $"{person.Username}: {monthlySalary.ToString("0.##", CultureInfo.InvariantCulture)}"
+            + (row.HourlyRate > 0 ? $" + {row.HourlyRate.ToString("0.##", CultureInfo.InvariantCulture)}/h" : ""), ct);
+        return Result<PayrollStaffDto>.Success(new PayrollStaffDto(person.Id, person.Username, person.Role.ToString(), person.IsActive, monthlySalary, row.HourlyRate));
     }
 
     public async Task<Result<PayrollSheetDto>> GetMonthAsync(string month, CancellationToken ct = default)
@@ -66,25 +72,30 @@ public class PayrollService(IApplicationDbContext db, ICurrentUserService user, 
         {
             lines = closed.Lines.OrderBy(l => l.Username, StringComparer.OrdinalIgnoreCase).Select(l => new PayrollLineDto(
                 l.AdminUserId, l.Username, l.Role, l.Salary, l.Bonuses, l.Deductions, l.Total,
-                (byUser.GetValueOrDefault(l.AdminUserId) ?? []).Select(ToDto).ToList())).ToList();
+                (byUser.GetValueOrDefault(l.AdminUserId) ?? []).Select(ToDto).ToList(), l.Hours, l.HourlyRate, l.HourlyPay)).ToList();
         }
         else
         {
-            var salaries = await db.StaffSalaries.AsNoTracking().ToDictionaryAsync(s => s.AdminUserId, s => s.MonthlySalary, ct);
+            var salaries = await db.StaffSalaries.AsNoTracking().ToDictionaryAsync(s => s.AdminUserId, ct);
+            var worked = await clock.HoursForMonthAsync(month, ct);
             var people = await Staff.AsNoTracking().OrderBy(u => u.Username).ToListAsync(ct);
             lines = [];
             foreach (var p in people)
             {
-                var salary = p.IsActive ? salaries.GetValueOrDefault(p.Id) : 0m;
+                var pay = salaries.GetValueOrDefault(p.Id);
+                var salary = p.IsActive ? pay?.MonthlySalary ?? 0m : 0m;
+                var rate = pay?.HourlyRate ?? 0m;
+                var hours = rate > 0 ? worked.GetValueOrDefault(p.Id) : 0m;
                 var mine = byUser.GetValueOrDefault(p.Id) ?? [];
-                if (salary == 0 && mine.Count == 0) continue;
-                lines.Add(Line(p.Id, p.Username, p.Role.ToString(), salary, mine));
+                if (salary == 0 && rate == 0 && mine.Count == 0) continue;
+                lines.Add(Line(p.Id, p.Username, p.Role.ToString(), salary, mine, hours, rate));
             }
         }
 
         return Result<PayrollSheetDto>.Success(new PayrollSheetDto(
             month, closed is not null, closed?.ClosedAt, closed?.ClosedBy, lines,
-            lines.Sum(l => l.Salary), lines.Sum(l => l.Bonuses), lines.Sum(l => l.Deductions), lines.Sum(l => l.Total)));
+            lines.Sum(l => l.Salary), lines.Sum(l => l.Bonuses), lines.Sum(l => l.Deductions), lines.Sum(l => l.Total),
+            lines.Sum(l => l.HourlyPay), lines.Sum(l => l.Hours)));
     }
 
     public async Task<Result<PayAdjustmentDto>> AddAdjustmentAsync(AddAdjustmentDto dto, CancellationToken ct = default)
@@ -141,7 +152,7 @@ public class PayrollService(IApplicationDbContext db, ICurrentUserService user, 
             row.Lines.Add(new PayrollLine
             {
                 AdminUserId = l.AdminUserId, Username = l.Username, Role = l.Role,
-                Salary = l.Salary, Bonuses = l.Bonuses, Deductions = l.Deductions, Total = l.Total,
+                Salary = l.Salary, Hours = l.Hours, HourlyRate = l.HourlyRate, HourlyPay = l.HourlyPay, Bonuses = l.Bonuses, Deductions = l.Deductions, Total = l.Total,
             });
         db.PayrollMonths.Add(row);
         await db.SaveChangesAsync(ct);
@@ -164,12 +175,13 @@ public class PayrollService(IApplicationDbContext db, ICurrentUserService user, 
         return await GetMonthAsync(month, ct);
     }
 
-    private static PayrollLineDto Line(Guid userId, string username, string role, decimal salary, List<PayAdjustment> mine)
+    private static PayrollLineDto Line(Guid userId, string username, string role, decimal salary, List<PayAdjustment> mine, decimal hours, decimal rate)
     {
+        var hourlyPay = Math.Round(hours * rate, 2);
         var bonuses = mine.Where(a => !a.IsDeduction).Sum(a => a.Amount);
         var deductions = mine.Where(a => a.IsDeduction).Sum(a => a.Amount);
-        return new PayrollLineDto(userId, username, role, salary, bonuses, deductions, salary + bonuses - deductions,
-            mine.Select(ToDto).ToList());
+        return new PayrollLineDto(userId, username, role, salary, bonuses, deductions, salary + hourlyPay + bonuses - deductions,
+            mine.Select(ToDto).ToList(), hours, rate, hourlyPay);
     }
 
     private static PayAdjustmentDto ToDto(PayAdjustment a) => new(a.Id, a.IsDeduction, a.Amount, a.Reason, a.CreatedBy, a.CreatedAt);

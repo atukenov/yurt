@@ -1,0 +1,218 @@
+<div class="flex h-dvh flex-col bg-slate-50 text-slate-900">
+  <!-- Top bar: the logo is also the secret staff exit (five quick taps) -->
+  <header class="flex items-center gap-3 border-b border-slate-200 bg-surface px-4 py-3">
+    <button type="button" (click)="logoTap()" class="shrink-0" tabindex="-1" aria-hidden="true">
+      <img [src]="brand.logo() || 'logo.png'" alt="" class="brand-logo h-12 w-12 object-contain" />
+    </button>
+    <p class="min-w-0 flex-1 truncate text-xl font-bold">{{ brand.name() }}</p>
+    <div class="flex rounded-xl ring-1 ring-slate-200">
+      @for (l of langs; track l) {
+        <button type="button" (click)="lang.setLang(l)" [attr.aria-pressed]="lang.lang() === l"
+                [class]="'px-4 py-3 text-base font-semibold uppercase ' + (lang.lang() === l ? 'bg-slate-900 text-white rounded-xl' : 'text-slate-600')">
+          {{ l }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (!branchesLoaded()) {
+    <p class="p-8 text-2xl text-slate-500">{{ 'menu.loading' | t }}</p>
+  } @else if (!branch()) {
+    <!-- Setup, done once by staff -->
+    <main class="mx-auto w-full max-w-lg p-6">
+      <h1 class="mb-3 text-xl font-bold">{{ 'branch.pick' | t }}</h1>
+      @for (b of branches(); track b.id) {
+        <button type="button" (click)="pickBranch(b.id)" class="mb-2 block w-full rounded-xl bg-surface p-4 text-left ring-1 ring-slate-200">
+          <span class="block text-lg font-semibold">{{ b.name }}</span>
+          <span class="block text-sm text-slate-500">{{ b.address }}</span>
+        </button>
+      } @empty {
+        <p class="text-slate-600">{{ 'branch.none' | t }}</p>
+      }
+    </main>
+  } @else if (step() === 'welcome') {
+    <main class="flex flex-1 flex-col items-center justify-center gap-8 p-8 text-center">
+      <img [src]="brand.logo() || 'logo.png'" alt="" class="brand-logo h-40 w-40 object-contain" />
+      <h1 class="text-5xl font-extrabold">{{ 'kiosk.welcome' | t }}</h1>
+      <button type="button" (click)="begin()" [disabled]="menuState() !== 'ready'"
+              class="rounded-3xl bg-brand-500 px-16 py-8 text-4xl font-extrabold text-on-brand shadow-lg disabled:opacity-40">
+        {{ (menuState() === 'failed' ? 'kiosk.menuFailed' : menuState() === 'loading' ? 'menu.loading' : 'kiosk.start') | t }}
+      </button>
+      @if (menuState() === 'failed') {
+        <button type="button" (click)="loadMenu()" class="rounded-xl px-6 py-4 text-xl ring-1 ring-slate-300">{{ 'menu.retry' | t }}</button>
+      }
+    </main>
+  } @else if (step() === 'type') {
+    <main class="flex flex-1 flex-col items-center justify-center gap-8 p-8">
+      <h1 class="text-4xl font-extrabold">{{ 'cart.orderType' | t }}</h1>
+      <div class="grid w-full max-w-3xl grid-cols-2 gap-6">
+        <button type="button" (click)="chooseType('DineIn')"
+                class="rounded-3xl bg-surface px-6 py-14 text-4xl font-extrabold shadow ring-2 ring-slate-200 active:ring-brand-500">
+          🍽 {{ 'cart.here' | t }}
+        </button>
+        <button type="button" (click)="chooseType('TakeAway')"
+                class="rounded-3xl bg-surface px-6 py-14 text-4xl font-extrabold shadow ring-2 ring-slate-200 active:ring-brand-500">
+          🥡 {{ 'cart.toGo' | t }}
+        </button>
+      </div>
+      <button type="button" (click)="startOver()" class="rounded-xl px-8 py-4 text-xl text-slate-600 ring-1 ring-slate-300">{{ 'kiosk.cancel' | t }}</button>
+    </main>
+  } @else if (step() === 'menu') {
+    <div class="flex min-h-0 flex-1">
+      <!-- Categories -->
+      <nav class="w-44 shrink-0 space-y-2 overflow-y-auto border-r border-slate-200 bg-surface p-3">
+        <button type="button" (click)="category.set(null)"
+                [class]="'block w-full rounded-xl px-3 py-4 text-left text-lg font-semibold ' + (!category() ? 'bg-slate-900 text-white' : 'text-slate-700 ring-1 ring-slate-200')">
+          {{ 'menu.all' | t }}
+        </button>
+        @for (c of categories(); track c.id) {
+          <button type="button" (click)="category.set(c.id)"
+                  [class]="'block w-full rounded-xl px-3 py-4 text-left text-lg font-semibold ' + (category() === c.id ? 'bg-slate-900 text-white' : 'text-slate-700 ring-1 ring-slate-200')">
+            {{ c.name }}
+          </button>
+        }
+      </nav>
+      <!-- Dishes -->
+      <main class="min-h-0 flex-1 overflow-y-auto p-4">
+        <div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          @for (item of shown(); track item.id) {
+            <button type="button" (click)="tap(item)" class="flex flex-col overflow-hidden rounded-2xl bg-surface text-left shadow-sm ring-1 ring-slate-200 active:ring-brand-500">
+              @if (item.imageUrl) {
+                <img [src]="item.imageUrl" alt="" class="h-32 w-full object-cover" loading="lazy" />
+              }
+              <span class="flex flex-1 flex-col gap-1 p-3">
+                <span class="text-lg font-bold leading-tight">{{ item.name }}</span>
+                @if (item.isCombo) { <span class="text-sm text-slate-600">{{ comboSummary(item) }}</span> }
+                @if (allergens(item); as a) { <span class="text-xs text-amber-800">⚠ {{ a }}</span> }
+                <span class="mt-auto pt-1 text-lg font-extrabold">{{ item.price | currency2 }}</span>
+              </span>
+            </button>
+          } @empty {
+            <p class="col-span-full text-xl text-slate-500">{{ 'menu.empty' | t }}</p>
+          }
+        </div>
+      </main>
+    </div>
+    <!-- Cart bar -->
+    <footer class="flex items-center gap-4 border-t border-slate-200 bg-surface px-4 py-3">
+      <button type="button" (click)="startOver()" class="rounded-xl px-6 py-4 text-lg text-slate-700 ring-1 ring-slate-300">{{ 'kiosk.cancel' | t }}</button>
+      <p class="flex-1 text-xl font-bold">
+        {{ 'cart.items' | t: { count: count() } }} · {{ total() | currency2 }}
+      </p>
+      <button type="button" (click)="toReview()" [disabled]="count() === 0"
+              class="rounded-2xl bg-brand-500 px-10 py-4 text-2xl font-extrabold text-on-brand disabled:opacity-40">
+        {{ 'kiosk.review' | t }}
+      </button>
+    </footer>
+  } @else if (step() === 'review') {
+    <main class="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col gap-4 p-6">
+      <h1 class="text-3xl font-extrabold">{{ 'kiosk.yourOrder' | t }} · {{ (orderType() === 'DineIn' ? 'cart.here' : 'cart.toGo') | t }}</h1>
+      <ul class="min-h-0 flex-1 space-y-3 overflow-y-auto">
+        @for (l of lines(); track l.key) {
+          <li class="flex items-center gap-3 rounded-2xl bg-surface p-4 ring-1 ring-slate-200">
+            <div class="min-w-0 flex-1">
+              <p class="text-xl font-bold">{{ l.name }}@if (l.variantLabel) { <span class="font-normal text-slate-600"> · {{ l.variantLabel }}</span> }</p>
+              @if (l.toppings.length) { <p class="text-sm text-slate-600">+ {{ toppingNames(l) }}</p> }
+            </div>
+            <button type="button" (click)="minus(l)" class="h-14 w-14 rounded-xl text-3xl ring-1 ring-slate-300" [attr.aria-label]="'−'">−</button>
+            <span class="w-8 text-center text-2xl font-bold">{{ l.quantity }}</span>
+            <button type="button" (click)="plus(l)" class="h-14 w-14 rounded-xl text-3xl ring-1 ring-slate-300" [attr.aria-label]="'+'">+</button>
+            <span class="w-28 text-right text-xl font-extrabold">{{ l.unitPrice * l.quantity | currency2 }}</span>
+          </li>
+        }
+      </ul>
+      @if (problem(); as p) {
+        <p class="rounded-xl bg-red-50 p-4 text-lg text-red-800" role="alert">{{ p }}</p>
+      }
+      <p class="text-3xl font-extrabold">{{ 'cart.total' | t }}: {{ total() | currency2 }}</p>
+      <p class="text-lg text-slate-600">{{ 'kiosk.payAtCounter' | t }}</p>
+      <div class="flex gap-3">
+        <button type="button" (click)="step.set('menu')" [disabled]="sending()" class="rounded-2xl px-8 py-5 text-xl text-slate-700 ring-1 ring-slate-300">{{ 'pay.back' | t }}</button>
+        <button type="button" (click)="send()" [disabled]="sending() || count() === 0"
+                class="flex-1 rounded-2xl bg-brand-500 py-5 text-3xl font-extrabold text-on-brand disabled:opacity-50">
+          {{ (sending() ? 'pay.sending' : 'kiosk.send') | t }}
+        </button>
+      </div>
+    </main>
+  } @else {
+    <!-- The number -->
+    <main class="flex flex-1 flex-col items-center justify-center gap-6 p-8 text-center">
+      <p class="text-3xl font-bold">{{ 'kiosk.yourNumber' | t }}</p>
+      <p class="text-[10rem] font-black leading-none tracking-widest" data-testid="kiosk-number">{{ number() }}</p>
+      <p class="max-w-2xl text-3xl font-semibold">{{ 'kiosk.goToCounter' | t: { total: (order()?.total ?? 0) | currency2 } }}</p>
+      <p class="text-xl text-slate-600">{{ 'kiosk.callOut' | t }}</p>
+      <button type="button" (click)="startOver()" class="mt-4 rounded-2xl bg-slate-900 px-12 py-5 text-2xl font-bold text-white">{{ 'kiosk.newOrder' | t }}</button>
+    </main>
+  }
+</div>
+
+<!-- Choose a size and add-ons -->
+@if (picking(); as item) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4" (click)="picking.set(null)">
+    <div class="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-surface p-6" (click)="$event.stopPropagation()"
+         role="dialog" aria-modal="true" [attr.aria-label]="item.name">
+      <h2 class="text-3xl font-extrabold">{{ item.name }}</h2>
+      @if (allergens(item); as a) { <p class="mt-1 text-base text-amber-800">⚠ {{ a }}</p> }
+      @if (variantsOf(item).length > 1) {
+        <p class="mt-5 text-lg font-semibold">{{ 'opt.size' | t }}</p>
+        <div class="mt-2 flex flex-wrap gap-3">
+          @for (v of variantsOf(item); track v.id) {
+            <button type="button" (click)="pickVariant.set(v.id ?? null)" [attr.aria-pressed]="pickVariant() === v.id"
+                    [class]="'rounded-2xl px-6 py-4 text-xl font-semibold ' + (pickVariant() === v.id ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300')">
+              {{ v.label }} · {{ v.price | currency2 }}
+            </button>
+          }
+        </div>
+      }
+      @for (g of pickGroups(item); track g.key) {
+        <p class="mt-5 text-lg font-semibold">
+          {{ g.title }}@if (g.hint) { <span class="font-normal text-slate-500"> · {{ g.hint }}</span> }
+        </p>
+        <div class="mt-2 flex flex-wrap gap-3">
+          @for (t of g.toppings; track t.id) {
+            <button type="button" (click)="toggle(t)" [attr.aria-pressed]="isPicked(t)"
+                    [class]="'rounded-2xl px-6 py-4 text-xl ' + (isPicked(t) ? 'bg-slate-900 text-white' : 'ring-1 ring-slate-300')">
+              {{ t.name }} @if (t.price > 0) { +{{ t.price | currency2 }} }
+            </button>
+          }
+        </div>
+      }
+      <div class="mt-8 flex gap-3">
+        <button type="button" (click)="picking.set(null)" class="rounded-2xl px-8 py-5 text-xl text-slate-700 ring-1 ring-slate-300">{{ 'opt.cancel' | t }}</button>
+        <button type="button" (click)="confirmPick()" [disabled]="pickMissing() !== null"
+                class="flex-1 rounded-2xl bg-brand-500 py-5 text-2xl font-extrabold text-on-brand disabled:opacity-40">
+          @if (pickMissing(); as need) { {{ 'opt.choose' | t: { title: need } }} } @else { {{ 'opt.add' | t }} · {{ pickPrice() | currency2 }} }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Still there? -->
+@if (warning()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="alertdialog" aria-modal="true" [attr.aria-label]="'kiosk.stillThere' | t">
+    <div class="w-full max-w-xl rounded-3xl bg-surface p-8 text-center">
+      <p class="text-4xl font-extrabold">{{ 'kiosk.stillThere' | t }}</p>
+      <p class="mt-3 text-2xl text-slate-600">{{ 'kiosk.startsOver' | t: { seconds: secondsLeft() } }}</p>
+      <button type="button" (click)="touched()" class="mt-6 w-full rounded-2xl bg-brand-500 py-5 text-3xl font-extrabold text-on-brand">{{ 'kiosk.continue' | t }}</button>
+    </div>
+  </div>
+}
+
+<!-- Staff exit -->
+@if (exitOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <form class="w-full max-w-sm space-y-4 rounded-2xl bg-surface p-5" (ngSubmit)="leave()" role="dialog" aria-modal="true" [attr.aria-label]="'kiosk.exitTitle' | t">
+      <h2 class="text-lg font-bold">{{ 'kiosk.exitTitle' | t }}</h2>
+      <p class="text-sm text-slate-600">{{ 'kiosk.exitHint' | t }}</p>
+      <input type="password" name="pin" inputmode="numeric" maxlength="6" autocomplete="off" [(ngModel)]="exitPin"
+             [attr.aria-label]="'staff.pin' | t" [placeholder]="'staff.pin' | t"
+             class="w-full rounded-xl border border-slate-300 px-4 py-3 text-center text-2xl tracking-[0.5em]" />
+      @if (exitFailed()) { <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">{{ 'staff.failed' | t }}</p> }
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" (click)="exitOpen.set(false)" class="rounded-xl px-4 py-3 ring-1 ring-slate-300">{{ 'sales.close' | t }}</button>
+        <button type="submit" [disabled]="exitBusy() || !exitValid()" class="rounded-xl bg-brand-500 px-4 py-3 font-semibold text-on-brand disabled:opacity-50">{{ 'kiosk.exit' | t }}</button>
+      </div>
+    </form>
+  </div>
+}

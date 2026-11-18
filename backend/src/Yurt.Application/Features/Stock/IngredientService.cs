@@ -35,8 +35,12 @@ public class IngredientService(
         if (error != null) return Result<IngredientDto>.Failure(error, 400);
         if (await db.Ingredients.AnyAsync(i => i.Name == name, ct))
             return Result<IngredientDto>.Failure("An ingredient with this name already exists.", 409);
+        var barcode = Barcodes.Clean(dto.Barcode, out var barcodeError);
+        if (barcodeError != null) return Result<IngredientDto>.Failure(barcodeError, 400);
+        if (barcode != null && await db.Ingredients.AnyAsync(i => i.Barcode == barcode, ct))
+            return Result<IngredientDto>.Failure("Another ingredient already has this barcode.", 409);
 
-        var ingredient = new Ingredient { Name = name, Unit = unit };
+        var ingredient = new Ingredient { Name = name, Unit = unit, Barcode = barcode };
         db.Ingredients.Add(ingredient);
         await db.SaveChangesAsync(ct);
         await audit.LogAsync("IngredientCreated", "Ingredient", ingredient.Id.ToString(), name, ct);
@@ -51,7 +55,12 @@ public class IngredientService(
         if (ingredient is null) return Result<IngredientDto>.Failure("Ingredient not found.", 404);
         if (await db.Ingredients.AnyAsync(i => i.Name == name && i.Id != id, ct))
             return Result<IngredientDto>.Failure("An ingredient with this name already exists.", 409);
+        var barcode = Barcodes.Clean(dto.Barcode, out var barcodeError);
+        if (barcodeError != null) return Result<IngredientDto>.Failure(barcodeError, 400);
+        if (barcode != null && await db.Ingredients.AnyAsync(i => i.Barcode == barcode && i.Id != id, ct))
+            return Result<IngredientDto>.Failure("Another ingredient already has this barcode.", 409);
 
+        ingredient.Barcode = barcode;
         ingredient.Name = name;
         ingredient.Unit = unit;
         ingredient.UpdatedAt = DateTime.UtcNow;
@@ -211,5 +220,5 @@ public class IngredientService(
     private static IngredientDto ToDto(Ingredient i, IngredientStock? s, int usedIn) => new(
         i.Id, i.Name, i.Unit, s?.Quantity, s?.LowStockAt,
         IsLow: s is { LowStockAt: not null } && s.Quantity <= s.LowStockAt && s.Quantity > 0,
-        IsOut: s is { Quantity: <= 0 }, usedIn, i.CostPerUnit);
+        IsOut: s is { Quantity: <= 0 }, usedIn, i.CostPerUnit, i.Barcode);
 }

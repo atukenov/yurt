@@ -9,6 +9,8 @@ public class OrderItem : BaseEntity, ITenantOwned
     public Guid OrderId { get; set; }
     public Guid MenuItemId { get; set; }
     public int Quantity { get; set; }
+    /// <summary>The weight of a weighed item in grams (Quantity is then 1 and UnitPrice the price of this weight). Null for everything else.</summary>
+    public int? WeightGrams { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal LineTotal { get; set; }
     // What the ingredients of one portion cost (toppings included) when the order was accepted, from the recipes and the

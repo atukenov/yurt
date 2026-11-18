@@ -2,13 +2,13 @@ import { Component, computed, effect, inject, input, signal, untracked } from '@
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, Observable, switchMap } from 'rxjs';
-import { BrandService, YurtApiService } from 'shared-api';
+import { BrandService, cleanBarcode, YurtApiService } from 'shared-api';
 import { Ingredient, Purchase, PurchaseStatus, SavePurchase, Supplier } from 'shared-models';
 import { Currency2Pipe, LocalDatePipe, LocalNumberPipe, ToastService } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
-import { invoiceTotal, isoDay, orderText, whatsappLink } from './purchasing-helpers';
+import { addScannedPack, invoiceTotal, isoDay, orderText, whatsappLink } from './purchasing-helpers';
 
 interface EditLine {
   ingredientId: string;
@@ -138,6 +138,20 @@ export class DeliveriesPanelComponent {
 
   addLine(f: Form): void {
     f.lines.push({ ingredientId: '', quantity: null, total: null });
+  }
+
+  /** A pack was scanned: its ingredient gets one more pack on the invoice (a new line the first time). */
+  scanPack(f: Form, raw: string): void {
+    const code = cleanBarcode(raw);
+    if (!code) return;
+    const ingredient = this.ingredients().find((i) => i.barcode && cleanBarcode(i.barcode) === code);
+    if (!ingredient) {
+      this.toast.error(this.lang.t('buy.scanUnknown', { code }));
+      return;
+    }
+    const pack = this.suppliers().find((s) => s.id === f.supplierId)?.products.find((p) => p.ingredientId === ingredient.id) ?? null;
+    f.lines = addScannedPack(f.lines, ingredient.id, pack);
+    this.form.set({ ...f });
   }
 
   removeLine(f: Form, i: number): void {

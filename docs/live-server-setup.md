@@ -1,8 +1,8 @@
 # Finish the live server setup
 
 Four things only you can do, because they need your Railway and admin logins. Each one takes a few minutes.
-Do them in this order. Today the live API runs on Railway (`altyncup-production.up.railway.app`) and the
-customer and admin apps run on Vercel (projects `altyncup` and `altyncup-admin`).
+Do them in this order. Today the live API runs on Railway (`yurt-production.up.railway.app`) and the
+customer and admin apps run on Vercel (`yurt-app.vercel.app`, `yurt-admin-weld.vercel.app`). The Yurt POS app is a third Vercel project, see [yurt-pos.md](yurt-pos.md).
 
 After each step, open the admin panel as the platform owner, go to **Platform → Integrations**, and check the
 row turned green ("Configured").
@@ -46,8 +46,8 @@ used; for the others the server uses this setting.
 opens.
 
 **Steps.**
-1. Find the customer app's web address: Vercel → project `altyncup` → **Domains**. Use the main one, for
-   example `https://altyncup.vercel.app` or your own domain if you added one.
+1. Find the customer app's web address: Vercel → the customer app project → **Domains**. Use the main one, for
+   example `https://yurt-app.vercel.app` or your own domain if you added one.
 2. Railway → API service → **Variables** → **New variable**:
    - Name: `Payment__CustomerAppUrl`
    - Value: that address, starting with `https://`, without a `/` at the end
@@ -84,7 +84,7 @@ customers. Staging costs about 5 USD a month on Railway's Hobby plan plus databa
 4. In the staging API → **Settings → Source**, set the branch to `staging` (create it on GitHub from `main`
    first), so staging only updates when you push to that branch.
 5. Open **Settings → Networking → Generate domain** for the staging API. You get an address like
-   `altyncup-staging.up.railway.app`.
+   `yurt-staging.up.railway.app`.
 
 **Steps (Vercel, the two apps).** The apps have the API address built in, so staging needs its own two Vercel
 projects. Tell me the staging API address from step 5 and I will add a staging build setting to the repo; then
@@ -117,3 +117,5 @@ the brand settings so every cafe can have its own, and the old one has to be typ
 | Platform → a cafe → Secrets | saving a test value works (then press Clear) |
 | Customer app → Profile | the Instagram link opens your page |
 | `https://<staging api>/health` | `Healthy` |
+
+After a release, also do the one-time staff steps in [runbook.md](runbook.md#after-a-release-what-staff-must-do-once) (manager PIN, modules, CEO login).

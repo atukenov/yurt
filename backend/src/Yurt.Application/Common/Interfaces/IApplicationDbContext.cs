@@ -23,6 +23,8 @@ public interface IApplicationDbContext
     DbSet<OrderItemTopping> OrderItemToppings { get; }
     DbSet<Favorite> Favorites { get; }
     DbSet<Order> Orders { get; }
+    DbSet<OrderDayCounter> OrderDayCounters { get; }
+    Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
     DbSet<OrderItem> OrderItems { get; }
     DbSet<Payment> Payments { get; }
     DbSet<PaymentWebhookLog> PaymentWebhookLogs { get; }
@@ -58,6 +60,7 @@ public interface IApplicationDbContext
     DbSet<WatchReport> WatchReports { get; }
     DbSet<Picture> Pictures { get; }
     DbSet<StaffSalary> StaffSalaries { get; }
+    DbSet<TimeEntry> TimeEntries { get; }
     DbSet<PayAdjustment> PayAdjustments { get; }
     DbSet<PayrollMonth> PayrollMonths { get; }
     DbSet<PayrollLine> PayrollLines { get; }

@@ -139,7 +139,7 @@ export class ReceiptService {
       .qr { width: 36mm; height: 36mm; image-rendering: pixelated; }
     </style></head><body>
       <h1>${esc(this.brand.name())}</h1>
-      <p class="c">${esc(order.locationName)}<br>${esc(when)}<br>#${esc(order.id.slice(0, 8).toUpperCase())}${order.tableLabel ? `<br><b>${esc(this.lang.t('tables.tableN', { table: order.tableLabel }))}</b>` : ''}</p>
+      <p class="c">${esc(order.locationName)}<br>${esc(when)}<br>#${esc(order.number || order.id.slice(-6).toUpperCase())} · ${esc(order.id.slice(0, 8).toUpperCase())}${order.tableLabel ? `<br><b>${esc(this.lang.t('tables.tableN', { table: order.tableLabel }))}</b>` : ''}</p>
       <hr><table>${lines}</table><hr><table>${totals}</table><hr>
       ${split.length > 1 ? `<table>${split.map((p) => row(p.method, money(p.amount))).join('')}</table><hr>` : ''}
       <p class="c">${esc(split.length > 1 ? '' : order.paymentMethod ? t('receipt.method') + ': ' + order.paymentMethod : '')}<br>${esc(t('receipt.thanks'))}</p>
@@ -175,7 +175,7 @@ export class ReceiptService {
       ul { list-style: none; padding: 0; margin: 6px 0; } li { padding: 4px 0; border-bottom: 1px dashed #000; font-size: 15px; }
       small { color: #333; font-size: 13px; }
     </style></head><body>
-      <h1>#${esc(order.id.slice(0, 8).toUpperCase())}</h1>
+      <h1>#${esc(order.number || order.id.slice(-6).toUpperCase())}</h1>
       ${order.tableLabel ? `<h1>${esc(this.lang.t('tables.tableN', { table: order.tableLabel }))}</h1>` : ''}
       <p>${esc(stationName ?? '')}${stationName ? ' · ' : ''}${esc(when)}</p>
       <p>${esc(order.customerName)}</p>

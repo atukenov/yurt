@@ -35,11 +35,21 @@ public class CounterSaleService(
     public static readonly TimeSpan TimeMenuGrace = TimeSpan.FromMinutes(10);
 
     public const int MaxEtaMinutes = 240;
+    /// <summary>The lightest and heaviest weighing the till may send (a scale that reads 0 or a typo is refused).</summary>
+    public const int MinWeightGrams = 1, MaxWeightGrams = 50_000;
 
     private static readonly PaymentMethod[] CounterMethods =
         [PaymentMethod.Cash, PaymentMethod.Card, PaymentMethod.KaspiBank, PaymentMethod.HalykBank, PaymentMethod.FreedomBank];
 
-    public async Task<Result<OrderDto>> CreateAsync(CreateCounterSaleDto dto, CancellationToken ct = default)
+    /// <summary>
+    /// An order from the self-order kiosk (module kiosk): the same menu rules as a counter sale, but nothing is paid yet.
+    /// The order waits (Created, unpaid, "cash") like an unpaid app order: the cashier takes the payment at the counter
+    /// and accepts it, and only then do stock, the kitchen tickets and the cost snapshot happen (see OrderService.AcceptOrderAsync).
+    /// </summary>
+    public Task<Result<OrderDto>> CreateKioskOrderAsync(CreateKioskOrderDto dto, CancellationToken ct = default)
+        => CreateAsync(new CreateCounterSaleDto(dto.LocationId, dto.Items, PaymentMethod.Cash, dto.IdempotencyKey, OrderType: dto.OrderType), ct, kiosk: true);
+
+    public async Task<Result<OrderDto>> CreateAsync(CreateCounterSaleDto dto, CancellationToken ct = default, bool kiosk = false)
     {
         if (string.IsNullOrWhiteSpace(dto.IdempotencyKey) || dto.IdempotencyKey.Length > 128)
             return Result<OrderDto>.Failure("Every sale needs its own key (up to 128 characters) so it is never counted twice.", 400);
@@ -52,7 +62,7 @@ public class CounterSaleService(
             return Result<OrderDto>.Failure("A sale must have at least one item.", 400);
         if (dto.Items.Any(i => i.Quantity is < 1 or > 999))
             return Result<OrderDto>.Failure("Each item's quantity must be between 1 and 999.", 400);
-        if (!CounterMethods.Contains(dto.PaymentMethod))
+        if (!kiosk && !CounterMethods.Contains(dto.PaymentMethod))
             return Result<OrderDto>.Failure("Choose how the guest paid: cash, card, Kaspi, Halyk or Freedom.", 400);
         if (dto.Tip is < 0) return Result<OrderDto>.Failure("A tip can't be negative.", 400);
         if (dto.TipMethod is { } tm && !CounterMethods.Contains(tm))
@@ -78,13 +88,29 @@ public class CounterSaleService(
         if (location is null || (live && !location.IsActive))
             return Result<OrderDto>.Failure("Branch not found or inactive.", 400);
 
-        if (Locations.Services.LocationService.OfferedMethods(location.PaymentMethods) is { } offered
+        // A kiosk guest pays at the counter, where the cashier picks the method.
+        if (!kiosk && Locations.Services.LocationService.OfferedMethods(location.PaymentMethods) is { } offered
             && !offered.Contains(dto.PaymentMethod))
             return Result<OrderDto>.Failure("This branch does not accept that payment method.", 422);
 
         var itemIds = dto.Items.Select(i => i.MenuItemId).Distinct().ToList();
         var menuItems = await db.MenuItems.Include(m => m.MenuItemLocations)
             .Where(m => itemIds.Contains(m.Id)).ToDictionaryAsync(m => m.Id, ct);
+        foreach (var line in dto.Items)
+        {
+            if (!menuItems.TryGetValue(line.MenuItemId, out var weighable)) continue; // reported just below
+            if (weighable.SoldByWeight)
+            {
+                if (line.WeightGrams is not { } grams || grams is < MinWeightGrams or > MaxWeightGrams)
+                    return Result<OrderDto>.Failure($"'{weighable.Name}' is sold by weight: weigh it first (between {MinWeightGrams} g and {MaxWeightGrams / 1000} kg).", 400);
+                if (line.Quantity != 1)
+                    return Result<OrderDto>.Failure($"'{weighable.Name}' is sold by weight: one line per weighing.", 400);
+                if (line.VariantId is not null || line.ToppingIds is { Count: > 0 })
+                    return Result<OrderDto>.Failure($"'{weighable.Name}' is sold by weight and has no sizes or add-ons.", 400);
+            }
+            else if (line.WeightGrams is not null)
+                return Result<OrderDto>.Failure($"'{weighable.Name}' is not sold by weight.", 400);
+        }
         foreach (var id in itemIds)
         {
             if (!menuItems.TryGetValue(id, out var item))
@@ -123,20 +149,34 @@ public class CounterSaleService(
         var optionGroups = await DishOptions.LoadGroupsAsync(
             db, offeredByItem.Values.SelectMany(v => v).Select(o => o.Topping.Group), ct);
 
+        // An order that is not paid yet has not sold anything: it must not promise what is already gone (an app order is
+        // checked the same way). A counter sale is not: the goods are already handed over.
+        if (kiosk && stock is not null)
+        {
+            var names = menuItems.ToDictionary(m => m.Key, m => m.Value.Name);
+            var lines = dto.Items
+                .Select(i => new StockLine(i.MenuItemId, i.VariantId, i.Quantity, i.ToppingIds ?? [], combos.LinePartsOf(i.MenuItemId)))
+                .ToList();
+            var wanted = StockLine.Expand(lines).GroupBy(l => l.MenuItemId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
+            var shortage = await stock.FindShortageAsync(dto.LocationId, wanted, names, ct)
+                ?? await stock.FindIngredientShortageAsync(dto.LocationId, lines, names, ct);
+            if (shortage is not null) return Result<OrderDto>.Failure(shortage, 400);
+        }
+
         var order = new Order
         {
             CustomerUserId = null,
-            Source = OrderSource.Counter,
+            Source = kiosk ? OrderSource.Kiosk : OrderSource.Counter,
             OrderType = dto.OrderType,
             SoldByAdminId = user.UserId,
             LocationId = location.Id,
-            Status = OrderStatus.Accepted,
+            Status = kiosk ? OrderStatus.Created : OrderStatus.Accepted,
             PaymentMethod = dto.PaymentMethod,
-            PaymentStatus = PaymentStatus.Paid,
+            PaymentStatus = kiosk ? PaymentStatus.Unpaid : PaymentStatus.Paid,
             IdempotencyKey = key,
             CreatedAt = soldAt,
-            AcceptedAt = soldAt,
-            EtaMinutes = dto.HandedOver ? null : dto.EtaMinutes ?? 0,
+            AcceptedAt = kiosk ? null : soldAt,
+            EtaMinutes = kiosk ? null : dto.HandedOver ? null : dto.EtaMinutes ?? 0,
         };
 
         foreach (var line in dto.Items)
@@ -158,12 +198,15 @@ public class CounterSaleService(
                 .ToList();
 
             var unit = timed.PriceOf(item, variant?.Price ?? DishOptions.BranchPrice(item, location.Id), variant is not null) + lineToppings.Sum(t => t.Price);
+            // A weighed dish: the menu price is for 1 kg, the line is priced for what was weighed (rounded to the cent).
+            if (item.SoldByWeight) unit = Math.Round(unit * line.WeightGrams!.Value / 1000m, 2, MidpointRounding.AwayFromZero);
             var orderItem = new OrderItem
             {
                 OrderId = order.Id,
                 MenuItemId = item.Id,
                 MenuItemName = item.Name,
                 Quantity = line.Quantity,
+                WeightGrams = item.SoldByWeight ? line.WeightGrams : null,
                 UnitPrice = unit,
                 LineTotal = unit * line.Quantity,
                 VariantId = variant?.Id,
@@ -208,14 +251,19 @@ public class CounterSaleService(
             order.TipMethod = dto.TipMethod is { } m && m != dto.PaymentMethod ? m : null;
             order.TipForAdminId = user.UserId;
         }
-        if (dto.HandedOver)
+        if (!kiosk && dto.HandedOver)
         {
             order.Status = OrderStatus.Completed;
             order.CompletedAt = soldAt;
         }
 
         // Keep what the ingredients cost today, for the profit report (prices change later).
-        await new IngredientCostCalculator(db).SnapshotAsync(order, ct);
+        // (An order waiting for payment gets its cost snapshot when the cashier accepts it.)
+        if (!kiosk) await new IngredientCostCalculator(db).SnapshotAsync(order, ct);
+        // A sale made offline keeps the number its own receipt already carries; the day's number is still given, so the
+        // admin lists stay in order.
+        if (!live) order.OfflineNumber = OrderNumbers.OfflineNumberOf(key);
+        await OrderNumbers.AssignAsync(db, order, location, ct);
         db.Orders.Add(order);
         try
         {
@@ -230,6 +278,14 @@ public class CounterSaleService(
             return Result<OrderDto>.Success(OrderService.MapToDto(first), 200);
         }
         order.Location = location;
+
+        if (kiosk)
+        {
+            await audit.LogAsync("KioskOrder", "Order", order.Id.ToString(), $"{order.Total:0.##} · {order.OrderType}, pay at the counter", ct);
+            // The kitchen display and the cashier's list see it at once. Stock, tickets and the receipt wait for acceptance.
+            await hub.NotifyOrderCreatedAsync(order, ct);
+            return Result<OrderDto>.Success(OrderService.MapToDto(order), 201);
+        }
 
         await audit.LogAsync("CounterSale", "Order", order.Id.ToString(),
             $"{order.Total:0.##} {dto.PaymentMethod}{(live ? "" : $", made offline at {soldAt:u}")}"

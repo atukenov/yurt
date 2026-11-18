@@ -4,7 +4,7 @@ Every staff account has one role. Four roles exist:
 
 | Role | Who | Sees and does |
 |---|---|---|
-| **Worker** | Barista, cashier | Live orders, their own cashier shift, write-offs and moves, typing in deliveries. No settings, no money numbers. |
+| **Worker** | Barista, cashier | Live orders, their own cashier shift, write-offs and moves, typing in deliveries, the daily forecast and prep plan (item counts, no money). No settings, no money numbers. |
 | **Admin** | Cafe administrator, runs the cafe day to day | Everything a Worker does, plus stock and ingredients (counts, restocking, stocktake), suppliers and purchase orders / invoices, shifts and cash counts, menu, tables, printers, branches, customers, promotions and codes, customer complaints, staff accounts of Workers. **Does not see** sales analytics, the dashboard, billing, the audit log or payroll. |
 | **CEO** | The cafe's owner (and an accountant, if the owner wants to share the login) | Everything an Admin does, plus the money side: **Analytics** and dashboard, **Profit** (monthly profit and profit by dish), **Tips** report (per staff member and shift), the **Combo sales** report (what guests saved, profit per combo), **Food cost** and write-off money on the Stock page, **Subscription** (what the cafe pays Yurt), **Audit log**, and **Payroll**. Only the CEO adds or switches off **Admin** accounts and resets their passwords. |
 | **SuperAdmin** | You, the platform operator | Only the Platform screens. Never listed on a cafe's staff page. |
@@ -39,6 +39,9 @@ With the `own_pos` module on, a cashier cannot cancel a sale, give money back or
 - **API:** `GET admin/manager-pin` (is a PIN asked for, does anyone have one, do I), `PUT admin/manager-pin` `{ currentPassword, pin }` (Admin and CEO). `POST admin/orders/{id}/refund|cancel` take `{ pin, reason }`, `POST admin/orders/{id}/discount` takes `{ percent | amount, pin, reason }`, decline takes `pin` next to `reason`, payment takes `pin` and `reason` when it leaves Paid, and a counter sale takes a `discount` object. Audit actions: `ManagerPinSet`, `ManagerPinRejected`, `OrderCancelled`, `OrderDiscount`, `CounterSale` (with the discount), `OrderRefunded`, `OrderDeclined`.
 - **Tips:** changing or removing a tip after the sale (`PUT admin/orders/{id}/tip`, `{ amount, method, staffId, pin, reason }`; amount 0 removes it) asks for the PIN and a reason too. Audit actions `OrderTipChanged`, `OrderTipRemoved`. Adding a tip when the sale is rung up at the till does not. See `docs/tips.md`.
 - **Not covered yet:** stock a cancelled order already used stays used (write it off if it was made); a tax receipt already sent for a cancelled sale is not reversed automatically.
+
+## Staff PIN, clock-in and hours
+Any staff member can have a **staff PIN** (admin app → *Settings → Staff PIN*) to take over the till or clock in and out at the Yurt POS without a password. Everyone (barista, Admin, CEO) can also clock in from the admin app with the button in the sidebar. It is separate from the manager PIN and never the same number. An Admin sets PINs for Workers, the CEO for everybody; Admins and the CEO see everyone's **worked hours** (*Reports → Worked hours*) and fix forgotten clock-outs, while **rates and pay stay CEO only**. The CEO signs in with the password, not a PIN switch. See `docs/time-clock.md`.
 
 ## Technical notes
 - The role is stored as text in `AdminUsers.Role` (`Worker`, `Admin`, `SuperAdmin`, `Ceo`); adding `Ceo` needed no database change.

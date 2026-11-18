@@ -143,5 +143,7 @@ public enum OrderSource
     // Placed by the guest in the customer app (or a table QR code).
     App = 0,
     // Rung up by a cashier at the counter (Yurt POS), already paid.
-    Counter = 1
+    Counter = 1,
+    // Placed by the guest on the self-order kiosk in the cafe, not paid yet: the cashier takes the payment.
+    Kiosk = 2
 }

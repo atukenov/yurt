@@ -12,8 +12,8 @@ export function currentMonth(now = new Date()): string {
 }
 
 /**
- * Monthly pay (CEO only): a fixed salary per person, bonuses and deductions for the month, and a pay sheet the CEO
- * closes after everyone is paid. Nothing here is worked out from hours.
+ * Monthly pay (CEO only): a fixed salary per person, optionally an hourly rate paid on the hours from the till's time clock,
+ * bonuses and deductions for the month, and a pay sheet the CEO closes after everyone is paid.
  */
 @Component({
   selector: 'app-payroll',
@@ -52,6 +52,7 @@ export function currentMonth(now = new Date()): string {
                 <tr class="border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wide">
                   <th class="text-left px-3 py-2">{{ 'payroll.person' | t }}</th>
                   <th class="text-right px-3 py-2">{{ 'payroll.salary' | t }}</th>
+                  <th class="text-right px-3 py-2">{{ 'payroll.hourlyPay' | t }}</th>
                   <th class="text-right px-3 py-2">{{ 'payroll.bonuses' | t }}</th>
                   <th class="text-right px-3 py-2">{{ 'payroll.deductions' | t }}</th>
                   <th class="text-right px-3 py-2">{{ 'payroll.total' | t }}</th>
@@ -78,6 +79,12 @@ export function currentMonth(now = new Date()): string {
                       }
                     </td>
                     <td class="px-3 py-2 text-right">{{ l.salary | lnumber: '1.0-2' }}</td>
+                    <td class="px-3 py-2 text-right">
+                      @if (l.hourlyRate > 0) {
+                        {{ l.hourlyPay | lnumber: '1.0-2' }}
+                        <span class="block text-xs text-slate-500">{{ l.hours | lnumber: '1.0-2' }} {{ 'hours.h' | t }} × {{ l.hourlyRate | lnumber: '1.0-2' }}</span>
+                      } @else { <span class="text-slate-400">–</span> }
+                    </td>
                     <td class="px-3 py-2 text-right text-green-700">{{ l.bonuses | lnumber: '1.0-2' }}</td>
                     <td class="px-3 py-2 text-right text-tone-red">{{ l.deductions | lnumber: '1.0-2' }}</td>
                     <td class="px-3 py-2 text-right font-semibold text-slate-800">{{ l.total | lnumber: '1.0-2' }}</td>
@@ -88,6 +95,7 @@ export function currentMonth(now = new Date()): string {
                 <tr class="font-semibold text-slate-800">
                   <td class="px-3 py-2">{{ 'payroll.totals' | t }}</td>
                   <td class="px-3 py-2 text-right">{{ sheet()!.totalSalary | lnumber: '1.0-2' }}</td>
+                  <td class="px-3 py-2 text-right">{{ sheet()!.totalHourlyPay | lnumber: '1.0-2' }}</td>
                   <td class="px-3 py-2 text-right">{{ sheet()!.totalBonuses | lnumber: '1.0-2' }}</td>
                   <td class="px-3 py-2 text-right">{{ sheet()!.totalDeductions | lnumber: '1.0-2' }}</td>
                   <td class="px-3 py-2 text-right">{{ sheet()!.totalToPay | lnumber: '1.0-2' }}</td>
@@ -153,8 +161,10 @@ export function currentMonth(now = new Date()): string {
               <span class="block text-xs font-normal text-slate-500">{{ ('role.' + p.role) | t }}@if (!p.isActive) { · {{ 'workers.inactive' | t }} }</span>
             </span>
             <input type="number" min="0" step="any" [(ngModel)]="salaryEdits[p.id]" [name]="'salary-' + p.id"
-              [attr.aria-label]="'payroll.salary' | t" class="w-40 px-3 py-1.5 rounded-xl border border-slate-200 text-sm" />
-            <button type="button" (click)="saveSalary(p)" [disabled]="busy() || (salaryEdits[p.id] ?? 0) === p.monthlySalary"
+              [attr.aria-label]="'payroll.salary' | t" [placeholder]="'payroll.salary' | t" class="w-36 px-3 py-1.5 rounded-xl border border-slate-200 text-sm" />
+            <input type="number" min="0" step="any" [(ngModel)]="rateEdits[p.id]" [name]="'rate-' + p.id"
+              [attr.aria-label]="'payroll.hourlyRate' | t" [placeholder]="'payroll.hourlyRate' | t" class="w-36 px-3 py-1.5 rounded-xl border border-slate-200 text-sm" />
+            <button type="button" (click)="saveSalary(p)" [disabled]="busy() || ((salaryEdits[p.id] ?? 0) === p.monthlySalary && (rateEdits[p.id] ?? 0) === p.hourlyRate)"
               class="px-3 py-1.5 rounded-xl bg-brand-500 text-on-brand text-xs font-semibold disabled:opacity-50">
               {{ 'action.save' | t }}
             </button>
@@ -175,6 +185,7 @@ export class PayrollComponent implements OnInit {
   busy = signal(false);
   activeStaff = computed(() => this.staff().filter((p) => p.isActive));
   salaryEdits: Record<string, number> = {};
+  rateEdits: Record<string, number> = {};
 
   adjUser = '';
   adjKind: 'bonus' | 'deduction' = 'bonus';
@@ -186,6 +197,7 @@ export class PayrollComponent implements OnInit {
       next: (s) => {
         this.staff.set(s);
         this.salaryEdits = Object.fromEntries(s.map((p) => [p.id, p.monthlySalary]));
+        this.rateEdits = Object.fromEntries(s.map((p) => [p.id, p.hourlyRate]));
       },
     });
     this.loadSheet();
@@ -205,7 +217,7 @@ export class PayrollComponent implements OnInit {
   saveSalary(p: PayrollStaff): void {
     const value = Number(this.salaryEdits[p.id] ?? 0);
     this.busy.set(true);
-    this.api.setSalary(p.id, value).subscribe({
+    this.api.setSalary(p.id, value, Number(this.rateEdits[p.id] ?? 0)).subscribe({
       next: (saved) => {
         this.staff.update((l) => l.map((x) => (x.id === saved.id ? saved : x)));
         this.busy.set(false);

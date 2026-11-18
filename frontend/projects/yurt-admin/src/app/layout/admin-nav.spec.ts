@@ -36,7 +36,7 @@ describe('admin sidebar', () => {
 
   it('hides the screens of modules that are off', () => {
     const nav = buildAdminNav({ isAdmin: true, isCeo: false, isSuperAdmin: false, moduleEnabled: none });
-    expect(links(nav)).toEqual(['/orders', '/menu', '/time-menus', '/combos', '/customers', '/reports', '/locations']);
+    expect(links(nav)).toEqual(['/orders', '/menu', '/customers', '/reports', '/locations']);
   });
 
   it('shows only the screens of the modules that are on', () => {
@@ -52,8 +52,8 @@ describe('admin sidebar', () => {
 
   it('gives plain staff the live orders, stock write-offs/moves and deliveries only, and drops empty groups', () => {
     const nav = buildAdminNav({ isAdmin: false, isCeo: false, isSuperAdmin: false, moduleEnabled: all });
-    expect(nav.map((g) => g.id)).toEqual(['pos', 'menu']);
-    expect(links(nav)).toEqual(['/orders', '/stock-moves', '/purchasing']);
+    expect(nav.map((g) => g.id)).toEqual(['pos', 'menu', 'settings']);
+    expect(links(nav)).toEqual(['/orders', '/stock-moves', '/purchasing', '/forecast', '/staff-pin']);
     expect(links(buildAdminNav({ isAdmin: false, isCeo: false, isSuperAdmin: false, moduleEnabled: none }))).toEqual(['/orders']);
   });
 

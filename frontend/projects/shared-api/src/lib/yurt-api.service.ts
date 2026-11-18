@@ -19,7 +19,7 @@ import {
   MaintenanceInfo,
   Cafe,
   CafeSecretStatus, CafeAdmin, PayrollStaff, PayAdjustment, PayrollSheet,
-  ItemProfitReport, ProfitMonth, CafeExpense, SaveCafeExpense,
+  ItemProfitReport, MenuAnalysis, ProfitMonth, CafeExpense, SaveCafeExpense,
   Combo, SaveCombo, ComboReport,
   CreateCafeRequest,
   MenuImportResult,
@@ -31,6 +31,7 @@ import {
   AuthResponse,
   CreateOrderRequest,
   CreateCounterSaleRequest,
+  CreateKioskOrderRequest,
   CreatePaymentRequest,
   PaymentConfig,
   PaymentSettings,
@@ -49,6 +50,7 @@ import {
   DiscountRequest,
   ManagerApprovalRequest,
   ManagerPinStatus,
+  StaffPinPerson, ClockCrossCheck, PunchResult, OnTheClock, HoursReport, TimeEntry,
   SetTipRequest,
   TipReport,
   DiscountCode,
@@ -83,6 +85,7 @@ import {
   SavePurchase,
   PostPurchaseResult,
   ToOrderGroup,
+  Forecast,
   StocktakeResult,
   WriteOffSummary,
   WriteOffReason,
@@ -610,6 +613,11 @@ export class YurtApiService {
     return this.http.post<Order>(`${this.api}/admin/counter-sales`, request);
   }
 
+  /** Sends a self-order kiosk order (module kiosk). It waits unpaid for the cashier. Resending the same idempotencyKey returns the first order. */
+  createKioskOrder(request: CreateKioskOrderRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.api}/admin/kiosk-orders`, request);
+  }
+
   getActiveOrders(): Observable<Order[]> {
     return this.http.get<Order[]>(`${this.api}/orders/active`);
   }
@@ -737,8 +745,13 @@ export class YurtApiService {
     return this.http.get<Ingredient[]>(`${this.api}/admin/ingredients`, { params: { locationId } });
   }
 
-  createIngredient(body: { name: string; unit: string }): Observable<Ingredient> {
+  createIngredient(body: { name: string; unit: string; barcode?: string | null }): Observable<Ingredient> {
     return this.http.post<Ingredient>(`${this.api}/admin/ingredients`, body);
+  }
+
+  /** Renames an ingredient or changes its unit and barcode. An empty barcode removes it. */
+  updateIngredient(id: string, body: { name: string; unit: string; barcode?: string | null }): Observable<Ingredient> {
+    return this.http.put<Ingredient>(`${this.api}/admin/ingredients/${id}`, body);
   }
 
   deleteIngredient(id: string): Observable<boolean> {
@@ -906,6 +919,13 @@ export class YurtApiService {
 
   setOrderUpTo(ingredientId: string, locationId: string, orderUpTo: number | null): Observable<boolean> {
     return this.http.put<boolean>(`${this.api}/admin/purchasing/order-up-to/${ingredientId}/${locationId}`, { orderUpTo });
+  }
+
+  /** Sales forecast and prep plan of a branch for a day (`yyyy-MM-dd`, default today). */
+  getForecast(locationId: string, date: string, adjust = 0, buffer = 10): Observable<Forecast> {
+    return this.http.get<Forecast>(`${this.api}/admin/forecast`, {
+      params: { locationId, date, adjust, buffer },
+    });
   }
 
   // ── Tables with QR codes (table_ordering) ─────────────────────────────────
@@ -1188,6 +1208,75 @@ export class YurtApiService {
     return this.http.put<void>(`${this.api}/admin/manager-pin`, { currentPassword, pin });
   }
 
+  // ── Staff PIN and time clock (own_pos) ───────────────────────────────────
+  getMyStaffPin(): Observable<{ iHavePin: boolean }> {
+    return this.http.get<{ iHavePin: boolean }>(`${this.api}/admin/staff-pin`);
+  }
+
+  setMyStaffPin(currentPassword: string, pin: string): Observable<void> {
+    return this.http.put<void>(`${this.api}/admin/staff-pin`, { currentPassword, pin });
+  }
+
+  /** Who the signed-in manager may set a PIN for (Admin: workers; CEO: everybody). */
+  getStaffPinPeople(): Observable<StaffPinPerson[]> {
+    return this.http.get<StaffPinPerson[]>(`${this.api}/admin/staff-pin/people`);
+  }
+
+  setStaffPinFor(id: string, pin: string): Observable<void> {
+    return this.http.put<void>(`${this.api}/admin/staff-pin/${id}`, { pin });
+  }
+
+  clearStaffPin(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/staff-pin/${id}`);
+  }
+
+  /** The till signs in as the owner of the PIN. Same answer as a login. */
+  switchStaff(pin: string, refreshToken: string | null): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.api}/admin/staff-pin/switch`, { pin, refreshToken });
+  }
+
+  /** Clock in, or out when already in. */
+  punchClock(pin: string, locationId?: string | null): Observable<PunchResult> {
+    return this.http.post<PunchResult>(`${this.api}/admin/time-clock/punch`, { pin, locationId: locationId ?? null });
+  }
+
+  /** Am I clocked in? (every staff role) */
+  getMyClock(): Observable<{ clockedIn: boolean; since: string | null }> {
+    return this.http.get<{ clockedIn: boolean; since: string | null }>(`${this.api}/admin/time-clock/me`);
+  }
+
+  /** Clock myself in, or out when already in. No PIN. */
+  toggleMyClock(): Observable<PunchResult> {
+    return this.http.post<PunchResult>(`${this.api}/admin/time-clock/me/toggle`, {});
+  }
+
+  /** Camera (Yurt Watch) against the time clock for one branch and day. */
+  getClockCameraCheck(locationId: string, day: string): Observable<ClockCrossCheck> {
+    return this.http.get<ClockCrossCheck>(`${this.api}/admin/time-clock/camera-check`, { params: { locationId, day } });
+  }
+
+  getOnTheClock(): Observable<OnTheClock[]> {
+    return this.http.get<OnTheClock[]>(`${this.api}/admin/time-clock/now`);
+  }
+
+  getHoursReport(from: string, to: string, staffId?: string | null): Observable<HoursReport> {
+    const params: Record<string, string> = { from, to };
+    if (staffId) params['staffId'] = staffId;
+    return this.http.get<HoursReport>(`${this.api}/admin/time-clock/hours`, { params });
+  }
+
+  addTimeEntry(body: { adminUserId: string; locationId?: string | null; clockInAt: string; clockOutAt: string; reason: string }): Observable<TimeEntry> {
+    return this.http.post<TimeEntry>(`${this.api}/admin/time-clock/entries`, body);
+  }
+
+  changeTimeEntry(id: string, body: { clockInAt?: string; clockOutAt?: string; reason: string }): Observable<TimeEntry> {
+    return this.http.put<TimeEntry>(`${this.api}/admin/time-clock/entries/${id}`, body);
+  }
+
+  deleteTimeEntry(id: string, reason: string): Observable<void> {
+    return this.http.delete<void>(`${this.api}/admin/time-clock/entries/${id}`, { params: { reason } });
+  }
+
   updateOrderPayment(id: string, req: UpdatePaymentRequest): Observable<Order> {
     return this.http.post<Order>(`${this.api}/admin/orders/${id}/payment`, req);
   }
@@ -1238,8 +1327,8 @@ export class YurtApiService {
     return this.http.get<PayrollStaff[]>(`${this.api}/admin/payroll/staff`);
   }
 
-  setSalary(userId: string, monthlySalary: number): Observable<PayrollStaff> {
-    return this.http.put<PayrollStaff>(`${this.api}/admin/payroll/staff/${userId}/salary`, { monthlySalary });
+  setSalary(userId: string, monthlySalary: number, hourlyRate?: number): Observable<PayrollStaff> {
+    return this.http.put<PayrollStaff>(`${this.api}/admin/payroll/staff/${userId}/salary`, { monthlySalary, hourlyRate });
   }
 
   getPayrollMonth(month: string): Observable<PayrollSheet> {
@@ -1298,12 +1387,16 @@ export class YurtApiService {
     return this.http.get<ItemProfitReport>(`${this.api}/admin/profit/items`, { params: this.profitParams(month, locationId) });
   }
 
+  getMenuAnalysis(month: string, locationId?: string | null): Observable<MenuAnalysis> {
+    return this.http.get<MenuAnalysis>(`${this.api}/admin/profit/menu-analysis`, { params: this.profitParams(month, locationId) });
+  }
+
   getProfitMonth(month: string, locationId?: string | null): Observable<ProfitMonth> {
     return this.http.get<ProfitMonth>(`${this.api}/admin/profit/month`, { params: this.profitParams(month, locationId) });
   }
 
   /** The report as an Excel file, with words in `lang`. */
-  exportProfit(kind: 'items' | 'month', month: string, locationId: string | null, lang: string): Observable<Blob> {
+  exportProfit(kind: 'items' | 'month' | 'menu-analysis', month: string, locationId: string | null, lang: string): Observable<Blob> {
     return this.http.get(`${this.api}/admin/profit/${kind}/export`, {
       params: this.profitParams(month, locationId, lang),
       responseType: 'blob',

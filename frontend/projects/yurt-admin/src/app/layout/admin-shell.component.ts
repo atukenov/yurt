@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnDestroy, signal } from '@angular/core';
+import { Component, effect, inject, OnDestroy, signal, untracked } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -10,7 +10,7 @@ import {
   ThemeService,
   YurtApiService,
 } from 'shared-api';
-import { ToastService } from 'shared-ui';
+import { LocalDatePipe, ToastService } from 'shared-ui';
 import { AdminLangService } from '../core/lang.service';
 import { AdminTranslatePipe } from '../core/translate.pipe';
 import { BluetoothPrintService } from '../core/bluetooth/bluetooth-print.service';
@@ -22,7 +22,7 @@ const FOLDED_KEY = 'yurt_admin_nav_folded';
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AdminTranslatePipe],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AdminTranslatePipe, LocalDatePipe],
   templateUrl: './admin-shell.component.html',
   styleUrl: './admin-shell.component.css',
 })
@@ -51,12 +51,14 @@ export class AdminShellComponent implements OnDestroy {
       // The platform operator does not work inside a cafe: no stock badge, no tablet printing.
       if (!this.modules.isEnabled('own_pos') || !this.auth.currentUser || this.auth.isSuperAdmin) {
         this.stockAlerts.set(0);
+        this.clock.set(null);
         this.bluetooth.stop();
         return;
       }
       // Bluetooth printers paired with this tablet print from any page while the app is open.
       this.bluetooth.start();
       this.refreshAlerts();
+      untracked(() => this.refreshClock());
       this.alertTimer = setInterval(() => this.refreshAlerts(), 120_000);
     });
   }
@@ -64,6 +66,27 @@ export class AdminShellComponent implements OnDestroy {
   ngOnDestroy(): void {
     if (this.alertTimer) clearInterval(this.alertTimer);
     this.bluetooth.stop();
+  }
+
+  /** Am I clocked in? Set for everyone but the platform operator while own_pos is on. */
+  clock = signal<{ clockedIn: boolean; since: string | null } | null>(null);
+  clockBusy = signal(false);
+
+  private refreshClock(): void {
+    this.api.getMyClock().subscribe({ next: (c) => this.clock.set(c), error: () => {} });
+  }
+
+  toggleClock(): void {
+    if (this.clockBusy()) return;
+    this.clockBusy.set(true);
+    this.api.toggleMyClock().subscribe({
+      next: (r) => {
+        this.clockBusy.set(false);
+        this.clock.set({ clockedIn: r.action === 'in', since: r.action === 'in' ? r.at : null });
+        this.toast.success(this.langService.t(r.action === 'in' ? 'clock.in' : 'clock.out'));
+      },
+      error: () => this.clockBusy.set(false),
+    });
   }
 
   private refreshAlerts(): void {

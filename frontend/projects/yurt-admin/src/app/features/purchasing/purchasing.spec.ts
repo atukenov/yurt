@@ -1,5 +1,5 @@
 import { ToOrderLine } from 'shared-models';
-import { invoiceTotal, orderLineText, orderText, packsFor, whatsappLink } from './purchasing-helpers';
+import { addScannedPack, invoiceTotal, orderLineText, orderText, packsFor, whatsappLink } from './purchasing-helpers';
 
 describe('purchasing helpers', () => {
   it('makes a WhatsApp link, turning a Kazakh 8 number into +7', () => {
@@ -29,5 +29,18 @@ describe('purchasing helpers', () => {
 
   it('adds up only the known line totals', () => {
     expect(invoiceTotal([{ total: 100 }, { total: null }, { total: 50.5 }])).toBe(150.5);
+  });
+
+  it('adds a scanned pack: a new line the first time, one more pack after that', () => {
+    const pack = { packSize: 1000, packPrice: 1200 };
+    // The empty line at the end is used.
+    let lines = addScannedPack([{ ingredientId: '', quantity: null, total: null }], 'milk', pack);
+    expect(lines).toEqual([{ ingredientId: 'milk', quantity: 1000, total: 1200 }]);
+    lines = addScannedPack(lines, 'milk', pack);
+    expect(lines).toEqual([{ ingredientId: 'milk', quantity: 2000, total: 2400 }]);
+    // Another ingredient gets its own line; a pack the supplier does not list counts as 1 unit and leaves the price.
+    lines = addScannedPack(lines, 'cups', null);
+    expect(lines[1]).toEqual({ ingredientId: 'cups', quantity: 1, total: null });
+    expect(addScannedPack(lines, 'cups', null)[1]).toEqual({ ingredientId: 'cups', quantity: 2, total: null });
   });
 });

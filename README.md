@@ -15,7 +15,8 @@ PostgreSQL and Angular, with Capacitor for the iOS and Android apps.
 | What | URL / login |
 |---|---|
 | Customer app | http://localhost:4200 |
-| Admin panel | http://localhost:4300 — café admin `admin` / `admin12345`, platform operator `superadmin` / `superadmin12345` (both must change the password at first login) |
+| Admin panel | http://localhost:4300 — café owner (CEO) `ceo` / `ceo12345`, café admin `admin` / `admin12345`, platform operator `superadmin` / `superadmin12345` (all must change the password at first login) |
+| Yurt POS (till) | http://localhost:4400 — sign in with a staff login ([docs/yurt-pos.md](docs/yurt-pos.md)) |
 | API + Swagger | http://localhost:8080, http://localhost:8080/swagger |
 
 The local cafe comes filled with made-up demo data (about 2,000 orders, stock, suppliers, staff, payroll...). Demo
@@ -54,6 +55,8 @@ brand. The platform operator adds new cafés, switches paid modules on or off pe
 | Order tracking | Live status via SignalR, push notifications, order history, receipt view and tax receipt link / QR. |
 | Group ordering | Shared cart with a join code/link; one person pays. |
 | Extras | Favorites, "order again", loyalty points, promotions and news, ratings and achievements. |
+| Allergens and calories | Allergen icons and calories on dishes, on the menu and the QR menu ([docs/allergens-nutrition.md](docs/allergens-nutrition.md)). |
+| Order number | A short number that starts again from 1 each day per branch, shown on the order, the TV and the cup label ([docs/daily-order-numbers.md](docs/daily-order-numbers.md)). |
 | Languages | Russian, Kazakh and English, including dates and numbers in the app language. |
 | Profile | Edit name, change PIN, lifetime stats, delete account. |
 
@@ -61,17 +64,22 @@ brand. The platform operator adds new cafés, switches paid modules on or off pe
 
 | Feature | Description |
 |---|---|
-| Roles | Café admin, staff (orders only) and platform operator (superadmin). |
+| Roles | Worker, Admin (runs the floor, no money screens), CEO (owner: money, payroll, audit log) and platform operator (SuperAdmin) ([docs/roles.md](docs/roles.md)). |
 | Live orders | Status tabs, branch filter, accept with ETA, decline with reason, payment status and refunds. |
-| Kitchen and cashier | Kitchen screen, cashier / point-of-sale screen with cash drawer, shift and Z reports. |
+| Kitchen and cashier | Kitchen screen, cashier screen with cash drawer, shift and Z reports, here / to go orders. |
+| Yurt POS (till) | Separate cashier app for walk-in guests that keeps selling without internet, prints receipts, takes tips, scans barcodes and weighs by weight ([docs/yurt-pos.md](docs/yurt-pos.md), [docs/barcodes-and-scales.md](docs/barcodes-and-scales.md), [docs/tips.md](docs/tips.md)). |
+| Guest screens | Guest-facing screen for the till, order-ready TV and cup labels, and a self-order kiosk (module `kiosk`) ([docs/guest-screen.md](docs/guest-screen.md), [docs/order-ready-tv-and-labels.md](docs/order-ready-tv-and-labels.md), [docs/self-order-kiosk.md](docs/self-order-kiosk.md)). |
+| Manager PIN | Cancels, refunds and discounts at the till need a manager's PIN and a reason, written to the audit log ([docs/roles.md](docs/roles.md)). |
+| Staff hours | Staff PIN to switch the till and clock in or out, a Worked hours report with the Yurt Watch camera check, hourly pay in payroll ([docs/time-clock.md](docs/time-clock.md)). |
 | Printers | Network and Bluetooth printers, a print agent for the café PC, kitchen tickets and receipt reprints. |
 | Tax receipts (KZ) | Cloud cash register through Webkassa or ReKassa (off by default, not yet verified with a live account). |
-| Menu | Categories, items, toppings, translations, picture upload, import from Excel / CSV. |
+| Menu | Categories, dishes (photo, sizes, options, branch prices), option groups with rules, bulk edit, combos and time menus under one entry, translations, picture upload, import from Excel / CSV. |
 | Stock | Ingredients, recipes, restocking history; suppliers, delivery invoices and a "what to order" list ([docs/purchasing.md](docs/purchasing.md)). |
+| Forecast | Sales forecast and a daily prep plan per branch ([docs/forecast.md](docs/forecast.md)). |
 | Branches and tables | Working hours, temporary closing, tables with printable QR codes. |
 | Marketing | Promotions and discount codes. |
-| Analytics | Dashboard KPIs, revenue and top items, peak hours, CSV export. Profit page: monthly profit after ingredients, write-offs, wages and other costs, and profit per dish (Excel download). |
-| Customers and staff | Customer list and history, staff accounts, audit log. |
+| Analytics | Dashboard KPIs, revenue and top items, peak hours, CSV export. Profit page: monthly profit after ingredients, write-offs, wages and other costs, and profit per dish (Excel download). Menu analysis: stars, plowhorses, puzzles and dogs, and ABC (CEO only, [docs/profit.md](docs/profit.md)). Excel and 1C export for the accountant. |
+| Customers and staff | Customer list and history, staff accounts, audit log, guest groups and automatic messages ([docs/guest-messages.md](docs/guest-messages.md)). |
 | Subscription | The café's own Yurt plan and invoices; unpaid cafés go into limited mode. |
 | Platform (superadmin) | Cafés, new-café wizard, modules per café, brand, per-café secrets, app releases, data export for a leaving café. |
 | Languages | Full admin UI in Russian, Kazakh and English. |
@@ -110,12 +118,15 @@ yurt/
 │   ├── projects/
 │   │   ├── yurt-customer/        # Customer app (web + iOS/Android via Capacitor)
 │   │   ├── yurt-admin/           # Admin console
+│   │   ├── yurt-pos/             # Cashier (till) app, offline-capable, also the kiosk screen
 │   │   ├── shared-models/        # TypeScript interfaces and enums
 │   │   ├── shared-api/           # API services, auth state, SignalR
 │   │   └── shared-ui/            # Shared components, translations, date/number pipes
 │   ├── android/, ios/            # Native customer app projects
 │   └── admin-native/             # Native tablet app for the admin console
 ├── cafes/                        # Per-café store app config (cafes/README.md)
+├── landing/                      # Landing page for café owners
+├── watch/                        # Yurt Watch camera box (Python)
 ├── scripts/                      # dev.sh, apply-cafe, app builds, print agent, checks
 └── docs/                         # Guides (see below)
 ```
@@ -176,11 +187,21 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 
 - [docs/go-live.md](docs/go-live.md) — the go-live checklist screen (Platform → Go-live checklist): what each café still needs
 - [docs/live-server-setup.md](docs/live-server-setup.md) — step-by-step server setup (env vars, master key, payments link)
-- [docs/runbook.md](docs/runbook.md) — staging, smoke test, backup, deploy order, rollback
+- [docs/runbook.md](docs/runbook.md) — staging, smoke test, backup, deploy order, rollback, first-day steps after a release
 - [docs/monitoring.md](docs/monitoring.md) — error alerts and uptime check
 - [docs/app-builds.md](docs/app-builds.md) — signed iOS / Android builds in GitHub Actions
 - [docs/branded-app-release.md](docs/branded-app-release.md) — a café's own store app, store screenshots
 - [docs/deploy-ios-appstore.md](docs/deploy-ios-appstore.md), [docs/deploy-android-playmarket.md](docs/deploy-android-playmarket.md) — store submission
+
+## Till, staff and guest screens
+
+- [docs/yurt-pos.md](docs/yurt-pos.md) — the Yurt POS cashier app: sales, offline mode, printing, deploying it
+- [docs/roles.md](docs/roles.md) — Worker, Admin, CEO, SuperAdmin; manager PIN
+- [docs/time-clock.md](docs/time-clock.md) — staff PIN, clock-in, Worked hours
+- [docs/tips.md](docs/tips.md), [docs/barcodes-and-scales.md](docs/barcodes-and-scales.md) — tips, barcode scanner and scales
+- [docs/guest-screen.md](docs/guest-screen.md), [docs/order-ready-tv-and-labels.md](docs/order-ready-tv-and-labels.md), [docs/self-order-kiosk.md](docs/self-order-kiosk.md), [docs/daily-order-numbers.md](docs/daily-order-numbers.md) — guest screen, TV, cup labels, kiosk, order numbers
+- [docs/guest-messages.md](docs/guest-messages.md) — guest groups and automatic messages
+- [docs/demo-data.md](docs/demo-data.md) — demo data for local and staging
 
 ## Other Docs
 
@@ -189,8 +210,11 @@ Tests: `dotnet test` in `backend/` (integration tests need Docker), `npx ng test
 - [docs/print-agent.md](docs/print-agent.md), [docs/bluetooth-printers.md](docs/bluetooth-printers.md), [docs/tablet-app.md](docs/tablet-app.md) — printers and hardware
 - [docs/modules.md](docs/modules.md) — what each paid module covers
 - [docs/stock-pack.md](docs/stock-pack.md), [docs/purchasing.md](docs/purchasing.md) — stock costs, write-offs, suppliers and deliveries
+- [docs/forecast.md](docs/forecast.md) — sales forecast and daily prep plan
 - [docs/option-rules.md](docs/option-rules.md) — required choices (milk), min / max, options per dish, prices per branch
+- [docs/menu-management.md](docs/menu-management.md) — the admin Menu section: dishes list, editor tabs, options, bulk edit
 - [docs/time-menus.md](docs/time-menus.md) — breakfast / happy hour: dishes and prices by hours and days, per branch clock
+- [docs/allergens-nutrition.md](docs/allergens-nutrition.md) — allergens and calories on dishes, shown to guests on the menu and QR menu
 - [docs/combos.md](docs/combos.md) — dishes sold together at a set price: stock per dish, stop-list, kitchen ticket, CEO report
 - [docs/profit.md](docs/profit.md) — monthly profit and profit by dish (CEO only)
 - [docs/accounting-export.md](docs/accounting-export.md) — Excel and 1C files for the cafe's accountant (CEO only)

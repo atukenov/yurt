@@ -1,14 +1,16 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ModuleService, YurtApiService } from 'shared-api';
-import { MenuItem, MenuCategory, MenuTopping, OptionGroupRule, Location, MenuItemVariant, IikoNomenclatureProduct } from 'shared-models';
+import { ALLERGEN_CODES, MenuItem, MenuCategory, MenuTopping, OptionGroupRule, Location, MenuItemVariant, IikoNomenclatureProduct } from 'shared-models';
 import { ButtonComponent, ToastService, Currency2Pipe } from 'shared-ui';
 import { AdminLangService } from '../../core/lang.service';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { PictureUploadComponent } from '../../shared/picture-upload/picture-upload.component';
 import { ConfirmService } from '../../shared/confirm-dialog/confirm.service';
+import { MenuSectionsComponent } from '../../shared/menu-sections/menu-sections.component';
 import { MenuImportComponent } from './menu-import.component';
 
 interface VariantRow {
@@ -34,12 +36,20 @@ interface MenuItemForm {
   imageUrl: string;
   isAvailable: boolean;
   isNew: boolean;
+  barcode: string;
+  soldByWeight: boolean;
   locationIds: string[];
   toppingIds: string[];
   locationPrices: Record<string, number | null>;
   variants: VariantRow[];
   iikoProductId: string;
   iikoProductSizeId: string;
+  calories: number | null;
+  protein: number | null;
+  fat: number | null;
+  carbs: number | null;
+  weightGrams: number | null;
+  allergens: string[];
 }
 
 interface ToppingForm {
@@ -76,7 +86,7 @@ interface CatInput {
 @Component({
   selector: 'app-menu-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe, MenuImportComponent, PictureUploadComponent],
+  imports: [CommonModule, FormsModule, CdkDropList, CdkDrag, CdkDragHandle, ButtonComponent, Currency2Pipe, AdminTranslatePipe, MenuImportComponent, PictureUploadComponent, MenuSectionsComponent],
   templateUrl: './menu-management.component.html',
   styleUrl: './menu-management.component.css',
 })
@@ -89,6 +99,12 @@ export class MenuManagementComponent implements OnInit {
 
   activeTab = signal<'items' | 'toppings'>('items');
   mobileCatOpen = signal(false);
+
+  /** Sections of the dish editor; only the open one is shown, so the form stays short. */
+  itemTab = signal<'basics' | 'sizes' | 'branches' | 'details'>('basics');
+  readonly itemTabs: [string, string][] = [
+    ['basics', 'menu.tab.basics'], ['sizes', 'menu.tab.sizes'], ['branches', 'menu.tab.branches'], ['details', 'menu.tab.details'],
+  ];
 
   items = signal<MenuItem[]>([]);
   categories = signal<MenuCategory[]>([]);
@@ -108,7 +124,8 @@ export class MenuManagementComponent implements OnInit {
   itemForm = signal<MenuItemForm>({
     name: '', nameRu: '', nameKk: '',
     description: '', descriptionRu: '', descriptionKk: '',
-    price: 0, categoryId: '', imageUrl: '', isAvailable: true, isNew: false, locationIds: [], toppingIds: [], locationPrices: {}, variants: [],
+    price: 0, categoryId: '', imageUrl: '', isAvailable: true, isNew: false, barcode: '', soldByWeight: false, locationIds: [], toppingIds: [], locationPrices: {}, variants: [],
+    calories: null, protein: null, fat: null, carbs: null, weightGrams: null, allergens: [],
     iikoProductId: '', iikoProductSizeId: '',
   });
 
@@ -124,6 +141,7 @@ export class MenuManagementComponent implements OnInit {
   });
 
   itemSearch = signal('');
+  statusFilter = signal<'all' | 'hidden' | 'noPhoto' | 'noPrice'>('all');
   toppingSearch = signal('');
 
   filteredItems = computed(() => {
@@ -134,8 +152,125 @@ export class MenuManagementComponent implements OnInit {
       i.name.toLowerCase().includes(q) ||
       (i.nameRu ?? '').toLowerCase().includes(q) ||
       (i.nameKk ?? '').toLowerCase().includes(q));
+    const f = this.statusFilter();
+    if (f === 'hidden') list = list.filter((i) => !i.isAvailable);
+    else if (f === 'noPhoto') list = list.filter((i) => !i.imageUrl);
+    else if (f === 'noPrice') list = list.filter((i) => !i.price && !(i.variants?.length));
     return list;
   });
+
+  /** The server replaces the whole dish on save, so send everything the list already knows. */
+  private fullPayload(item: MenuItem, over: Partial<MenuItem>): Partial<MenuItem> {
+    return {
+      name: item.name, nameRu: item.nameRu, nameKk: item.nameKk,
+      description: item.description || undefined, descriptionRu: item.descriptionRu, descriptionKk: item.descriptionKk,
+      price: item.price, categoryId: item.categoryId, imageUrl: item.imageUrl,
+      isAvailable: item.isAvailable, isNew: item.isNew, barcode: item.barcode ?? null, soldByWeight: item.soldByWeight ?? false,
+      locationIds: item.locationIds ?? [], toppingIds: item.toppingIds ?? [],
+      locationPrices: item.locationPrices ?? [],
+      variants: item.variants?.length ? item.variants : undefined,
+      iikoProductId: item.iikoProductId ?? undefined, iikoProductSizeId: item.iikoProductSizeId ?? undefined,
+      nutrition: item.nutrition ?? undefined,
+      ...over,
+    } as Partial<MenuItem>;
+  }
+
+  /** Flip a dish's availability right in the list, without opening the editor. */
+  toggleAvailable(item: MenuItem): void {
+    const next = !item.isAvailable;
+    this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, isAvailable: next } : i)));
+    this.api.adminUpdateMenuItem(item.id, this.fullPayload(item, { isAvailable: next })).subscribe({
+      next: (saved) => this.items.update((list) => list.map((i) => (i.id === saved.id ? saved : i))),
+      error: () => this.items.update((list) => list.map((i) => (i.id === item.id ? { ...i, isAvailable: !next } : i))),
+    });
+  }
+
+  // ── Bulk edit: tick dishes, then hide/show, move, or change prices for all of them ──
+  selectedIds = signal<string[]>([]);
+  bulkCategoryId = signal('');
+  bulkPercent = signal<number | null>(null);
+  bulkBusy = signal(false);
+
+  selectedItems = computed(() => {
+    const ids = new Set(this.selectedIds());
+    return this.items().filter((i) => ids.has(i.id) && !i.isCombo);
+  });
+
+  allVisibleSelected = computed(() => {
+    const vis = this.filteredItems().filter((i) => !i.isCombo);
+    const ids = new Set(this.selectedIds());
+    return vis.length > 0 && vis.every((i) => ids.has(i.id));
+  });
+
+  isSelected(id: string): boolean { return this.selectedIds().includes(id); }
+
+  toggleSelected(id: string): void {
+    this.selectedIds.update((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  }
+
+  toggleSelectAll(): void {
+    if (this.allVisibleSelected()) {
+      const vis = new Set(this.filteredItems().map((i) => i.id));
+      this.selectedIds.update((ids) => ids.filter((id) => !vis.has(id)));
+    } else {
+      const ids = new Set(this.selectedIds());
+      for (const i of this.filteredItems()) if (!i.isCombo) ids.add(i.id);
+      this.selectedIds.set([...ids]);
+    }
+  }
+
+  clearSelection(): void { this.selectedIds.set([]); }
+
+  /** Save the same kind of change on every ticked dish, one after another; failed ones stay ticked. */
+  private async bulkApply(change: (i: MenuItem) => Partial<MenuItem>): Promise<void> {
+    const targets = this.selectedItems();
+    if (!targets.length || this.bulkBusy()) return;
+    this.bulkBusy.set(true);
+    let failed = 0;
+    const left: string[] = [];
+    for (const item of targets) {
+      try {
+        const saved = await firstValueFrom(this.api.adminUpdateMenuItem(item.id, this.fullPayload(item, change(item))));
+        this.items.update((list) => list.map((i) => (i.id === saved.id ? saved : i)));
+      } catch {
+        failed++;
+        left.push(item.id);
+      }
+    }
+    this.selectedIds.set(left);
+    this.bulkBusy.set(false);
+    if (failed) this.toast.error(this.langService.t('menu.bulkFailed', { count: failed }));
+    else this.toast.success(this.langService.t('menu.bulkDone', { count: targets.length }));
+  }
+
+  bulkSetAvailable(on: boolean): Promise<void> { return this.bulkApply(() => ({ isAvailable: on })); }
+
+  async bulkMove(): Promise<void> {
+    const cat = this.bulkCategoryId();
+    if (!cat) return;
+    await this.bulkApply(() => ({ categoryId: cat }));
+    this.bulkCategoryId.set('');
+  }
+
+  async bulkChangePrice(): Promise<void> {
+    const pct = Number(this.bulkPercent());
+    const n = this.selectedItems().length;
+    if (!pct || !n) return;
+    const k = 1 + pct / 100;
+    const r = (v: number) => Math.max(0, Math.round(v * k * 100) / 100);
+    const first = this.selectedItems()[0];
+    const ok = await this.confirmSvc.confirm(
+      this.langService.t('menu.bulkPriceTitle'),
+      this.langService.t('menu.bulkPriceAsk', { count: n, percent: pct, name: this.localizedItemName(first), from: first.price, to: r(first.price) }),
+      this.langService.t('menu.bulkApply'));
+    if (!ok) return;
+    await this.bulkApply((i) => ({
+      price: r(i.price),
+      variants: i.variants?.map((v) => ({ ...v, price: r(v.price) })),
+      locationPrices: i.locationPrices?.map((p) => ({ ...p, price: r(p.price) })),
+    }));
+    this.bulkPercent.set(null);
+  }
 
   filteredToppings = computed(() => {
     const q = this.toppingSearch().toLowerCase().trim();
@@ -146,6 +281,32 @@ export class MenuManagementComponent implements OnInit {
       (t.nameKk ?? '').toLowerCase().includes(q) ||
       (t.group ?? '').toLowerCase().includes(q));
   });
+
+  /** Option groups for the Options view: one card per group (rules + options), plus a card for options without a group. */
+  openRules = signal('');
+  optionCards = computed(() => {
+    const list = this.filteredToppings();
+    const rules = new Map(this.ruleRows().map((r) => [r.key, r]));
+    const keys = new Set<string>([...rules.keys(), ...list.map((t) => t.group ?? '').filter((g) => !!g)]);
+    const searching = this.toppingSearch().trim() !== '';
+    const cards = [...keys].sort().map((key) => ({
+      key, rule: rules.get(key) ?? null, toppings: list.filter((t) => (t.group ?? '') === key),
+    })).filter((c) => !searching || c.toppings.length);
+    const ungrouped = list.filter((t) => !t.group);
+    if (ungrouped.length) {
+      cards.push({ key: '', rule: null, toppings: ungrouped });
+    }
+    return cards;
+  });
+
+  /** One line saying how guests may choose from a group, e.g. "Required · pick 1". */
+  ruleSummary(rule: RuleRow | null): string {
+    const t = (k: string) => this.langService.t(k);
+    if (!rule || !rule.saved) return t('menu.ruleDefault');
+    const max = rule.maxSelect ? `${t('menu.ruleMax')} ${rule.maxSelect}` : '';
+    return [rule.required ? t('menu.ruleRequired') : '', rule.minSelect ? `${t('menu.ruleMin')} ${rule.minSelect}` : '', max]
+      .filter(Boolean).join(' · ');
+  }
 
   ngOnInit(): void {
     this.loadAll();
@@ -253,6 +414,7 @@ export class MenuManagementComponent implements OnInit {
   }
 
   openItemDialog(item?: MenuItem): void {
+    this.itemTab.set('basics');
     this.itemForm.set({
       id: item?.id,
       name: item?.name ?? '',
@@ -266,6 +428,8 @@ export class MenuManagementComponent implements OnInit {
       imageUrl: item?.imageUrl ?? '',
       isAvailable: item?.isAvailable ?? true,
       isNew: item?.isNew ?? false,
+      barcode: item?.barcode ?? '',
+      soldByWeight: item?.soldByWeight ?? false,
       locationIds: item?.locationIds ? [...item.locationIds] : [],
       toppingIds: item?.toppingIds ? [...item.toppingIds] : [],
       locationPrices: Object.fromEntries((item?.locationPrices ?? []).map((p) => [p.locationId, p.price])),
@@ -278,6 +442,12 @@ export class MenuManagementComponent implements OnInit {
         : [],
       iikoProductId: item?.iikoProductId ?? '',
       iikoProductSizeId: item?.iikoProductSizeId ?? '',
+      calories: item?.nutrition?.calories ?? null,
+      protein: item?.nutrition?.protein ?? null,
+      fat: item?.nutrition?.fat ?? null,
+      carbs: item?.nutrition?.carbs ?? null,
+      weightGrams: item?.nutrition?.weightGrams ?? null,
+      allergens: [...(item?.nutrition?.allergens ?? [])],
     });
     this.showItemDialog.set(true);
   }
@@ -406,6 +576,22 @@ export class MenuManagementComponent implements OnInit {
     });
   }
 
+  readonly allergenCodes = ALLERGEN_CODES;
+  readonly nutritionFields: { key: 'calories' | 'protein' | 'fat' | 'carbs' | 'weightGrams'; label: string; step: number }[] = [
+    { key: 'calories', label: 'menu.calories', step: 1 },
+    { key: 'protein', label: 'menu.protein', step: 0.1 },
+    { key: 'fat', label: 'menu.fat', step: 0.1 },
+    { key: 'carbs', label: 'menu.carbs', step: 0.1 },
+    { key: 'weightGrams', label: 'menu.weight', step: 1 },
+  ];
+
+  /** Tick or untick one allergen of the dish being edited. */
+  toggleAllergen(code: string, on: boolean): void {
+    this.itemForm.update((f) => ({
+      ...f, allergens: on ? [...new Set([...f.allergens, code])] : f.allergens.filter((a) => a !== code),
+    }));
+  }
+
   patchItemForm(field: keyof MenuItemForm, value: unknown): void {
     this.itemForm.update((f) => ({ ...f, [field]: value }));
   }
@@ -413,11 +599,17 @@ export class MenuManagementComponent implements OnInit {
   saveItem(): void {
     const f = this.itemForm();
     if (!f.name || !f.nameRu || !f.nameKk) {
+      this.itemTab.set('basics');
       this.toast.error(this.langService.t('menu.nameAll3'));
       return;
     }
     if (!f.price && f.variants.length === 0) {
+      this.itemTab.set('basics');
       this.toast.error(this.langService.t('menu.priceOrSizes'));
+      return;
+    }
+    if (f.soldByWeight && f.variants.length > 0) {
+      this.toast.error(this.langService.t('menu.weightNoSizes'));
       return;
     }
     if (f.variants.some((v) => !v.label || !v.price)) {
@@ -437,6 +629,8 @@ export class MenuManagementComponent implements OnInit {
       imageUrl: f.imageUrl || undefined,
       isAvailable: f.isAvailable,
       isNew: f.isNew,
+      barcode: f.barcode.trim() || null,
+      soldByWeight: f.soldByWeight,
       locationIds: f.locationIds,
       toppingIds: f.toppingIds,
       locationPrices: this.priceList(f.locationPrices),
@@ -449,6 +643,10 @@ export class MenuManagementComponent implements OnInit {
         : undefined,
       iikoProductId: f.iikoProductId || undefined,
       iikoProductSizeId: f.iikoProductSizeId || undefined,
+      nutrition: {
+        calories: f.calories, protein: f.protein, fat: f.fat, carbs: f.carbs, weightGrams: f.weightGrams,
+        allergens: f.allergens,
+      },
     };
     const obs = f.id ? this.api.adminUpdateMenuItem(f.id, payload) : this.api.adminCreateMenuItem(payload);
     obs.subscribe({
@@ -529,7 +727,7 @@ export class MenuManagementComponent implements OnInit {
     this.showCatDialog.set(true);
   }
 
-  openToppingDialog(topping?: MenuTopping): void {
+  openToppingDialog(topping?: MenuTopping, group = ''): void {
     this.toppingForm.set({
       id: topping?.id,
       name: topping?.name ?? '',
@@ -538,7 +736,7 @@ export class MenuManagementComponent implements OnInit {
       price: topping?.price ?? 0,
       isAvailable: topping?.isAvailable ?? true,
       categoryIds: topping?.categoryIds ? [...topping.categoryIds] : [],
-      group: topping?.group ?? '',
+      group: topping?.group ?? group,
       locationPrices: Object.fromEntries((topping?.locationPrices ?? []).map((p) => [p.locationId, p.price])),
     });
     this.showToppingDialog.set(true);

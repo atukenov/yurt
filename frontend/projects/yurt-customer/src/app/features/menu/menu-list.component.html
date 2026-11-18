@@ -239,6 +239,12 @@
           @if (item.isCombo && item.comboItems?.length) {
             <p class="text-stone-400 text-[10px] leading-snug line-clamp-2 mt-0.5">{{ item.comboItems!.map((c) => (c.quantity > 1 ? c.quantity + '× ' : '') + c.name).join(' + ') }}</p>
           }
+          @if (item.nutrition?.calories != null || item.nutrition?.allergens?.length) {
+            <p class="text-stone-400 text-[10px] leading-snug mt-0.5" data-testid="card-nutrition">
+              @if (item.nutrition?.calories != null) { {{ item.nutrition!.calories }} {{ 'menu.kcal' | t }} }
+              @if (item.nutrition?.allergens?.length) { <span [attr.title]="allergenNames(item)">⚠ {{ allergenNames(item) }}</span> }
+            </p>
+          }
           <p class="text-brand-ink font-bold text-xs mt-auto pt-1">
             @if (item.variants && item.variants.length > 0) {
               {{ 'common.fromPrice' | t: { price: (item.variants[0].price | currency2) } }}

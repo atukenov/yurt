@@ -68,6 +68,11 @@ public class ManagerApprovalService(
         if (others.Any(o => hasher.Verify(dto.Pin!, o.ManagerPinHash!)))
             return Result.Failure("Another manager already uses this PIN. Choose a different one.", 409);
 
+        // A staff PIN is typed in front of coworkers all day, so a manager PIN can never be the same number.
+        var staffPins = await db.AdminUsers.Where(u => u.IsActive && u.StaffPinHash != null).Select(u => u.StaffPinHash!).ToListAsync(ct);
+        if (staffPins.Any(h => hasher.Verify(dto.Pin!, h)))
+            return Result.Failure("This PIN is already used as a staff PIN. Choose a different one.", 409);
+
         me.ManagerPinHash = hasher.Hash(dto.Pin!);
         me.ManagerPinSetAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);

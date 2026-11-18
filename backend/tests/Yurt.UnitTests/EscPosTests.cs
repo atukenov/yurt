@@ -138,6 +138,9 @@ public class EscPosTests
         Assert.Equal(2, labels.Split("Латте").Length - 1);
         Assert.Contains("Эспрессо", labels);
         Assert.Contains("#5ABCDE", labels);
+        // With a day number the sticker shows that instead.
+        order.DailyNumber = 42;
+        Assert.Contains("#42", Cp866.GetString(PrintLayouts.Labels(printer, order, order.Items.ToList())));
         Assert.Contains("Здесь 1/3", labels);
         Assert.Contains("Здесь 3/3", labels);
         Assert.Contains("! без сахара", labels);

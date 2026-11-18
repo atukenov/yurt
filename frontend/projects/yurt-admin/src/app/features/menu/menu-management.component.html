@@ -93,6 +93,7 @@
 
   <!-- Main content -->
   <div class="flex-1 overflow-y-auto flex flex-col min-w-0">
+    <div class="px-4 md:px-6 pt-4"><app-menu-sections /></div>
     <!-- Tab bar + action button -->
     <div
       class="px-4 md:px-6 py-4 sticky top-0 bg-surface border-b border-slate-100 flex items-center justify-between z-10 gap-2"
@@ -189,6 +190,16 @@
       </div>
     }
 
+    @if (activeTab() === 'items') {
+      <div class="px-6 pt-3 flex flex-wrap gap-2" role="group" [attr.aria-label]="'label.status' | t">
+        @for (f of [['all','menu.filterAll'],['hidden','menu.filterHidden'],['noPhoto','menu.filterNoPhoto'],['noPrice','menu.filterNoPrice']]; track f[0]) {
+          <button type="button" (click)="statusFilter.set($any(f[0]))" [attr.aria-pressed]="statusFilter() === f[0]"
+            [class]="statusFilter() === f[0] ? 'bg-brand-500 text-on-brand' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            class="text-xs font-medium px-3 py-1.5 rounded-full transition-colors">{{ f[1] | t }}</button>
+        }
+      </div>
+    }
+
     <!-- Items table -->
     @if (activeTab() === 'items') {
       @if (loading()) {
@@ -199,9 +210,37 @@
         } @else if (!selectedCategoryId()) {
           <p class="px-6 pt-3 text-xs text-slate-500">{{ 'menu.reorderPickCategory' | t }}</p>
         }
+        @if (selectedItems().length) {
+          <div class="sticky top-[72px] z-10 mx-4 md:mx-6 mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-800 text-white px-4 py-2.5 text-sm" role="region" [attr.aria-label]="'menu.bulkBar' | t">
+            <span class="font-semibold mr-2">{{ 'menu.bulkSelected' | t: { count: selectedItems().length } }}</span>
+            <button type="button" [disabled]="bulkBusy()" (click)="bulkSetAvailable(true)" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50">{{ 'menu.bulkShow' | t }}</button>
+            <button type="button" [disabled]="bulkBusy()" (click)="bulkSetAvailable(false)" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50">{{ 'menu.bulkHide' | t }}</button>
+            <select [ngModel]="bulkCategoryId()" (ngModelChange)="bulkCategoryId.set($event)" [attr.aria-label]="'menu.bulkMove' | t"
+              class="px-2 py-1 rounded-lg bg-white/10 text-white text-sm">
+              <option value="" class="text-slate-800">{{ 'menu.bulkMove' | t }}…</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id" class="text-slate-800">{{ localizedCatName(cat) }}</option>
+              }
+            </select>
+            @if (bulkCategoryId()) {
+              <button type="button" [disabled]="bulkBusy()" (click)="bulkMove()" class="px-3 py-1 rounded-lg bg-brand-500 text-on-brand disabled:opacity-50">{{ 'menu.bulkApply' | t }}</button>
+            }
+            <input type="number" [ngModel]="bulkPercent()" (ngModelChange)="bulkPercent.set($event)" (keydown.enter)="bulkChangePrice()" step="1"
+              [attr.aria-label]="'menu.bulkPercent' | t" [placeholder]="'menu.bulkPercent' | t"
+              class="w-28 px-2 py-1 rounded-lg bg-white/10 text-white placeholder-white/60 text-sm" />
+            <button type="button" [disabled]="bulkBusy() || !bulkPercent()" (click)="bulkChangePrice()"
+              class="px-3 py-1 rounded-lg bg-brand-500 text-on-brand disabled:opacity-40">{{ 'menu.bulkChangePrice' | t }}</button>
+            <button type="button" (click)="clearSelection()" class="ml-auto px-3 py-1 rounded-lg hover:bg-white/10">{{ 'action.cancel' | t }}</button>
+          </div>
+        }
         <table class="w-full text-sm">
           <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
             <tr>
+              <th class="w-10 px-2 py-3">
+                <input type="checkbox" [checked]="allVisibleSelected()" (change)="toggleSelectAll()"
+                  [attr.aria-label]="'menu.selectAll' | t"
+                  class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
+              </th>
               <th class="w-10 px-2 py-3"></th>
               <th class="text-left px-6 py-3">{{ 'label.name' | t }}</th>
               <th class="text-left px-6 py-3">{{ 'label.category' | t }}</th>
@@ -219,6 +258,13 @@
           >
             @for (item of filteredItems(); track item.id; let i = $index) {
               <tr cdkDrag [cdkDragDisabled]="!itemsReorderable()" class="hover:bg-slate-50 transition-colors">
+                <td class="px-2 py-3">
+                  @if (!item.isCombo) {
+                    <input type="checkbox" [checked]="isSelected(item.id)" (change)="toggleSelected(item.id)"
+                      [attr.aria-label]="localizedItemName(item)"
+                      class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
+                  }
+                </td>
                 <td class="px-2 py-3">
                   @if (itemsReorderable()) {
                     <div class="flex items-center gap-0.5">
@@ -240,7 +286,25 @@
                     </div>
                   }
                 </td>
-                <td class="px-6 py-3 font-medium text-slate-800">{{ localizedItemName(item) }}</td>
+                <td class="px-6 py-3 font-medium text-slate-800">
+                  <div class="flex items-center gap-3">
+                    @if (item.imageUrl) {
+                      <img [src]="item.imageUrl" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0" />
+                    } @else {
+                      <span aria-hidden="true" class="w-10 h-10 rounded-lg bg-slate-100 shrink-0"></span>
+                    }
+                    <div class="min-w-0">
+                      <p>{{ localizedItemName(item) }}</p>
+                      @if (item.variants?.length || item.toppingIds?.length) {
+                        <p class="text-xs font-normal text-slate-500">
+                          @if (item.variants?.length) { {{ 'menu.sizesCount' | t: { n: item.variants!.length } }} }
+                          @if (item.variants?.length && item.toppingIds?.length) { · }
+                          @if (item.toppingIds?.length) { {{ 'menu.optionsCount' | t: { n: item.toppingIds!.length } }} }
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </td>
                 <td class="px-6 py-3 text-slate-500">{{ categoryName(item.categoryId) }}</td>
                 <td class="px-6 py-3 text-right font-semibold text-brand-ink">
                   @if (item.variants && item.variants.length > 0) {
@@ -250,13 +314,14 @@
                   }
                 </td>
                 <td class="px-6 py-3 text-center">
-                  <span
-                    [class]="
-                      item.isAvailable ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                    "
-                    class="text-xs px-2 py-0.5 rounded-full"
-                    >{{ item.isAvailable ? ('label.yes' | t) : ('label.no' | t) }}</span
-                  >
+                  <button type="button" role="switch" [attr.aria-checked]="item.isAvailable"
+                    [attr.aria-label]="'menu.toggleAvail' | t: { name: localizedItemName(item) }"
+                    (click)="toggleAvailable(item)"
+                    [class]="item.isAvailable ? 'bg-green-500' : 'bg-slate-300'"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors">
+                    <span [class]="item.isAvailable ? 'translate-x-6' : 'translate-x-1'"
+                      class="inline-block h-4 w-4 rounded-full bg-white transition-transform"></span>
+                  </button>
                 </td>
                 <td class="px-6 py-3 text-right">
                   <div class="flex justify-end gap-2">
@@ -284,110 +349,83 @@
       }
     }
 
-    <!-- Toppings table -->
+    <!-- Options: every group is a card with its rules on top and its options inside -->
     @if (activeTab() === 'toppings') {
-      <table class="w-full text-sm">
-        <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-          <tr>
-            <th class="text-left px-6 py-3">{{ 'label.name' | t }}</th>
-            <th class="text-left px-6 py-3">{{ 'label.group' | t }}</th>
-            <th class="text-left px-6 py-3">{{ 'label.categories' | t }}</th>
-            <th class="text-right px-6 py-3">{{ 'label.price' | t }}</th>
-            <th class="text-center px-6 py-3">{{ 'label.available' | t }}</th>
-            <th class="px-6 py-3"></th>
-          </tr>
-        </thead>
-        <tbody class="bg-surface divide-y divide-slate-50">
-          @for (topping of filteredToppings(); track topping.id) {
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="px-6 py-3 font-medium text-slate-800">{{ localizedToppingName(topping) }}</td>
-              <td class="px-6 py-3 text-slate-500 text-xs">
-                @if (topping.group) {
-                  <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{{ ('topping.' + topping.group) | t }}</span>
-                } @else {
-                  <span class="text-slate-300">—</span>
+      <p class="px-6 pt-3 text-xs text-slate-500">{{ 'menu.rulesHint' | t }}</p>
+      <div class="px-4 md:px-6 py-4 space-y-4">
+        @for (card of optionCards(); track card.key) {
+          <section class="border border-slate-200 rounded-2xl overflow-hidden">
+            <header class="flex flex-wrap items-center gap-3 px-4 py-3 bg-slate-50">
+              <div class="min-w-0 mr-auto">
+                <h3 class="font-semibold text-slate-800 text-sm">
+                  @if (card.key) { {{ card.rule?.title || (('topping.' + card.key) | t) }} } @else { {{ 'menu.noGroup' | t }} }
+                </h3>
+                @if (card.key) {
+                  <p class="text-xs text-slate-500">{{ ruleSummary(card.rule) }}</p>
                 }
-              </td>
-              <td class="px-6 py-3 text-slate-500 text-xs">
-                {{ toppingCategoryNames(topping.categoryIds) }}
-              </td>
-              <td class="px-6 py-3 text-right font-semibold text-brand-ink">
-                {{ topping.price === 0 ? ('label.free' | t) : (topping.price | currency2) }}
-              </td>
-              <td class="px-6 py-3 text-center">
-                <span
-                  [class]="
-                    topping.isAvailable
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-slate-100 text-slate-600'
-                  "
-                  class="text-xs px-2 py-0.5 rounded-full"
-                  >{{ topping.isAvailable ? ('label.yes' | t) : ('label.no' | t) }}</span
-                >
-              </td>
-              <td class="px-6 py-3 text-right">
-                <div class="flex justify-end gap-2">
-                  <button
-                    (click)="openToppingDialog(topping)"
-                    class="text-xs text-slate-600 hover:text-brand-ink px-2 py-1 rounded hover:bg-brand-50 transition-colors"
-                  >
-                    {{ 'action.edit' | t }}
-                  </button>
-                  <button
-                    (click)="deleteTopping(topping)"
-                    class="text-xs text-tone-red hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                  >
-                    {{ 'action.delete' | t }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      @if (!filteredToppings().length) {
-        <div class="py-12 text-center text-slate-500 text-sm">{{ 'menu.noToppings' | t }}</div>
-      }
-      <div class="border-t border-slate-100 px-6 py-5">
-        <h3 class="text-sm font-bold text-slate-800">{{ 'menu.rulesTitle' | t }}</h3>
-        <p class="text-xs text-slate-500 mb-3">{{ 'menu.rulesHint' | t }}</p>
-        @for (row of ruleRows(); track row.key) {
-          <div class="border border-slate-100 rounded-xl p-3 mb-3">
+              </div>
+              @if (card.key && card.rule) {
+                <button type="button" (click)="openRules.set(openRules() === card.key ? '' : card.key)"
+                  [attr.aria-expanded]="openRules() === card.key"
+                  class="text-xs font-semibold text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-white">{{ 'menu.rulesTitle' | t }}</button>
+              }
+              <button type="button" (click)="openToppingDialog(undefined, card.key)"
+                class="text-xs font-semibold text-brand-ink px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100">{{ 'menu.addTopping' | t }}</button>
+            </header>
+            @if (card.key && card.rule && openRules() === card.key) {
+              <div class="p-3 border-b border-slate-100">
             <div class="flex flex-wrap items-center gap-3">
-              <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full">{{ row.key }}</span>
+              <span class="bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full">{{ card.rule!.key }}</span>
               <label class="flex items-center gap-2 text-sm text-slate-700">
-                <input type="checkbox" [checked]="row.required" (change)="patchRule(row.key, 'required', $any($event.target).checked)"
+                <input type="checkbox" [checked]="card.rule!.required" (change)="patchRule(card.rule!.key, 'required', $any($event.target).checked)"
                   class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
                 {{ 'menu.ruleRequired' | t }}
               </label>
               <label class="flex items-center gap-2 text-sm text-slate-700">{{ 'menu.ruleMin' | t }}
-                <input type="number" min="0" [ngModel]="row.minSelect" (ngModelChange)="patchRule(row.key, 'minSelect', $event)"
+                <input type="number" min="0" [ngModel]="card.rule!.minSelect" (ngModelChange)="patchRule(card.rule!.key, 'minSelect', $event)"
                   class="w-16 border border-slate-200 rounded-lg px-2 py-1 text-sm" />
               </label>
               <label class="flex items-center gap-2 text-sm text-slate-700">{{ 'menu.ruleMax' | t }}
-                <input type="number" min="1" [ngModel]="row.maxSelect" (ngModelChange)="patchRule(row.key, 'maxSelect', $event)"
+                <input type="number" min="1" [ngModel]="card.rule!.maxSelect" (ngModelChange)="patchRule(card.rule!.key, 'maxSelect', $event)"
                   class="w-16 border border-slate-200 rounded-lg px-2 py-1 text-sm" />
               </label>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
-              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (EN)'" [ngModel]="row.title" (ngModelChange)="patchRule(row.key, 'title', $event)"
+              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (EN)'" [ngModel]="card.rule!.title" (ngModelChange)="patchRule(card.rule!.key, 'title', $event)"
                 class="border border-slate-200 rounded-lg px-2 py-1 text-sm" />
-              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (RU)'" [ngModel]="row.titleRu" (ngModelChange)="patchRule(row.key, 'titleRu', $event)"
+              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (RU)'" [ngModel]="card.rule!.titleRu" (ngModelChange)="patchRule(card.rule!.key, 'titleRu', $event)"
                 class="border border-slate-200 rounded-lg px-2 py-1 text-sm" />
-              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (KK)'" [ngModel]="row.titleKk" (ngModelChange)="patchRule(row.key, 'titleKk', $event)"
+              <input type="text" [attr.aria-label]="'menu.ruleTitle' | t" [placeholder]="('menu.ruleTitle' | t) + ' (KK)'" [ngModel]="card.rule!.titleKk" (ngModelChange)="patchRule(card.rule!.key, 'titleKk', $event)"
                 class="border border-slate-200 rounded-lg px-2 py-1 text-sm" />
             </div>
             <div class="flex items-center gap-3 mt-2">
-              <button (click)="saveRule(row)" class="text-xs font-semibold text-brand-ink px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100">{{ 'action.save' | t }}</button>
-              @if (row.saved) {
-                <button (click)="resetRule(row)" class="text-xs text-slate-600 px-2 py-1 rounded hover:bg-slate-50">{{ 'menu.ruleReset' | t }}</button>
+              <button (click)="saveRule(card.rule!)" class="text-xs font-semibold text-brand-ink px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100">{{ 'action.save' | t }}</button>
+              @if (card.rule!.saved) {
+                <button (click)="resetRule(card.rule!)" class="text-xs text-slate-600 px-2 py-1 rounded hover:bg-slate-50">{{ 'menu.ruleReset' | t }}</button>
               } @else {
                 <span class="text-xs text-slate-400">{{ 'menu.ruleDefault' | t }}</span>
               }
             </div>
-          </div>
+                        </div>
+            }
+            <ul class="divide-y divide-slate-100">
+              @for (topping of card.toppings; track topping.id) {
+                <li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 text-sm">
+                  <span class="font-medium text-slate-800 mr-auto">{{ localizedToppingName(topping) }}</span>
+                  <span class="text-xs text-slate-500">{{ toppingCategoryNames(topping.categoryIds) }}</span>
+                  <span class="font-semibold text-brand-ink">{{ topping.price === 0 ? ('label.free' | t) : (topping.price | currency2) }}</span>
+                  <span [class]="topping.isAvailable ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'"
+                    class="text-xs px-2 py-0.5 rounded-full">{{ topping.isAvailable ? ('label.yes' | t) : ('label.no' | t) }}</span>
+                  <button (click)="openToppingDialog(topping)" class="text-xs text-slate-600 hover:text-brand-ink px-2 py-1 rounded hover:bg-brand-50">{{ 'action.edit' | t }}</button>
+                  <button (click)="deleteTopping(topping)" class="text-xs text-tone-red hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">{{ 'action.delete' | t }}</button>
+                </li>
+              } @empty {
+                <li class="px-4 py-3 text-xs text-slate-500">{{ 'menu.noToppings' | t }}</li>
+              }
+            </ul>
+          </section>
         } @empty {
-          <p class="text-xs text-slate-400">{{ 'menu.ruleNoGroups' | t }}</p>
+          <div class="py-12 text-center text-slate-500 text-sm">{{ 'menu.noToppings' | t }}</div>
         }
       </div>
     }
@@ -397,11 +435,19 @@
 <!-- Item dialog -->
 @if (showItemDialog()) {
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (keydown.escape)="showItemDialog.set(false)">
-    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="item-dialog-title">
+    <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="item-dialog-title">
       <h3 id="item-dialog-title" class="text-lg font-bold text-slate-800 mb-4">
         {{ itemForm().id ? ('menu.editMenuItemTitle' | t) : ('menu.addMenuItemTitle' | t) }}
       </h3>
+      <div class="flex gap-1 bg-slate-100 rounded-xl p-1 mb-4 overflow-x-auto" role="tablist">
+        @for (tb of itemTabs; track tb[0]) {
+          <button type="button" role="tab" [attr.aria-selected]="itemTab() === tb[0]" (click)="itemTab.set($any(tb[0]))"
+            [class]="itemTab() === tb[0] ? 'bg-surface text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-800'"
+            class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-all">{{ tb[1] | t }}</button>
+        }
+      </div>
       <div class="space-y-3">
+        @if (itemTab() === 'basics') {
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1.5">{{ 'label.name' | t }} *</label>
           <div class="space-y-2">
@@ -481,6 +527,8 @@
             </select>
           </div>
         </div>
+        }
+        @if (itemTab() === 'details') {
         @if (modules.isEnabled('iiko_sync')) {
           <!-- iiko order-push mapping (optional) -->
           <div>
@@ -515,6 +563,8 @@
             </div>
           </div>
         }
+        }
+        @if (itemTab() === 'sizes') {
         <!-- Size Variants -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
@@ -567,7 +617,9 @@
             </div>
           }
         </div>
+        }
 
+        @if (itemTab() === 'basics') {
         <div>
           <label for="item-image-url" class="block text-xs font-medium text-slate-600 mb-1">{{ 'label.imageUrl' | t }}</label>
           <input
@@ -584,6 +636,8 @@
             <app-picture-upload [label]="'label.imageUrl' | t" (uploaded)="patchItemForm('imageUrl', $event)" />
           </div>
         </div>
+        }
+        @if (itemTab() === 'branches') {
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.onlyAt' | t }}</label>
           <p class="text-xs text-slate-500 mb-2">{{ 'menu.onlyAtHint' | t }}</p>
@@ -601,6 +655,8 @@
             }
           </div>
         </div>
+        }
+        @if (itemTab() === 'sizes') {
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.dishOptions' | t }}</label>
           <p class="text-xs text-slate-500 mb-2">{{ 'menu.dishOptionsHint' | t }}</p>
@@ -614,6 +670,8 @@
             }
           </div>
         </div>
+        }
+        @if (itemTab() === 'branches') {
         @if (locations().length > 1) {
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.branchPrices' | t }}</label>
@@ -631,6 +689,37 @@
             </div>
           </div>
         }
+        }
+        @if (itemTab() === 'details') {
+        <!-- Allergens and nutrition (shown to guests on the menu) -->
+        <div class="border border-slate-200 rounded-xl p-3" data-testid="nutrition-form">
+          <p class="text-sm font-semibold text-slate-700">{{ 'menu.nutritionTitle' | t }}</p>
+          <p class="text-xs text-slate-400 mb-2">{{ 'menu.nutritionHint' | t }}</p>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3">
+            @for (f of nutritionFields; track f.key) {
+              <label class="text-xs text-slate-500">{{ f.label | t }}
+                <input type="number" min="0" [step]="f.step"
+                  [ngModel]="$any(itemForm())[f.key]"
+                  (ngModelChange)="patchItemForm(f.key, $event === '' ? null : $event)"
+                  class="mt-0.5 w-full border border-slate-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-brand-400 outline-none" />
+              </label>
+            }
+          </div>
+          <p class="text-xs font-medium text-slate-500 mb-1">{{ 'menu.allergens' | t }}</p>
+          <div class="flex flex-wrap gap-x-4 gap-y-1">
+            @for (code of allergenCodes; track code) {
+              <label class="flex items-center gap-1.5 text-sm text-slate-700">
+                <input type="checkbox" [attr.data-allergen]="code"
+                  [ngModel]="itemForm().allergens.includes(code)"
+                  (ngModelChange)="toggleAllergen(code, $event)"
+                  class="rounded border-slate-300 text-brand-500 focus:ring-brand-400" />
+                {{ 'allergen.' + code | t }}
+              </label>
+            }
+          </div>
+        </div>
+        }
+        @if (itemTab() === 'basics') {
         <div class="flex items-center gap-2">
           <input
             type="checkbox"
@@ -651,6 +740,38 @@
           />
           <label for="isNew" class="text-sm text-slate-700">{{ 'label.new' | t }}</label>
         </div>
+        }
+        @if (itemTab() === 'details') {
+        <div>
+          <label for="itemBarcode" class="block text-xs font-medium text-slate-600 mb-1">{{ 'menu.barcode' | t }}</label>
+          <input
+            id="itemBarcode"
+            type="text"
+            inputmode="numeric"
+            maxlength="64"
+            autocomplete="off"
+            [ngModel]="itemForm().barcode"
+            (ngModelChange)="patchItemForm('barcode', $event)"
+            (keydown.enter)="$event.preventDefault()"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400 outline-none"
+          />
+          <p class="text-xs text-slate-500 mt-1">{{ (itemForm().soldByWeight ? 'menu.barcodeWeightHint' : 'menu.barcodeHint') | t }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="soldByWeight"
+            [ngModel]="itemForm().soldByWeight"
+            (ngModelChange)="patchItemForm('soldByWeight', $event)"
+            [disabled]="itemForm().variants.length > 0"
+            class="rounded border-slate-300 text-brand-500 focus:ring-brand-400"
+          />
+          <label for="soldByWeight" class="text-sm text-slate-700">{{ 'menu.soldByWeight' | t }}</label>
+        </div>
+        @if (itemForm().soldByWeight) {
+          <p class="text-xs text-slate-500">{{ 'menu.soldByWeightHint' | t }}</p>
+        }
+        }
       </div>
       <div class="flex gap-3 mt-5">
         <yurt-button variant="ghost" size="md" [fullWidth]="true" (clicked)="showItemDialog.set(false)">

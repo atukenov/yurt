@@ -40,6 +40,7 @@ public class AdminUserConfiguration : IEntityTypeConfiguration<AdminUser>
         builder.Property(e => e.PasswordHash).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
         builder.Property(e => e.ManagerPinHash).HasMaxLength(200);
+        builder.Property(e => e.StaffPinHash).HasMaxLength(200);
     }
 }
 
@@ -110,6 +111,12 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(e => e.DescriptionKk).HasMaxLength(1000);
         builder.Property(e => e.Price).HasPrecision(10, 2);
         builder.Property(e => e.ImageUrl).HasMaxLength(500);
+        builder.Property(e => e.Barcode).HasMaxLength(64);
+        builder.HasIndex(e => new { e.TenantId, e.Barcode }).IsUnique().HasFilter("\"Barcode\" IS NOT NULL");
+        builder.Property(e => e.Allergens).HasMaxLength(200);
+        builder.Property(e => e.Protein).HasPrecision(7, 1);
+        builder.Property(e => e.Fat).HasPrecision(7, 1);
+        builder.Property(e => e.Carbs).HasPrecision(7, 1);
         builder.HasOne<MenuSchedule>().WithMany().HasForeignKey(e => e.ScheduleId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne(e => e.Category).WithMany(c => c.Items)
             .HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Restrict);
@@ -150,6 +157,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasFilter("\"IdempotencyKey\" IS NOT NULL AND \"CustomerUserId\" IS NULL");
         // Kept on purpose: the filtered index above is no use for ordinary branch queries.
         builder.HasIndex(e => e.LocationId);
+        // One number per branch per day: a second order can never get the same short number.
+        builder.HasIndex(e => new { e.LocationId, e.BusinessDate, e.DailyNumber })
+            .IsUnique()
+            .HasDatabaseName("IX_Orders_LocationId_BusinessDate_DailyNumber")
+            .HasFilter("\"DailyNumber\" IS NOT NULL");
+        builder.Property(e => e.OfflineNumber).HasMaxLength(16);
         builder.Property(e => e.Source).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderSource.App);
         builder.Property(e => e.OrderType).HasConversion<string>().HasMaxLength(20).HasDefaultValue(OrderType.TakeAway);
         builder.Property(e => e.Subtotal).HasPrecision(10, 2);
@@ -592,7 +605,9 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
         builder.Property(e => e.Name).HasMaxLength(100).IsRequired();
         builder.Property(e => e.Unit).HasMaxLength(20).IsRequired();
         builder.Property(e => e.CostPerUnit).HasPrecision(18, 4);
+        builder.Property(e => e.Barcode).HasMaxLength(64);
         builder.HasIndex(e => new { e.TenantId, e.Name }).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.Barcode }).IsUnique().HasFilter("\"Barcode\" IS NOT NULL");
     }
 }
 
@@ -986,7 +1001,19 @@ public class StaffSalaryConfiguration : IEntityTypeConfiguration<StaffSalary>
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.MonthlySalary).HasPrecision(12, 2);
+        builder.Property(e => e.HourlyRate).HasPrecision(12, 2);
         builder.HasIndex(e => e.AdminUserId).IsUnique();
+    }
+}
+
+public class TimeEntryConfiguration : IEntityTypeConfiguration<TimeEntry>
+{
+    public void Configure(EntityTypeBuilder<TimeEntry> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.EditedBy).HasMaxLength(100);
+        builder.Property(e => e.EditNote).HasMaxLength(200);
+        builder.HasIndex(e => new { e.AdminUserId, e.ClockInAt });
     }
 }
 
@@ -1022,6 +1049,9 @@ public class PayrollLineConfiguration : IEntityTypeConfiguration<PayrollLine>
         builder.Property(e => e.Username).HasMaxLength(100).IsRequired();
         builder.Property(e => e.Role).HasMaxLength(20).IsRequired();
         builder.Property(e => e.Salary).HasPrecision(12, 2);
+        builder.Property(e => e.Hours).HasPrecision(9, 2);
+        builder.Property(e => e.HourlyRate).HasPrecision(12, 2);
+        builder.Property(e => e.HourlyPay).HasPrecision(12, 2);
         builder.Property(e => e.Bonuses).HasPrecision(12, 2);
         builder.Property(e => e.Deductions).HasPrecision(12, 2);
         builder.Property(e => e.Total).HasPrecision(12, 2);
@@ -1073,5 +1103,14 @@ public class CardTerminalPaymentConfiguration : IEntityTypeConfiguration<CardTer
         builder.HasIndex(e => new { e.TerminalId, e.Status });
         builder.HasIndex(e => new { e.LocationId, e.Status });
         builder.HasIndex(e => e.OrderId);
+    }
+}
+
+public class OrderDayCounterConfiguration : IEntityTypeConfiguration<OrderDayCounter>
+{
+    public void Configure(EntityTypeBuilder<OrderDayCounter> builder)
+    {
+        builder.HasKey(e => new { e.LocationId, e.Day });
+        builder.HasOne<Location>().WithMany().HasForeignKey(e => e.LocationId).OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -175,6 +175,7 @@ public class ProfitTests(YurtWebAppFactory factory)
         string[] moneyUrls =
         [
             $"/api/v1/admin/profit/items?month={month}", $"/api/v1/admin/profit/month?month={month}",
+            $"/api/v1/admin/profit/menu-analysis?month={month}",
             $"/api/v1/admin/profit/expenses?month={month}", "/api/v1/admin/stock/food-cost", "/api/v1/admin/stock/write-offs",
         ];
         foreach (var url in moneyUrls)

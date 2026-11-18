@@ -19,12 +19,29 @@ public class MenuItem : BaseEntity, ITenantOwned
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
 
+    // Allergens (comma-separated codes, see Nutrition.AllergenCodes) and nutrition per serving. All optional.
+    public string? Allergens { get; set; }
+    public int? Calories { get; set; }
+    public decimal? Protein { get; set; }
+    public decimal? Fat { get; set; }
+    public decimal? Carbs { get; set; }
+    public int? WeightGrams { get; set; }
+
     /// <summary>On the menu only while this schedule is running. Null = always (the stop-list still applies).</summary>
     public Guid? ScheduleId { get; set; }
 
     // A combo: a set price for several dishes sold together (coffee + pastry). Its parts are in ComboParts; stock and cost
     // follow the parts. A combo offers no add-ons or sizes of its own.
     public bool IsCombo { get; set; }
+
+    /// <summary>The number printed on the pack or the shelf label (EAN-13, EAN-8, UPC or the cafe's own). Unique per cafe.</summary>
+    public string? Barcode { get; set; }
+
+    /// <summary>
+    /// Sold by weight: <see cref="Price"/> is the price of 1 kg and the till weighs each sale. Sold at the till only,
+    /// with no sizes or add-ons. A recipe is then the amount used per 1 kg.
+    /// </summary>
+    public bool SoldByWeight { get; set; }
 
     // iiko nomenclature mapping (order-push feature). Null = unmapped; orders containing
     // this item fail closed (skip the iiko push) rather than guessing. ProductSizeId is

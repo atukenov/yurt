@@ -1,6 +1,6 @@
 import { MenuItem, MenuTopping, PaymentMethod } from 'shared-models';
 import {
-  addLine, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant, discountOf,
+  addLine, addWeighedLine, kgText, branchMethods, cartCount, cartTotal, changeDue, changeQuantity, COUNTER_METHODS, defaultVariant, discountOf,
   comboSummary, missingChoice, needsOptions, offlineNumber, receiptLines, tipOf, toggleTopping, toRequest,
 } from './cart';
 
@@ -175,5 +175,29 @@ describe('combos on the till', () => {
     expect(needsOptions(combo)).toBe(false);
     const lines = addLine([], combo, null, [], 2);
     expect(cartTotal(lines)).toBe(2400);
+  });
+});
+
+describe('weighed items', () => {
+  const cheese: MenuItem = { id: 'cheese', categoryId: 'deli', categoryName: 'Deli', name: 'Cheese', description: '', price: 100, isAvailable: true, isNew: false, soldByWeight: true, barcode: '000123' };
+
+  it('makes one line per weighing, priced for the weight, and cannot add more of the same line', () => {
+    let lines = addWeighedLine([], cheese, 350, 'a');
+    lines = addWeighedLine(lines, cheese, 1250, 'b');
+    expect(lines.length).toBe(2);
+    expect(lines.map((l) => l.unitPrice)).toEqual([35, 125]);
+    expect(cartTotal(lines)).toBe(160);
+    expect(changeQuantity(lines, lines[0].key, +1)).toEqual(lines);
+    expect(changeQuantity(lines, lines[0].key, -1).length).toBe(1);
+    expect(kgText(350)).toBe('0.350 kg');
+  });
+
+  it('sends the weight with the sale and prints it on the receipt', () => {
+    const lines = addWeighedLine([], cheese, 350, 'a');
+    const req = toRequest(lines, 'branch', PaymentMethod.Cash, 'k', true, null);
+    expect(req.items).toEqual([{ menuItemId: 'cheese', quantity: 1, variantId: null, toppingIds: [], weightGrams: 350 }]);
+    expect(receiptLines(lines)).toEqual([{ quantity: 1, weightGrams: 350, name: 'Cheese', extras: '', total: 35 }]);
+    // A plain item carries no weight.
+    expect('weightGrams' in toRequest(addLine([], water, null, []), 'branch', PaymentMethod.Cash, 'k', true, null).items[0]).toBe(false);
   });
 });

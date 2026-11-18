@@ -5,6 +5,7 @@ import { Currency2Pipe, LocalNumberPipe, ToastService } from 'shared-ui';
 import { Combo, ComboReport, Location, MenuCategory, MenuItem, SaveCombo } from 'shared-models';
 import { AdminTranslatePipe } from '../../core/translate.pipe';
 import { AdminLangService } from '../../core/lang.service';
+import { MenuSectionsComponent } from '../../shared/menu-sections/menu-sections.component';
 import { currentMonth } from '../payroll/payroll.component';
 
 /** One row of the combo form: a dish, its size (when it has sizes) and how many. */
@@ -41,9 +42,10 @@ export function formProblem(name: string, price: number | null, categoryId: stri
 @Component({
   selector: 'app-combos',
   standalone: true,
-  imports: [FormsModule, AdminTranslatePipe, Currency2Pipe, LocalNumberPipe],
+  imports: [FormsModule, AdminTranslatePipe, Currency2Pipe, LocalNumberPipe, MenuSectionsComponent],
   template: `
     <div class="p-4 md:p-6 max-w-5xl mx-auto space-y-5">
+      <app-menu-sections />
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 class="text-2xl font-bold text-slate-800">{{ 'combos.title' | t }}</h1>

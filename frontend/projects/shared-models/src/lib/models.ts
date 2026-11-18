@@ -190,6 +190,29 @@ export interface MenuItem {
   /** A combo: a set price for the dishes in `comboItems`. */
   isCombo?: boolean;
   comboItems?: ComboItem[];
+  /** The number on the pack, scanned at the till. For a dish sold by weight: the scale's item number (PLU). */
+  barcode?: string | null;
+  /** Sold by weight at the till: `price` is the price of 1 kg. */
+  soldByWeight?: boolean;
+  /** Allergens and nutrition per serving; null/absent when nothing is filled in. */
+  nutrition?: Nutrition | null;
+}
+
+/** The 14 EU allergens, as the server stores them. The apps translate `allergen.<code>`. */
+export const ALLERGEN_CODES = [
+  'gluten', 'crustaceans', 'eggs', 'fish', 'peanuts', 'soy', 'milk', 'nuts',
+  'celery', 'mustard', 'sesame', 'sulphites', 'lupin', 'molluscs',
+] as const;
+export type AllergenCode = (typeof ALLERGEN_CODES)[number];
+
+/** Nutrition per serving (every number optional) and the allergens the dish contains. */
+export interface Nutrition {
+  calories?: number | null;
+  protein?: number | null;
+  fat?: number | null;
+  carbs?: number | null;
+  weightGrams?: number | null;
+  allergens?: string[] | null;
 }
 
 /** A dish inside a combo, as the guest and the till see it. */
@@ -381,6 +404,8 @@ export interface OrderItem {
   variantLabel?: string;
   /** For a combo: the dishes that were in it (per one combo). */
   comboParts?: { name: string; variantLabel?: string | null; quantity: number }[] | null;
+  /** For an item sold by weight: the weight in grams (quantity is then 1). */
+  weightGrams?: number | null;
 }
 
 /** One menu item of a branch with its stock count (own_pos). `quantity` is null when the item is not counted. */
@@ -406,6 +431,8 @@ export interface Ingredient {
   usedInItems: number;
   /** What one unit costs the cafe (e.g. 1 g of beans). Null when not known. */
   costPerUnit?: number | null;
+  /** The number on the supplier's pack, scanned when a delivery arrives. */
+  barcode?: string | null;
 }
 
 /** How much of an ingredient one portion uses. A null `variantId` means every size. */
@@ -735,7 +762,7 @@ export interface StockAlertPhone {
 }
 
 /** Where an order came from: the guest's app, or a cashier at the counter (Yurt POS). */
-export type OrderSource = 'App' | 'Counter';
+export type OrderSource = 'App' | 'Counter' | 'Kiosk';
 /** Eat in the cafe (DineIn) or take away (TakeAway, the default). */
 export type OrderType = 'DineIn' | 'TakeAway';
 
@@ -764,6 +791,10 @@ export interface Order {
   tipAmount?: number;
   /** How the tip was paid; empty = the same way as the bill. */
   tipMethod?: PaymentMethod | null;
+  /** The short number guests and staff say out loud: 1, 2, 3 ... again from 1 each day at the branch. Old orders: the end of the id. */
+  number?: string;
+  /** The day's number as an integer (not set on an old order, or on a sale made offline, whose number is "T-…"). */
+  dailyNumber?: number | null;
   total: number;
   discountCode?: string;
   items: OrderItem[];
@@ -787,7 +818,7 @@ export interface Order {
 /** A paid sale rung up at the counter for a walk-in guest (Yurt POS). Prices come from the server's menu. */
 export interface CreateCounterSaleRequest {
   locationId: string;
-  items: { menuItemId: string; quantity: number; variantId?: string | null; toppingIds?: string[]; notes?: string | null }[];
+  items: { menuItemId: string; quantity: number; variantId?: string | null; toppingIds?: string[]; notes?: string | null; weightGrams?: number | null }[];
   paymentMethod: PaymentMethod;
   /** Made by the till once per sale and sent again on every retry, so a sale is never counted twice. */
   idempotencyKey: string;
@@ -804,6 +835,15 @@ export interface CreateCounterSaleRequest {
   tip?: number | null;
   /** How the tip was paid when it differs from the bill (for example cash on a card sale). */
   tipMethod?: PaymentMethod | null;
+}
+
+/** An order a guest made on the self-order kiosk (module kiosk). It waits unpaid until the cashier takes the payment. */
+export interface CreateKioskOrderRequest {
+  locationId: string;
+  items: { menuItemId: string; quantity: number; variantId?: string | null; toppingIds?: string[] }[];
+  /** Made once per order and sent again on every retry, so an order is never made twice. */
+  idempotencyKey: string;
+  orderType?: OrderType;
 }
 
 export enum IikoOrderSyncStatus {
@@ -864,6 +904,87 @@ export interface ManagerPinStatus {
   anyManagerHasPin: boolean;
   /** The signed-in person has a PIN of their own. */
   iHavePin: boolean;
+}
+
+// ── Staff PIN and time clock (own_pos) ───────────────────────────────────────
+export interface StaffPinPerson {
+  id: string;
+  username: string;
+  role: string;
+  isActive: boolean;
+  hasPin: boolean;
+}
+
+export interface PunchResult {
+  adminUserId: string;
+  username: string;
+  /** "in" or "out". */
+  action: 'in' | 'out';
+  at: string;
+  clockedInSince: string | null;
+  hoursThisShift: number | null;
+  /** The last shift was never clocked out and was closed with zero hours. */
+  forgotLast: boolean;
+}
+
+export interface OnTheClock {
+  entryId: string;
+  adminUserId: string;
+  username: string;
+  locationId: string | null;
+  clockInAt: string;
+}
+
+export interface TimeEntry {
+  id: string;
+  adminUserId: string;
+  username: string;
+  locationId: string | null;
+  clockInAt: string;
+  clockOutAt: string | null;
+  hours: number;
+  /** Clocked in right now. */
+  open: boolean;
+  /** Nobody clocked out: a manager should fix the time. */
+  forgotten: boolean;
+  editedBy: string | null;
+  editNote: string | null;
+}
+
+export interface StaffHours {
+  adminUserId: string;
+  username: string;
+  role: string;
+  hours: number;
+  days: number;
+  problems: number;
+}
+
+export interface HoursReport {
+  from: string;
+  to: string;
+  totalHours: number;
+  byStaff: StaffHours[];
+  entries: TimeEntry[];
+}
+
+/** A stretch where the camera and the time clock disagree. Times are the cafe's local time. */
+export interface ClockCrossFinding {
+  /** working_not_clocked | more_seen_than_clocked | clocked_not_seen */
+  kind: string;
+  from: string;
+  to: string;
+  minutes: number;
+  maxSeen: number;
+  maxClocked: number;
+}
+
+export interface ClockCrossCheck {
+  locationId: string;
+  day: string;
+  hasCameras: boolean;
+  cameraMinutes: number;
+  findings: ClockCrossFinding[];
 }
 
 export interface UpdateStatusRequest {
@@ -1190,6 +1311,8 @@ export interface PayrollStaff {
   role: string;
   isActive: boolean;
   monthlySalary: number;
+  /** Paid per worked hour from the time clock, on top of the salary. 0 = none. */
+  hourlyRate: number;
 }
 
 export interface PayAdjustment {
@@ -1210,6 +1333,10 @@ export interface PayrollLine {
   deductions: number;
   total: number;
   adjustments: PayAdjustment[];
+  /** Hours worked that month (time clock), the hourly rate and the pay for them. */
+  hours: number;
+  hourlyRate: number;
+  hourlyPay: number;
 }
 
 export interface PayrollSheet {
@@ -1222,6 +1349,8 @@ export interface PayrollSheet {
   totalBonuses: number;
   totalDeductions: number;
   totalToPay: number;
+  totalHourlyPay: number;
+  totalHours: number;
 }
 
 /** One dish and size over a month (profit report, CEO only). Money is after the order's discount. */
@@ -1247,6 +1376,38 @@ export interface ItemProfitReport {
   month: string;
   locationId?: string | null;
   items: ItemProfit[];
+}
+
+export type MenuClass = 'star' | 'plowhorse' | 'puzzle' | 'dog';
+export type MenuAction = 'keep' | 'push' | 'fix' | 'drop';
+
+/** One dish (all sizes together) in the menu analysis. */
+export interface MenuAnalysisItem {
+  menuItemId: string;
+  name: string;
+  sold: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+  profitPerItem: number;
+  soldShare: number;
+  profitShare: number;
+  class: MenuClass;
+  action: MenuAction;
+  abc: 'A' | 'B' | 'C';
+  /** Plowhorses: how much more each portion would need to earn to reach the menu's average. */
+  raisePriceBy?: number | null;
+  estimated: boolean;
+  missingPrice: boolean;
+}
+
+export interface MenuAnalysis {
+  month: string;
+  locationId?: string | null;
+  popularFrom: number;
+  averageProfitPerItem: number;
+  items: MenuAnalysisItem[];
+  noRecipe: { menuItemId: string; name: string; sold: number; revenue: number }[];
 }
 
 export type CafeExpenseCategory = 'rent' | 'utilities' | 'marketing' | 'repairs' | 'taxes' | 'other';
@@ -2015,3 +2176,49 @@ export interface MenuSchedule {
 }
 
 export type SaveMenuSchedule = Omit<MenuSchedule, 'id' | 'runningNow'>;
+
+// ── Sales forecast and prep plan (own_pos) ─────────────────────────────────────
+
+/** One dish and size expected on the day, and how many to have ready in each part of the day. */
+export interface ForecastDish {
+  menuItemId: string;
+  variantId?: string | null;
+  name: string;
+  size?: string | null;
+  expected: number;
+  morning: number;
+  lunch: number;
+  afternoon: number;
+  evening: number;
+  usualPerDay: number;
+  daysSold: number;
+}
+
+/** What the day's dishes use of an ingredient, next to what the branch has now (`inStock` null = not counted). */
+export interface ForecastIngredient {
+  ingredientId: string;
+  name: string;
+  unit: string;
+  needed: number;
+  inStock?: number | null;
+  missing: number;
+}
+
+export type ForecastConfidence = 'none' | 'low' | 'medium' | 'high';
+
+export interface Forecast {
+  date: string;
+  weekday: number;
+  locationId: string;
+  daysUsed: number;
+  confidence: ForecastConfidence;
+  adjustPercent: number;
+  bufferPercent: number;
+  totalItems: number;
+  /** Expected items for each hour of the day (index 0-23, the cafe's local time). */
+  hourly: number[];
+  peakHour?: number | null;
+  dishes: ForecastDish[];
+  ingredients: ForecastIngredient[];
+  history: { date: string; items: number }[];
+}

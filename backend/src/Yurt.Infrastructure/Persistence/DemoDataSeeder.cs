@@ -76,6 +76,23 @@ public static class DemoDataSeeder
         new("Food & Pastries", "Banana Bread", "Банановый хлеб", "Банан наны", "Moist, house-baked banana bread with walnut crunch.", "Домашний банановый хлеб с грецким орехом.", 4.00m, 6, "photo-1588195538326-c5b1e9f80a1b"),
     ];
 
+    // Allergens and nutrition per serving for the demo dishes (name -> kcal, protein, fat, carbs, grams, allergens).
+    private static readonly Dictionary<string, (int Kcal, decimal P, decimal F, decimal C, int G, string Allergens)> DemoNutrition =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Espresso"] = (3, 0.1m, 0m, 0.5m, 30, ""),
+            ["Americano"] = (5, 0.3m, 0m, 1m, 250, ""),
+            ["Cappuccino"] = (120, 6m, 6m, 9m, 200, "milk"),
+            ["Flat White"] = (130, 7m, 7m, 9m, 160, "milk"),
+            ["Latte"] = (190, 10m, 9m, 15m, 300, "milk"),
+            ["Mocha"] = (290, 9m, 12m, 36m, 300, "milk,soy"),
+            ["Iced Latte"] = (150, 8m, 7m, 12m, 350, "milk"),
+            ["Matcha Latte"] = (160, 4m, 6m, 22m, 350, "gluten"),
+            ["Butter Croissant"] = (310, 6m, 17m, 34m, 80, "gluten,milk,eggs"),
+            ["Avocado Toast"] = (360, 9m, 20m, 36m, 200, "gluten,sesame"),
+            ["Banana Bread"] = (340, 5m, 14m, 49m, 110, "gluten,eggs,milk,nuts"),
+        };
+
     private static readonly DemoTopping[] Toppings =
     [
         new("Extra Espresso Shot", "Доп. шот эспрессо", 0.75m, null, ["Coffee", "Cold Drinks"]),
@@ -329,6 +346,11 @@ public static class DemoDataSeeder
             row.NameRu ??= i.Ru;
             row.NameKk ??= i.Kk;
             row.DescriptionRu ??= i.DescriptionRu;
+            if (row.Calories is null && row.Allergens is null && DemoNutrition.TryGetValue(i.Name, out var nut))
+            {
+                row.Calories = nut.Kcal; row.Protein = nut.P; row.Fat = nut.F; row.Carbs = nut.C; row.WeightGrams = nut.G;
+                row.Allergens = string.IsNullOrEmpty(nut.Allergens) ? null : nut.Allergens;
+            }
             if (i.Sizes && row.Variants.Count == 0)
             {
                 db.MenuItemVariants.AddRange(
@@ -643,6 +665,20 @@ public static class DemoDataSeeder
         if (!await db.AdminUsers.IgnoreQueryFilters().AnyAsync(u => u.Username == former, ct))
             db.AdminUsers.Add(new AdminUser { Username = former, PasswordHash = d.PasswordHash, Role = AdminRole.Worker, IsActive = false, CreatedAt = d.Now.AddDays(-200) });
         await db.SaveChangesAsync(ct);
+
+        // Staff PINs (2001, 2002...) for the till, and two weeks of clocked hours for everyone on the payroll.
+        for (var n = 0; n < users.Count; n++)
+            users[n].StaffPinHash ??= BCrypt.Net.BCrypt.HashPassword((2001 + n).ToString(CultureInfo.InvariantCulture));
+        var branchId = (await db.Locations.OrderBy(l => l.CreatedAt).Select(l => (Guid?)l.Id).FirstOrDefaultAsync(ct));
+        if (!await db.TimeEntries.AnyAsync(ct))
+            foreach (var u in users.Where(u => u.Role != AdminRole.Ceo))
+                for (var back = 1; back <= 14; back++)
+                {
+                    if ((back + users.IndexOf(u)) % 3 == 0) continue; // days off
+                    var day = d.Today.AddDays(-back);
+                    var start = 7.5 + d.Rng.Next(0, 4) * 0.5;
+                    db.TimeEntries.Add(new TimeEntry { AdminUserId = u.Id, LocationId = branchId, ClockInAt = d.At(day, start), ClockOutAt = d.At(day, start + 8 + d.Rng.Next(0, 3) * 0.5) });
+                }
 
         var salaried = (await db.StaffSalaries.Select(s => s.AdminUserId).ToListAsync(ct)).ToHashSet();
         foreach (var u in users.Where(u => !salaried.Contains(u.Id)))
@@ -1155,6 +1191,22 @@ public static class DemoDataSeeder
             if (o.Status == OrderStatus.Preparing && bar is not null && Drinks(o) > 0)
                 o.ReadyStations.Add(new OrderStationReady { StationId = bar.Id, CreatedAt = d.Now.AddMinutes(-2) });
         }
+
+        // Day numbers, like the app gives them: 1, 2, 3 ... again from 1 each day at each branch.
+        var counters = (await db.OrderDayCounters.ToListAsync(ct)).ToDictionary(c => (c.LocationId, c.Day));
+        foreach (var o in all.Select(a => a.Order).OrderBy(o => o.CreatedAt))
+        {
+            var day = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(o.CreatedAt, DateTimeKind.Utc), CafeTime));
+            if (!counters.TryGetValue((o.LocationId, day), out var counter))
+            {
+                counter = new OrderDayCounter { LocationId = o.LocationId, Day = day };
+                counters[(o.LocationId, day)] = counter;
+            }
+            counter.LastNumber++;
+            o.BusinessDate = day;
+            o.DailyNumber = counter.LastNumber;
+        }
+        db.OrderDayCounters.AddRange(counters.Values.Where(c => db.Entry(c).State == EntityState.Detached));
 
         foreach (var batch in all.Chunk(250))
         {

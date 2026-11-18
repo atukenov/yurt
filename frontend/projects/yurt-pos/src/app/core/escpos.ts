@@ -17,6 +17,8 @@ export interface TillPrinterSettings {
 
 export interface TillReceiptLine {
   quantity: number;
+  /** A weighed item: the weight in grams (printed as kg instead of the quantity). */
+  weightGrams?: number;
   name: string;
   /** Size and add-ons, such as "L, + Oat milk". */
   extras: string;
@@ -187,7 +189,7 @@ export function receiptBytes(p: TillPrinterSettings, r: TillReceipt, openDrawer 
   e.line(r.branch).line(dateTime(r.at)).line(`#${r.number}`);
   e.left().rule();
   for (const l of r.lines) {
-    e.columns(`${l.quantity} x ${l.name}`, money(l.total, w));
+    e.columns(l.weightGrams ? `${(l.weightGrams / 1000).toFixed(3)} kg ${l.name}` : `${l.quantity} x ${l.name}`, money(l.total, w));
     if (l.extras) e.line(`  ${l.extras}`);
   }
   e.rule();

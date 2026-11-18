@@ -131,6 +131,15 @@
           </div>
         </div>
 
+        @if (clock(); as c) {
+          <button type="button" (click)="toggleClock()" [disabled]="clockBusy()"
+            class="w-full mb-2 px-3 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors"
+            [class]="c.clockedIn ? 'bg-green-50 text-green-800 hover:bg-green-100' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'">
+            {{ (c.clockedIn ? 'clock.outButton' : 'clock.inButton') | t }}
+            @if (c.clockedIn && c.since) { <span class="block text-xs font-normal">{{ 'clock.since' | t }} {{ c.since | ldate: 'time24' }}</span> }
+          </button>
+        }
+
         <button
           (click)="logout()"
           class="w-full text-left text-xs text-tone-red hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"

@@ -2,8 +2,8 @@ import { Component, inject, OnInit, signal, computed, Input, effect } from '@ang
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { YurtApiService, AuthStateService } from 'shared-api';
-import { MenuItem, MenuTopping, OptionRule, MenuItemVariant, OrderItemToppingInput } from 'shared-models';
-import { ToastService, Currency2Pipe } from 'shared-ui';
+import { MenuItem, MenuTopping, Nutrition, OptionRule, MenuItemVariant, OrderItemToppingInput } from 'shared-models';
+import { ToastService, Currency2Pipe, LocalNumberPipe } from 'shared-ui';
 import { CartService } from '../cart/cart.service';
 import { LangService } from '../../core/lang.service';
 import { TranslatePipe } from '../../core/translate.pipe';
@@ -15,12 +15,17 @@ import { CupViewerComponent } from './cup-viewer.component';
 @Component({
   selector: 'app-item-detail',
   standalone: true,
-  imports: [CommonModule, Currency2Pipe, TranslatePipe, PullToRefreshDirective, CupViewerComponent],
+  imports: [CommonModule, Currency2Pipe, LocalNumberPipe, TranslatePipe, PullToRefreshDirective, CupViewerComponent],
   templateUrl: './item-detail.component.html',
   styleUrl: './item-detail.component.css',
 })
 export class ItemDetailComponent implements OnInit {
   @Input() id!: string;
+
+  /** Any of calories / protein / fat / carbs given? (Allergens are shown on their own.) */
+  hasNumbers(n: Nutrition): boolean {
+    return n.calories != null || n.protein != null || n.fat != null || n.carbs != null;
+  }
 
   private api = inject(YurtApiService);
   private auth = inject(AuthStateService);

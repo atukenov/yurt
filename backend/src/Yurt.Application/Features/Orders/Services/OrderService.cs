@@ -141,6 +141,10 @@ public class OrderService
             if (!timed.IsOnMenu(item))
                 return Result<OrderDto>.Failure($"'{item.Name}' is not on the menu at this time.", 400);
 
+        // A dish sold by weight is weighed at the till; the app can't order it.
+        if (menuItems.FirstOrDefault(m => m.SoldByWeight) is { } weighedItem)
+            return Result<OrderDto>.Failure($"'{weighedItem.Name}' is sold by weight at the counter and can't be ordered in the app.", 400);
+
         // A combo can be ordered only while every dish inside it is available at this branch.
         var combos = await ComboSales.LoadAsync(_db, menuItems, ct);
         foreach (var combo in menuItems.Where(m => m.IsCombo))
@@ -273,6 +277,7 @@ public class OrderService
             return Result<OrderDto>.Failure(
                 "Select a payment method, or apply enough bonus points to cover the full total.", 400);
 
+        await OrderNumbers.AssignAsync(_db, order, location, ct);
         _db.Orders.Add(order);
         await _db.SaveChangesAsync(ct);
 
@@ -783,7 +788,8 @@ public class OrderService
                 i.Toppings.Select(t => new OrderItemToppingDto(t.ToppingId, t.ToppingName, t.Price)).ToList(),
                 i.Notes, i.VariantLabel,
                 i.ComboParts.Count == 0 ? null : i.ComboParts.OrderBy(c => c.CreatedAt)
-                    .Select(c => new OrderItemComboPartDto(c.ItemName, c.VariantLabel, c.Quantity)).ToList()
+                    .Select(c => new OrderItemComboPartDto(c.ItemName, c.VariantLabel, c.Quantity)).ToList(),
+                i.WeightGrams
             )).ToList(),
             o.LoyaltyPointsSpent,
             o.LoyaltyPointsEarned,
@@ -797,6 +803,8 @@ public class OrderService
             Source: o.Source,
             OrderType: o.OrderType,
             TipAmount: o.TipAmount,
-            TipMethod: o.TipMethod);
+            TipMethod: o.TipMethod,
+            Number: OrderNumbers.Display(o),
+            DailyNumber: o.DailyNumber);
     }
 }

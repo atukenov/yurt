@@ -250,7 +250,7 @@ export class KitchenDisplayComponent implements OnInit, OnDestroy {
   }
 
   shortId(order: Order): string {
-    return order.id.slice(-6).toUpperCase();
+    return order.number || order.id.slice(-6).toUpperCase();
   }
 
   /** Minutes the order has waited since it was accepted (or created, if the time is missing). */

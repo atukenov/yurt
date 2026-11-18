@@ -53,3 +53,31 @@ export function isoDay(date: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
+
+/** One invoice line while it is typed in. */
+export interface ScanLine {
+  ingredientId: string;
+  quantity: number | null;
+  total: number | null;
+}
+
+/**
+ * A pack was scanned while receiving a delivery. A pack of an ingredient already on the invoice adds one more pack
+ * (its size and usual price when the supplier's pack is known, else 1 unit); otherwise the ingredient gets a line of
+ * its own, taking over the empty line at the end if there is one.
+ */
+export function addScannedPack(
+  lines: ScanLine[], ingredientId: string, pack: { packSize: number; packPrice?: number | null } | null,
+): ScanLine[] {
+  const size = pack && pack.packSize > 0 ? pack.packSize : 1;
+  const price = pack?.packPrice ?? null;
+  const at = lines.findIndex((l) => l.ingredientId === ingredientId);
+  if (at >= 0) {
+    const l = lines[at];
+    const total = price === null ? l.total : Math.round(((l.total ?? 0) + price) * 100) / 100;
+    return lines.map((x, i) => (i === at ? { ...x, quantity: Math.round(((x.quantity ?? 0) + size) * 1000) / 1000, total } : x));
+  }
+  const fresh: ScanLine = { ingredientId, quantity: size, total: price };
+  const blank = lines.findIndex((l) => !l.ingredientId && !l.quantity && l.total === null);
+  return blank >= 0 ? lines.map((x, i) => (i === blank ? fresh : x)) : [...lines, fresh];
+}

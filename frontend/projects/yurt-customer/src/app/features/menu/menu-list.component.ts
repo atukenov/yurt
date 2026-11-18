@@ -79,6 +79,11 @@ export class MenuListComponent implements OnInit {
     this.failedImageIds.update((s) => new Set([...s, id]));
   }
 
+  /** The dish's allergens as one line in the app language, e.g. "Gluten, Milk". */
+  allergenNames(item: MenuItem): string {
+    return (item.nutrition?.allergens ?? []).map((a) => this.langService.t('allergen.' + a)).join(', ');
+  }
+
   isNew(item: MenuItem): boolean {
     return item.isNew;
   }
@@ -329,7 +334,8 @@ export class MenuListComponent implements OnInit {
       )
       .subscribe({
         next: (items) => {
-          this.allItems.set(items);
+          // A dish sold by weight is weighed at the till and can't be ordered here.
+          this.allItems.set(items.filter((i) => !i.soldByWeight));
           this.loading.set(false);
         },
         error: () => this.loading.set(false),

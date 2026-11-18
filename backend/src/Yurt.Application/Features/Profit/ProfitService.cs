@@ -116,6 +116,13 @@ public class ProfitService(
         return Result<ItemProfitReportDto>.Success(new ItemProfitReportDto(month, locationId, items));
     }
 
+    /// <summary>The month's dishes grouped into stars, plowhorses, puzzles and dogs, with ABC class and what to do.</summary>
+    public async Task<Result<MenuAnalysisDto>> MenuAnalysisAsync(string month, Guid? locationId, CancellationToken ct = default)
+    {
+        var items = await ItemsAsync(month, locationId, ct);
+        return items.Succeeded ? Result<MenuAnalysisDto>.Success(MenuAnalysis.Build(items.Data!)) : Result<MenuAnalysisDto>.Failure(items.Error ?? "", items.StatusCode);
+    }
+
     // ── month ──
 
     public async Task<Result<ProfitMonthDto>> MonthAsync(string month, Guid? locationId, CancellationToken ct = default)

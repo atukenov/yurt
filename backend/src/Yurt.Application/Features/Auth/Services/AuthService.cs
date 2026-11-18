@@ -373,6 +373,23 @@ public class AuthService
         }
     }
 
+    /// <summary>
+    /// Signs the till in as another staff member of the same cafe (staff PIN switch, already checked by the caller).
+    /// The previous person's refresh token, if sent, is revoked so the old session cannot come back.
+    /// </summary>
+    public async Task<Result<AuthResponseDto>> SwitchAdminSessionAsync(
+        AdminUser admin, string? previousRefreshToken, string? ip = null, CancellationToken ct = default)
+    {
+        if (!string.IsNullOrEmpty(previousRefreshToken))
+            await RevokeAsync(previousRefreshToken, ip, ct);
+
+        var role = admin.Role.ToString();
+        var accessToken = _tokenService.GenerateAdminToken(admin.Id, admin.Username, role, admin.MustChangePassword);
+        var refreshToken = await CreateRefreshTokenAsync(admin.Id, RefreshTokenUserType.Admin, ip, ct);
+        return Result<AuthResponseDto>.Success(
+            new AuthResponseDto(accessToken, refreshToken, "admin", admin.Id, admin.Username, role, admin.MustChangePassword, _tenant.Slug));
+    }
+
     public async Task RevokeAsync(string refreshTokenValue, string? ip = null, CancellationToken ct = default)
     {
         var storedToken = await _db.RefreshTokens

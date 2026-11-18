@@ -30,7 +30,15 @@ public record MenuItemDto(
     decimal? RegularPrice = null,
     // A combo: a set price for the dishes listed in ComboItems.
     bool IsCombo = false,
-    List<ComboItemDto>? ComboItems = null);
+    List<ComboItemDto>? ComboItems = null,
+    // The number on the pack, scanned at the till; and a dish sold by weight (Price is then per kg, till only).
+    string? Barcode = null,
+    bool SoldByWeight = false,
+    // Allergens and nutrition per serving; null when nothing is filled in.
+    NutritionDto? Nutrition = null);
+
+/// <summary>Allergen codes (see Nutrition.AllergenCodes) and nutrition per serving. Every number is optional.</summary>
+public record NutritionDto(int? Calories, decimal? Protein, decimal? Fat, decimal? Carbs, int? WeightGrams, List<string>? Allergens);
 
 /// <summary>A dish inside a combo, for the guest: name, size (if one is set) and how many.</summary>
 public record ComboItemDto(Guid ItemId, string Name, string? VariantLabel, int Quantity);
@@ -72,7 +80,10 @@ public record AdminMenuItemDto(
     Guid? IikoProductSizeId = null,
     // Options picked by hand for this dish (empty = the category's options) and prices that differ by branch.
     List<Guid>? ToppingIds = null,
-    List<LocationPriceDto>? LocationPrices = null);
+    List<LocationPriceDto>? LocationPrices = null,
+    string? Barcode = null,
+    bool SoldByWeight = false,
+    NutritionDto? Nutrition = null);
 
 public record AdminMenuToppingDto(
     Guid Id,
@@ -112,7 +123,10 @@ public record CreateMenuItemDto(
     Guid? IikoProductSizeId = null,
     bool IsNew = false,
     List<Guid>? ToppingIds = null,
-    List<LocationPriceDto>? LocationPrices = null);
+    List<LocationPriceDto>? LocationPrices = null,
+    string? Barcode = null,
+    bool SoldByWeight = false,
+    NutritionDto? Nutrition = null);
 
 public record UpdateMenuItemDto(
     Guid CategoryId,
@@ -131,7 +145,10 @@ public record UpdateMenuItemDto(
     Guid? IikoProductSizeId = null,
     bool IsNew = false,
     List<Guid>? ToppingIds = null,
-    List<LocationPriceDto>? LocationPrices = null);
+    List<LocationPriceDto>? LocationPrices = null,
+    string? Barcode = null,
+    bool SoldByWeight = false,
+    NutritionDto? Nutrition = null);
 
 public record CreateToppingDto
 {

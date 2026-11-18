@@ -623,7 +623,7 @@ public partial class StaffWatchService(
             z.Kind == "station" && !string.IsNullOrWhiteSpace(z.Queue) ? z.Queue.Trim() : null,
             z.Kind == "door" ? z.Inside!.Select(v => Math.Round(v, 2)).ToArray() : null)).ToList();
 
-    private static List<WatchZoneDto> ParseZones(string json)
+    internal static List<WatchZoneDto> ParseZones(string json)
     {
         try { return JsonSerializer.Deserialize<List<WatchZoneDto>>(json, Json) ?? []; }
         catch (JsonException) { return []; }

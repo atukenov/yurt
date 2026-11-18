@@ -53,13 +53,18 @@ public record OrderDto(
     DateTime? PickupAt = null,
     // The table the guest ordered to by its QR code (table_ordering); null = pick up at the counter.
     string? TableLabel = null,
-    // Where the order came from: "App" (the guest's app) or "Counter" (rung up by a cashier for a walk-in guest).
+    // Where the order came from: "App" (the guest's app), "Counter" (rung up by a cashier for a walk-in guest) or "Kiosk" (self-order tablet).
     OrderSource Source = OrderSource.App,
     // Here or to go.
     OrderType OrderType = OrderType.TakeAway,
     // A tip on top of the bill (own_pos). Not part of Total. TipMethod null = paid the same way as the bill.
     decimal TipAmount = 0,
-    PaymentMethod? TipMethod = null);
+    PaymentMethod? TipMethod = null,
+    // The short number guests and staff say out loud (1, 2, 3 ... again from 1 each day at the branch). For a sale made
+    // offline it is the number on the till's own receipt ("T-3FA9C1"); for an order from before day numbers, the end of its id.
+    string Number = "",
+    // The day's number as a plain integer (null on an old order or an offline sale's T- number).
+    int? DailyNumber = null);
 
 public record OrderItemDto(
     Guid Id,
@@ -72,7 +77,9 @@ public record OrderItemDto(
     string? Notes = null,
     string? VariantLabel = null,
     // For a combo: the dishes that were in it (per one combo). Null for a plain dish.
-    List<OrderItemComboPartDto>? ComboParts = null);
+    List<OrderItemComboPartDto>? ComboParts = null,
+    // For a weighed item: the weight in grams (Quantity is 1 and UnitPrice the price of this weight).
+    int? WeightGrams = null);
 
 public record OrderItemComboPartDto(string Name, string? VariantLabel, int Quantity);
 
@@ -97,4 +104,15 @@ public record CreateCounterSaleDto(
     decimal? Tip = null,
     PaymentMethod? TipMethod = null);
 
-public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null);
+/// <summary>
+/// An order a guest made on the self-order kiosk (module kiosk). The kiosk is a tablet signed in with a staff login; the
+/// guest has no account and pays at the counter, so the order waits like an unpaid cash order from the app.
+/// </summary>
+public record CreateKioskOrderDto(
+    Guid LocationId,
+    List<CounterSaleItemDto> Items,
+    string IdempotencyKey,
+    OrderType OrderType = OrderType.TakeAway);
+
+/// <summary>One line of a counter sale. A dish sold by weight needs <c>WeightGrams</c> (and Quantity 1); no other dish takes it.</summary>
+public record CounterSaleItemDto(Guid MenuItemId, int Quantity, Guid? VariantId = null, List<Guid>? ToppingIds = null, string? Notes = null, int? WeightGrams = null);
