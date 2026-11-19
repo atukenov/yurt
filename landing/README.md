@@ -13,6 +13,11 @@ It is one plain HTML file (`index.html`) with no build step, so it can be opened
 2. Check the prices in `MODULES`, `BUNDLES`, `ONCE` and `EXTRA_BRANCH`. The module keys are the same as in
    Platform → Modules and monthly price, so keep the two in step when a price changes.
 
+3. Fill in the legal pages `privacy.html` and `terms.html` (RU + EN, linked from the footer). The highlighted
+   `[PLACEHOLDER]` fields are the operator's legal name and registration number, registered address and contact email.
+   Search for `class="ph"` to find them, and have a lawyer review the text before launch. Shared styles are in
+   `legal.css`, the RU/EN switch in `legal.js`.
+
 ## Deploy (Vercel, its own project)
 
 1. Vercel → Add New → Project → import `atukenov/yurt`.
